@@ -1,0 +1,6 @@
+[workspace]
+
+members = [
+    "crates/rabbitmq_http_client",
+    "crates/rabbitmqadmin_cli"
+]

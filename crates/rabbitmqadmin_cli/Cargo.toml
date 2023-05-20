@@ -1,0 +1,10 @@
+[package]
+name = "rabbitmqadmin"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+clap = { version = "4.2", features = ["derive", "help", "color"] }
+thiserror = "1"
+sysexits = "0.5.0"
+rabbitmq_http_client = { path = "../rabbitmq_http_client" }
