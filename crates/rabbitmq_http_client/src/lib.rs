@@ -33,7 +33,7 @@ impl<'a> Client<'a> {
 
     pub fn list_vhosts(&self) -> responses::Result<Vec<responses::VirtualHost>> {
         let response = HttpClient::new()
-            .get(self.rooted_path("users/"))
+            .get(self.rooted_path("vhosts/"))
             .basic_auth(self.username, self.password)
             .send()?;
 
