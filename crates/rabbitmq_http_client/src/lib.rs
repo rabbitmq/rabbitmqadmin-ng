@@ -22,49 +22,48 @@ impl<'a> Client<'a> {
     }
 
     pub fn list_nodes(&self) -> responses::Result<Vec<responses::ClusterNode>> {
-        let response = HttpClient::new()
-            .get(self.rooted_path("nodes/"))
-            .basic_auth(self.username, self.password)
-            .send()?;
-
-        println!("HTTP API response: {:?}", response);
+        let response = self.http_get("nodes")?;
         response.json::<Vec<responses::ClusterNode>>()
     }
 
     pub fn list_vhosts(&self) -> responses::Result<Vec<responses::VirtualHost>> {
-        let response = HttpClient::new()
-            .get(self.rooted_path("vhosts/"))
-            .basic_auth(self.username, self.password)
-            .send()?;
-
-        println!("HTTP API response: {:?}", response);
+        let response = self.http_get("vhosts")?;
         response.json::<Vec<responses::VirtualHost>>()
     }
 
     pub fn list_users(&self) -> responses::Result<Vec<responses::User>> {
-        let response = HttpClient::new()
-            .get(self.rooted_path("users/"))
-            .basic_auth(self.username, self.password)
-            .send()?;
-
-        println!("HTTP API response: {:?}", response);
+        let response = self.http_get("users")?;
         response.json::<Vec<responses::User>>()
     }
 
     pub fn get_node_info(&self, name: &str) -> responses::Result<responses::ClusterNode> {
-        let response = HttpClient::new()
-            .get(self.rooted_path(&format!("vhosts/{}", name)))
-            .basic_auth(self.username, self.password)
-            .send()?;
-
-        println!("response: {:?}", response);
+        let response = self.http_get(&format!("nodes/{}", name))?;
         let node = response.json::<responses::ClusterNode>()?;
+        Ok(node)
+    }
+
+    pub fn get_vhost(&self, name: &str) -> responses::Result<responses::VirtualHost> {
+        let response = self.http_get(&format!("vhosts/{}", name))?;
+        let node = response.json::<responses::VirtualHost>()?;
+        Ok(node)
+    }
+
+    pub fn get_user(&self, name: &str) -> responses::Result<responses::User> {
+        let response = self.http_get(&format!("users/{}", name))?;
+        let node = response.json::<responses::User>()?;
         Ok(node)
     }
 
     //
     // Implementation
     //
+
+    fn http_get(&self, path: &str) -> reqwest::Result<reqwest::blocking::Response> {
+        HttpClient::new()
+            .get(self.rooted_path(path))
+            .basic_auth(self.username, self.password)
+            .send()
+    }
 
     fn rooted_path(&self, path: &str) -> String {
         return format!("{}/{}", self.endpoint, path)
