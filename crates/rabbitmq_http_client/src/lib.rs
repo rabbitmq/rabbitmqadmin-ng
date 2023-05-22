@@ -10,7 +10,10 @@ struct Client<'a> {
 }
 
 impl<'a> Client<'a> {
-    pub fn new_with_basic_auth_credentials(endpoint: &'a str, username: &'a str, password: Option<&'a str>) -> Self {
+    pub fn new_with_basic_auth_credentials(
+        endpoint: &'a str,
+        username: &'a str,
+        password: Option<&'a str>) -> Self {
         Self {
             endpoint: endpoint,
             username: username,
