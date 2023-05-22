@@ -6,18 +6,19 @@ use reqwest::blocking::Client as HttpClient;
 pub struct Client<'a> {
     endpoint: &'a str,
     username: &'a str,
-    password: Option<&'a str>
+    password: Option<&'a str>,
 }
 
 impl<'a> Client<'a> {
     pub fn new_with_basic_auth_credentials(
         endpoint: &'a str,
         username: &'a str,
-        password: Option<&'a str>) -> Self {
+        password: Option<&'a str>,
+    ) -> Self {
         Self {
             endpoint: endpoint,
             username: username,
-            password: password
+            password: password,
         }
     }
 
@@ -66,6 +67,6 @@ impl<'a> Client<'a> {
     }
 
     fn rooted_path(&self, path: &str) -> String {
-        return format!("{}/{}", self.endpoint, path)
+        format!("{}/{}", self.endpoint, path)
     }
 }

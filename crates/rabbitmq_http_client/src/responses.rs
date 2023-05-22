@@ -1,6 +1,6 @@
-use serde::{Deserialize};
-use serde_aux::prelude::*;
 use reqwest;
+use serde::Deserialize;
+use serde_aux::prelude::*;
 
 pub type Error = reqwest::Error;
 pub type Result<T> = std::result::Result<T, reqwest::Error>;
@@ -10,7 +10,7 @@ pub type Result<T> = std::result::Result<T, reqwest::Error>;
 pub struct VirtualHostMetadata {
     tags: Option<Vec<String>>,
     description: Option<String>,
-    default_queue_type: Option<String>
+    default_queue_type: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -28,7 +28,7 @@ pub struct VirtualHost {
 pub struct User {
     name: String,
     tags: Vec<String>,
-    password_hash: String
+    password_hash: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -52,5 +52,5 @@ pub struct ClusterNode {
     free_disk_space_low_watermark: u64,
     #[serde(rename(deserialize = "disk_free_alarm"))]
     has_free_disk_space_alarm_in_effect: bool,
-    rates_mode: String
+    rates_mode: String,
 }

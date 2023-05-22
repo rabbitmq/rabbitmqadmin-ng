@@ -14,11 +14,11 @@ fn main() {
                 ("list", "nodes") => {
                     let result = commands::list_nodes(&cli);
                     println!("Command execution result:\n\n{:?}", result);
-                },
+                }
                 ("list", "vhosts") => {
                     let result = commands::list_vhosts(&cli);
                     println!("Command execution result:\n\n{:?}", result);
-                },
+                }
                 ("list", "users") => {
                     let result = commands::list_users(&cli);
                     println!("Command execution result:\n\n{:?}", result);
