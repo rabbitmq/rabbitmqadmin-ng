@@ -29,3 +29,27 @@ pub fn list_users(general_args: &ArgMatches) -> ClientResult<Vec<responses::User
         APIClient::new_with_basic_auth_credentials(&endpoint, &sf.username, Some(&sf.password));
     rc.list_users()
 }
+
+pub fn list_connections(general_args: &ArgMatches) -> ClientResult<Vec<responses::Connection>> {
+    let sf = SharedFlags::from_args(general_args);
+    let endpoint = sf.endpoint();
+    let rc =
+        APIClient::new_with_basic_auth_credentials(&endpoint, &sf.username, Some(&sf.password));
+    rc.list_connections()
+}
+
+pub fn list_channels(general_args: &ArgMatches) -> ClientResult<Vec<responses::Channel>> {
+    let sf = SharedFlags::from_args(general_args);
+    let endpoint = sf.endpoint();
+    let rc =
+        APIClient::new_with_basic_auth_credentials(&endpoint, &sf.username, Some(&sf.password));
+    rc.list_channels()
+}
+
+pub fn list_consumers(general_args: &ArgMatches) -> ClientResult<Vec<responses::Consumer>> {
+    let sf = SharedFlags::from_args(general_args);
+    let endpoint = sf.endpoint();
+    let rc =
+        APIClient::new_with_basic_auth_credentials(&endpoint, &sf.username, Some(&sf.password));
+    rc.list_consumers()
+}

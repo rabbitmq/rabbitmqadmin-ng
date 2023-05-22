@@ -188,12 +188,22 @@ pub fn parser() -> Command {
         ])
 }
 
-fn list_subcommands() -> [Command; 4] {
+fn list_subcommands() -> [Command; 14] {
     [
         Command::new("nodes"),
         Command::new("users"),
         Command::new("vhosts"),
         Command::new("permissions"),
+        Command::new("connections"),
+        Command::new("channels"),
+        Command::new("queues"),
+        Command::new("exchanges"),
+        Command::new("bindings"),
+        Command::new("consumers"),
+        Command::new("parameters"),
+        Command::new("policies"),
+        Command::new("operator_policies"),
+        Command::new("vhost_limits"),
     ]
 }
 

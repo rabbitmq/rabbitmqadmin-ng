@@ -37,6 +37,21 @@ impl<'a> Client<'a> {
         response.json::<Vec<responses::User>>()
     }
 
+    pub fn list_connections(&self) -> responses::Result<Vec<responses::Connection>> {
+        let response = self.http_get("connections")?;
+        response.json::<Vec<responses::Connection>>()
+    }
+
+    pub fn list_channels(&self) -> responses::Result<Vec<responses::Channel>> {
+        let response = self.http_get("channels")?;
+        response.json::<Vec<responses::Channel>>()
+    }
+
+    pub fn list_consumers(&self) -> responses::Result<Vec<responses::Consumer>> {
+        let response = self.http_get("consumers")?;
+        response.json::<Vec<responses::Consumer>>()
+    }
+
     pub fn get_node_info(&self, name: &str) -> responses::Result<responses::ClusterNode> {
         let response = self.http_get(&format!("nodes/{}", name))?;
         let node = response.json::<responses::ClusterNode>()?;

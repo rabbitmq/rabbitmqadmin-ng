@@ -23,6 +23,18 @@ fn main() {
                     let result = commands::list_users(&cli);
                     println!("Command execution result:\n\n{:?}", result);
                 }
+                ("list", "connections") => {
+                    let result = commands::list_connections(&cli);
+                    println!("Command execution result:\n\n{:?}", result);
+                }
+                ("list", "channels") => {
+                    let result = commands::list_channels(&cli);
+                    println!("Command execution result:\n\n{:?}", result);
+                }
+                ("list", "consumers") => {
+                    let result = commands::list_consumers(&cli);
+                    println!("Command execution result:\n\n{:?}", result);
+                }
                 _ => {
                     println!("Unknown command and subcommand pair: {:?}", &pair);
                 }

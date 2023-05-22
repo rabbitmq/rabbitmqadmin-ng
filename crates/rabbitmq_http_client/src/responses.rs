@@ -33,6 +33,100 @@ pub struct User {
 
 #[derive(Debug, Deserialize)]
 #[allow(dead_code)]
+pub struct Connection {
+    name: String,
+    node: String,
+    state: String,
+    protocol: String,
+    #[serde(rename(deserialize = "user"))]
+    username: String,
+    connected_at: u64,
+    #[serde(rename(deserialize = "host"))]
+    server_hostname: String,
+    #[serde(rename(deserialize = "port"))]
+    server_port: u32,
+    #[serde(rename(deserialize = "peer_host"))]
+    client_hostname: String,
+    #[serde(rename(deserialize = "peer_port"))]
+    client_port: u32,
+    channel_max: u16,
+    #[serde(rename(deserialize = "channels"))]
+    channel_count: u16,
+    client_properties: ClientProperties,
+}
+
+#[derive(Debug, Deserialize)]
+#[allow(dead_code)]
+pub struct ClientProperties {
+    connection_name: String,
+    platform: String,
+    product: String,
+    version: String,
+    capabilities: ClientCapabilities,
+}
+
+#[derive(Debug, Deserialize)]
+#[allow(dead_code)]
+pub struct ClientCapabilities {
+    authentication_failure_close: bool,
+    #[serde(rename(deserialize = "basic.nack"))]
+    basic_nack: bool,
+    #[serde(rename(deserialize = "connection.blocked"))]
+    connection_blocked: bool,
+    #[serde(rename(deserialize = "consumer_cancel_notify"))]
+    consumer_cancel_notify: bool,
+    #[serde(rename(deserialize = "exchange_exchange_bindings"))]
+    exchange_to_exchange_bindings: bool,
+    publisher_confirms: bool,
+}
+
+#[derive(Debug, Deserialize)]
+#[allow(dead_code)]
+pub struct Channel {
+    #[serde(rename(deserialize = "number"))]
+    id: u32,
+    name: String,
+    connection_details: ConnectionDetails,
+    vhost: String,
+    state: String,
+    consumer_count: u32,
+    #[serde(rename(deserialize = "confirm"))]
+    has_publisher_confirms_enabled: bool,
+    prefetch_count: u32,
+    messages_unacknowledged: u32,
+    messages_unconfirmed: u32,
+}
+
+#[derive(Debug, Deserialize)]
+#[allow(dead_code)]
+pub struct ConnectionDetails {
+    name: String,
+    #[serde(rename(deserialize = "peer_host"))]
+    client_hostname: String,
+    #[serde(rename(deserialize = "peer_port"))]
+    client_port: u32,
+}
+
+#[derive(Debug, Deserialize)]
+#[allow(dead_code)]
+pub struct Consumer {
+    consumer_tag: String,
+    active: bool,
+    exclusive: bool,
+    #[serde(rename(deserialize = "ack_required"))]
+    manual_ack: bool,
+    queue: NameAndVirtualHost
+}
+
+#[derive(Debug, Deserialize)]
+#[allow(dead_code)]
+pub struct NameAndVirtualHost {
+    name: String,
+    vhost: String
+}
+
+#[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 pub struct ClusterNode {
     name: String,
     uptime: u32,
