@@ -2,7 +2,7 @@ use clap::ArgMatches;
 
 use rabbitmq_http_client::responses;
 use rabbitmq_http_client::responses::Result as ClientResult;
-use rabbitmq_http_client::Client as APIClient;
+use rabbitmq_http_client::blocking::Client as APIClient;
 
 use crate::cli::SharedFlags;
 
