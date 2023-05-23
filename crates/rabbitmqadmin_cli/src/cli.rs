@@ -183,8 +183,14 @@ pub fn parser() -> Command {
                 .about("creates or declares things")
                 .subcommand_value_name("object")
                 .subcommands(declare_subcommands()),
-            Command::new("delete").about("deletes objects"),
-            Command::new("purge").about("deletes data"),
+            Command::new("delete")
+                .about("deletes objects")
+                .subcommand_value_name("object")
+                .subcommands(delete_subcommands()),
+            Command::new("purge")
+                .about("purges queues")
+                .subcommand_value_name("queue")
+                .subcommands(purge_subcommands()),
         ])
 }
 
@@ -235,5 +241,42 @@ fn declare_subcommands() -> [Command; 9] {
 fn show_subcomands() -> [Command; 1] {
     [Command::new("overview").about(
         "displays a subset of aggregated metrics found on the Overview page in management UI",
+    )]
+}
+
+fn delete_subcommands() -> [Command; 9] {
+    [
+        Command::new("user").about("deletes a user").arg(
+            Arg::new("name")
+                .long("name")
+                .help("username")
+                .required(true),
+        ),
+        Command::new("vhost")
+            .about("deletes a virtual host")
+            .arg(Arg::new("name").long("name").help("virtual host").required(true)),
+        Command::new("permission").about("revokes a permission"),
+        Command::new("queue")
+            .about("deletes a queue")
+            .arg(Arg::new("name").long("name").help("queue").required(true)),
+        Command::new("exchange").about("deletes an exchange").arg(
+            Arg::new("name")
+                .long("name")
+                .help("exchange")
+                .required(true),
+        ),
+        Command::new("binding").about("deletes a binding"),
+        Command::new("parameter").about("clears a runtime parameter"),
+        Command::new("policy").about("deletes a policy"),
+        Command::new("operator_policy").about("deletes an operator policy"),
+    ]
+}
+
+fn purge_subcommands() -> [Command; 1] {
+    [Command::new("queue").about("purges (empties) a queue").arg(
+        Arg::new("name")
+            .long("name")
+            .help("queue name")
+            .required(true),
     )]
 }

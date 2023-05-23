@@ -712,6 +712,7 @@ dependencies = [
 name = "rabbitmq_http_client"
 version = "0.1.0"
 dependencies = [
+ "percent-encoding",
  "reqwest",
  "serde",
  "serde-aux",

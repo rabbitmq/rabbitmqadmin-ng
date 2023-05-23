@@ -53,3 +53,43 @@ pub fn list_consumers(general_args: &ArgMatches) -> ClientResult<Vec<responses::
         APIClient::new_with_basic_auth_credentials(&endpoint, &sf.username, Some(&sf.password));
     rc.list_consumers()
 }
+
+pub fn delete_vhost(general_args: &ArgMatches, command_args: &ArgMatches) -> ClientResult<()> {
+    let sf = SharedFlags::from_args(general_args);
+    // the flag is required
+    let name = command_args.get_one::<String>("name").unwrap();
+    let endpoint = sf.endpoint();
+    let rc =
+        APIClient::new_with_basic_auth_credentials(&endpoint, &sf.username, Some(&sf.password));
+    rc.delete_vhost(&name)
+}
+
+pub fn delete_user(general_args: &ArgMatches, command_args: &ArgMatches) -> ClientResult<()> {
+    let sf = SharedFlags::from_args(general_args);
+    // the flag is required
+    let name = command_args.get_one::<String>("name").unwrap();
+    let endpoint = sf.endpoint();
+    let rc =
+        APIClient::new_with_basic_auth_credentials(&endpoint, &sf.username, Some(&sf.password));
+    rc.delete_user(&name)
+}
+
+pub fn delete_queue(general_args: &ArgMatches, command_args: &ArgMatches) -> ClientResult<()> {
+    let sf = SharedFlags::from_args(general_args);
+    // the flag is required
+    let name = command_args.get_one::<String>("name").unwrap();
+    let endpoint = sf.endpoint();
+    let rc =
+        APIClient::new_with_basic_auth_credentials(&endpoint, &sf.username, Some(&sf.password));
+    rc.delete_queue(&sf.virtual_host, &name)
+}
+
+pub fn purge_queue(general_args: &ArgMatches, command_args: &ArgMatches) -> ClientResult<()> {
+    let sf = SharedFlags::from_args(general_args);
+    // the flag is required
+    let name = command_args.get_one::<String>("name").unwrap();
+    let endpoint = sf.endpoint();
+    let rc =
+        APIClient::new_with_basic_auth_credentials(&endpoint, &sf.username, Some(&sf.password));
+    rc.purge_queue(&sf.virtual_host, &name)
+}

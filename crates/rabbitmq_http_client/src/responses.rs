@@ -115,14 +115,14 @@ pub struct Consumer {
     exclusive: bool,
     #[serde(rename(deserialize = "ack_required"))]
     manual_ack: bool,
-    queue: NameAndVirtualHost
+    queue: NameAndVirtualHost,
 }
 
 #[derive(Debug, Deserialize)]
 #[allow(dead_code)]
 pub struct NameAndVirtualHost {
     name: String,
-    vhost: String
+    vhost: String,
 }
 
 #[derive(Debug, Deserialize)]

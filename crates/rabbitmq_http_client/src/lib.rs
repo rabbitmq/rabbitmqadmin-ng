@@ -3,6 +3,8 @@ pub mod responses;
 
 use reqwest::blocking::Client as HttpClient;
 
+use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
+
 pub struct Client<'a> {
     endpoint: &'a str,
     username: &'a str,
@@ -70,13 +72,44 @@ impl<'a> Client<'a> {
         Ok(node)
     }
 
+    pub fn delete_vhost(&self, virtual_host: &str) -> responses::Result<()> {
+        self.http_delete(&format!("vhosts/{}", self.percent_encode(virtual_host)))?;
+        Ok(())
+    }
+
+    pub fn delete_user(&self, username: &str) -> responses::Result<()> {
+        self.http_delete(&format!("users/{}", self.percent_encode(username)))?;
+        Ok(())
+    }
+
+    pub fn delete_queue(&self, virtual_host: &str, name: &str) -> responses::Result<()> {
+        self.http_delete(&format!("queues/{}/{}", self.percent_encode(virtual_host), name))?;
+        Ok(())
+    }
+
+    pub fn purge_queue(&self, virtual_host: &str, name: &str) -> responses::Result<()> {
+        self.http_delete(&format!("queues/{}/{}/contents", self.percent_encode(virtual_host), name))?;
+        Ok(())
+    }
+
     //
     // Implementation
     //
 
+    fn percent_encode(&self, value: &str) -> String {
+        utf8_percent_encode(value, NON_ALPHANUMERIC).to_string()
+    }
+
     fn http_get(&self, path: &str) -> reqwest::Result<reqwest::blocking::Response> {
         HttpClient::new()
             .get(self.rooted_path(path))
+            .basic_auth(self.username, self.password)
+            .send()
+    }
+
+    fn http_delete(&self, path: &str) -> reqwest::Result<reqwest::blocking::Response> {
+        HttpClient::new()
+            .delete(self.rooted_path(path))
             .basic_auth(self.username, self.password)
             .send()
     }
