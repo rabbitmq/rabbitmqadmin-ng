@@ -1,8 +1,8 @@
 use clap::ArgMatches;
 
-use rabbitmq_http_client::responses;
-use rabbitmq_http_client::responses::Result as ClientResult;
 use rabbitmq_http_client::blocking::Client as APIClient;
+use rabbitmq_http_client::responses::Result as ClientResult;
+use rabbitmq_http_client::{requests, responses};
 
 use crate::cli::SharedFlags;
 
@@ -52,6 +52,34 @@ pub fn list_consumers(general_args: &ArgMatches) -> ClientResult<Vec<responses::
     let rc =
         APIClient::new_with_basic_auth_credentials(&endpoint, &sf.username, Some(&sf.password));
     rc.list_consumers()
+}
+
+pub fn declare_vhost(general_args: &ArgMatches, command_args: &ArgMatches) -> ClientResult<()> {
+    let sf = SharedFlags::from_args(general_args);
+    // the flag is required
+    let name = command_args.get_one::<String>("name").unwrap();
+    // these are optional
+    let description = command_args
+        .get_one::<String>("description")
+        .map(|s| s.as_str());
+    let dqt = command_args
+        .get_one::<String>("default_queue_type")
+        .map(|s| s.as_str());
+    // TODO: tags
+    let tracing = command_args.get_one::<bool>("tracing").unwrap_or(&false);
+
+    let params = requests::VirtualHostParams {
+        name,
+        description,
+        default_queue_type: dqt,
+        tags: None,
+        tracing: *tracing,
+    };
+
+    let endpoint = sf.endpoint();
+    let rc =
+        APIClient::new_with_basic_auth_credentials(&endpoint, &sf.username, Some(&sf.password));
+    rc.create_vhost(&params)
 }
 
 pub fn delete_vhost(general_args: &ArgMatches, command_args: &ArgMatches) -> ClientResult<()> {

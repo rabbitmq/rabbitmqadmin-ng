@@ -35,6 +35,10 @@ fn main() {
                     let result = commands::list_consumers(&cli);
                     println!("Command execution result:\n\n{:?}", result);
                 }
+                ("declare", "vhost") => {
+                    let result = commands::declare_vhost(&cli, &command_args);
+                    println!("Command execution result:\n\n{:?}", result);
+                }
                 ("delete", "vhost") => {
                     let result = commands::delete_vhost(&cli, &command_args);
                     println!("Command execution result:\n\n{:?}", result);

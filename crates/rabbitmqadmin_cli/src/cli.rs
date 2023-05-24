@@ -1,5 +1,5 @@
 use super::constants::*;
-use clap::{Arg, ArgMatches, Command};
+use clap::{Arg, ArgAction, ArgMatches, Command};
 use url::Url;
 
 #[derive(Debug, Clone)]
@@ -217,7 +217,7 @@ fn declare_subcommands() -> [Command; 9] {
     [
         Command::new("user")
             .about("creates a user")
-            .arg(Arg::new("name").help("username"))
+            .arg(Arg::new("name").long("name").help("username"))
             .arg(
                 Arg::new("password_hash")
                     .long_help("salted password hash, see https://rabbitmq.com/passwords.html"),
@@ -227,7 +227,34 @@ fn declare_subcommands() -> [Command; 9] {
                     .long_help("prefer providing a hash, see https://rabbitmq.com/passwords.html"),
             )
             .arg(Arg::new("tags").long_help("a list of comma-separated tags")),
-        Command::new("vhost").about("creates a virtual host"),
+        Command::new("vhost")
+            .about("creates a virtual host")
+            .arg(
+                Arg::new("name")
+                    .long("name")
+                    .help("virtual host name")
+                    .required(true),
+            )
+            .arg(
+                Arg::new("default_queue_type")
+                    .long("default-queue-type")
+                    .required(false)
+                    .default_value(DEFAULT_QUEUE_TYPE)
+                    .help("default queue type, one of: classic, quorum, stream"),
+            )
+            .arg(
+                Arg::new("description")
+                    .long("description")
+                    .required(false)
+                    .help("a brief description of this virtual host"),
+            )
+            .arg(
+                Arg::new("tracing")
+                    .long("tracing")
+                    .required(false)
+                    .action(ArgAction::SetTrue)
+                    .help("should tracing be enabled for this virtual host?"),
+            ),
         Command::new("permission").about("grants a permission"),
         Command::new("queue"),
         Command::new("exchange"),
@@ -252,9 +279,12 @@ fn delete_subcommands() -> [Command; 9] {
                 .help("username")
                 .required(true),
         ),
-        Command::new("vhost")
-            .about("deletes a virtual host")
-            .arg(Arg::new("name").long("name").help("virtual host").required(true)),
+        Command::new("vhost").about("deletes a virtual host").arg(
+            Arg::new("name")
+                .long("name")
+                .help("virtual host")
+                .required(true),
+        ),
         Command::new("permission").about("revokes a permission"),
         Command::new("queue")
             .about("deletes a queue")

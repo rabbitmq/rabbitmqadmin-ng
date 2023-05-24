@@ -8,5 +8,7 @@ pub const DEFAULT_VHOST: &str = "/";
 pub const DEFAULT_USERNAME: &str = "guest";
 pub const DEFAULT_PASSWORD: &str = "guest";
 
+pub const DEFAULT_QUEUE_TYPE: &str = "classic";
+
 // default node section in the configuration file
 pub const DEFAULT_NODE_ALIAS: &str = "default";
