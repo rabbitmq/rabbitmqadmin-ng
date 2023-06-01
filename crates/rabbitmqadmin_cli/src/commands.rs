@@ -1,6 +1,7 @@
 use clap::ArgMatches;
 
 use rabbitmq_http_client::blocking::Client as APIClient;
+use rabbitmq_http_client::commons::QueueType;
 use rabbitmq_http_client::responses::Result as ClientResult;
 use rabbitmq_http_client::{requests, responses};
 
@@ -64,7 +65,7 @@ pub fn declare_vhost(general_args: &ArgMatches, command_args: &ArgMatches) -> Cl
         .map(|s| s.as_str());
     let dqt = command_args
         .get_one::<String>("default_queue_type")
-        .map(|s| s.as_str());
+        .map(|s| Into::<QueueType>::into(s.as_str()));
     // TODO: tags
     let tracing = command_args.get_one::<bool>("tracing").unwrap_or(&false);
 
