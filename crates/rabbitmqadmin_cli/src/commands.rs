@@ -1,8 +1,8 @@
 use clap::ArgMatches;
 
 use rabbitmq_http_client::blocking::Client as APIClient;
+use rabbitmq_http_client::blocking::Result as ClientResult;
 use rabbitmq_http_client::commons::QueueType;
-use rabbitmq_http_client::responses::Result as ClientResult;
 use rabbitmq_http_client::{requests, responses};
 
 use crate::cli::SharedFlags;
