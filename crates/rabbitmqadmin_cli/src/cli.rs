@@ -17,8 +17,8 @@ pub struct SharedFlags {
 impl SharedFlags {
     pub fn from_args(general_args: &ArgMatches) -> SharedFlags {
         if let Some(base_uri) = general_args.get_one::<String>("base_uri") {
-            let url = Url::parse(&base_uri).unwrap();
-            SharedFlags::new_from_uri(&url, &general_args)
+            let url = Url::parse(base_uri).unwrap();
+            SharedFlags::new_from_uri(&url, general_args)
         } else {
             SharedFlags::new(general_args)
         }
@@ -30,11 +30,7 @@ impl SharedFlags {
             .get_one::<String>("host")
             .unwrap_or(&default_hostname);
         let port = cli_args.get_one::<u16>("port").unwrap();
-        let path_prefix = if let Some(prefix) = cli_args.get_one::<String>("path_prefix") {
-            Some(prefix.clone())
-        } else {
-            None
-        };
+        let path_prefix = cli_args.get_one::<String>("path_prefix").cloned();
         let username = cli_args.get_one::<String>("username").unwrap();
         let password = cli_args.get_one::<String>("password").unwrap();
         let default_vhost = DEFAULT_VHOST.to_owned();
@@ -44,8 +40,8 @@ impl SharedFlags {
 
         Self {
             hostname: hostname.clone(),
-            port: (*port).clone(),
-            path_prefix: path_prefix,
+            port: (*port),
+            path_prefix,
             username: username.clone(),
             password: password.clone(),
             virtual_host: vhost.clone(),
@@ -53,13 +49,9 @@ impl SharedFlags {
     }
 
     pub fn new_from_uri(url: &Url, cli_args: &ArgMatches) -> Self {
-        let hostname = url.host_str().unwrap_or(&DEFAULT_HOST).to_owned();
+        let hostname = url.host_str().unwrap_or(DEFAULT_HOST).to_string();
         let port = url.port().unwrap_or(DEFAULT_HTTP_PORT);
-        let path_prefix = if let Some(prefix) = cli_args.get_one::<String>("path_prefix") {
-            Some(prefix.clone())
-        } else {
-            None
-        };
+        let path_prefix = cli_args.get_one::<String>("path_prefix").cloned();
         let username = cli_args.get_one::<String>("username").unwrap();
         let password = cli_args.get_one::<String>("password").unwrap();
         let default_vhost = DEFAULT_VHOST.to_owned();
@@ -68,9 +60,9 @@ impl SharedFlags {
             .unwrap_or(&default_vhost);
 
         Self {
-            hostname: hostname.clone(),
-            port: port.clone(),
-            path_prefix: path_prefix,
+            hostname,
+            port,
+            path_prefix,
             username: username.clone(),
             password: password.clone(),
             virtual_host: vhost.clone(),
