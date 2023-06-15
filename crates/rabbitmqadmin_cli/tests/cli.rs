@@ -55,24 +55,88 @@ fn list_vhosts() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
 
     cmd.arg("list").arg("vhosts");
-    cmd.assert()
-        .success()
-        .stdout(predicate::str::contains("/"));
+    cmd.assert().success().stdout(predicate::str::contains("/"));
 
     Ok(())
 }
 
 #[test]
-fn list_exchanges() -> Result<(), Box<dyn std::error::Error>> {
+fn exchanges() -> Result<(), Box<dyn std::error::Error>> {
+    // declare vhost 1
     let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    cmd.args(["declare", "vhost", "--name", "exchange_vhost_1"]);
+    cmd.assert().success();
 
-    cmd.arg("-V").arg("/").arg("list").arg("exchanges");
+    // declare vhost 2
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    cmd.args(["declare", "vhost", "--name", "exchange_vhost_2"]);
+    cmd.assert().success();
+
+    // declare new change in vhost 1
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    cmd.arg("-V")
+        .arg("exchange_vhost_1")
+        .arg("declare")
+        .arg("exchange")
+        .arg("--name")
+        .arg("new_exchange1");
+    cmd.assert().success();
+
+    // declare new change in vhost 2
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    cmd.arg("-V")
+        .arg("exchange_vhost_2")
+        .arg("declare")
+        .arg("exchange")
+        .arg("--name")
+        .arg("new_exchange2");
+    cmd.assert().success();
+
+    // list exchanges in vhost 1
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    cmd.args(["-V", "exchange_vhost_1", "list", "exchanges"]);
     cmd.assert().success().stdout(
         predicate::str::contains("amq.direct")
             .and(predicate::str::contains("amq.fanout"))
             .and(predicate::str::contains("amq.headers"))
             .and(predicate::str::contains("amq.topic"))
+            .and(predicate::str::contains("new_exchange1"))
+            .and(predicate::str::contains("new_exchange2").not()),
     );
+
+    // delete the exchanges from vhost 1
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    cmd.arg("-V")
+        .arg("exchange_vhost_1")
+        .arg("delete")
+        .arg("exchange")
+        .arg("--name")
+        .arg("new_exchange1");
+    cmd.assert().success();
+
+    // list exchange in vhost 1
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    cmd.arg("-V")
+        .arg("exchange_vhost_1")
+        .arg("list")
+        .arg("exchanges");
+    cmd.assert().success().stdout(
+        predicate::str::contains("amq.direct")
+            .and(predicate::str::contains("amq.fanout"))
+            .and(predicate::str::contains("amq.headers"))
+            .and(predicate::str::contains("amq.topic"))
+            .and(predicate::str::contains("new_exchange1").not()),
+    );
+
+    // delete vhost 1
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    cmd.args(["delete", "vhost", "--name", "exchange_vhost_1"]);
+    cmd.assert().success();
+
+    // delete vhost 2
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    cmd.args(["delete", "vhost", "--name", "exchange_vhost_2"]);
+    cmd.assert().success();
 
     Ok(())
 }

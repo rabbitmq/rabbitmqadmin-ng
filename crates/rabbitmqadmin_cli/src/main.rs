@@ -74,8 +74,26 @@ fn main() {
                     let result = commands::declare_vhost(&cli, command_args);
                     print_result_or_fail(result);
                 }
+                ("declare", "exchange") => {
+                    let result = commands::declare_exchange(&cli, command_args);
+                    print_result_or_fail(result);
+                }
+                ("declare", "user") => {
+                    todo!();
+                    // let result = commands::declare_user(&cli, command_args);
+                    // print_result_or_fail(result);
+                }
+                ("declare", "queue") => {
+                    todo!();
+                    // let result = commands::declare_queue(&cli, command_args);
+                    // print_result_or_fail(result);
+                }
                 ("delete", "vhost") => {
                     let result = commands::delete_vhost(&cli, command_args);
+                    print_result_or_fail(result);
+                }
+                ("delete", "exchange") => {
+                    let result = commands::delete_exchange(&cli, command_args);
                     print_result_or_fail(result);
                 }
                 ("delete", "user") => {
@@ -102,7 +120,7 @@ fn print_result_or_fail<T: fmt::Debug>(result: Result<T, rabbitmq_http_client::b
     match result {
         Ok(output) => println!("{:?}", output),
         Err(error) => {
-            eprintln!("{}", error.source().unwrap(),);
+            eprintln!("{}", error.source().unwrap_or(&error),);
             process::exit(1)
         }
     }
