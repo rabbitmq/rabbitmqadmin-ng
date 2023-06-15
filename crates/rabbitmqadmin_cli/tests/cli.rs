@@ -49,3 +49,30 @@ fn nice_error_when_connection_refused() -> Result<(), Box<dyn std::error::Error>
 
     Ok(())
 }
+
+#[test]
+fn list_vhosts() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+
+    cmd.arg("list").arg("vhosts");
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("/"));
+
+    Ok(())
+}
+
+#[test]
+fn list_exchanges() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+
+    cmd.arg("-V").arg("/").arg("list").arg("exchanges");
+    cmd.assert().success().stdout(
+        predicate::str::contains("amq.direct")
+            .and(predicate::str::contains("amq.fanout"))
+            .and(predicate::str::contains("amq.headers"))
+            .and(predicate::str::contains("amq.topic"))
+    );
+
+    Ok(())
+}

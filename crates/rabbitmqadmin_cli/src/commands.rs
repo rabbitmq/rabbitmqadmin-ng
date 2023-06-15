@@ -83,7 +83,7 @@ pub fn list_exchanges(general_args: &ArgMatches) -> ClientResult<Vec<responses::
     let sf = SharedFlags::from_args(general_args);
     let endpoint = sf.endpoint();
     let rc = APIClient::new_with_basic_auth_credentials(&endpoint, &sf.username, &sf.password);
-    rc.list_exchanges()
+    rc.list_exchanges_in(&sf.virtual_host)
 }
 
 pub fn list_bindings(general_args: &ArgMatches) -> ClientResult<Vec<responses::BindingInfo>> {
