@@ -21,14 +21,14 @@ pub fn list_vhosts(general_args: &ArgMatches) -> ClientResult<Vec<responses::Vir
     rc.list_vhosts()
 }
 
-// TODO: not implemented yet
-// pub fn list_vhost_limits(general_args: &ArgMatches) -> ClientResult<Vec<responses::VirtualHostLimits>> {
-//     let sf = SharedFlags::from_args(general_args);
-//     let endpoint = sf.endpoint();
-//     let rc =
-//         APIClient::new_with_basic_auth_credentials(&endpoint, &sf.username, &sf.password);
-//     rc.list_vhost_limits()
-// }
+pub fn list_vhost_limits(
+    general_args: &ArgMatches,
+) -> ClientResult<Vec<responses::VirtualHostLimits>> {
+    let sf = SharedFlags::from_args(general_args);
+    let endpoint = sf.endpoint();
+    let rc = APIClient::new_with_basic_auth_credentials(&endpoint, &sf.username, &sf.password);
+    rc.list_vhost_limits(&sf.virtual_host)
+}
 
 pub fn list_users(general_args: &ArgMatches) -> ClientResult<Vec<responses::User>> {
     let sf = SharedFlags::from_args(general_args);
@@ -83,7 +83,7 @@ pub fn list_exchanges(general_args: &ArgMatches) -> ClientResult<Vec<responses::
     let sf = SharedFlags::from_args(general_args);
     let endpoint = sf.endpoint();
     let rc = APIClient::new_with_basic_auth_credentials(&endpoint, &sf.username, &sf.password);
-    rc.list_exchanges()
+    rc.list_exchanges_in(&sf.virtual_host)
 }
 
 pub fn list_bindings(general_args: &ArgMatches) -> ClientResult<Vec<responses::BindingInfo>> {
