@@ -1,3 +1,6 @@
+use std::fmt;
+use std::{error::Error, process};
+
 mod cli;
 mod commands;
 mod constants;
@@ -13,85 +16,94 @@ fn main() {
             match &pair {
                 ("list", "nodes") => {
                     let result = commands::list_nodes(&cli);
-                    println!("Command execution result:\n\n{:?}", result);
+                    print_result_or_fail(result);
                 }
                 ("list", "vhosts") => {
                     let result = commands::list_vhosts(&cli);
-                    println!("Command execution result:\n\n{:?}", result);
+                    print_result_or_fail(result);
                 }
-                // TODO not implemented yet
-                // ("list", "vhost_limits") => {
-                //     let result = commands::list_vhost_limits(&cli);
-                //     println!("Command execution result:\n\n{:?}", result);
-                // }
+                ("list", "vhost_limits") => {
+                    let result = commands::list_vhost_limits(&cli);
+                    print_result_or_fail(result);
+                }
                 ("list", "users") => {
                     let result = commands::list_users(&cli);
-                    println!("Command execution result:\n\n{:?}", result);
+                    print_result_or_fail(result);
                 }
                 ("list", "connections") => {
                     let result = commands::list_connections(&cli);
-                    println!("Command execution result:\n\n{:?}", result);
+                    print_result_or_fail(result);
                 }
                 ("list", "channels") => {
                     let result = commands::list_channels(&cli);
-                    println!("Command execution result:\n\n{:?}", result);
+                    print_result_or_fail(result);
                 }
                 ("list", "consumers") => {
                     let result = commands::list_consumers(&cli);
-                    println!("Command execution result:\n\n{:?}", result);
+                    print_result_or_fail(result);
                 }
                 ("list", "policies") => {
                     let result = commands::list_policies(&cli);
-                    println!("Command execution result:\n\n{:?}", result);
+                    print_result_or_fail(result);
                 }
                 ("list", "operator_policies") => {
                     let result = commands::list_operator_policies(&cli);
-                    println!("Command execution result:\n\n{:?}", result);
+                    print_result_or_fail(result);
                 }
                 ("list", "queues") => {
                     let result = commands::list_queues(&cli);
-                    println!("Command execution result:\n\n{:?}", result);
+                    print_result_or_fail(result);
                 }
                 ("list", "bindings") => {
                     let result = commands::list_bindings(&cli);
-                    println!("Command execution result:\n\n{:?}", result);
+                    print_result_or_fail(result);
                 }
                 ("list", "permissions") => {
                     let result = commands::list_permissions(&cli);
-                    println!("Command execution result:\n\n{:?}", result);
+                    print_result_or_fail(result);
                 }
                 ("list", "parameters") => {
                     let result = commands::list_parameters(&cli);
-                    println!("Command execution result:\n\n{:?}", result);
+                    print_result_or_fail(result);
                 }
                 ("list", "exchanges") => {
                     let result = commands::list_exchanges(&cli);
-                    println!("Command execution result:\n\n{:?}", result);
+                    print_result_or_fail(result);
                 }
                 ("declare", "vhost") => {
                     let result = commands::declare_vhost(&cli, command_args);
-                    println!("Command execution result:\n\n{:?}", result);
+                    print_result_or_fail(result);
                 }
                 ("delete", "vhost") => {
                     let result = commands::delete_vhost(&cli, command_args);
-                    println!("Command execution result:\n\n{:?}", result);
+                    print_result_or_fail(result);
                 }
                 ("delete", "user") => {
                     let result = commands::delete_user(&cli, command_args);
-                    println!("Command execution result:\n\n{:?}", result);
+                    print_result_or_fail(result);
                 }
                 ("delete", "queue") => {
                     let result = commands::delete_queue(&cli, command_args);
-                    println!("Command execution result:\n\n{:?}", result);
+                    print_result_or_fail(result);
                 }
                 ("purge", "queue") => {
                     let result = commands::purge_queue(&cli, command_args);
-                    println!("Command execution result:\n\n{:?}", result);
+                    print_result_or_fail(result);
                 }
                 _ => {
                     println!("Unknown command and subcommand pair: {:?}", &pair);
                 }
             }
+        }
+    }
+}
+
+fn print_result_or_fail<T: fmt::Debug>(result: Result<T, rabbitmq_http_client::blocking::Error>) {
+    match result {
+        Ok(output) => println!("{:?}", output),
+        Err(error) => {
+            eprintln!("{}", error.source().unwrap(),);
+            process::exit(1)
         }
     }
 }
