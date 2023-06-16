@@ -1,6 +1,9 @@
 use clap::ArgMatches;
+use rabbitmq_http_client::commons;
 
 use std::process;
+
+use serde_json::{Map, Value};
 
 use rabbitmq_http_client::blocking::Client as APIClient;
 use rabbitmq_http_client::blocking::Result as ClientResult;
@@ -78,7 +81,7 @@ pub fn list_queues(general_args: &ArgMatches) -> ClientResult<Vec<responses::Que
     let sf = SharedFlags::from_args(general_args);
     let endpoint = sf.endpoint();
     let rc = APIClient::new_with_basic_auth_credentials(&endpoint, &sf.username, &sf.password);
-    rc.list_queues()
+    rc.list_queues_in(&sf.virtual_host)
 }
 
 pub fn list_exchanges(general_args: &ArgMatches) -> ClientResult<Vec<responses::ExchangeInfo>> {
@@ -187,6 +190,44 @@ pub fn delete_user(general_args: &ArgMatches, command_args: &ArgMatches) -> Clie
     rc.delete_user(name)
 }
 
+pub fn declare_queue(general_args: &ArgMatches, command_args: &ArgMatches) -> ClientResult<()> {
+    let sf = SharedFlags::from_args(general_args);
+    // the flag is required
+    let name = command_args.get_one::<String>("name").unwrap();
+    let queue_type = command_args
+        .get_one::<String>("type")
+        .map(|s| Into::<rabbitmq_http_client::commons::QueueType>::into(s.as_str()))
+        .unwrap();
+    // these are optional
+    let durable = command_args.get_one::<bool>("durable").unwrap_or(&true);
+    let auto_delete = command_args
+        .get_one::<bool>("auto_delete")
+        .unwrap_or(&false);
+    let arguments = command_args.get_one::<String>("arguments").unwrap();
+
+    let parsed_args =
+        serde_json::from_str::<requests::XArguments>(arguments).unwrap_or_else(|err| {
+            eprintln!("`{}` is not a valid JSON: {}", arguments, err);
+            process::exit(1);
+        });
+
+    // let mut combined_args = Map::<String, Value>::new();
+    // combined_args.insert("x-queue-type".to_owned(), Value::String(queue_type.into()));
+
+    let params = requests::QueueParams {
+        name,
+        queue_type,
+        durable: *durable,
+        auto_delete: *auto_delete,
+        exclusive: false,
+        arguments: combined_args(parsed_args, commons::QueueType::Quorum), // TODO: hardcoded type
+    };
+
+    let endpoint = sf.endpoint();
+    let rc = APIClient::new_with_basic_auth_credentials(&endpoint, &sf.username, &sf.password);
+    rc.declare_queue(&sf.virtual_host, &params)
+}
+
 pub fn delete_queue(general_args: &ArgMatches, command_args: &ArgMatches) -> ClientResult<()> {
     let sf = SharedFlags::from_args(general_args);
     // the flag is required
@@ -212,4 +253,17 @@ pub fn purge_queue(general_args: &ArgMatches, command_args: &ArgMatches) -> Clie
     let endpoint = sf.endpoint();
     let rc = APIClient::new_with_basic_auth_credentials(&endpoint, &sf.username, &sf.password);
     rc.purge_queue(&sf.virtual_host, name)
+}
+
+// TODO copy-pasted from the client
+pub type XArguments = Option<Map<String, Value>>;
+fn combined_args(optional_args: XArguments, queue_type: QueueType) -> XArguments {
+    let mut result = Map::<String, Value>::new();
+    result.insert("x-queue-type".to_owned(), Value::String(queue_type.into()));
+
+    if let Some(mut val) = optional_args {
+        result.append(&mut val)
+    }
+
+    Some(result)
 }

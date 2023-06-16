@@ -84,9 +84,8 @@ fn main() {
                     // print_result_or_fail(result);
                 }
                 ("declare", "queue") => {
-                    todo!();
-                    // let result = commands::declare_queue(&cli, command_args);
-                    // print_result_or_fail(result);
+                    let result = commands::declare_queue(&cli, command_args);
+                    print_result_or_fail(result);
                 }
                 ("delete", "vhost") => {
                     let result = commands::delete_vhost(&cli, command_args);

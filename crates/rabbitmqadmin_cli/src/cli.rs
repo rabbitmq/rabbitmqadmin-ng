@@ -248,7 +248,37 @@ fn declare_subcommands() -> [Command; 9] {
                     .help("should tracing be enabled for this virtual host?"),
             ),
         Command::new("permission").about("grants a permission"),
-        Command::new("queue").about("declares a queue"),
+        Command::new("queue")
+            .about("declares a queue")
+            .arg(Arg::new("name").long("name").required(true).help("name"))
+            .arg(
+                Arg::new("type")
+                    .long("type")
+                    .help("queue type")
+                    .required(true),
+            )
+            .arg(
+                Arg::new("durable")
+                    .long("durable")
+                    .help("should it persist after a restart")
+                    .required(false)
+                    .value_parser(clap::value_parser!(bool)),
+            )
+            .arg(
+                Arg::new("auto_delete")
+                    .long("auto_delete")
+                    .help("should it be deleted when the last consumer disconnects")
+                    .required(false)
+                    .value_parser(clap::value_parser!(bool)),
+            )
+            .arg(
+                Arg::new("arguments")
+                    .long("arguments")
+                    .help("additional exchange arguments")
+                    .required(false)
+                    .default_value("{}")
+                    .value_parser(clap::value_parser!(String)),
+            ),
         Command::new("exchange")
             .about("declares an exchange")
             .arg(
