@@ -248,9 +248,44 @@ fn declare_subcommands() -> [Command; 9] {
                     .help("should tracing be enabled for this virtual host?"),
             ),
         Command::new("permission").about("grants a permission"),
-        Command::new("queue"),
-        Command::new("exchange"),
-        Command::new("binding"),
+        Command::new("queue").about("declares a queue"),
+        Command::new("exchange")
+            .about("declares an exchange")
+            .arg(
+                Arg::new("name")
+                    .long("name")
+                    .help("exchange name")
+                    .required(true),
+            )
+            .arg(
+                Arg::new("type")
+                    .long("type")
+                    .help("exchange type")
+                    .required(false),
+            )
+            .arg(
+                Arg::new("durable")
+                    .long("durable")
+                    .help("should it persist after a restart")
+                    .required(false)
+                    .value_parser(clap::value_parser!(bool)),
+            )
+            .arg(
+                Arg::new("auto_delete")
+                    .long("auto_delete")
+                    .help("should it be deleted when the last queue is unbound")
+                    .required(false)
+                    .value_parser(clap::value_parser!(bool)),
+            )
+            .arg(
+                Arg::new("arguments")
+                    .long("arguments")
+                    .help("additional exchange arguments")
+                    .required(false)
+                    .default_value("{}")
+                    .value_parser(clap::value_parser!(String)),
+            ),
+        Command::new("binding").about("binds to an exchange"),
         Command::new("parameter").about("sets a runtime parameter"),
         Command::new("policy").about("creates or updates a policy"),
         Command::new("operator_policy").about("creates or updates an operator policy"),

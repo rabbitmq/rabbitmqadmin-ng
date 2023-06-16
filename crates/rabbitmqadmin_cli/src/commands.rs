@@ -1,5 +1,7 @@
 use clap::ArgMatches;
 
+use std::process;
+
 use rabbitmq_http_client::blocking::Client as APIClient;
 use rabbitmq_http_client::blocking::Result as ClientResult;
 use rabbitmq_http_client::commons::QueueType;
@@ -136,6 +138,37 @@ pub fn declare_vhost(general_args: &ArgMatches, command_args: &ArgMatches) -> Cl
     rc.create_vhost(&params)
 }
 
+pub fn declare_exchange(general_args: &ArgMatches, command_args: &ArgMatches) -> ClientResult<()> {
+    let sf = SharedFlags::from_args(general_args);
+    // the flag is required
+    let name = command_args.get_one::<String>("name").unwrap();
+    // these are optional
+    let exchange_type = command_args
+        .get_one::<String>("type")
+        .map(|s| Into::<rabbitmq_http_client::commons::ExchangeType>::into(s.as_str()))
+        .unwrap_or(rabbitmq_http_client::commons::ExchangeType::Direct);
+    let durable = command_args.get_one::<bool>("durable").unwrap_or(&true);
+    let auto_delete = command_args
+        .get_one::<bool>("auto_delete")
+        .unwrap_or(&false);
+    let arguments = command_args.get_one::<String>("arguments").unwrap();
+
+    let params = requests::ExchangeParams {
+        name,
+        exchange_type,
+        durable: *durable,
+        auto_delete: *auto_delete,
+        arguments: serde_json::from_str::<requests::XArguments>(arguments).unwrap_or_else(|err| {
+            eprintln!("`{}` is not a valid JSON: {}", arguments, err);
+            process::exit(1);
+        }),
+    };
+
+    let endpoint = sf.endpoint();
+    let rc = APIClient::new_with_basic_auth_credentials(&endpoint, &sf.username, &sf.password);
+    rc.declare_exchange(&sf.virtual_host, &params)
+}
+
 pub fn delete_vhost(general_args: &ArgMatches, command_args: &ArgMatches) -> ClientResult<()> {
     let sf = SharedFlags::from_args(general_args);
     // the flag is required
@@ -161,6 +194,15 @@ pub fn delete_queue(general_args: &ArgMatches, command_args: &ArgMatches) -> Cli
     let endpoint = sf.endpoint();
     let rc = APIClient::new_with_basic_auth_credentials(&endpoint, &sf.username, &sf.password);
     rc.delete_queue(&sf.virtual_host, name)
+}
+
+pub fn delete_exchange(general_args: &ArgMatches, command_args: &ArgMatches) -> ClientResult<()> {
+    let sf = SharedFlags::from_args(general_args);
+    // the flag is required
+    let name = command_args.get_one::<String>("name").unwrap();
+    let endpoint = sf.endpoint();
+    let rc = APIClient::new_with_basic_auth_credentials(&endpoint, &sf.username, &sf.password);
+    rc.delete_exchange(&sf.virtual_host, name)
 }
 
 pub fn purge_queue(general_args: &ArgMatches, command_args: &ArgMatches) -> ClientResult<()> {
