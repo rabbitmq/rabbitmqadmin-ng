@@ -1,9 +1,5 @@
 use clap::ArgMatches;
-use rabbitmq_http_client::commons;
-
 use std::process;
-
-use serde_json::{Map, Value};
 
 use rabbitmq_http_client::blocking::Client as APIClient;
 use rabbitmq_http_client::blocking::Result as ClientResult;
@@ -195,8 +191,7 @@ pub fn declare_queue(general_args: &ArgMatches, command_args: &ArgMatches) -> Cl
     // the flag is required
     let name = command_args.get_one::<String>("name").unwrap();
     let queue_type = command_args
-        .get_one::<String>("type")
-        .map(|s| Into::<rabbitmq_http_client::commons::QueueType>::into(s.as_str()))
+        .get_one::<QueueType>("type")
         .unwrap();
     // these are optional
     let durable = command_args.get_one::<bool>("durable").unwrap_or(&true);
@@ -211,17 +206,7 @@ pub fn declare_queue(general_args: &ArgMatches, command_args: &ArgMatches) -> Cl
             process::exit(1);
         });
 
-    // let mut combined_args = Map::<String, Value>::new();
-    // combined_args.insert("x-queue-type".to_owned(), Value::String(queue_type.into()));
-
-    let params = requests::QueueParams {
-        name,
-        queue_type,
-        durable: *durable,
-        auto_delete: *auto_delete,
-        exclusive: false,
-        arguments: combined_args(parsed_args, commons::QueueType::Quorum), // TODO: hardcoded type
-    };
+    let params = requests::QueueParams::new(name, *queue_type, *durable, *auto_delete, parsed_args);
 
     let endpoint = sf.endpoint();
     let rc = APIClient::new_with_basic_auth_credentials(&endpoint, &sf.username, &sf.password);
@@ -253,17 +238,4 @@ pub fn purge_queue(general_args: &ArgMatches, command_args: &ArgMatches) -> Clie
     let endpoint = sf.endpoint();
     let rc = APIClient::new_with_basic_auth_credentials(&endpoint, &sf.username, &sf.password);
     rc.purge_queue(&sf.virtual_host, name)
-}
-
-// TODO copy-pasted from the client
-pub type XArguments = Option<Map<String, Value>>;
-fn combined_args(optional_args: XArguments, queue_type: QueueType) -> XArguments {
-    let mut result = Map::<String, Value>::new();
-    result.insert("x-queue-type".to_owned(), Value::String(queue_type.into()));
-
-    if let Some(mut val) = optional_args {
-        result.append(&mut val)
-    }
-
-    Some(result)
 }

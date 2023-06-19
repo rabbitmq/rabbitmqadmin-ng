@@ -1,5 +1,6 @@
 use super::constants::*;
 use clap::{Arg, ArgAction, ArgMatches, Command};
+use rabbitmq_http_client::commons::QueueType;
 use url::Url;
 
 #[derive(Debug, Clone)]
@@ -255,6 +256,7 @@ fn declare_subcommands() -> [Command; 9] {
                 Arg::new("type")
                     .long("type")
                     .help("queue type")
+                    .value_parser(clap::value_parser!(QueueType))
                     .required(true),
             )
             .arg(
