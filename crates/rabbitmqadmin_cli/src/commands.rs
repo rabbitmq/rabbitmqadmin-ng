@@ -190,9 +190,7 @@ pub fn declare_queue(general_args: &ArgMatches, command_args: &ArgMatches) -> Cl
     let sf = SharedFlags::from_args(general_args);
     // the flag is required
     let name = command_args.get_one::<String>("name").unwrap();
-    let queue_type = command_args
-        .get_one::<QueueType>("type")
-        .unwrap();
+    let queue_type = command_args.get_one::<QueueType>("type").unwrap();
     // these are optional
     let durable = command_args.get_one::<bool>("durable").unwrap_or(&true);
     let auto_delete = command_args
