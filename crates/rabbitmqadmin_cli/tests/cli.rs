@@ -1,6 +1,8 @@
 use assert_cmd::prelude::*;
 use predicates::prelude::*;
+use std::env;
 use std::process::Command;
+use std::time::Duration;
 
 #[test]
 fn show_help_with_no_arguments() -> Result<(), Box<dyn std::error::Error>> {
@@ -72,7 +74,7 @@ fn exchanges() -> Result<(), Box<dyn std::error::Error>> {
     cmd.args(["declare", "vhost", "--name", "exchange_vhost_2"]);
     cmd.assert().success();
 
-    // declare new change in vhost 1
+    // declare new exchange in vhost 1
     let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
     cmd.arg("-V")
         .arg("exchange_vhost_1")
@@ -82,7 +84,7 @@ fn exchanges() -> Result<(), Box<dyn std::error::Error>> {
         .arg("new_exchange1");
     cmd.assert().success();
 
-    // declare new change in vhost 2
+    // declare new exchange in vhost 2
     let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
     cmd.arg("-V")
         .arg("exchange_vhost_2")
@@ -139,4 +141,90 @@ fn exchanges() -> Result<(), Box<dyn std::error::Error>> {
     cmd.assert().success();
 
     Ok(())
+}
+
+#[test]
+fn queues() -> Result<(), Box<dyn std::error::Error>> {
+    // declare vhost 1
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    cmd.args(["declare", "vhost", "--name", "queue_vhost_1"]);
+    cmd.assert().success();
+
+    // declare vhost 2
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    cmd.args(["declare", "vhost", "--name", "queue_vhost_2"]);
+    cmd.assert().success();
+
+    // declare new queue in vhost 1
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    cmd.arg("-V")
+        .arg("queue_vhost_1")
+        .arg("declare")
+        .arg("queue")
+        .arg("--name")
+        .arg("new_queue1")
+        .arg("--type")
+        .arg("classic");
+    cmd.assert().success();
+
+    // declare new queue in vhost 2
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    cmd.arg("-V")
+        .arg("queue_vhost_2")
+        .arg("declare")
+        .arg("queue")
+        .arg("--name")
+        .arg("new_queue2")
+        .arg("--type")
+        .arg("quorum");
+    cmd.assert().success();
+
+    await_queue_metric_emission();
+
+    // list queues in vhost 1
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    cmd.args(["-V", "queue_vhost_1", "list", "queues"]);
+    cmd.assert().success().stdout(
+        predicate::str::contains("new_queue1").and(predicate::str::contains("new_queue2").not()),
+    );
+
+    // delete the queues from vhost 1
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    cmd.arg("-V")
+        .arg("queue_vhost_1")
+        .arg("delete")
+        .arg("queue")
+        .arg("--name")
+        .arg("new_queue1");
+    cmd.assert().success();
+
+    // list queue in vhost 1
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    cmd.arg("-V").arg("queue_vhost_1").arg("list").arg("queues");
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("new_queue1").not());
+
+    // delete vhost 1
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    cmd.args(["delete", "vhost", "--name", "queue_vhost_1"]);
+    cmd.assert().success();
+
+    // delete vhost 2
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    cmd.args(["delete", "vhost", "--name", "queue_vhost_2"]);
+    cmd.assert().success();
+
+    Ok(())
+}
+
+#[allow(dead_code)]
+pub fn await_metric_emission(ms: u64) {
+    std::thread::sleep(Duration::from_millis(ms));
+}
+
+#[allow(dead_code)]
+pub fn await_queue_metric_emission() {
+    let delay = env::var("TEST_STATS_DELAY").unwrap_or("500".to_owned());
+    await_metric_emission(delay.parse::<u64>().unwrap());
 }
