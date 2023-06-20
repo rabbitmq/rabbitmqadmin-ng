@@ -86,6 +86,10 @@ fn main() {
                     let result = commands::declare_queue(&cli, command_args);
                     print_result_or_fail(result);
                 }
+                ("declare", "binding") => {
+                    let result = commands::declare_binding(&cli, command_args);
+                    print_result_or_fail(result);
+                }
                 ("delete", "vhost") => {
                     let result = commands::delete_vhost(&cli, command_args);
                     print_result_or_fail(result);
@@ -100,6 +104,10 @@ fn main() {
                 }
                 ("delete", "queue") => {
                     let result = commands::delete_queue(&cli, command_args);
+                    print_result_or_fail(result);
+                }
+                ("delete", "binding") => {
+                    let result = commands::delete_binding(&cli, command_args);
                     print_result_or_fail(result);
                 }
                 ("purge", "queue") => {
