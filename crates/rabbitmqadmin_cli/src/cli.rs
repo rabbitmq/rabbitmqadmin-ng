@@ -1,6 +1,6 @@
 use super::constants::*;
 use clap::{Arg, ArgAction, ArgMatches, Command};
-use rabbitmq_http_client::commons::QueueType;
+use rabbitmq_http_client::commons::{BindingDestinationType, QueueType};
 use url::Url;
 
 #[derive(Debug, Clone)]
@@ -333,7 +333,41 @@ fn declare_subcommands() -> [Command; 9] {
                     .default_value("{}")
                     .value_parser(clap::value_parser!(String)),
             ),
-        Command::new("binding").about("binds to an exchange"),
+        Command::new("binding")
+            .about("binds to an exchange")
+            .arg(
+                Arg::new("source")
+                    .long("source")
+                    .help("source exchange")
+                    .required(true),
+            )
+            .arg(
+                Arg::new("destination_type")
+                    .long("destination_type")
+                    .help("destination type: exchange or queue")
+                    .required(true)
+                    .value_parser(clap::value_parser!(BindingDestinationType)),
+            )
+            .arg(
+                Arg::new("destination")
+                    .long("destination")
+                    .help("destination exchange/queue name")
+                    .required(true),
+            )
+            .arg(
+                Arg::new("routing_key")
+                    .long("routing_key")
+                    .help("routing key")
+                    .required(true),
+            )
+            .arg(
+                Arg::new("arguments")
+                    .long("arguments")
+                    .help("additional arguments")
+                    .required(false)
+                    .default_value("{}")
+                    .value_parser(clap::value_parser!(String)),
+            ),
         Command::new("parameter").about("sets a runtime parameter"),
         Command::new("policy").about("creates or updates a policy"),
         Command::new("operator_policy").about("creates or updates an operator policy"),
@@ -370,7 +404,40 @@ fn delete_subcommands() -> [Command; 9] {
                 .help("exchange")
                 .required(true),
         ),
-        Command::new("binding").about("deletes a binding"),
+        Command::new("binding")
+            .about("deletes a binding")
+            .arg(
+                Arg::new("source")
+                    .long("source")
+                    .help("source exchange")
+                    .required(true),
+            )
+            .arg(
+                Arg::new("destination_type")
+                    .long("destination_type")
+                    .help("destination type: exchange or queue")
+                    .required(true),
+            )
+            .arg(
+                Arg::new("destination")
+                    .long("destination")
+                    .help("destination exchange/queue name")
+                    .required(true),
+            )
+            .arg(
+                Arg::new("routing_key")
+                    .long("routing_key")
+                    .help("routing key")
+                    .required(true),
+            )
+            .arg(
+                Arg::new("arguments")
+                    .long("arguments")
+                    .help("additional arguments")
+                    .required(false)
+                    .default_value("{}")
+                    .value_parser(clap::value_parser!(String)),
+            ),
         Command::new("parameter").about("clears a runtime parameter"),
         Command::new("policy").about("deletes a policy"),
         Command::new("operator_policy").about("deletes an operator policy"),

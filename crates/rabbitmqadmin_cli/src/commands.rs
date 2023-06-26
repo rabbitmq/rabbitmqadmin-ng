@@ -1,4 +1,5 @@
 use clap::ArgMatches;
+use rabbitmq_http_client::commons::BindingDestinationType;
 use std::process;
 
 use rabbitmq_http_client::blocking::Client as APIClient;
@@ -168,6 +169,42 @@ pub fn declare_exchange(general_args: &ArgMatches, command_args: &ArgMatches) ->
     rc.declare_exchange(&sf.virtual_host, &params)
 }
 
+pub fn declare_binding(general_args: &ArgMatches, command_args: &ArgMatches) -> ClientResult<()> {
+    let sf = SharedFlags::from_args(general_args);
+
+    let source = command_args.get_one::<String>("source").unwrap();
+    let destination_type = command_args
+        .get_one::<BindingDestinationType>("destination_type")
+        .unwrap();
+    let destination = command_args.get_one::<String>("destination").unwrap();
+    let routing_key = command_args.get_one::<String>("routing_key").unwrap();
+    let arguments = command_args.get_one::<String>("arguments").unwrap();
+    let parsed_arguments =
+        serde_json::from_str::<requests::XArguments>(arguments).unwrap_or_else(|err| {
+            eprintln!("`{}` is not a valid JSON: {}", arguments, err);
+            process::exit(1);
+        });
+
+    let endpoint = sf.endpoint();
+    let rc = APIClient::new_with_basic_auth_credentials(&endpoint, &sf.username, &sf.password);
+    match destination_type {
+        BindingDestinationType::Queue => rc.bind_queue(
+            &sf.virtual_host,
+            destination,
+            source,
+            Some(routing_key),
+            parsed_arguments,
+        ),
+        BindingDestinationType::Exchange => rc.bind_exchange(
+            &sf.virtual_host,
+            destination,
+            source,
+            Some(routing_key),
+            parsed_arguments,
+        ),
+    }
+}
+
 pub fn delete_vhost(general_args: &ArgMatches, command_args: &ArgMatches) -> ClientResult<()> {
     let sf = SharedFlags::from_args(general_args);
     // the flag is required
@@ -208,7 +245,6 @@ pub fn declare_user(general_args: &ArgMatches, command_args: &ArgMatches) -> Cli
         provided_hash.to_string()
     };
 
-    println!("password: {}, hash: {}", password, password_hash);
     let params = requests::UserParams {
         name,
         password_hash: password_hash.as_str(),
@@ -250,6 +286,33 @@ pub fn delete_queue(general_args: &ArgMatches, command_args: &ArgMatches) -> Cli
     let endpoint = sf.endpoint();
     let rc = APIClient::new_with_basic_auth_credentials(&endpoint, &sf.username, &sf.password);
     rc.delete_queue(&sf.virtual_host, name)
+}
+
+pub fn delete_binding(general_args: &ArgMatches, command_args: &ArgMatches) -> ClientResult<()> {
+    let sf = SharedFlags::from_args(general_args);
+
+    let source = command_args.get_one::<String>("source").unwrap();
+    let destination_type = command_args.get_one::<String>("destination_type").unwrap();
+    let destination = command_args.get_one::<String>("destination").unwrap();
+    let routing_key = command_args.get_one::<String>("routing_key").unwrap();
+    let arguments = command_args.get_one::<String>("arguments").unwrap();
+    let parsed_arguments =
+        serde_json::from_str::<requests::XArguments>(arguments).unwrap_or_else(|err| {
+            eprintln!("`{}` is not a valid JSON: {}", arguments, err);
+            process::exit(1);
+        });
+
+    let endpoint = sf.endpoint();
+    let rc = APIClient::new_with_basic_auth_credentials(&endpoint, &sf.username, &sf.password);
+    rc.delete_binding(
+        &sf.virtual_host,
+        source,
+        destination,
+        BindingDestinationType::from(destination_type.clone()),
+        Some(routing_key),
+        parsed_arguments,
+    )
+    .map(|_| ())
 }
 
 pub fn delete_exchange(general_args: &ArgMatches, command_args: &ArgMatches) -> ClientResult<()> {
