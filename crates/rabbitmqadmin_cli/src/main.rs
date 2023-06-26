@@ -82,6 +82,14 @@ fn main() {
                     let result = commands::declare_user(&cli, command_args);
                     print_result_or_fail(result);
                 }
+                ("declare", "permissions") => {
+                    let result = commands::declare_permissions(&cli, command_args);
+                    print_result_or_fail(result);
+                }
+                ("delete", "permissions") => {
+                    let result = commands::delete_permissions(&cli, command_args);
+                    print_result_or_fail(result);
+                }
                 ("declare", "queue") => {
                     let result = commands::declare_queue(&cli, command_args);
                     print_result_or_fail(result);

@@ -358,7 +358,59 @@ fn test_bindings() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
     cmd.args(["delete", "vhost", "--name", "bindings_vhost_2"]);
     cmd.assert().success();
+    Ok(())
+}
 
+#[test]
+fn test_permissions() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+
+    cmd.args([
+        "declare",
+        "user",
+        "--name",
+        "user_with_permissions",
+        "--password",
+        "pa$$w0rd",
+    ]);
+    cmd.assert().success();
+
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    cmd.args([
+        "declare",
+        "permissions",
+        "--user",
+        "user_with_permissions",
+        "--configure",
+        "foo",
+        "--read",
+        "bar",
+        "--write",
+        "baz",
+    ]);
+    cmd.assert().success();
+
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    cmd.args(["list", "permissions"]);
+    cmd.assert().success().stdout(
+        predicate::str::contains("foo")
+            .and(predicate::str::contains("bar"))
+            .and(predicate::str::contains("baz")),
+    );
+
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    cmd.args(["delete", "permissions", "--user", "user_with_permissions"]);
+    cmd.assert().success();
+
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    cmd.args(["list", "permissions"]);
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("user_with_permissions").not());
+
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    cmd.args(["delete", "user", "--name", "user_with_permissions"]);
+    cmd.assert().success();
     Ok(())
 }
 

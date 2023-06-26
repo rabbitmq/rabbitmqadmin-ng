@@ -264,7 +264,32 @@ fn declare_subcommands() -> [Command; 9] {
                     .action(ArgAction::SetTrue)
                     .help("should tracing be enabled for this virtual host?"),
             ),
-        Command::new("permission").about("grants a permission"),
+        Command::new("permissions")
+            .about("grants permissions to a user")
+            .arg(
+                Arg::new("user")
+                    .long("user")
+                    .help("username")
+                    .required(true),
+            )
+            .arg(
+                Arg::new("configure")
+                    .long("configure")
+                    .help("name pattern for configuration access")
+                    .required(true),
+            )
+            .arg(
+                Arg::new("read")
+                    .long("read")
+                    .help("name pattern for read access")
+                    .required(true),
+            )
+            .arg(
+                Arg::new("write")
+                    .long("write")
+                    .help("name pattern for write access")
+                    .required(true),
+            ),
         Command::new("queue")
             .about("declares a queue")
             .arg(Arg::new("name").long("name").required(true).help("name"))
@@ -394,7 +419,14 @@ fn delete_subcommands() -> [Command; 9] {
                 .help("virtual host")
                 .required(true),
         ),
-        Command::new("permission").about("revokes a permission"),
+        Command::new("permissions")
+            .about("revokes user permissions to a given vhost")
+            .arg(
+                Arg::new("user")
+                    .long("user")
+                    .help("username")
+                    .required(true),
+            ),
         Command::new("queue")
             .about("deletes a queue")
             .arg(Arg::new("name").long("name").help("queue").required(true)),

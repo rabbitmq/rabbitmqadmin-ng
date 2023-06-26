@@ -223,6 +223,18 @@ pub fn delete_user(general_args: &ArgMatches, command_args: &ArgMatches) -> Clie
     rc.delete_user(name)
 }
 
+pub fn delete_permissions(
+    general_args: &ArgMatches,
+    command_args: &ArgMatches,
+) -> ClientResult<()> {
+    let sf = SharedFlags::from_args(general_args);
+    // the flag is required
+    let user = command_args.get_one::<String>("user").unwrap();
+    let endpoint = sf.endpoint();
+    let rc = APIClient::new_with_basic_auth_credentials(&endpoint, &sf.username, &sf.password);
+    rc.delete_permissions(&sf.virtual_host, user)
+}
+
 pub fn declare_user(general_args: &ArgMatches, command_args: &ArgMatches) -> ClientResult<()> {
     let sf = SharedFlags::from_args(general_args);
     let name = command_args.get_one::<String>("name").unwrap();
@@ -252,6 +264,29 @@ pub fn declare_user(general_args: &ArgMatches, command_args: &ArgMatches) -> Cli
     };
     let rc = APIClient::new_with_basic_auth_credentials(&endpoint, &sf.username, &sf.password);
     rc.create_user(&params)
+}
+
+pub fn declare_permissions(
+    general_args: &ArgMatches,
+    command_args: &ArgMatches,
+) -> ClientResult<()> {
+    let sf = SharedFlags::from_args(general_args);
+    let user = command_args.get_one::<String>("user").unwrap();
+    let configure = command_args.get_one::<String>("configure").unwrap();
+    let read = command_args.get_one::<String>("read").unwrap();
+    let write = command_args.get_one::<String>("write").unwrap();
+
+    let params = requests::Permissions {
+        user,
+        vhost: &sf.virtual_host,
+        configure,
+        read,
+        write,
+    };
+
+    let endpoint = sf.endpoint();
+    let rc = APIClient::new_with_basic_auth_credentials(&endpoint, &sf.username, &sf.password);
+    rc.declare_permissions(&params)
 }
 
 pub fn declare_queue(general_args: &ArgMatches, command_args: &ArgMatches) -> ClientResult<()> {
