@@ -218,6 +218,38 @@ fn queues() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+#[test]
+fn test_users() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    cmd.args([
+        "declare",
+        "user",
+        "--name",
+        "new_user",
+        "--password",
+        "pa$$w0rd",
+    ]);
+    cmd.assert().success();
+
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    cmd.args(["list", "users"]);
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("new_user"));
+
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    cmd.args(["delete", "user", "--name", "new_user"]);
+    cmd.assert().success();
+
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    cmd.args(["list", "users"]);
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("new_user").not());
+
+    Ok(())
+}
+
 #[allow(dead_code)]
 pub fn await_metric_emission(ms: u64) {
     std::thread::sleep(Duration::from_millis(ms));

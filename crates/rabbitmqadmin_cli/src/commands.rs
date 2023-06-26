@@ -4,7 +4,7 @@ use std::process;
 use rabbitmq_http_client::blocking::Client as APIClient;
 use rabbitmq_http_client::blocking::Result as ClientResult;
 use rabbitmq_http_client::commons::QueueType;
-use rabbitmq_http_client::{requests, responses};
+use rabbitmq_http_client::{password_hashing, requests, responses};
 
 use crate::cli::SharedFlags;
 
@@ -184,6 +184,38 @@ pub fn delete_user(general_args: &ArgMatches, command_args: &ArgMatches) -> Clie
     let endpoint = sf.endpoint();
     let rc = APIClient::new_with_basic_auth_credentials(&endpoint, &sf.username, &sf.password);
     rc.delete_user(name)
+}
+
+pub fn declare_user(general_args: &ArgMatches, command_args: &ArgMatches) -> ClientResult<()> {
+    let sf = SharedFlags::from_args(general_args);
+    let name = command_args.get_one::<String>("name").unwrap();
+    let password = command_args.get_one::<String>("password").unwrap();
+    let provided_hash = command_args.get_one::<String>("password_hash").unwrap();
+    let tags = command_args.get_one::<String>("tags").unwrap();
+    let endpoint = sf.endpoint();
+
+    if password.is_empty() && provided_hash.is_empty()
+        || !password.is_empty() && !provided_hash.is_empty()
+    {
+        eprintln!("Please provide either --password or --password_hash");
+        process::exit(1)
+    }
+
+    let password_hash = if provided_hash.is_empty() {
+        let salt = password_hashing::salt();
+        password_hashing::base64_encoded_salted_password_hash_sha256(&salt, password)
+    } else {
+        provided_hash.to_string()
+    };
+
+    println!("password: {}, hash: {}", password, password_hash);
+    let params = requests::UserParams {
+        name,
+        password_hash: password_hash.as_str(),
+        tags,
+    };
+    let rc = APIClient::new_with_basic_auth_credentials(&endpoint, &sf.username, &sf.password);
+    rc.create_user(&params)
 }
 
 pub fn declare_queue(general_args: &ArgMatches, command_args: &ArgMatches) -> ClientResult<()> {

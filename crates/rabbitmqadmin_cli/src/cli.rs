@@ -210,16 +210,32 @@ fn declare_subcommands() -> [Command; 9] {
     [
         Command::new("user")
             .about("creates a user")
-            .arg(Arg::new("name").long("name").help("username"))
+            .arg(
+                Arg::new("name")
+                    .long("name")
+                    .help("username")
+                    .required(true),
+            )
             .arg(
                 Arg::new("password_hash")
-                    .long_help("salted password hash, see https://rabbitmq.com/passwords.html"),
+                    .help("salted password hash, see https://rabbitmq.com/passwords.html")
+                    .long("password_hash")
+                    .required(false)
+                    .default_value(""),
             )
             .arg(
                 Arg::new("password")
-                    .long_help("prefer providing a hash, see https://rabbitmq.com/passwords.html"),
+                    .long("password")
+                    .help("prefer providing a hash, see https://rabbitmq.com/passwords.html")
+                    .required(false)
+                    .default_value(""),
             )
-            .arg(Arg::new("tags").long_help("a list of comma-separated tags")),
+            .arg(
+                Arg::new("tags")
+                    .long("tags")
+                    .help("a list of comma-separated tags")
+                    .default_value(""),
+            ),
         Command::new("vhost")
             .about("creates a virtual host")
             .arg(
