@@ -414,6 +414,89 @@ fn test_permissions() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+#[test]
+fn test_policies() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+
+    cmd.args([
+        "declare",
+        "policy",
+        "--name",
+        "test_policy",
+        "--pattern",
+        "foo-.*",
+        "--apply-to",
+        "queues",
+        "--priority",
+        "123",
+        "--definition",
+        "{\"max-length\": 12345}",
+    ]);
+    cmd.assert().success();
+
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    cmd.args(["list", "policies"]);
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("test_policy").and(predicate::str::contains("12345")));
+
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    cmd.args(["delete", "policy", "--name", "test_policy"]);
+    cmd.assert().success();
+
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    cmd.args(["list", "policies"]);
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("test_policy").not());
+
+    Ok(())
+}
+
+#[test]
+fn test_operator_policies() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+
+    cmd.args([
+        "declare",
+        "operator_policy",
+        "--name",
+        "test_operator_policy",
+        "--pattern",
+        "op-foo.*",
+        "--apply-to",
+        "queues",
+        "--priority",
+        "123",
+        "--definition",
+        "{\"max-length\": 12345}",
+    ]);
+    cmd.assert().success();
+
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    cmd.args(["list", "operator_policies"]);
+    cmd.assert().success().stdout(
+        predicate::str::contains("test_operator_policy").and(predicate::str::contains("op-foo")),
+    );
+
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    cmd.args([
+        "delete",
+        "operator_policy",
+        "--name",
+        "test_operator_policy",
+    ]);
+    cmd.assert().success();
+
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    cmd.args(["list", "operator_policies"]);
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("test_operator_policy").not());
+
+    Ok(())
+}
+
 #[allow(dead_code)]
 pub fn await_metric_emission(ms: u64) {
     std::thread::sleep(Duration::from_millis(ms));
