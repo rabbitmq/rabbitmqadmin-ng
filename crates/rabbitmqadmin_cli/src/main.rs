@@ -79,9 +79,8 @@ fn main() {
                     print_result_or_fail(result);
                 }
                 ("declare", "user") => {
-                    todo!();
-                    // let result = commands::declare_user(&cli, command_args);
-                    // print_result_or_fail(result);
+                    let result = commands::declare_user(&cli, command_args);
+                    print_result_or_fail(result);
                 }
                 ("declare", "queue") => {
                     let result = commands::declare_queue(&cli, command_args);
