@@ -489,7 +489,7 @@ pub fn delete_binding(general_args: &ArgMatches, command_args: &ArgMatches) -> C
         source,
         destination,
         BindingDestinationType::from(destination_type.clone()),
-        Some(routing_key),
+        routing_key,
         parsed_arguments,
     )
     .map(|_| ())
