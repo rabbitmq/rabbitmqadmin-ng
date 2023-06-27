@@ -1,6 +1,7 @@
 use clap::ArgMatches;
 use rabbitmq_http_client::commons;
 use rabbitmq_http_client::commons::BindingDestinationType;
+use rabbitmq_http_client::commons::UserLimitTarget;
 use rabbitmq_http_client::commons::VirtualHostLimitTarget;
 use rabbitmq_http_client::requests::EnforcedLimitParams;
 use std::process;
@@ -33,6 +34,20 @@ pub fn list_vhost_limits(
     let endpoint = sf.endpoint();
     let rc = APIClient::new_with_basic_auth_credentials(&endpoint, &sf.username, &sf.password);
     rc.list_vhost_limits(&sf.virtual_host)
+}
+
+pub fn list_user_limits(
+    general_args: &ArgMatches,
+    command_args: &ArgMatches,
+) -> ClientResult<Vec<responses::UserLimits>> {
+    let sf = SharedFlags::from_args(general_args);
+    let user = command_args.get_one::<String>("user");
+    let endpoint = sf.endpoint();
+    let rc = APIClient::new_with_basic_auth_credentials(&endpoint, &sf.username, &sf.password);
+    match user {
+        None => rc.list_all_user_limits(),
+        Some(username) => rc.list_user_limits(username),
+    }
 }
 
 pub fn list_users(general_args: &ArgMatches) -> ClientResult<Vec<responses::User>> {
@@ -227,6 +242,26 @@ pub fn declare_vhost_limit(
     rc.set_vhost_limit(&sf.virtual_host, limit)
 }
 
+pub fn declare_user_limit(
+    general_args: &ArgMatches,
+    command_args: &ArgMatches,
+) -> ClientResult<()> {
+    let sf = SharedFlags::from_args(general_args);
+
+    let user = command_args.get_one::<String>("user").unwrap();
+    let name = command_args.get_one::<String>("name").unwrap();
+    let value = command_args.get_one::<String>("value").unwrap();
+
+    let limit = EnforcedLimitParams::new(
+        UserLimitTarget::from(name.as_str()),
+        str::parse(value).unwrap(),
+    );
+
+    let endpoint = sf.endpoint();
+    let rc = APIClient::new_with_basic_auth_credentials(&endpoint, &sf.username, &sf.password);
+    rc.set_user_limit(user, limit)
+}
+
 pub fn delete_vhost_limit(
     general_args: &ArgMatches,
     command_args: &ArgMatches,
@@ -241,6 +276,17 @@ pub fn delete_vhost_limit(
         &sf.virtual_host,
         VirtualHostLimitTarget::from(name.as_str()),
     )
+}
+
+pub fn delete_user_limit(general_args: &ArgMatches, command_args: &ArgMatches) -> ClientResult<()> {
+    let sf = SharedFlags::from_args(general_args);
+
+    let user = command_args.get_one::<String>("user").unwrap();
+    let name = command_args.get_one::<String>("name").unwrap();
+
+    let endpoint = sf.endpoint();
+    let rc = APIClient::new_with_basic_auth_credentials(&endpoint, &sf.username, &sf.password);
+    rc.clear_user_limit(user, UserLimitTarget::from(name.as_str()))
 }
 
 pub fn delete_vhost(general_args: &ArgMatches, command_args: &ArgMatches) -> ClientResult<()> {

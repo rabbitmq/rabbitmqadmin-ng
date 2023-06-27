@@ -530,6 +530,48 @@ fn test_vhost_limits() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+#[test]
+fn test_user_limits() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+
+    cmd.args([
+        "declare",
+        "user_limit",
+        "--user",
+        "guest",
+        "--name",
+        "max-connections",
+        "--value",
+        "1234",
+    ]);
+    cmd.assert().success();
+
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    cmd.args(["list", "user_limits"]);
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("max-connections").and(predicate::str::contains("1234")));
+
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    cmd.args([
+        "delete",
+        "user_limit",
+        "--user",
+        "guest",
+        "--name",
+        "max-connections",
+    ]);
+    cmd.assert().success();
+
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    cmd.args(["list", "user_limits"]);
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("max-connections").not());
+
+    Ok(())
+}
+
 #[allow(dead_code)]
 pub fn await_metric_emission(ms: u64) {
     std::thread::sleep(Duration::from_millis(ms));
