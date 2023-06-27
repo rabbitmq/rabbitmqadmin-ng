@@ -26,6 +26,10 @@ fn main() {
                     let result = commands::list_vhost_limits(&cli);
                     print_result_or_fail(result);
                 }
+                ("list", "user_limits") => {
+                    let result = commands::list_user_limits(&cli, command_args);
+                    print_result_or_fail(result);
+                }
                 ("list", "users") => {
                     let result = commands::list_users(&cli);
                     print_result_or_fail(result);
@@ -110,6 +114,10 @@ fn main() {
                     let result = commands::declare_vhost_limit(&cli, command_args);
                     print_result_or_fail(result);
                 }
+                ("declare", "user_limit") => {
+                    let result = commands::declare_user_limit(&cli, command_args);
+                    print_result_or_fail(result);
+                }
                 ("delete", "vhost") => {
                     let result = commands::delete_vhost(&cli, command_args);
                     print_result_or_fail(result);
@@ -140,6 +148,10 @@ fn main() {
                 }
                 ("delete", "vhost_limit") => {
                     let result = commands::delete_vhost_limit(&cli, command_args);
+                    print_result_or_fail(result);
+                }
+                ("delete", "user_limit") => {
+                    let result = commands::delete_user_limit(&cli, command_args);
                     print_result_or_fail(result);
                 }
                 ("purge", "queue") => {

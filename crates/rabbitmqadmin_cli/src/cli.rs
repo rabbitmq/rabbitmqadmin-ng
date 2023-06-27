@@ -187,7 +187,7 @@ pub fn parser() -> Command {
         ])
 }
 
-fn list_subcommands() -> [Command; 14] {
+fn list_subcommands() -> [Command; 15] {
     [
         Command::new("nodes"),
         Command::new("users"),
@@ -203,10 +203,16 @@ fn list_subcommands() -> [Command; 14] {
         Command::new("policies"),
         Command::new("operator_policies"),
         Command::new("vhost_limits"),
+        Command::new("user_limits").arg(
+            Arg::new("user")
+                .long("user")
+                .help("username")
+                .required(false),
+        ),
     ]
 }
 
-fn declare_subcommands() -> [Command; 10] {
+fn declare_subcommands() -> [Command; 11] {
     [
         Command::new("user")
             .about("creates a user")
@@ -471,6 +477,25 @@ fn declare_subcommands() -> [Command; 10] {
                     .long("value")
                     .help("limit value")
                     .required(true),
+            ),
+        Command::new("user_limit").about("set a user limit")
+            .arg(
+                Arg::new("user")
+                    .long("user")
+                    .help("username")
+                    .required(true),
+            )
+            .arg(
+                Arg::new("name")
+                    .long("name")
+                    .help("limit name (eg. max-connections, max-queues)")
+                    .required(true),
+            )
+            .arg(
+                Arg::new("value")
+                    .long("value")
+                    .help("limit value")
+                    .required(true),
             )
     ]
 }
@@ -481,7 +506,7 @@ fn show_subcomands() -> [Command; 1] {
     )]
 }
 
-fn delete_subcommands() -> [Command; 10] {
+fn delete_subcommands() -> [Command; 11] {
     [
         Command::new("user").about("deletes a user").arg(
             Arg::new("name")
@@ -563,6 +588,20 @@ fn delete_subcommands() -> [Command; 10] {
             ),
         Command::new("vhost_limit")
             .about("delete a vhost limit")
+            .arg(
+                Arg::new("name")
+                    .long("name")
+                    .help("limit name (eg. max-connections, max-queues)")
+                    .required(true),
+            ),
+        Command::new("user_limit")
+            .about("delete a user limit")
+            .arg(
+                Arg::new("user")
+                    .long("user")
+                    .help("username")
+                    .required(true),
+            )
             .arg(
                 Arg::new("name")
                     .long("name")
