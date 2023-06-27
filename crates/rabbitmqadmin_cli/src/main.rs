@@ -98,6 +98,14 @@ fn main() {
                     let result = commands::declare_binding(&cli, command_args);
                     print_result_or_fail(result);
                 }
+                ("declare", "policy") => {
+                    let result = commands::declare_policy(&cli, command_args);
+                    print_result_or_fail(result);
+                }
+                ("declare", "operator_policy") => {
+                    let result = commands::declare_operator_policy(&cli, command_args);
+                    print_result_or_fail(result);
+                }
                 ("delete", "vhost") => {
                     let result = commands::delete_vhost(&cli, command_args);
                     print_result_or_fail(result);
@@ -116,6 +124,14 @@ fn main() {
                 }
                 ("delete", "binding") => {
                     let result = commands::delete_binding(&cli, command_args);
+                    print_result_or_fail(result);
+                }
+                ("delete", "policy") => {
+                    let result = commands::delete_policy(&cli, command_args);
+                    print_result_or_fail(result);
+                }
+                ("delete", "operator_policy") => {
+                    let result = commands::delete_operator_policy(&cli, command_args);
                     print_result_or_fail(result);
                 }
                 ("purge", "queue") => {

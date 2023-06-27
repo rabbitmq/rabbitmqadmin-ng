@@ -1,4 +1,5 @@
 use clap::ArgMatches;
+use rabbitmq_http_client::commons;
 use rabbitmq_http_client::commons::BindingDestinationType;
 use std::process;
 
@@ -314,6 +315,67 @@ pub fn declare_queue(general_args: &ArgMatches, command_args: &ArgMatches) -> Cl
     rc.declare_queue(&sf.virtual_host, &params)
 }
 
+pub fn declare_policy(general_args: &ArgMatches, command_args: &ArgMatches) -> ClientResult<()> {
+    let sf = SharedFlags::from_args(general_args);
+
+    let name = command_args.get_one::<String>("name").unwrap();
+    let pattern = command_args.get_one::<String>("pattern").unwrap();
+    let apply_to = command_args.get_one::<String>("pattern").unwrap();
+    let priority = command_args.get_one::<String>("priority").unwrap();
+    let definition = command_args.get_one::<String>("definition").unwrap();
+
+    let parsed_definition = serde_json::from_str::<requests::PolicyDefinition>(definition)
+        .unwrap_or_else(|err| {
+            eprintln!("`{}` is not a valid JSON: {}", definition, err);
+            process::exit(1);
+        });
+
+    let params = requests::PolicyParams {
+        vhost: &sf.virtual_host,
+        name,
+        pattern,
+        apply_to: commons::PolicyTarget::from(apply_to.as_str()),
+        priority: priority.parse::<i32>().unwrap(),
+        definition: parsed_definition,
+    };
+
+    let endpoint = sf.endpoint();
+    let rc = APIClient::new_with_basic_auth_credentials(&endpoint, &sf.username, &sf.password);
+    rc.declare_policy(&params)
+}
+
+pub fn declare_operator_policy(
+    general_args: &ArgMatches,
+    command_args: &ArgMatches,
+) -> ClientResult<()> {
+    let sf = SharedFlags::from_args(general_args);
+
+    let name = command_args.get_one::<String>("name").unwrap();
+    let pattern = command_args.get_one::<String>("pattern").unwrap();
+    let apply_to = command_args.get_one::<String>("pattern").unwrap();
+    let priority = command_args.get_one::<String>("priority").unwrap();
+    let definition = command_args.get_one::<String>("definition").unwrap();
+
+    let parsed_definition = serde_json::from_str::<requests::PolicyDefinition>(definition)
+        .unwrap_or_else(|err| {
+            eprintln!("`{}` is not a valid JSON: {}", definition, err);
+            process::exit(1);
+        });
+
+    let params = requests::PolicyParams {
+        vhost: &sf.virtual_host,
+        name,
+        pattern,
+        apply_to: commons::PolicyTarget::from(apply_to.as_str()),
+        priority: priority.parse::<i32>().unwrap(),
+        definition: parsed_definition,
+    };
+
+    let endpoint = sf.endpoint();
+    let rc = APIClient::new_with_basic_auth_credentials(&endpoint, &sf.username, &sf.password);
+    rc.declare_operator_policy(&params)
+}
+
 pub fn delete_queue(general_args: &ArgMatches, command_args: &ArgMatches) -> ClientResult<()> {
     let sf = SharedFlags::from_args(general_args);
     // the flag is required
@@ -357,6 +419,27 @@ pub fn delete_exchange(general_args: &ArgMatches, command_args: &ArgMatches) -> 
     let endpoint = sf.endpoint();
     let rc = APIClient::new_with_basic_auth_credentials(&endpoint, &sf.username, &sf.password);
     rc.delete_exchange(&sf.virtual_host, name)
+}
+
+pub fn delete_policy(general_args: &ArgMatches, command_args: &ArgMatches) -> ClientResult<()> {
+    let sf = SharedFlags::from_args(general_args);
+    // the flag is required
+    let name = command_args.get_one::<String>("name").unwrap();
+    let endpoint = sf.endpoint();
+    let rc = APIClient::new_with_basic_auth_credentials(&endpoint, &sf.username, &sf.password);
+    rc.delete_policy(&sf.virtual_host, name)
+}
+
+pub fn delete_operator_policy(
+    general_args: &ArgMatches,
+    command_args: &ArgMatches,
+) -> ClientResult<()> {
+    let sf = SharedFlags::from_args(general_args);
+    // the flag is required
+    let name = command_args.get_one::<String>("name").unwrap();
+    let endpoint = sf.endpoint();
+    let rc = APIClient::new_with_basic_auth_credentials(&endpoint, &sf.username, &sf.password);
+    rc.delete_operator_policy(&sf.virtual_host, name)
 }
 
 pub fn purge_queue(general_args: &ArgMatches, command_args: &ArgMatches) -> ClientResult<()> {

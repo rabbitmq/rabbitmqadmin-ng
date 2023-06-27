@@ -394,8 +394,71 @@ fn declare_subcommands() -> [Command; 9] {
                     .value_parser(clap::value_parser!(String)),
             ),
         Command::new("parameter").about("sets a runtime parameter"),
-        Command::new("policy").about("creates or updates a policy"),
-        Command::new("operator_policy").about("creates or updates an operator policy"),
+        Command::new("policy")
+            .about("creates or updates a policy")
+            .arg(
+                Arg::new("name")
+                    .long("name")
+                    .help("policy name")
+                    .required(true),
+            )
+            .arg(
+                Arg::new("pattern")
+                    .long("pattern")
+                    .help("queue/exchange name pattern")
+                    .required(true),
+            )
+            .arg(
+                Arg::new("apply-to")
+                    .long("apply-to")
+                    .help("entities to apply to (queues, classic_queues, quorum_queues, streams, exchanges, all)")
+                    .required(true),
+            )
+            .arg(
+                Arg::new("priority")
+                    .long("priority")
+                    .help("policy priority (only the policy with the highest priority is effective)")
+                    .required(false)
+                    .default_value("0"),
+            )
+            .arg(
+                Arg::new("definition")
+                    .long("definition")
+                    .help("policy definition")
+                    .required(true),
+            ),
+        Command::new("operator_policy").about("creates or updates an operator policy")
+            .arg(
+                Arg::new("name")
+                    .long("name")
+                    .help("operator policy name")
+                    .required(true),
+            )
+            .arg(
+                Arg::new("pattern")
+                    .long("pattern")
+                    .help("queue/exchange name pattern")
+                    .required(true),
+            )
+            .arg(
+                Arg::new("apply-to")
+                    .long("apply-to")
+                    .help("entities to apply to (queues, classic_queues, quorum_queues, streams, exchanges, all)")
+                    .required(true),
+            )
+            .arg(
+                Arg::new("priority")
+                    .long("priority")
+                    .help("policy priority (only the policy with the highest priority is effective)")
+                    .required(false)
+                    .default_value("0"),
+            )
+            .arg(
+                Arg::new("definition")
+                    .long("definition")
+                    .help("policy definition")
+                    .required(true),
+            ),
     ]
 }
 
@@ -471,8 +534,20 @@ fn delete_subcommands() -> [Command; 9] {
                     .value_parser(clap::value_parser!(String)),
             ),
         Command::new("parameter").about("clears a runtime parameter"),
-        Command::new("policy").about("deletes a policy"),
-        Command::new("operator_policy").about("deletes an operator policy"),
+        Command::new("policy").about("deletes a policy").arg(
+            Arg::new("name")
+                .long("name")
+                .help("policy name")
+                .required(true),
+        ),
+        Command::new("operator_policy")
+            .about("deletes an operator policy")
+            .arg(
+                Arg::new("name")
+                    .long("name")
+                    .help("operator policy name")
+                    .required(true),
+            ),
     ]
 }
 
