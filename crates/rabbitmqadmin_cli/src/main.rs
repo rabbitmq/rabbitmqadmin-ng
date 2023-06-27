@@ -106,6 +106,10 @@ fn main() {
                     let result = commands::declare_operator_policy(&cli, command_args);
                     print_result_or_fail(result);
                 }
+                ("declare", "vhost_limit") => {
+                    let result = commands::declare_vhost_limit(&cli, command_args);
+                    print_result_or_fail(result);
+                }
                 ("delete", "vhost") => {
                     let result = commands::delete_vhost(&cli, command_args);
                     print_result_or_fail(result);
@@ -132,6 +136,10 @@ fn main() {
                 }
                 ("delete", "operator_policy") => {
                     let result = commands::delete_operator_policy(&cli, command_args);
+                    print_result_or_fail(result);
+                }
+                ("delete", "vhost_limit") => {
+                    let result = commands::delete_vhost_limit(&cli, command_args);
                     print_result_or_fail(result);
                 }
                 ("purge", "queue") => {
