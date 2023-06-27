@@ -1,6 +1,8 @@
 use clap::ArgMatches;
 use rabbitmq_http_client::commons;
 use rabbitmq_http_client::commons::BindingDestinationType;
+use rabbitmq_http_client::commons::VirtualHostLimitTarget;
+use rabbitmq_http_client::requests::EnforcedLimitParams;
 use std::process;
 
 use rabbitmq_http_client::blocking::Client as APIClient;
@@ -204,6 +206,41 @@ pub fn declare_binding(general_args: &ArgMatches, command_args: &ArgMatches) -> 
             parsed_arguments,
         ),
     }
+}
+
+pub fn declare_vhost_limit(
+    general_args: &ArgMatches,
+    command_args: &ArgMatches,
+) -> ClientResult<()> {
+    let sf = SharedFlags::from_args(general_args);
+
+    let name = command_args.get_one::<String>("name").unwrap();
+    let value = command_args.get_one::<String>("value").unwrap();
+
+    let limit = EnforcedLimitParams::new(
+        VirtualHostLimitTarget::from(name.as_str()),
+        str::parse(value).unwrap(),
+    );
+
+    let endpoint = sf.endpoint();
+    let rc = APIClient::new_with_basic_auth_credentials(&endpoint, &sf.username, &sf.password);
+    rc.set_vhost_limit(&sf.virtual_host, limit)
+}
+
+pub fn delete_vhost_limit(
+    general_args: &ArgMatches,
+    command_args: &ArgMatches,
+) -> ClientResult<()> {
+    let sf = SharedFlags::from_args(general_args);
+
+    let name = command_args.get_one::<String>("name").unwrap();
+
+    let endpoint = sf.endpoint();
+    let rc = APIClient::new_with_basic_auth_credentials(&endpoint, &sf.username, &sf.password);
+    rc.clear_vhost_limit(
+        &sf.virtual_host,
+        VirtualHostLimitTarget::from(name.as_str()),
+    )
 }
 
 pub fn delete_vhost(general_args: &ArgMatches, command_args: &ArgMatches) -> ClientResult<()> {

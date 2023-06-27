@@ -206,7 +206,7 @@ fn list_subcommands() -> [Command; 14] {
     ]
 }
 
-fn declare_subcommands() -> [Command; 9] {
+fn declare_subcommands() -> [Command; 10] {
     [
         Command::new("user")
             .about("creates a user")
@@ -459,6 +459,19 @@ fn declare_subcommands() -> [Command; 9] {
                     .help("policy definition")
                     .required(true),
             ),
+        Command::new("vhost_limit").about("set a vhost limit")
+            .arg(
+                Arg::new("name")
+                    .long("name")
+                    .help("limit name (eg. max-connections, max-queues)")
+                    .required(true),
+            )
+            .arg(
+                Arg::new("value")
+                    .long("value")
+                    .help("limit value")
+                    .required(true),
+            )
     ]
 }
 
@@ -468,7 +481,7 @@ fn show_subcomands() -> [Command; 1] {
     )]
 }
 
-fn delete_subcommands() -> [Command; 9] {
+fn delete_subcommands() -> [Command; 10] {
     [
         Command::new("user").about("deletes a user").arg(
             Arg::new("name")
@@ -546,6 +559,14 @@ fn delete_subcommands() -> [Command; 9] {
                 Arg::new("name")
                     .long("name")
                     .help("operator policy name")
+                    .required(true),
+            ),
+        Command::new("vhost_limit")
+            .about("delete a vhost limit")
+            .arg(
+                Arg::new("name")
+                    .long("name")
+                    .help("limit name (eg. max-connections, max-queues)")
                     .required(true),
             ),
     ]
