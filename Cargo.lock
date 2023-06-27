@@ -600,9 +600,9 @@ dependencies = [
 
 [[package]]
 name = "ipnet"
-version = "2.7.2"
+version = "2.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "12b6ee2129af8d4fb011108c73d99a1b83a85977f23b82460c0ae2e25bb4b57f"
+checksum = "28b29a3cd74f0f4598934efe3aeba42bae0eb4680554128851ebbecb02af14e6"
 
 [[package]]
 name = "is-terminal"
@@ -900,7 +900,7 @@ dependencies = [
 [[package]]
 name = "rabbitmq_http_client"
 version = "0.1.0"
-source = "git+https://github.com/michaelklishin/rabbitmq-http-api-rs#d8ad226f7641bebccbf20e550c4c3c2f9a984a30"
+source = "git+https://github.com/michaelklishin/rabbitmq-http-api-rs#fa98acba40e6cf52fe4f61a4b0bfd70f3a6fa9a7"
 dependencies = [
  "percent-encoding",
  "rand",
