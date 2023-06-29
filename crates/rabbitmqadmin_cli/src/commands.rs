@@ -533,3 +533,12 @@ pub fn purge_queue(general_args: &ArgMatches, command_args: &ArgMatches) -> Clie
     let rc = APIClient::new_with_basic_auth_credentials(&endpoint, &sf.username, &sf.password);
     rc.purge_queue(&sf.virtual_host, name)
 }
+
+pub fn close_connection(general_args: &ArgMatches, command_args: &ArgMatches) -> ClientResult<()> {
+    let sf = SharedFlags::from_args(general_args);
+    // the flag is required
+    let name = command_args.get_one::<String>("name").unwrap();
+    let endpoint = sf.endpoint();
+    let rc = APIClient::new_with_basic_auth_credentials(&endpoint, &sf.username, &sf.password);
+    rc.close_connection(name, Some("closed via rabbitmqadmin v2"))
+}
