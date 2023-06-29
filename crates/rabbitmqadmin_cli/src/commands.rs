@@ -316,7 +316,7 @@ pub fn delete_permissions(
     let user = command_args.get_one::<String>("user").unwrap();
     let endpoint = sf.endpoint();
     let rc = APIClient::new_with_basic_auth_credentials(&endpoint, &sf.username, &sf.password);
-    rc.delete_permissions(&sf.virtual_host, user)
+    rc.clear_permissions(&sf.virtual_host, user)
 }
 
 pub fn declare_user(general_args: &ArgMatches, command_args: &ArgMatches) -> ClientResult<()> {
