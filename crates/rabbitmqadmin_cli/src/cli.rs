@@ -80,7 +80,7 @@ impl SharedFlags {
 
 pub fn parser() -> Command {
     Command::new("rabbitmqadmin")
-        .version("0.1.0")
+        .version("0.5.0")
         .author("Michael Klishin")
         .about("rabbitmqadmin v2")
         .disable_version_flag(true)
@@ -184,6 +184,10 @@ pub fn parser() -> Command {
                 .about("purges queues")
                 .subcommand_value_name("queue")
                 .subcommands(purge_subcommands()),
+            Command::new("close")
+                .about("closes connections")
+                .subcommand_value_name("connection")
+                .subcommands(close_subcommands())
         ])
 }
 
@@ -617,5 +621,14 @@ fn purge_subcommands() -> [Command; 1] {
             .long("name")
             .help("queue name")
             .required(true),
+    )]
+}
+
+fn close_subcommands() -> [Command; 1] {
+    [Command::new("connection").about("closes a connection").arg(
+        Arg::new("name")
+        .long("name")
+        .help("connection name (identifying string)")
+        .required(true)
     )]
 }
