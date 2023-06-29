@@ -572,6 +572,74 @@ fn test_user_limits() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+#[test]
+fn test_runtime_parameters() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    cmd.args(["declare", "vhost", "--name", "parameters_vhost_1"]);
+    cmd.assert().success();
+
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+
+    cmd.args([
+        "-V",
+        "parameters_vhost_1",
+        "declare",
+        "parameter",
+        "--component",
+        "federation-upstream",
+        "--name",
+        "my-upstream",
+        "--value",
+        "{\"uri\":\"amqp://target.hostname\",\"expires\":3600000}",
+    ]);
+    cmd.assert().success();
+
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    cmd.args([
+        "-V",
+        "parameters_vhost_1",
+        "list",
+        "parameters",
+        "--component",
+        "federation-upstream",
+    ]);
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("my-upstream").and(predicate::str::contains("3600000")));
+
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    cmd.args([
+        "-V",
+        "parameters_vhost_1",
+        "delete",
+        "parameter",
+        "--component",
+        "federation-upstream",
+        "--name",
+        "my-upstream",
+    ]);
+    cmd.assert().success();
+
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    cmd.args([
+        "-V",
+        "parameters_vhost_1",
+        "list",
+        "parameters",
+        "--component",
+        "federation-upstream",
+    ]);
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("my-upstream").not());
+
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    cmd.args(["delete", "vhost", "--name", "parameters_vhost_1"]);
+    cmd.assert().success();
+
+    Ok(())
+}
+
 #[allow(dead_code)]
 pub fn await_metric_emission(ms: u64) {
     std::thread::sleep(Duration::from_millis(ms));

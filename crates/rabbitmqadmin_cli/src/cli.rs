@@ -203,7 +203,12 @@ fn list_subcommands() -> [Command; 15] {
         Command::new("exchanges"),
         Command::new("bindings"),
         Command::new("consumers"),
-        Command::new("parameters"),
+        Command::new("parameters").arg(
+            Arg::new("component")
+                .long("component")
+                .help("component (eg. federation-upstream)")
+                .required(false),
+        ),
         Command::new("policies"),
         Command::new("operator_policies"),
         Command::new("vhost_limits"),
@@ -403,7 +408,24 @@ fn declare_subcommands() -> [Command; 11] {
                     .default_value("{}")
                     .value_parser(clap::value_parser!(String)),
             ),
-        Command::new("parameter").about("sets a runtime parameter"),
+        Command::new("parameter").
+            about("sets a runtime parameter").
+            arg(
+                Arg::new("name")
+                    .long("name")
+                    .help("parameter's name")
+                    .required(true)
+            ).
+            arg(
+                Arg::new("component")
+                    .long("component")
+                    .help("component (eg. federation)")
+                    .required(true))
+            .arg(
+                Arg::new("value")
+                    .long("value")
+                    .help("parameter's value")
+                    .required(true)),
         Command::new("policy")
             .about("creates or updates a policy")
             .arg(
@@ -575,7 +597,20 @@ fn delete_subcommands() -> [Command; 11] {
                     .default_value("{}")
                     .value_parser(clap::value_parser!(String)),
             ),
-        Command::new("parameter").about("clears a runtime parameter"),
+        Command::new("parameter")
+            .about("clears a runtime parameter")
+            .arg(
+                Arg::new("name")
+                    .long("name")
+                    .help("parameter's name")
+                    .required(true),
+            )
+            .arg(
+                Arg::new("component")
+                    .long("component")
+                    .help("component (eg. federation-upstream)")
+                    .required(true),
+            ),
         Command::new("policy").about("deletes a policy").arg(
             Arg::new("name")
                 .long("name")
