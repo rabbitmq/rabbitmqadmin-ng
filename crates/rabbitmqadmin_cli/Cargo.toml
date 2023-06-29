@@ -8,8 +8,7 @@ clap = { version = "4.2", features = ["derive", "help", "color"] }
 url = "2"
 thiserror = "1"
 sysexits = "0.6.0"
-rabbitmq_http_client = { path = "/Users/mkuratczyk/rabbitmq/rabbitmq-http-api-rs" }
-# rabbitmq_http_client = { git = "https://github.com/michaelklishin/rabbitmq-http-api-rs" }
+rabbitmq_http_client = { git = "https://github.com/michaelklishin/rabbitmq-http-api-rs" }
 serde_json = "1"
 
 [dev-dependencies]
