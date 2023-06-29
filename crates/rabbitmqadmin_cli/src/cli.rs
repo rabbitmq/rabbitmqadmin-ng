@@ -187,7 +187,7 @@ pub fn parser() -> Command {
             Command::new("close")
                 .about("closes connections")
                 .subcommand_value_name("connection")
-                .subcommands(close_subcommands())
+                .subcommands(close_subcommands()),
         ])
 }
 
@@ -627,8 +627,8 @@ fn purge_subcommands() -> [Command; 1] {
 fn close_subcommands() -> [Command; 1] {
     [Command::new("connection").about("closes a connection").arg(
         Arg::new("name")
-        .long("name")
-        .help("connection name (identifying string)")
-        .required(true)
+            .long("name")
+            .help("connection name (identifying string)")
+            .required(true),
     )]
 }

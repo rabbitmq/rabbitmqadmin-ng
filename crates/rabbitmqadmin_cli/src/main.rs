@@ -158,6 +158,10 @@ fn main() {
                     let result = commands::purge_queue(&cli, command_args);
                     print_result_or_fail(result);
                 }
+                ("close", "connection") => {
+                    let result = commands::close_connection(&cli, command_args);
+                    print_result_or_fail(result);
+                }
                 _ => {
                     println!("Unknown command and subcommand pair: {:?}", &pair);
                 }
