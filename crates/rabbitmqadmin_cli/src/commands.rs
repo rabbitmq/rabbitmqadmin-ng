@@ -540,5 +540,5 @@ pub fn close_connection(general_args: &ArgMatches, command_args: &ArgMatches) ->
     let name = command_args.get_one::<String>("name").unwrap();
     let endpoint = sf.endpoint();
     let rc = APIClient::new_with_basic_auth_credentials(&endpoint, &sf.username, &sf.password);
-    rc.close_connection(&name, Some("closed via rabbitmqadmin v2"))
+    rc.close_connection(name, Some("closed via rabbitmqadmin v2"))
 }
