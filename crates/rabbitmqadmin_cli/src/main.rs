@@ -67,7 +67,7 @@ fn main() {
                     print_result_or_fail(result);
                 }
                 ("list", "parameters") => {
-                    let result = commands::list_parameters(&cli);
+                    let result = commands::list_parameters(&cli, command_args);
                     print_result_or_fail(result);
                 }
                 ("list", "exchanges") => {
@@ -118,6 +118,10 @@ fn main() {
                     let result = commands::declare_user_limit(&cli, command_args);
                     print_result_or_fail(result);
                 }
+                ("declare", "parameter") => {
+                    let result = commands::declare_parameter(&cli, command_args);
+                    print_result_or_fail(result);
+                }
                 ("delete", "vhost") => {
                     let result = commands::delete_vhost(&cli, command_args);
                     print_result_or_fail(result);
@@ -152,6 +156,10 @@ fn main() {
                 }
                 ("delete", "user_limit") => {
                     let result = commands::delete_user_limit(&cli, command_args);
+                    print_result_or_fail(result);
+                }
+                ("delete", "parameter") => {
+                    let result = commands::delete_parameter(&cli, command_args);
                     print_result_or_fail(result);
                 }
                 ("purge", "queue") => {

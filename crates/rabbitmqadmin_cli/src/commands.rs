@@ -122,11 +122,20 @@ pub fn list_permissions(general_args: &ArgMatches) -> ClientResult<Vec<responses
 
 pub fn list_parameters(
     general_args: &ArgMatches,
+    command_args: &ArgMatches,
 ) -> ClientResult<Vec<responses::RuntimeParameter>> {
     let sf = SharedFlags::from_args(general_args);
+    let component = command_args.get_one::<String>("component");
     let endpoint = sf.endpoint();
     let rc = APIClient::new_with_basic_auth_credentials(&endpoint, &sf.username, &sf.password);
-    rc.list_runtime_parameters()
+    match component {
+        None => {
+            let mut r = rc.list_runtime_parameters()?;
+            r.retain(|p| p.vhost == sf.virtual_host);
+            Ok(r)
+        }
+        Some(c) => rc.list_runtime_parameters_of_component_in(c, &sf.virtual_host),
+    }
 }
 
 pub fn declare_vhost(general_args: &ArgMatches, command_args: &ArgMatches) -> ClientResult<()> {
@@ -287,6 +296,17 @@ pub fn delete_user_limit(general_args: &ArgMatches, command_args: &ArgMatches) -
     let endpoint = sf.endpoint();
     let rc = APIClient::new_with_basic_auth_credentials(&endpoint, &sf.username, &sf.password);
     rc.clear_user_limit(user, UserLimitTarget::from(name.as_str()))
+}
+
+pub fn delete_parameter(general_args: &ArgMatches, command_args: &ArgMatches) -> ClientResult<()> {
+    let sf = SharedFlags::from_args(general_args);
+
+    let component = command_args.get_one::<String>("component").unwrap();
+    let name = command_args.get_one::<String>("name").unwrap();
+
+    let endpoint = sf.endpoint();
+    let rc = APIClient::new_with_basic_auth_credentials(&endpoint, &sf.username, &sf.password);
+    rc.clear_runtime_parameter(component, sf.virtual_host.as_str(), name)
 }
 
 pub fn delete_vhost(general_args: &ArgMatches, command_args: &ArgMatches) -> ClientResult<()> {
@@ -457,6 +477,29 @@ pub fn declare_operator_policy(
     let endpoint = sf.endpoint();
     let rc = APIClient::new_with_basic_auth_credentials(&endpoint, &sf.username, &sf.password);
     rc.declare_operator_policy(&params)
+}
+
+pub fn declare_parameter(general_args: &ArgMatches, command_args: &ArgMatches) -> ClientResult<()> {
+    let sf = SharedFlags::from_args(general_args);
+    let component = command_args.get_one::<String>("component").unwrap();
+    let name = command_args.get_one::<String>("name").unwrap();
+    let value = command_args.get_one::<String>("value").unwrap();
+    let parsed_value = serde_json::from_str::<requests::RuntimeParameterValue>(value)
+        .unwrap_or_else(|err| {
+            eprintln!("`{}` is not a valid JSON: {}", value, err);
+            process::exit(1);
+        });
+
+    let params = requests::RuntimeParameterDefinition {
+        vhost: sf.virtual_host.to_owned(),
+        name: name.to_owned(),
+        component: component.to_owned(),
+        value: parsed_value,
+    };
+
+    let endpoint = sf.endpoint();
+    let rc = APIClient::new_with_basic_auth_credentials(&endpoint, &sf.username, &sf.password);
+    rc.upsert_runtime_parameter(&params)
 }
 
 pub fn delete_queue(general_args: &ArgMatches, command_args: &ArgMatches) -> ClientResult<()> {
