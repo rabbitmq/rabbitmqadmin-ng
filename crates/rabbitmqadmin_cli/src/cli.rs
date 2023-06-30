@@ -206,7 +206,7 @@ fn list_subcommands() -> [Command; 15] {
         Command::new("parameters").arg(
             Arg::new("component")
                 .long("component")
-                .help("component (.eg. federation-upstream, vhost-limits)")
+                .help("component (for example: federation-upstream, vhost-limits)")
                 .required(false),
         ),
         Command::new("policies"),
