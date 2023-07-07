@@ -46,7 +46,7 @@ fn main() {
     }
 
     if *cli.get_one::<bool>("insecure").unwrap_or(&false) {
-        client = client.without_tls_validation();
+        client = client.without_tls_peer_verification();
     }
 
     if let Some((verb, group_args)) = cli.subcommand() {

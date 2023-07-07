@@ -167,7 +167,7 @@ pub fn parser() -> Command {
                 .short('k')
                 .long("insecure")
                 .required(false)
-                .help("disable TLS certificate validation")
+                .help("disables TLS peer (certificate chain) verification")
                 .value_parser(clap::value_parser!(bool))
                 .action(clap::ArgAction::SetTrue),
         )
