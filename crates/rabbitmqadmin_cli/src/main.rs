@@ -21,31 +21,25 @@ fn main() {
         APIClient::new(&endpoint).with_basic_auth_credentials(&sf.username, &sf.password);
 
     if let Some(pem_file) = cli.get_one::<PathBuf>("tls-ca-cert-file") {
-        match File::open(pem_file) {
-            Ok(mut file) => {
-                let mut pem = Vec::new();
-                match file.read_to_end(&mut pem) {
-                    Ok(_) => {
-                        match client.with_pem_ca_certificate(pem) {
-                            Ok(c) => client = c,
-                            Err(err) => {
-                                eprintln!(
-                                    "{} doesn't seem to be a valid PEM file: {}",
-                                    pem_file.to_string_lossy(),
-                                    err
-                                );
-                                process::exit(1);
-                            }
-                        };
-                    }
-                    Err(err) => {
-                        eprintln!("unable to read {}: {}", pem_file.to_string_lossy(), err);
-                        process::exit(1);
-                    }
-                }
-            }
+        let mut file = File::open(pem_file).unwrap_or_else(|err| {
+            eprintln!("unable to open {}: {}", pem_file.to_string_lossy(), err);
+            process::exit(1);
+        });
+
+        let mut pem = Vec::new();
+        if let Err(err) = file.read_to_end(&mut pem) {
+            eprintln!("unable to read {}: {}", pem_file.to_string_lossy(), err);
+            process::exit(1);
+        }
+
+        match client.with_pem_ca_certificate(pem) {
+            Ok(c) => client = c,
             Err(err) => {
-                eprintln!("unable to open {}: {}", pem_file.to_string_lossy(), err);
+                eprintln!(
+                    "{} doesn't seem to be a valid PEM file: {}",
+                    pem_file.to_string_lossy(),
+                    err
+                );
                 process::exit(1);
             }
         }
