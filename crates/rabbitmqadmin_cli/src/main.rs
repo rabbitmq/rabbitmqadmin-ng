@@ -14,7 +14,12 @@ fn main() {
 
     let sf = SharedFlags::from_args(&cli);
     let endpoint = sf.endpoint();
-    let client = APIClient::new(&endpoint).with_basic_auth_credentials(&sf.username, &sf.password);
+    let mut client =
+        APIClient::new(&endpoint).with_basic_auth_credentials(&sf.username, &sf.password);
+
+    if *cli.get_one::<bool>("insecure").unwrap_or(&false) {
+        client = client.without_tls_validation();
+    }
 
     if let Some((verb, group_args)) = cli.subcommand() {
         if let Some((kind, command_args)) = group_args.subcommand() {
