@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use super::constants::*;
 use clap::{Arg, ArgAction, ArgMatches, Command};
 use rabbitmq_http_client::commons::{BindingDestinationType, QueueType};
@@ -168,6 +170,14 @@ pub fn parser() -> Command {
                 .help("disable TLS certificate validation")
                 .value_parser(clap::value_parser!(bool))
                 .action(clap::ArgAction::SetTrue),
+        )
+        // --tls-ca-cert-file
+        .arg(
+            Arg::new("tls-ca-cert-file")
+                .long("tls-ca-cert-file")
+                .required(false)
+                .help("TLS CA certificate PEM file path")
+                .value_parser(clap::value_parser!(PathBuf)),
         )
         // --quiet
         .arg(

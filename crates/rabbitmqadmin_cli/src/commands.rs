@@ -308,7 +308,7 @@ pub fn declare_permissions(
 
     let params = requests::Permissions {
         user,
-        vhost: vhost,
+        vhost,
         configure,
         read,
         write,

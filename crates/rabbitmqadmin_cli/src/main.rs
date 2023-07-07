@@ -1,4 +1,7 @@
 use std::fmt;
+use std::fs::File;
+use std::io::Read;
+use std::path::PathBuf;
 use std::{error::Error, process};
 
 mod cli;
@@ -16,6 +19,37 @@ fn main() {
     let endpoint = sf.endpoint();
     let mut client =
         APIClient::new(&endpoint).with_basic_auth_credentials(&sf.username, &sf.password);
+
+    if let Some(pem_file) = cli.get_one::<PathBuf>("tls-ca-cert-file") {
+        match File::open(pem_file) {
+            Ok(mut file) => {
+                let mut pem = Vec::new();
+                match file.read_to_end(&mut pem) {
+                    Ok(_) => {
+                        match client.with_pem_ca_certificate(pem) {
+                            Ok(c) => client = c,
+                            Err(err) => {
+                                eprintln!(
+                                    "{} doesn't seem to be a valid PEM file: {}",
+                                    pem_file.to_string_lossy(),
+                                    err
+                                );
+                                process::exit(1);
+                            }
+                        };
+                    }
+                    Err(err) => {
+                        eprintln!("unable to read {}: {}", pem_file.to_string_lossy(), err);
+                        process::exit(1);
+                    }
+                }
+            }
+            Err(err) => {
+                eprintln!("unable to open {}: {}", pem_file.to_string_lossy(), err);
+                process::exit(1);
+            }
+        }
+    }
 
     if *cli.get_one::<bool>("insecure").unwrap_or(&false) {
         client = client.without_tls_validation();
