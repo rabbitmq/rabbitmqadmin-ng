@@ -5,6 +5,7 @@ use url::Url;
 
 #[derive(Debug, Clone)]
 pub struct SharedFlags {
+    pub scheme: String,
     pub hostname: String,
     pub port: u16,
     pub path_prefix: Option<String>,
@@ -40,6 +41,7 @@ impl SharedFlags {
             .unwrap_or(&default_vhost);
 
         Self {
+            scheme: "http".to_string(),
             hostname: hostname.clone(),
             port: (*port),
             path_prefix,
@@ -50,6 +52,7 @@ impl SharedFlags {
     }
 
     pub fn new_from_uri(url: &Url, cli_args: &ArgMatches) -> Self {
+        let scheme = url.scheme().to_string();
         let hostname = url.host_str().unwrap_or(DEFAULT_HOST).to_string();
         let port = url.port().unwrap_or(DEFAULT_HTTP_PORT);
         let path_prefix = cli_args.get_one::<String>("path_prefix").cloned();
@@ -61,6 +64,7 @@ impl SharedFlags {
             .unwrap_or(&default_vhost);
 
         Self {
+            scheme,
             hostname,
             port,
             path_prefix,
@@ -72,8 +76,11 @@ impl SharedFlags {
 
     pub fn endpoint(&self) -> String {
         match &self.path_prefix {
-            Some(prefix) => format!("http://{}:{}{}/api", self.hostname, self.port, prefix),
-            None => format!("http://{}:{}/api", self.hostname, self.port),
+            Some(prefix) => format!(
+                "{}://{}:{}{}/api",
+                self.scheme, self.hostname, self.port, prefix
+            ),
+            None => format!("{}://{}:{}/api", self.scheme, self.hostname, self.port),
         }
     }
 }
@@ -151,6 +158,16 @@ pub fn parser() -> Command {
                 .required(false)
                 .default_value(DEFAULT_PASSWORD)
                 .requires("username"),
+        )
+        // --insecure
+        .arg(
+            Arg::new("insecure")
+                .short('k')
+                .long("insecure")
+                .required(false)
+                .help("disable TLS certificate validation")
+                .value_parser(clap::value_parser!(bool))
+                .action(clap::ArgAction::SetTrue),
         )
         // --quiet
         .arg(
