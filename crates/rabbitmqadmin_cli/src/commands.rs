@@ -500,3 +500,7 @@ pub fn close_connection(client: APIClient, command_args: &ArgMatches) -> ClientR
     let name = command_args.get_one::<String>("name").unwrap();
     client.close_connection(name, Some("closed via rabbitmqadmin v2"))
 }
+
+pub fn rebalance_queues(client: APIClient) -> ClientResult<()> {
+    client.rebalance_queue_leaders()
+}

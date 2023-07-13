@@ -213,6 +213,10 @@ fn main() {
                     let result = commands::purge_queue(client, &sf.virtual_host, command_args);
                     print_result_or_fail(result);
                 }
+                ("rebalance", "queues") => {
+                    let result = commands::rebalance_queues(client);
+                    print_result_or_fail(result);
+                }
                 ("close", "connection") => {
                     let result = commands::close_connection(client, command_args);
                     print_result_or_fail(result);

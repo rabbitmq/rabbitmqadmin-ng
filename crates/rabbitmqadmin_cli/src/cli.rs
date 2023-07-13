@@ -215,6 +215,10 @@ pub fn parser() -> Command {
                 .about("closes connections")
                 .subcommand_value_name("connection")
                 .subcommands(close_subcommands()),
+            Command::new("rebalance")
+                .about("rebalances queue leaders")
+                .subcommand_value_name("queues")
+                .subcommands(rebalance_subcommands()),
         ])
 }
 
@@ -684,6 +688,10 @@ fn purge_subcommands() -> [Command; 1] {
             .help("queue name")
             .required(true),
     )]
+}
+
+fn rebalance_subcommands() -> [Command; 1] {
+    [Command::new("queues").about("rebalances queue leaders")]
 }
 
 fn close_subcommands() -> [Command; 1] {
