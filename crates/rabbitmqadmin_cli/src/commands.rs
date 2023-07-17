@@ -2,6 +2,7 @@ use clap::ArgMatches;
 use rabbitmq_http_client::commons;
 use rabbitmq_http_client::commons::UserLimitTarget;
 use rabbitmq_http_client::commons::VirtualHostLimitTarget;
+use std::fs;
 use std::process;
 
 use rabbitmq_http_client::blocking::Client as APIClient;
@@ -503,4 +504,41 @@ pub fn close_connection(client: APIClient, command_args: &ArgMatches) -> ClientR
 
 pub fn rebalance_queues(client: APIClient) -> ClientResult<()> {
     client.rebalance_queue_leaders()
+}
+
+pub fn export_definitions(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
+    match client.export_definitions() {
+        Ok(definitions) => {
+            let path = command_args.get_one::<String>("file").unwrap();
+            match path.as_str() {
+                "-" => {
+                    println!("{}", &definitions);
+                    Ok(())
+                }
+                file => {
+                    _ = fs::write(file, &definitions);
+                    Ok(())
+                }
+            }
+        }
+        Err(err) => Err(err),
+    }
+}
+
+pub fn import_definitions(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
+    let file = command_args.get_one::<String>("file").unwrap();
+    let definitions = fs::read_to_string(file);
+    match definitions {
+        Ok(defs) => {
+            let defs_json = serde_json::from_str(defs.as_str()).unwrap_or_else(|err| {
+                eprintln!("`{}` is not a valid JSON file: {}", file, err);
+                process::exit(1)
+            });
+            client.import_definitions(defs_json)
+        }
+        Err(err) => {
+            eprintln!("`{}` could not be read: {}", file, err);
+            process::exit(1)
+        }
+    }
 }

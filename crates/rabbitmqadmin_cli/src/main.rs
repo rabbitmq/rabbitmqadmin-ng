@@ -221,8 +221,17 @@ fn main() {
                     let result = commands::close_connection(client, command_args);
                     print_result_or_fail(result);
                 }
+                ("export", "definitions") => {
+                    let result = commands::export_definitions(client, command_args);
+                    print_result_or_fail(result);
+                }
+                ("import", "definitions") => {
+                    let result = commands::import_definitions(client, command_args);
+                    print_result_or_fail(result);
+                }
                 _ => {
                     println!("Unknown command and subcommand pair: {:?}", &pair);
+                    process::exit(1)
                 }
             }
         }

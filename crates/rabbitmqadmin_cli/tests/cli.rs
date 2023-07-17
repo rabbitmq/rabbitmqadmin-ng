@@ -640,6 +640,34 @@ fn test_runtime_parameters() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+#[test]
+fn test_export_definitions() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+
+    cmd.arg("export").arg("definitions");
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("guest"));
+
+    Ok(())
+}
+
+#[test]
+fn test_import_definitions() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+
+    cmd.args([
+        "import",
+        "definitions",
+        "--file",
+        "tests/fixtures/definitions1.json",
+    ]);
+    cmd.assert().success();
+    // .stdout(predicate::str::contains("guest"));
+
+    Ok(())
+}
+
 #[allow(dead_code)]
 pub fn await_metric_emission(ms: u64) {
     std::thread::sleep(Duration::from_millis(ms));
