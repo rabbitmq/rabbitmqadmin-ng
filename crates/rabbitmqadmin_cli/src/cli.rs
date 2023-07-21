@@ -219,6 +219,14 @@ pub fn parser() -> Command {
                 .about("rebalances queue leaders")
                 .subcommand_value_name("queues")
                 .subcommands(rebalance_subcommands()),
+            Command::new("export")
+                .about("export definitions")
+                .subcommand_value_name("definitions")
+                .subcommands(export_subcommands()),
+            Command::new("import")
+                .about("import definitions")
+                .subcommand_value_name("definitions")
+                .subcommands(import_subcommands()),
         ])
 }
 
@@ -701,4 +709,27 @@ fn close_subcommands() -> [Command; 1] {
             .help("connection name (identifying string)")
             .required(true),
     )]
+}
+
+fn export_subcommands() -> [Command; 1] {
+    [Command::new("definitions")
+        .about("export all definitions (queues, exchanges, bindings, users, etc)")
+        .arg(
+            Arg::new("file")
+                .long("file")
+                .help("output path")
+                .required(false)
+                .default_value("-"),
+        )]
+}
+
+fn import_subcommands() -> [Command; 1] {
+    [Command::new("definitions")
+        .about("import all definitions (queues, exchanges, bindings, users, etc) from a JSON file")
+        .arg(
+            Arg::new("file")
+                .long("file")
+                .help("JSON file with definitions")
+                .required(true),
+        )]
 }
