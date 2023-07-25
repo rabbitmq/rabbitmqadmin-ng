@@ -1,6 +1,8 @@
 use std::fmt;
 use std::{error::Error, process};
 
+use tabled::{Table, Tabled};
+
 mod cli;
 mod commands;
 mod constants;
@@ -16,7 +18,7 @@ fn main() {
             match &pair {
                 ("list", "nodes") => {
                     let result = commands::list_nodes(&cli);
-                    print_result_or_fail(result);
+                    print_table_or_fail(result);
                 }
                 ("list", "vhosts") => {
                     let result = commands::list_vhosts(&cli);
@@ -76,99 +78,99 @@ fn main() {
                 }
                 ("declare", "vhost") => {
                     let result = commands::declare_vhost(&cli, command_args);
-                    print_result_or_fail(result);
+                    print_nothing_or_fail(result);
                 }
                 ("declare", "exchange") => {
                     let result = commands::declare_exchange(&cli, command_args);
-                    print_result_or_fail(result);
+                    print_nothing_or_fail(result);
                 }
                 ("declare", "user") => {
                     let result = commands::declare_user(&cli, command_args);
-                    print_result_or_fail(result);
+                    print_nothing_or_fail(result);
                 }
                 ("declare", "permissions") => {
                     let result = commands::declare_permissions(&cli, command_args);
-                    print_result_or_fail(result);
+                    print_nothing_or_fail(result);
                 }
                 ("delete", "permissions") => {
                     let result = commands::delete_permissions(&cli, command_args);
-                    print_result_or_fail(result);
+                    print_nothing_or_fail(result);
                 }
                 ("declare", "queue") => {
                     let result = commands::declare_queue(&cli, command_args);
-                    print_result_or_fail(result);
+                    print_nothing_or_fail(result);
                 }
                 ("declare", "binding") => {
                     let result = commands::declare_binding(&cli, command_args);
-                    print_result_or_fail(result);
+                    print_nothing_or_fail(result);
                 }
                 ("declare", "policy") => {
                     let result = commands::declare_policy(&cli, command_args);
-                    print_result_or_fail(result);
+                    print_nothing_or_fail(result);
                 }
                 ("declare", "operator_policy") => {
                     let result = commands::declare_operator_policy(&cli, command_args);
-                    print_result_or_fail(result);
+                    print_nothing_or_fail(result);
                 }
                 ("declare", "vhost_limit") => {
                     let result = commands::declare_vhost_limit(&cli, command_args);
-                    print_result_or_fail(result);
+                    print_nothing_or_fail(result);
                 }
                 ("declare", "user_limit") => {
                     let result = commands::declare_user_limit(&cli, command_args);
-                    print_result_or_fail(result);
+                    print_nothing_or_fail(result);
                 }
                 ("declare", "parameter") => {
                     let result = commands::declare_parameter(&cli, command_args);
-                    print_result_or_fail(result);
+                    print_nothing_or_fail(result);
                 }
                 ("delete", "vhost") => {
                     let result = commands::delete_vhost(&cli, command_args);
-                    print_result_or_fail(result);
+                    print_nothing_or_fail(result);
                 }
                 ("delete", "exchange") => {
                     let result = commands::delete_exchange(&cli, command_args);
-                    print_result_or_fail(result);
+                    print_nothing_or_fail(result);
                 }
                 ("delete", "user") => {
                     let result = commands::delete_user(&cli, command_args);
-                    print_result_or_fail(result);
+                    print_nothing_or_fail(result);
                 }
                 ("delete", "queue") => {
                     let result = commands::delete_queue(&cli, command_args);
-                    print_result_or_fail(result);
+                    print_nothing_or_fail(result);
                 }
                 ("delete", "binding") => {
                     let result = commands::delete_binding(&cli, command_args);
-                    print_result_or_fail(result);
+                    print_nothing_or_fail(result);
                 }
                 ("delete", "policy") => {
                     let result = commands::delete_policy(&cli, command_args);
-                    print_result_or_fail(result);
+                    print_nothing_or_fail(result);
                 }
                 ("delete", "operator_policy") => {
                     let result = commands::delete_operator_policy(&cli, command_args);
-                    print_result_or_fail(result);
+                    print_nothing_or_fail(result);
                 }
                 ("delete", "vhost_limit") => {
                     let result = commands::delete_vhost_limit(&cli, command_args);
-                    print_result_or_fail(result);
+                    print_nothing_or_fail(result);
                 }
                 ("delete", "user_limit") => {
                     let result = commands::delete_user_limit(&cli, command_args);
-                    print_result_or_fail(result);
+                    print_nothing_or_fail(result);
                 }
                 ("delete", "parameter") => {
                     let result = commands::delete_parameter(&cli, command_args);
-                    print_result_or_fail(result);
+                    print_nothing_or_fail(result);
                 }
                 ("purge", "queue") => {
                     let result = commands::purge_queue(&cli, command_args);
-                    print_result_or_fail(result);
+                    print_nothing_or_fail(result);
                 }
                 ("close", "connection") => {
                     let result = commands::close_connection(&cli, command_args);
-                    print_result_or_fail(result);
+                    print_nothing_or_fail(result);
                 }
                 _ => {
                     println!("Unknown command and subcommand pair: {:?}", &pair);
@@ -178,9 +180,38 @@ fn main() {
     }
 }
 
-fn print_result_or_fail<T: fmt::Debug>(result: Result<T, rabbitmq_http_client::blocking::Error>) {
+fn print_table_or_fail<T>(result: Result<Vec<T>, rabbitmq_http_client::blocking::Error>)
+where T: fmt::Debug + Tabled {
     match result {
-        Ok(output) => println!("{:?}", output),
+        Ok(rows) => {
+            println!("Rows: {:?}", rows);
+            let table = Table::new(rows);
+            println!("Table: {}", table.to_string());
+        },
+        Err(error) => {
+            eprintln!("{}", error.source().unwrap_or(&error),);
+            process::exit(1)
+        }
+    }
+}
+
+fn print_result_or_fail<T: fmt::Debug>(result: Result<Vec<T>, rabbitmq_http_client::blocking::Error>) {
+    match result {
+        Ok(rows) => {
+            println!("Rows: {:?}", rows)
+        },
+        Err(error) => {
+            eprintln!("{}", error.source().unwrap_or(&error),);
+            process::exit(1)
+        }
+    }
+}
+
+fn print_nothing_or_fail<T>(result: Result<T, rabbitmq_http_client::blocking::Error>) {
+    match result {
+        Ok(_) => {
+            println!("Done")
+        },
         Err(error) => {
             eprintln!("{}", error.source().unwrap_or(&error),);
             process::exit(1)
