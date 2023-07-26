@@ -253,7 +253,7 @@ where
         Ok(rows) => {
             let mut table = Table::new(rows);
             table.with(Style::modern());
-            println!("{}", table.to_string());
+            println!("{}", table);
         }
         Err(error) => {
             eprintln!("{}", error.source().unwrap_or(&error),);
