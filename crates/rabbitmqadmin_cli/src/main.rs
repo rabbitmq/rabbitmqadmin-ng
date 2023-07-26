@@ -4,8 +4,8 @@ use std::io::Read;
 use std::path::PathBuf;
 use std::{error::Error, process};
 
-use tabled::{Table, Tabled};
 use tabled::settings::Style;
+use tabled::{Table, Tabled};
 
 mod cli;
 mod commands;
@@ -246,13 +246,15 @@ fn main() {
 }
 
 fn print_table_or_fail<T>(result: Result<Vec<T>, rabbitmq_http_client::blocking::Error>)
-where T: fmt::Debug + Tabled {
+where
+    T: fmt::Debug + Tabled,
+{
     match result {
         Ok(rows) => {
             let mut table = Table::new(rows);
             table.with(Style::modern());
             println!("{}", table.to_string());
-        },
+        }
         Err(error) => {
             eprintln!("{}", error.source().unwrap_or(&error),);
             process::exit(1)
@@ -274,7 +276,7 @@ fn print_nothing_or_fail<T>(result: Result<T, rabbitmq_http_client::blocking::Er
     match result {
         Ok(_) => {
             println!("Done")
-        },
+        }
         Err(error) => {
             eprintln!("{}", error.source().unwrap_or(&error),);
             process::exit(1)
