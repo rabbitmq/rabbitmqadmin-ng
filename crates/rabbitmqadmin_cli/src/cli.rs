@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use super::constants::*;
 use clap::{Arg, ArgAction, ArgMatches, Command};
 use rabbitmq_http_client::commons::{BindingDestinationType, QueueType};
@@ -5,6 +7,7 @@ use url::Url;
 
 #[derive(Debug, Clone)]
 pub struct SharedFlags {
+    pub scheme: String,
     pub hostname: String,
     pub port: u16,
     pub path_prefix: Option<String>,
@@ -40,6 +43,7 @@ impl SharedFlags {
             .unwrap_or(&default_vhost);
 
         Self {
+            scheme: "http".to_string(),
             hostname: hostname.clone(),
             port: (*port),
             path_prefix,
@@ -50,6 +54,7 @@ impl SharedFlags {
     }
 
     pub fn new_from_uri(url: &Url, cli_args: &ArgMatches) -> Self {
+        let scheme = url.scheme().to_string();
         let hostname = url.host_str().unwrap_or(DEFAULT_HOST).to_string();
         let port = url.port().unwrap_or(DEFAULT_HTTP_PORT);
         let path_prefix = cli_args.get_one::<String>("path_prefix").cloned();
@@ -61,6 +66,7 @@ impl SharedFlags {
             .unwrap_or(&default_vhost);
 
         Self {
+            scheme,
             hostname,
             port,
             path_prefix,
@@ -72,8 +78,11 @@ impl SharedFlags {
 
     pub fn endpoint(&self) -> String {
         match &self.path_prefix {
-            Some(prefix) => format!("http://{}:{}{}/api", self.hostname, self.port, prefix),
-            None => format!("http://{}:{}/api", self.hostname, self.port),
+            Some(prefix) => format!(
+                "{}://{}:{}{}/api",
+                self.scheme, self.hostname, self.port, prefix
+            ),
+            None => format!("{}://{}:{}/api", self.scheme, self.hostname, self.port),
         }
     }
 }
@@ -152,6 +161,24 @@ pub fn parser() -> Command {
                 .default_value(DEFAULT_PASSWORD)
                 .requires("username"),
         )
+        // --insecure
+        .arg(
+            Arg::new("insecure")
+                .short('k')
+                .long("insecure")
+                .required(false)
+                .help("disables TLS peer (certificate chain) verification")
+                .value_parser(clap::value_parser!(bool))
+                .action(clap::ArgAction::SetTrue),
+        )
+        // --tls-ca-cert-file
+        .arg(
+            Arg::new("tls-ca-cert-file")
+                .long("tls-ca-cert-file")
+                .required(false)
+                .help("TLS CA certificate PEM file path")
+                .value_parser(clap::value_parser!(PathBuf)),
+        )
         // --quiet
         .arg(
             Arg::new("quiet")
@@ -188,6 +215,18 @@ pub fn parser() -> Command {
                 .about("closes connections")
                 .subcommand_value_name("connection")
                 .subcommands(close_subcommands()),
+            Command::new("rebalance")
+                .about("rebalances queue leaders")
+                .subcommand_value_name("queues")
+                .subcommands(rebalance_subcommands()),
+            Command::new("export")
+                .about("export definitions")
+                .subcommand_value_name("definitions")
+                .subcommands(export_subcommands()),
+            Command::new("import")
+                .about("import definitions")
+                .subcommand_value_name("definitions")
+                .subcommands(import_subcommands()),
         ])
 }
 
@@ -659,6 +698,10 @@ fn purge_subcommands() -> [Command; 1] {
     )]
 }
 
+fn rebalance_subcommands() -> [Command; 1] {
+    [Command::new("queues").about("rebalances queue leaders")]
+}
+
 fn close_subcommands() -> [Command; 1] {
     [Command::new("connection").about("closes a connection").arg(
         Arg::new("name")
@@ -666,4 +709,27 @@ fn close_subcommands() -> [Command; 1] {
             .help("connection name (identifying string)")
             .required(true),
     )]
+}
+
+fn export_subcommands() -> [Command; 1] {
+    [Command::new("definitions")
+        .about("export all definitions (queues, exchanges, bindings, users, etc)")
+        .arg(
+            Arg::new("file")
+                .long("file")
+                .help("output path")
+                .required(false)
+                .default_value("-"),
+        )]
+}
+
+fn import_subcommands() -> [Command; 1] {
+    [Command::new("definitions")
+        .about("import all definitions (queues, exchanges, bindings, users, etc) from a JSON file")
+        .arg(
+            Arg::new("file")
+                .long("file")
+                .help("JSON file with definitions")
+                .required(true),
+        )]
 }
