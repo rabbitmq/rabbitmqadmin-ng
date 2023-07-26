@@ -2,6 +2,7 @@ use std::fmt;
 use std::{error::Error, process};
 
 use tabled::{Table, Tabled};
+use tabled::settings::Style;
 
 mod cli;
 mod commands;
@@ -22,7 +23,7 @@ fn main() {
                 }
                 ("list", "vhosts") => {
                     let result = commands::list_vhosts(&cli);
-                    print_result_or_fail(result);
+                    print_table_or_fail(result);
                 }
                 ("list", "vhost_limits") => {
                     let result = commands::list_vhost_limits(&cli);
@@ -34,19 +35,19 @@ fn main() {
                 }
                 ("list", "users") => {
                     let result = commands::list_users(&cli);
-                    print_result_or_fail(result);
+                    print_table_or_fail(result);
                 }
                 ("list", "connections") => {
                     let result = commands::list_connections(&cli);
-                    print_result_or_fail(result);
+                    print_table_or_fail(result);
                 }
                 ("list", "channels") => {
                     let result = commands::list_channels(&cli);
-                    print_result_or_fail(result);
+                    print_table_or_fail(result);
                 }
                 ("list", "consumers") => {
                     let result = commands::list_consumers(&cli);
-                    print_result_or_fail(result);
+                    print_table_or_fail(result);
                 }
                 ("list", "policies") => {
                     let result = commands::list_policies(&cli);
@@ -66,7 +67,7 @@ fn main() {
                 }
                 ("list", "permissions") => {
                     let result = commands::list_permissions(&cli);
-                    print_result_or_fail(result);
+                    print_table_or_fail(result);
                 }
                 ("list", "parameters") => {
                     let result = commands::list_parameters(&cli, command_args);
@@ -74,7 +75,7 @@ fn main() {
                 }
                 ("list", "exchanges") => {
                     let result = commands::list_exchanges(&cli);
-                    print_result_or_fail(result);
+                    print_table_or_fail(result);
                 }
                 ("declare", "vhost") => {
                     let result = commands::declare_vhost(&cli, command_args);
@@ -184,9 +185,9 @@ fn print_table_or_fail<T>(result: Result<Vec<T>, rabbitmq_http_client::blocking:
 where T: fmt::Debug + Tabled {
     match result {
         Ok(rows) => {
-            println!("Rows: {:?}", rows);
-            let table = Table::new(rows);
-            println!("Table: {}", table.to_string());
+            let mut table = Table::new(rows);
+            table.with(Style::modern());
+            println!("{}", table.to_string());
         },
         Err(error) => {
             eprintln!("{}", error.source().unwrap_or(&error),);
