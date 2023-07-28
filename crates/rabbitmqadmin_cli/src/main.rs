@@ -67,13 +67,11 @@ fn main() {
                 }
                 ("list", "vhost_limits") => {
                     let result = commands::list_vhost_limits(client, &sf.virtual_host);
-                    // TODO
-                    print_result_or_fail(result);
+                    print_table_or_fail(result);
                 }
                 ("list", "user_limits") => {
                     let result = commands::list_user_limits(client, command_args);
-                    // TODO
-                    print_result_or_fail(result);
+                    print_table_or_fail(result);
                 }
                 ("list", "users") => {
                     let result = commands::list_users(client);
