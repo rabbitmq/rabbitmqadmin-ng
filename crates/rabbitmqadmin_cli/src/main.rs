@@ -93,13 +93,11 @@ fn main() {
                 }
                 ("list", "policies") => {
                     let result = commands::list_policies(client);
-                    // TODO
-                    print_result_or_fail(result);
+                    print_table_or_fail(result);
                 }
                 ("list", "operator_policies") => {
                     let result = commands::list_operator_policies(client);
-                    // TODO
-                    print_result_or_fail(result);
+                    print_table_or_fail(result);
                 }
                 ("list", "queues") => {
                     let result = commands::list_queues(client, &sf.virtual_host);
