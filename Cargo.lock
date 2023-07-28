@@ -992,7 +992,7 @@ dependencies = [
 [[package]]
 name = "rabbitmq_http_client"
 version = "0.1.0"
-source = "git+https://github.com/michaelklishin/rabbitmq-http-api-rs#c8850a49d96e55fb7f1e7a5cfc6bf161e0746be4"
+source = "git+https://github.com/michaelklishin/rabbitmq-http-api-rs#788dbb9157899c0a106ac28dfc59062dd8c791dc"
 dependencies = [
  "percent-encoding",
  "rand",
