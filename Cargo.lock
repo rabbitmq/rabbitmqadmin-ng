@@ -1014,8 +1014,10 @@ dependencies = [
  "clap",
  "predicates",
  "rabbitmq_http_client",
+ "serde",
  "serde_json",
  "sysexits",
+ "tabled",
  "thiserror",
  "url",
 ]
