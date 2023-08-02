@@ -227,6 +227,14 @@ pub fn parser() -> Command {
                 .about("import definitions")
                 .subcommand_value_name("definitions")
                 .subcommands(import_subcommands()),
+            Command::new("publish")
+                .about("publish a message")
+                .subcommand_value_name("message")
+                .subcommands(publish_subcommands()),
+            Command::new("get")
+                .about("get message(s) from a queue")
+                .subcommand_value_name("message")
+                .subcommands(get_subcommands()),
         ])
 }
 
@@ -731,5 +739,70 @@ fn import_subcommands() -> [Command; 1] {
                 .long("file")
                 .help("JSON file with definitions")
                 .required(true),
+        )]
+}
+
+pub fn publish_subcommands() -> [Command; 1] {
+    [Command::new("message")
+        .about("Publishes a message to an exchange")
+        .arg(
+            Arg::new("routing-key")
+                .short('k')
+                .long("routing-key")
+                .required(false)
+                .default_value("")
+                .help("Name of virtual host"),
+        )
+        .arg(
+            Arg::new("exchange")
+                .short('e')
+                .long("exchange")
+                .required(false)
+                .default_value("")
+                .help("Exchange name (defaults to empty)"),
+        )
+        .arg(
+            Arg::new("payload")
+                .short('m')
+                .long("payload")
+                .required(false)
+                .default_value("test")
+                .help("Message payload/body"),
+        )
+        .arg(
+            Arg::new("properties")
+                .short('p')
+                .long("properties")
+                .required(false)
+                .default_value("{}")
+                .help("Message properties"),
+        )]
+}
+
+pub fn get_subcommands() -> [Command; 1] {
+    [Command::new("messages")
+        .about("Consumes message(s) from a queue")
+        .arg(
+            Arg::new("queue")
+                .short('q')
+                .long("queue")
+                .required(true)
+                .help("Queue name"),
+        )
+        .arg(
+            Arg::new("count")
+                .short('c')
+                .long("count")
+                .required(false)
+                .default_value("1")
+                .help("Maximum number of messages to consume"),
+        )
+        .arg(
+            Arg::new("ack-mode")
+                .short('a')
+                .long("ack-mode")
+                .required(false)
+                .default_value("ack_requeue_false")
+                .help("ack_requeue_false, reject_requeue_false, ack_requeue_true or reject_requeue_true"),
         )]
 }

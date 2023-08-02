@@ -542,3 +542,32 @@ pub fn import_definitions(client: APIClient, command_args: &ArgMatches) -> Clien
         }
     }
 }
+
+pub fn publish_message(
+    client: APIClient,
+    vhost: &str,
+    command_args: &ArgMatches,
+) -> ClientResult<responses::MessageRouted> {
+    let exchange = command_args.get_one::<String>("exchange").unwrap();
+    let routing_key = command_args.get_one::<String>("routing-key").unwrap();
+    let payload = command_args.get_one::<String>("payload").unwrap();
+    let properties = command_args.get_one::<String>("properties").unwrap();
+    let parsed_properties = serde_json::from_str::<requests::MessageProperties>(properties)
+        .unwrap_or_else(|err| {
+            eprintln!("`{}` is not a valid JSON: {}", properties, err);
+            process::exit(1);
+        });
+
+    client.publish_message(vhost, exchange, routing_key, payload, parsed_properties)
+}
+
+pub fn get_messages(
+    client: APIClient,
+    vhost: &str,
+    command_args: &ArgMatches,
+) -> ClientResult<Vec<responses::GetMessage>> {
+    let queue = command_args.get_one::<String>("queue").unwrap();
+    let count = command_args.get_one::<String>("count").unwrap();
+    let ack_mode = command_args.get_one::<String>("ack-mode").unwrap();
+    client.get_messages(vhost, queue, count.parse::<u32>().unwrap(), ack_mode)
+}
