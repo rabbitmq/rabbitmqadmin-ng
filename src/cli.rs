@@ -90,7 +90,7 @@ impl SharedFlags {
 pub fn parser() -> Command {
     Command::new("rabbitmqadmin")
         .version("0.5.0")
-        .author("Michael Klishin")
+        .author("RabbitMQ Core Team")
         .about("rabbitmqadmin v2")
         .disable_version_flag(true)
         // --node
