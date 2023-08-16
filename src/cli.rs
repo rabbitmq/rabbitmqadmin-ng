@@ -88,10 +88,20 @@ impl SharedFlags {
 }
 
 pub fn parser() -> Command {
+    let after_help: &'static str = color_print::cstr!(
+        r#"
+<bold><yellow>Getting Help</yellow></bold>
+  RabbitMQ docs: https://rabbitmq.com/documentation.html
+  Discord server: https://rabbitmq.com/discord/
+  Community Slack: https://rabbitmq.com/slack/"#
+    );
+
     Command::new("rabbitmqadmin")
         .version(clap::crate_version!())
         .author("RabbitMQ Core Team")
-        .about("rabbitmqadmin v2")
+        .about("rabbitmqadmin gen 2")
+        .long_about("RabbitMQ CLI that uses the HTTP API")
+        .after_help(after_help)
         .disable_version_flag(true)
         // --node
         // This is NOT the same as --node in case of rabbitmqctl, rabbitmq-diagnostics, etc.
@@ -108,6 +118,7 @@ pub fn parser() -> Command {
             Arg::new("host")
                 .short('H')
                 .long("host")
+                .help("HTTP API hostname to use when connecting")
                 .required(false)
                 .default_value(DEFAULT_HOST),
         )
@@ -117,6 +128,7 @@ pub fn parser() -> Command {
             Arg::new("port")
                 .short('P')
                 .long("port")
+                .help("HTTP API port to use when connecting")
                 .required(false)
                 .value_parser(clap::value_parser!(u16))
                 .default_value(DEFAULT_PORT_STR),
@@ -126,6 +138,7 @@ pub fn parser() -> Command {
             Arg::new("base_uri")
                 .short('U')
                 .long("base-uri")
+                .help("base HTTP API endpoint URI")
                 .required(false)
                 .conflicts_with_all(["host", "port"]),
         )
@@ -141,6 +154,7 @@ pub fn parser() -> Command {
             Arg::new("vhost")
                 .short('V')
                 .long("vhost")
+                .help("target virtual host")
                 .required(false)
                 .default_value(DEFAULT_VHOST),
         )
@@ -184,6 +198,7 @@ pub fn parser() -> Command {
             Arg::new("quiet")
                 .short('q')
                 .long("quiet")
+                .help("produce less output")
                 .required(false)
                 .value_parser(clap::value_parser!(bool))
                 .action(clap::ArgAction::SetTrue),
@@ -193,6 +208,9 @@ pub fn parser() -> Command {
         .subcommands([
             Command::new("show")
                 .about("overview")
+                .after_long_help(color_print::cstr!(
+                    "<bold>Doc guide</bold>: https://rabbitmq.com/monitoring.html"
+                ))
                 .subcommand_value_name("summary")
                 .subcommands(show_subcomands()),
             Command::new("list")
@@ -217,14 +235,23 @@ pub fn parser() -> Command {
                 .subcommands(close_subcommands()),
             Command::new("rebalance")
                 .about("rebalances queue leaders")
+                .after_long_help(color_print::cstr!(
+                    "<bold>Doc guide</bold>: https://www.rabbitmq.com/quorum-queues.html"
+                ))
                 .subcommand_value_name("queues")
                 .subcommands(rebalance_subcommands()),
             Command::new("export")
                 .about("export definitions")
+                .after_long_help(color_print::cstr!(
+                    "<bold>Doc guide</bold>: https://rabbitmq.com/definitions.html"
+                ))
                 .subcommand_value_name("definitions")
                 .subcommands(export_subcommands()),
             Command::new("import")
                 .about("import definitions")
+                .after_long_help(color_print::cstr!(
+                    "<bold>Doc guide</bold>: https://rabbitmq.com/definitions.html"
+                ))
                 .subcommand_value_name("definitions")
                 .subcommands(import_subcommands()),
         ])
@@ -232,31 +259,77 @@ pub fn parser() -> Command {
 
 fn list_subcommands() -> [Command; 15] {
     [
-        Command::new("nodes"),
-        Command::new("users"),
-        Command::new("vhosts"),
-        Command::new("permissions"),
-        Command::new("connections"),
-        Command::new("channels"),
-        Command::new("queues"),
+        Command::new("nodes").long_about("Lists cluster members"),
+        Command::new("users").long_about("Lists users in the internal database"),
+        Command::new("vhosts")
+            .long_about("Lists virtual hosts")
+            .after_long_help(color_print::cstr!(
+                "<bold>Doc guide</bold>: https://rabbitmq.com/vhosts.html"
+            )),
+        Command::new("permissions")
+            .long_about("Lists user permissions")
+            .after_long_help(color_print::cstr!(
+                "<bold>Doc guide</bold>: https://rabbitmq.com/access-control.html"
+            )),
+        Command::new("connections")
+            .long_about("Lists client connections")
+            .after_long_help(color_print::cstr!(
+                "<bold>Doc guide</bold>: https://rabbitmq.com/connections.html"
+            )),
+        Command::new("channels")
+            .long_about("Lists AMQP 0-9-1 channels")
+            .after_long_help(color_print::cstr!(
+                "<bold>Doc guide</bold>: https://rabbitmq.com/channels.html"
+            )),
+        Command::new("queues")
+            .long_about("Lists queues")
+            .after_long_help(color_print::cstr!(
+                "<bold>Doc guide</bold>: https://rabbitmq.com/queues.html"
+            )),
         Command::new("exchanges"),
         Command::new("bindings"),
-        Command::new("consumers"),
-        Command::new("parameters").arg(
-            Arg::new("component")
-                .long("component")
-                .help("component (for example: federation-upstream, vhost-limits)")
-                .required(false),
-        ),
-        Command::new("policies"),
-        Command::new("operator_policies"),
-        Command::new("vhost_limits"),
-        Command::new("user_limits").arg(
-            Arg::new("user")
-                .long("user")
-                .help("username")
-                .required(false),
-        ),
+        Command::new("consumers")
+            .long_about("Lists consumers")
+            .after_long_help(color_print::cstr!(
+                "<bold>Doc guide</bold>: https://rabbitmq.com/consumers.html"
+            )),
+        Command::new("parameters")
+            .arg(
+                Arg::new("component")
+                    .long("component")
+                    .help("component (for example: federation-upstream, vhost-limits)")
+                    .required(false),
+            )
+            .long_about("Lists runtime parameters")
+            .after_long_help(color_print::cstr!(
+                "<bold>Doc guide</bold>: https://rabbitmq.com/parameters.html"
+            )),
+        Command::new("policies")
+            .long_about("Lists policies")
+            .after_long_help(color_print::cstr!(
+                "<bold>Doc guide</bold>: https://rabbitmq.com/parameters.html"
+            )),
+        Command::new("operator_policies")
+            .long_about("Lists operator policies")
+            .after_long_help(color_print::cstr!(
+                "<bold>Doc guide</bold>: https://rabbitmq.com/parameters.html"
+            )),
+        Command::new("vhost_limits")
+            .long_about("Lists virtual host (resource) limits")
+            .after_long_help(color_print::cstr!(
+                "<bold>Doc guide</bold>: https://rabbitmq.com/vhosts.html"
+            )),
+        Command::new("user_limits")
+            .arg(
+                Arg::new("user")
+                    .long("user")
+                    .help("username")
+                    .required(false),
+            )
+            .long_about("Lists per-user (resource) limits")
+            .after_long_help(color_print::cstr!(
+                "<bold>Doc guide</bold>: https://rabbitmq.com/user-limits.html"
+            )),
     ]
 }
 
@@ -690,12 +763,14 @@ fn delete_subcommands() -> [Command; 11] {
 }
 
 fn purge_subcommands() -> [Command; 1] {
-    [Command::new("queue").about("purges (empties) a queue").arg(
-        Arg::new("name")
-            .long("name")
-            .help("queue name")
-            .required(true),
-    )]
+    [Command::new("queue")
+        .long_about("purges (permanently removes unacknowledged messages from) a queue")
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("name of the queue to purge")
+                .required(true),
+        )]
 }
 
 fn rebalance_subcommands() -> [Command; 1] {
@@ -703,17 +778,22 @@ fn rebalance_subcommands() -> [Command; 1] {
 }
 
 fn close_subcommands() -> [Command; 1] {
-    [Command::new("connection").about("closes a connection").arg(
-        Arg::new("name")
-            .long("name")
-            .help("connection name (identifying string)")
-            .required(true),
-    )]
+    [Command::new("connection")
+        .about("closes a client connection")
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("connection name (identifying string)")
+                .required(true),
+        )]
 }
 
 fn export_subcommands() -> [Command; 1] {
     [Command::new("definitions")
         .about("export all definitions (queues, exchanges, bindings, users, etc)")
+        .after_long_help(color_print::cstr!(
+            "<bold>Doc guide</bold>: https://rabbitmq.com/definitions.html"
+        ))
         .arg(
             Arg::new("file")
                 .long("file")
@@ -726,6 +806,9 @@ fn export_subcommands() -> [Command; 1] {
 fn import_subcommands() -> [Command; 1] {
     [Command::new("definitions")
         .about("import all definitions (queues, exchanges, bindings, users, etc) from a JSON file")
+        .after_long_help(color_print::cstr!(
+            "<bold>Doc guide</bold>: https://rabbitmq.com/definitions.html"
+        ))
         .arg(
             Arg::new("file")
                 .long("file")
