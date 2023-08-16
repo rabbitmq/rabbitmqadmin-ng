@@ -668,6 +668,51 @@ fn test_import_definitions() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+#[test]
+fn test_messages() -> Result<(), Box<dyn std::error::Error>> {
+    // declare a new queue
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    cmd.arg("declare")
+        .arg("queue")
+        .arg("--name")
+        .arg("publish_consume")
+        .arg("--type")
+        .arg("classic");
+    cmd.assert().success();
+
+    // publish a message
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    cmd.arg("publish")
+        .arg("message")
+        .arg("--routing-key")
+        .arg("publish_consume")
+        .arg("--payload")
+        .arg("test_messages_1")
+        .arg("--properties")
+        .arg("{\"timestamp\": 1234, \"message_id\": \"foo\"}");
+    cmd.assert().success();
+
+    // consume a message
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    cmd.arg("get")
+        .arg("messages")
+        .arg("--queue")
+        .arg("publish_consume");
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("test_messages_1"));
+
+    // delete the test queue
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    cmd.arg("delete")
+        .arg("queue")
+        .arg("--name")
+        .arg("publish_consume");
+    cmd.assert().success();
+
+    Ok(())
+}
+
 #[allow(dead_code)]
 pub fn await_metric_emission(ms: u64) {
     std::thread::sleep(Duration::from_millis(ms));
