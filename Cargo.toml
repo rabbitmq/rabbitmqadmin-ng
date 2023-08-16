@@ -12,6 +12,7 @@ rabbitmq_http_client = { git = "https://github.com/michaelklishin/rabbitmq-http-
 serde = { version = "1.0", features = ["derive", "std"] }
 serde_json = "1"
 tabled = "0.12"
+color-print = "0.3"
 
 [dev-dependencies]
 assert_cmd = "2.0.11"
