@@ -1,17 +1,23 @@
 # rabbitmqadmin v2
 
-This repository contains an early version of a `rabbitmqadmin` v2.
+`rabbitmqadmin` v2 is a major revision of one of the RabbitMQ's CLI tools.
+
+If you are migrating from the original `rabbitqadmin`, please see [CLI Changes](#cli-changes)
+to learn about a few breaking change in the interface.
+
+For usage documentation, see [Usage](#usage).
+
 
 ## Project Goals
 
 For version 2.0, RabbitMQ Core Team has a few ideas in mind:
 
  * For v2, breaking changes are OK. `rabbitmqadmin` hasn't seen a revision in thirteen years
- * Python is a lovely language but we'd like at least some RabbitMQ CLI tools to be standalone binaries. For `rabbitmqadmin` specifically, there are very few reasons not to build and distribute it that way
- * v2 should be a standalone tool distributed via GitHub and not a special `rabbitmq_management` endpoint
- * We'd like to improve validation of flags and arguments, even if the interface changes somewhat in the process
+ * `rabbitmqadmin` should be standalone binary. There are very few reasons not to build and distribute it that way
+ * v2 should be a distributed via GitHub releases and not a special `rabbitmq_management` endpoint
+ * There is a lot of room to improve validation of flags and arguments, since breaking changes are OK for v2
  * Output should be revisited: what columns are output by default, whether columns should be selectable
- * Support for JSON and CSV was a popular addition in `rabbitmqctl`, `rabbitmq-diagnostics`, etc. Perhaps `rabbitmqadmin` should support them, too?
+ * Support for JSON and CSV was a popular addition in `rabbitmqctl`, `rabbitmq-diagnostics`, etc. Perhaps `rabbitmqadmin` should consider supporting them, too?
 
 and on top of that, we'd like to expand the Rust expertise on our team, just like
 we did with Elixir in the 2nd generation of `rabbitmqctl`, `rabbitmq-diagnostics`, `rabbitmq-upgrade`,
@@ -19,8 +25,124 @@ and so on.
 
 ## Project Maturity
 
-This project is under heavy development, is very incomplete, and should
-not be used by anyone at this time.
+This project is on track to replace the original `rabbitmqadmin`
+in late 2023 or early 2024.
+
+Before migrating, please see [CLI Changes](#cli-changes) to learn about a few breaking change in the interface.
+
+
+## Usage
+
+### Getting Help
+
+To learn about what command groups and specific commands are available, run
+
+``` shell
+rabbitmqadmin --help
+```
+
+Note that **such global flags must precede the command category (e.g. `list`) and the command itself**:
+
+```shell
+rabbitmqadmin --vhost "events" declare queue --name "target.quorum.queue.name" --type "quorum" --durable true
+```
+
+The same command will display global flags. To learn about a specific command, append
+`--help` to it:
+
+``` shell
+rabbitmqadmin declare queue --help
+```
+
+### Listing cluster nodes
+
+``` shell
+rabbitmqadmin list nodes
+```
+
+### Listing virtual hosts
+
+``` shell
+rabbitmqadmin list vhosts
+```
+
+### Listing users
+
+``` shell
+rabbitmqadmin list users
+```
+
+### Listing queues
+
+``` shell
+rabbitmqadmin list queues
+```
+
+``` shell
+rabbitmqadmin --vhost "monitoring" list queues
+```
+
+### Listing exchanges
+
+``` shell
+rabbitmqadmin list exchanges
+```
+
+``` shell
+rabbitmqadmin --vhost "events" list exchanges
+```
+
+### Listing bindings
+
+``` shell
+rabbitmqadmin list bindings
+```
+
+``` shell
+rabbitmqadmin --vhost "events" list bindings
+```
+
+### Declare a queue
+
+```shell
+rabbitmqadmin --vhost "events" declare queue --name "target.quorum.queue.name" --type "quorum" --durable true
+```
+
+```shell
+rabbitmqadmin --vhost "events" declare queue --name "target.stream.name" --type "stream" --durable true
+```
+
+```shell
+rabbitmqadmin --vhost "events" declare queue --name "target.classic.queue.name" --type "classic" --durable false --auto_delete true
+```
+
+### Delete a queue
+
+``` shell
+rabbitmqadmin --vhost "events" delete queue --name "target.queue.name"
+```
+
+## Differences from `rabbitmq` v1
+
+Compared to the original `rabbitmq`, this version:
+
+ * Is distributed as a standalone binary and does not depend on Python
+ * Uses much stricter CLI argument validation and has (relatively minor) breaking changes in the CLI
+ * Is better documented
+
+### CLI Changes
+
+#### Global Arguments Come First
+
+Global flags in `rabbitmqadmin` v2 must precede the command category (e.g. `list`) and the command itself,
+namely various HTTP API endpoint options and `--vhost`:
+
+```shell
+rabbitmqadmin --vhost "events" declare queue --name "target.quorum.queue.name" --type "quorum" --durable true
+```
+
+### 
+
 
 ## License
 
