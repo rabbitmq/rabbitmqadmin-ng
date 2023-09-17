@@ -904,9 +904,9 @@ dependencies = [
 
 [[package]]
 name = "papergrid"
-version = "0.9.1"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ae7891b22598926e4398790c8fe6447930c72a67d36d983a49d6ce682ce83290"
+checksum = "a2ccbe15f2b6db62f9a9871642746427e297b0ceb85f9a7f1ee5ff47d184d0c8"
 dependencies = [
  "bytecount",
  "fnv",
@@ -1019,7 +1019,7 @@ dependencies = [
 [[package]]
 name = "rabbitmq_http_client"
 version = "0.6.0"
-source = "git+https://github.com/michaelklishin/rabbitmq-http-api-rs#abcb05f4089d4749b8e73762a7e0774de216a0fc"
+source = "git+https://github.com/michaelklishin/rabbitmq-http-api-rs#cf059e5a2e6cbf27056ecda1f0245d6cd38815e0"
 dependencies = [
  "percent-encoding",
  "rand",
@@ -1035,7 +1035,7 @@ dependencies = [
 
 [[package]]
 name = "rabbitmqadmin"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
  "assert_cmd",
  "clap",
@@ -1437,9 +1437,9 @@ checksum = "283ec016d68fadd1b20f800ca888276191dd4562113510717211b574a221ae37"
 
 [[package]]
 name = "tabled"
-version = "0.12.2"
+version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0ce69a5028cd9576063ec1f48edb2c75339fd835e6094ef3e05b3a079bf594a6"
+checksum = "dfe9c3632da101aba5131ed63f9eed38665f8b3c68703a6bb18124835c1a5d22"
 dependencies = [
  "papergrid",
  "tabled_derive",
