@@ -93,7 +93,7 @@ pub fn parser() -> Command {
 <bold><yellow>Getting Help</yellow></bold>
   RabbitMQ docs: https://rabbitmq.com/documentation.html
   Discord server: https://rabbitmq.com/discord/
-  Community Slack: https://rabbitmq.com/slack/"#
+  GitHub Discussions: https://github.com/rabbitmq/rabbitmq-server/discussions"#
     );
 
     Command::new("rabbitmqadmin")
