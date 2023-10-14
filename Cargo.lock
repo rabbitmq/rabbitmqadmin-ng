@@ -668,9 +668,9 @@ checksum = "28b29a3cd74f0f4598934efe3aeba42bae0eb4680554128851ebbecb02af14e6"
 
 [[package]]
 name = "itertools"
-version = "0.10.5"
+version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b0fd2260e829bddf4cb6ea802289de2f86d6a7a690192fbe91b3f46e0f2c8473"
+checksum = "b1c173a5686ce8bfa551b3563d0c2170bf24ca44da99c7ca4bfdab5418c3fe57"
 dependencies = [
  "either",
 ]
@@ -945,9 +945,9 @@ checksum = "5b40af805b3121feab8a3c29f04d8ad262fa8e0561883e7653e024ae4479e6de"
 
 [[package]]
 name = "predicates"
-version = "3.0.3"
+version = "3.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "09963355b9f467184c04017ced4a2ba2d75cbcb4e7462690d388233253d4b1a9"
+checksum = "6dfc28575c2e3f19cb3c73b93af36460ae898d426eba6fc15b9bd2a5220758a0"
 dependencies = [
  "anstyle",
  "difflib",
@@ -1035,7 +1035,7 @@ dependencies = [
 
 [[package]]
 name = "rabbitmqadmin"
-version = "0.8.0"
+version = "0.8.1"
 dependencies = [
  "assert_cmd",
  "clap",
@@ -1431,9 +1431,9 @@ dependencies = [
 
 [[package]]
 name = "sysexits"
-version = "0.6.3"
+version = "0.7.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "283ec016d68fadd1b20f800ca888276191dd4562113510717211b574a221ae37"
+checksum = "2a4ee316f07f975b89ada2b47c75ecd829be54198f43de258aba2f51d99f9219"
 
 [[package]]
 name = "tabled"
