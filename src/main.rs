@@ -249,7 +249,7 @@ fn main() {
 /// Retrieves a --vhost value, either from global or command-specific arguments
 fn virtual_host(global_flags: &SharedFlags, command_flags: &ArgMatches) -> String {
     // in case a command does not define --vhost
-    if let Ok(_) = command_flags.try_contains_id("vhost") {
+    if command_flags.try_contains_id("vhost").is_ok() {
         // if the command-specific flag is not set to default,
         // use it, otherwise use the global/shared --vhost flag value
         let fallback = String::from(DEFAULT_VHOST);
