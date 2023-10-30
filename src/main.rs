@@ -1,3 +1,4 @@
+use clap::ArgMatches;
 use std::fmt;
 use std::fs::File;
 use std::io::Read;
@@ -12,6 +13,7 @@ mod commands;
 mod constants;
 
 use crate::cli::SharedFlags;
+use crate::constants::DEFAULT_VHOST;
 use rabbitmq_http_client::blocking::Client as APIClient;
 
 fn main() {
@@ -56,6 +58,8 @@ fn main() {
         if let Some((kind, command_args)) = group_args.subcommand() {
             let pair = (verb, kind);
 
+            let vhost = virtual_host(&sf, command_args);
+
             match &pair {
                 ("list", "nodes") => {
                     let result = commands::list_nodes(client);
@@ -66,7 +70,7 @@ fn main() {
                     print_table_or_fail(result);
                 }
                 ("list", "vhost_limits") => {
-                    let result = commands::list_vhost_limits(client, &sf.virtual_host);
+                    let result = commands::list_vhost_limits(client, &vhost);
                     print_table_or_fail(result);
                 }
                 ("list", "user_limits") => {
@@ -98,7 +102,7 @@ fn main() {
                     print_table_or_fail(result);
                 }
                 ("list", "queues") => {
-                    let result = commands::list_queues(client, &sf.virtual_host);
+                    let result = commands::list_queues(client, &vhost);
                     print_table_or_fail(result);
                 }
                 ("list", "bindings") => {
@@ -110,11 +114,11 @@ fn main() {
                     print_table_or_fail(result);
                 }
                 ("list", "parameters") => {
-                    let result = commands::list_parameters(client, &sf.virtual_host, command_args);
+                    let result = commands::list_parameters(client, &vhost, command_args);
                     print_table_or_fail(result);
                 }
                 ("list", "exchanges") => {
-                    let result = commands::list_exchanges(client, &sf.virtual_host);
+                    let result = commands::list_exchanges(client, &vhost);
                     print_table_or_fail(result);
                 }
                 ("declare", "vhost") => {
@@ -122,7 +126,7 @@ fn main() {
                     print_nothing_or_fail(result);
                 }
                 ("declare", "exchange") => {
-                    let result = commands::declare_exchange(client, &sf.virtual_host, command_args);
+                    let result = commands::declare_exchange(client, &vhost, command_args);
                     print_nothing_or_fail(result);
                 }
                 ("declare", "user") => {
@@ -130,35 +134,31 @@ fn main() {
                     print_nothing_or_fail(result);
                 }
                 ("declare", "permissions") => {
-                    let result =
-                        commands::declare_permissions(client, &sf.virtual_host, command_args);
+                    let result = commands::declare_permissions(client, &vhost, command_args);
                     print_nothing_or_fail(result);
                 }
                 ("delete", "permissions") => {
-                    let result =
-                        commands::delete_permissions(client, &sf.virtual_host, command_args);
+                    let result = commands::delete_permissions(client, &vhost, command_args);
                     print_nothing_or_fail(result);
                 }
                 ("declare", "queue") => {
-                    let result = commands::declare_queue(client, &sf.virtual_host, command_args);
+                    let result = commands::declare_queue(client, &vhost, command_args);
                     print_nothing_or_fail(result);
                 }
                 ("declare", "binding") => {
-                    let result = commands::declare_binding(client, &sf.virtual_host, command_args);
+                    let result = commands::declare_binding(client, &vhost, command_args);
                     print_nothing_or_fail(result);
                 }
                 ("declare", "policy") => {
-                    let result = commands::declare_policy(client, &sf.virtual_host, command_args);
+                    let result = commands::declare_policy(client, &vhost, command_args);
                     print_nothing_or_fail(result);
                 }
                 ("declare", "operator_policy") => {
-                    let result =
-                        commands::declare_operator_policy(client, &sf.virtual_host, command_args);
+                    let result = commands::declare_operator_policy(client, &vhost, command_args);
                     print_nothing_or_fail(result);
                 }
                 ("declare", "vhost_limit") => {
-                    let result =
-                        commands::declare_vhost_limit(client, &sf.virtual_host, command_args);
+                    let result = commands::declare_vhost_limit(client, &vhost, command_args);
                     print_nothing_or_fail(result);
                 }
                 ("declare", "user_limit") => {
@@ -166,8 +166,7 @@ fn main() {
                     print_nothing_or_fail(result);
                 }
                 ("declare", "parameter") => {
-                    let result =
-                        commands::declare_parameter(client, &sf.virtual_host, command_args);
+                    let result = commands::declare_parameter(client, &vhost, command_args);
                     print_nothing_or_fail(result);
                 }
                 ("delete", "vhost") => {
@@ -175,7 +174,7 @@ fn main() {
                     print_nothing_or_fail(result);
                 }
                 ("delete", "exchange") => {
-                    let result = commands::delete_exchange(client, &sf.virtual_host, command_args);
+                    let result = commands::delete_exchange(client, &vhost, command_args);
                     print_nothing_or_fail(result);
                 }
                 ("delete", "user") => {
@@ -183,25 +182,23 @@ fn main() {
                     print_nothing_or_fail(result);
                 }
                 ("delete", "queue") => {
-                    let result = commands::delete_queue(client, &sf.virtual_host, command_args);
+                    let result = commands::delete_queue(client, &vhost, command_args);
                     print_nothing_or_fail(result);
                 }
                 ("delete", "binding") => {
-                    let result = commands::delete_binding(client, &sf.virtual_host, command_args);
+                    let result = commands::delete_binding(client, &vhost, command_args);
                     print_nothing_or_fail(result);
                 }
                 ("delete", "policy") => {
-                    let result = commands::delete_policy(client, &sf.virtual_host, command_args);
+                    let result = commands::delete_policy(client, &vhost, command_args);
                     print_nothing_or_fail(result);
                 }
                 ("delete", "operator_policy") => {
-                    let result =
-                        commands::delete_operator_policy(client, &sf.virtual_host, command_args);
+                    let result = commands::delete_operator_policy(client, &vhost, command_args);
                     print_nothing_or_fail(result);
                 }
                 ("delete", "vhost_limit") => {
-                    let result =
-                        commands::delete_vhost_limit(client, &sf.virtual_host, command_args);
+                    let result = commands::delete_vhost_limit(client, &vhost, command_args);
                     print_nothing_or_fail(result);
                 }
                 ("delete", "user_limit") => {
@@ -209,11 +206,11 @@ fn main() {
                     print_nothing_or_fail(result);
                 }
                 ("delete", "parameter") => {
-                    let result = commands::delete_parameter(client, &sf.virtual_host, command_args);
+                    let result = commands::delete_parameter(client, &vhost, command_args);
                     print_nothing_or_fail(result);
                 }
                 ("purge", "queue") => {
-                    let result = commands::purge_queue(client, &sf.virtual_host, command_args);
+                    let result = commands::purge_queue(client, &vhost, command_args);
                     print_nothing_or_fail(result);
                 }
                 ("rebalance", "queues") => {
@@ -233,11 +230,11 @@ fn main() {
                     print_nothing_or_fail(result);
                 }
                 ("publish", "message") => {
-                    let result = commands::publish_message(client, &sf.virtual_host, command_args);
+                    let result = commands::publish_message(client, &vhost, command_args);
                     print_result_or_fail(result);
                 }
                 ("get", "messages") => {
-                    let result = commands::get_messages(client, &sf.virtual_host, command_args);
+                    let result = commands::get_messages(client, &vhost, command_args);
                     print_table_or_fail(result);
                 }
                 _ => {
@@ -246,6 +243,27 @@ fn main() {
                 }
             }
         }
+    }
+}
+
+/// Retrieves a --vhost value, either from global or command-specific arguments
+fn virtual_host(global_flags: &SharedFlags, command_flags: &ArgMatches) -> String {
+    // in case a command does not define --vhost
+    if let Ok(_) = command_flags.try_contains_id("vhost") {
+        // if the command-specific flag is not set to default,
+        // use it, otherwise use the global/shared --vhost flag value
+        let fallback = String::from(DEFAULT_VHOST);
+        let command_vhost: &str = command_flags
+            .get_one::<String>("vhost")
+            .unwrap_or(&fallback);
+
+        if command_vhost != DEFAULT_VHOST {
+            String::from(command_vhost)
+        } else {
+            global_flags.virtual_host.clone()
+        }
+    } else {
+        global_flags.virtual_host.clone()
     }
 }
 
