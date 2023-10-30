@@ -226,7 +226,7 @@ fn main() {
                 }
                 ("export", "definitions") => {
                     let result = commands::export_definitions(client, command_args);
-                    print_debug_result_or_fail(result);
+                    print_nothing_or_fail(result);
                 }
                 ("import", "definitions") => {
                     let result = commands::import_definitions(client, command_args);
@@ -238,7 +238,7 @@ fn main() {
                 }
                 ("get", "messages") => {
                     let result = commands::get_messages(client, &sf.virtual_host, command_args);
-                    print_table_or_fail(result);
+                    print_nothing_or_fail(result);
                 }
                 _ => {
                     println!("Unknown command and subcommand pair: {:?}", &pair);
