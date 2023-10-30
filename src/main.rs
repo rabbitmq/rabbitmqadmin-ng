@@ -230,7 +230,7 @@ fn main() {
                 }
                 ("import", "definitions") => {
                     let result = commands::import_definitions(client, command_args);
-                    print_debug_result_or_fail(result);
+                    print_nothing_or_fail(result);
                 }
                 ("publish", "message") => {
                     let result = commands::publish_message(client, &sf.virtual_host, command_args);
@@ -238,7 +238,7 @@ fn main() {
                 }
                 ("get", "messages") => {
                     let result = commands::get_messages(client, &sf.virtual_host, command_args);
-                    print_nothing_or_fail(result);
+                    print_table_or_fail(result);
                 }
                 _ => {
                     println!("Unknown command and subcommand pair: {:?}", &pair);
@@ -276,6 +276,7 @@ fn print_result_or_fail<T: fmt::Display>(result: Result<T, rabbitmq_http_client:
     }
 }
 
+#[allow(dead_code)]
 fn print_debug_result_or_fail<T: fmt::Debug>(
     result: Result<T, rabbitmq_http_client::blocking::Error>,
 ) {
