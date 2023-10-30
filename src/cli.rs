@@ -266,6 +266,15 @@ pub fn parser() -> Command {
 }
 
 fn list_subcommands() -> [Command; 15] {
+    // duplicate this very common global argument so that
+    // it can be passed as the end of argument list
+    let vhost_arg = Arg::new("vhost")
+        .short('V')
+        .long("vhost")
+        .help("target virtual host")
+        .required(false)
+        .default_value(DEFAULT_VHOST);
+
     [
         Command::new("nodes").long_about("Lists cluster members"),
         Command::new("users").long_about("Lists users in the internal database"),
@@ -275,33 +284,39 @@ fn list_subcommands() -> [Command; 15] {
                 "<bold>Doc guide</bold>: https://rabbitmq.com/vhosts.html"
             )),
         Command::new("permissions")
+            .arg(vhost_arg.clone())
             .long_about("Lists user permissions")
             .after_long_help(color_print::cstr!(
                 "<bold>Doc guide</bold>: https://rabbitmq.com/access-control.html"
             )),
         Command::new("connections")
+            .arg(vhost_arg.clone())
             .long_about("Lists client connections")
             .after_long_help(color_print::cstr!(
                 "<bold>Doc guide</bold>: https://rabbitmq.com/connections.html"
             )),
         Command::new("channels")
+            .arg(vhost_arg.clone())
             .long_about("Lists AMQP 0-9-1 channels")
             .after_long_help(color_print::cstr!(
                 "<bold>Doc guide</bold>: https://rabbitmq.com/channels.html"
             )),
         Command::new("queues")
+            .arg(vhost_arg.clone())
             .long_about("Lists queues")
             .after_long_help(color_print::cstr!(
                 "<bold>Doc guide</bold>: https://rabbitmq.com/queues.html"
             )),
-        Command::new("exchanges"),
-        Command::new("bindings"),
+        Command::new("exchanges").arg(vhost_arg.clone()),
+        Command::new("bindings").arg(vhost_arg.clone()),
         Command::new("consumers")
+            .arg(vhost_arg.clone())
             .long_about("Lists consumers")
             .after_long_help(color_print::cstr!(
                 "<bold>Doc guide</bold>: https://rabbitmq.com/consumers.html"
             )),
         Command::new("parameters")
+            .arg(vhost_arg.clone())
             .arg(
                 Arg::new("component")
                     .long("component")
@@ -313,21 +328,25 @@ fn list_subcommands() -> [Command; 15] {
                 "<bold>Doc guide</bold>: https://rabbitmq.com/parameters.html"
             )),
         Command::new("policies")
+            .arg(vhost_arg.clone())
             .long_about("Lists policies")
             .after_long_help(color_print::cstr!(
                 "<bold>Doc guide</bold>: https://rabbitmq.com/parameters.html"
             )),
         Command::new("operator_policies")
+            .arg(vhost_arg.clone())
             .long_about("Lists operator policies")
             .after_long_help(color_print::cstr!(
                 "<bold>Doc guide</bold>: https://rabbitmq.com/parameters.html"
             )),
         Command::new("vhost_limits")
+            .arg(vhost_arg.clone())
             .long_about("Lists virtual host (resource) limits")
             .after_long_help(color_print::cstr!(
                 "<bold>Doc guide</bold>: https://rabbitmq.com/vhosts.html"
             )),
         Command::new("user_limits")
+            .arg(vhost_arg.clone())
             .arg(
                 Arg::new("user")
                     .long("user")
@@ -342,6 +361,15 @@ fn list_subcommands() -> [Command; 15] {
 }
 
 fn declare_subcommands() -> [Command; 11] {
+    // duplicate this very common global argument so that
+    // it can be passed as the end of argument list
+    let vhost_arg = Arg::new("vhost")
+        .short('V')
+        .long("vhost")
+        .help("target virtual host")
+        .required(false)
+        .default_value(DEFAULT_VHOST);
+
     [
         Command::new("user")
             .about("creates a user")
@@ -401,6 +429,7 @@ fn declare_subcommands() -> [Command; 11] {
             ),
         Command::new("permissions")
             .about("grants permissions to a user")
+            .arg(vhost_arg.clone())
             .arg(
                 Arg::new("user")
                     .long("user")
@@ -427,6 +456,7 @@ fn declare_subcommands() -> [Command; 11] {
             ),
         Command::new("queue")
             .about("declares a queue")
+            .arg(vhost_arg.clone())
             .arg(Arg::new("name").long("name").required(true).help("name"))
             .arg(
                 Arg::new("type")
@@ -459,6 +489,7 @@ fn declare_subcommands() -> [Command; 11] {
             ),
         Command::new("exchange")
             .about("declares an exchange")
+            .arg(vhost_arg.clone())
             .arg(
                 Arg::new("name")
                     .long("name")
@@ -495,6 +526,7 @@ fn declare_subcommands() -> [Command; 11] {
             ),
         Command::new("binding")
             .about("binds to an exchange")
+            .arg(vhost_arg.clone())
             .arg(
                 Arg::new("source")
                     .long("source")
@@ -529,14 +561,14 @@ fn declare_subcommands() -> [Command; 11] {
                     .value_parser(clap::value_parser!(String)),
             ),
         Command::new("parameter").
-            about("sets a runtime parameter").
-            arg(
+            about("sets a runtime parameter")
+            .arg(vhost_arg.clone())
+            .arg(
                 Arg::new("name")
                     .long("name")
                     .help("parameter's name")
                     .required(true)
-            ).
-            arg(
+            ).arg(
                 Arg::new("component")
                     .long("component")
                     .help("component (eg. federation)")
@@ -548,6 +580,7 @@ fn declare_subcommands() -> [Command; 11] {
                     .required(true)),
         Command::new("policy")
             .about("creates or updates a policy")
+            .arg(vhost_arg.clone())
             .arg(
                 Arg::new("name")
                     .long("name")
@@ -579,7 +612,9 @@ fn declare_subcommands() -> [Command; 11] {
                     .help("policy definition")
                     .required(true),
             ),
-        Command::new("operator_policy").about("creates or updates an operator policy")
+        Command::new("operator_policy")
+            .about("creates or updates an operator policy")
+            .arg(vhost_arg.clone())
             .arg(
                 Arg::new("name")
                     .long("name")
@@ -611,7 +646,9 @@ fn declare_subcommands() -> [Command; 11] {
                     .help("policy definition")
                     .required(true),
             ),
-        Command::new("vhost_limit").about("set a vhost limit")
+        Command::new("vhost_limit")
+            .about("set a vhost limit")
+            .arg(vhost_arg.clone())
             .arg(
                 Arg::new("name")
                     .long("name")
@@ -653,6 +690,15 @@ fn show_subcomands() -> [Command; 1] {
 }
 
 fn delete_subcommands() -> [Command; 11] {
+    // duplicate this very common global argument so that
+    // it can be passed as the end of argument list
+    let vhost_arg = Arg::new("vhost")
+        .short('V')
+        .long("vhost")
+        .help("target virtual host")
+        .required(false)
+        .default_value(DEFAULT_VHOST);
+
     [
         Command::new("user").about("deletes a user").arg(
             Arg::new("name")
@@ -668,6 +714,7 @@ fn delete_subcommands() -> [Command; 11] {
         ),
         Command::new("permissions")
             .about("revokes user permissions to a given vhost")
+            .arg(vhost_arg.clone())
             .arg(
                 Arg::new("user")
                     .long("user")
@@ -676,15 +723,20 @@ fn delete_subcommands() -> [Command; 11] {
             ),
         Command::new("queue")
             .about("deletes a queue")
+            .arg(vhost_arg.clone())
             .arg(Arg::new("name").long("name").help("queue").required(true)),
-        Command::new("exchange").about("deletes an exchange").arg(
-            Arg::new("name")
-                .long("name")
-                .help("exchange")
-                .required(true),
-        ),
+        Command::new("exchange")
+            .about("deletes an exchange")
+            .arg(vhost_arg.clone())
+            .arg(
+                Arg::new("name")
+                    .long("name")
+                    .help("exchange")
+                    .required(true),
+            ),
         Command::new("binding")
             .about("deletes a binding")
+            .arg(vhost_arg.clone())
             .arg(
                 Arg::new("source")
                     .long("source")
@@ -719,6 +771,7 @@ fn delete_subcommands() -> [Command; 11] {
             ),
         Command::new("parameter")
             .about("clears a runtime parameter")
+            .arg(vhost_arg.clone())
             .arg(
                 Arg::new("name")
                     .long("name")
@@ -731,14 +784,18 @@ fn delete_subcommands() -> [Command; 11] {
                     .help("component (eg. federation-upstream)")
                     .required(true),
             ),
-        Command::new("policy").about("deletes a policy").arg(
-            Arg::new("name")
-                .long("name")
-                .help("policy name")
-                .required(true),
-        ),
+        Command::new("policy")
+            .about("deletes a policy")
+            .arg(vhost_arg.clone())
+            .arg(
+                Arg::new("name")
+                    .long("name")
+                    .help("policy name")
+                    .required(true),
+            ),
         Command::new("operator_policy")
             .about("deletes an operator policy")
+            .arg(vhost_arg.clone())
             .arg(
                 Arg::new("name")
                     .long("name")
@@ -747,6 +804,7 @@ fn delete_subcommands() -> [Command; 11] {
             ),
         Command::new("vhost_limit")
             .about("delete a vhost limit")
+            .arg(vhost_arg.clone())
             .arg(
                 Arg::new("name")
                     .long("name")
