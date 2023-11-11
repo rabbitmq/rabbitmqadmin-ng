@@ -10,9 +10,9 @@ For usage documentation, see [Usage](#usage).
 
 ## Project Goals
 
-For version 2.0, RabbitMQ Core Team has a few ideas in mind:
+This version of `rabbitmqadmin` has a few ideas in mind:
 
- * For v2, breaking changes are OK. `rabbitmqadmin` hasn't seen a revision in thirteen years
+ * This is a major version bump. Therefore, breaking changes are OK. `rabbitmqadmin` hasn't seen a revision in thirteen years
  * `rabbitmqadmin` should be standalone binary. There are very few reasons not to build and distribute it that way
  * v2 should be a distributed via GitHub releases and not a special `rabbitmq_management` endpoint
  * There is a lot of room to improve validation of flags and arguments, since breaking changes are OK for v2
@@ -25,8 +25,7 @@ and so on.
 
 ## Project Maturity
 
-This project is on track to replace the original `rabbitmqadmin`
-in late 2023 or early 2024.
+This version of `rabbitmqadmin` should be considered reasonably mature to be used.
 
 Before migrating, please see [CLI Changes](#cli-changes) to learn about a few breaking change in the interface.
 
@@ -41,7 +40,7 @@ To learn about what command groups and specific commands are available, run
 rabbitmqadmin --help
 ```
 
-Note that **such global flags must precede the command category (e.g. `list`) and the command itself**:
+Note that in this version, **global flags must precede the command category (e.g. `list`) and the command itself**:
 
 ```shell
 rabbitmqadmin --vhost "events" declare queue --name "target.quorum.queue.name" --type "quorum" --durable true
@@ -141,7 +140,9 @@ namely various HTTP API endpoint options and `--vhost`:
 rabbitmqadmin --vhost "events" declare queue --name "target.quorum.queue.name" --type "quorum" --durable true
 ```
 
-### 
+### Getting Help
+
+Please use GitHub Discussions in this repository and [RabbitMQ community Discord server](https://rabbitmq.com/contact.html).
 
 
 ## License
