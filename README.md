@@ -142,7 +142,7 @@ rabbitmqadmin --vhost "events" declare queue --name "target.quorum.queue.name" -
 
 ### Getting Help
 
-Please use GitHub Discussions in this repository and [RabbitMQ community Discord server](https://rabbitmq.com/contact.html).
+Please use GitHub Discussions in this repository and [RabbitMQ community Discord server](https://rabbitmq.com/discord/).
 
 
 ## License
