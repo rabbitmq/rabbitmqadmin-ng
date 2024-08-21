@@ -91,7 +91,7 @@ pub fn parser() -> Command {
     let after_help: &'static str = color_print::cstr!(
         r#"
 <bold><yellow>Getting Help</yellow></bold>
-  RabbitMQ docs: https://rabbitmq.com/documentation.html
+  RabbitMQ docs: https://rabbitmq.com/docs/
   Discord server: https://rabbitmq.com/discord/
   GitHub Discussions: https://github.com/rabbitmq/rabbitmq-server/discussions"#
     );
