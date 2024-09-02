@@ -221,6 +221,14 @@ fn main() {
                     let result = commands::close_connection(client, command_args);
                     print_nothing_or_fail(result);
                 }
+                ("definitions", "export") => {
+                    let result = commands::export_definitions(client, command_args);
+                    print_nothing_or_fail(result);
+                }
+                ("definitions", "import") => {
+                    let result = commands::import_definitions(client, command_args);
+                    print_nothing_or_fail(result);
+                }
                 ("export", "definitions") => {
                     let result = commands::export_definitions(client, command_args);
                     print_nothing_or_fail(result);

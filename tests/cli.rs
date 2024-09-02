@@ -619,7 +619,7 @@ fn test_runtime_parameters() -> Result<(), Box<dyn std::error::Error>> {
 fn test_export_definitions() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
 
-    cmd.arg("export").arg("definitions");
+    cmd.arg("definitions").arg("export");
     cmd.assert()
         .success()
         .stdout(predicate::str::contains("guest"));
@@ -632,13 +632,12 @@ fn test_import_definitions() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
 
     cmd.args([
-        "import",
         "definitions",
+        "import",
         "--file",
         "tests/fixtures/definitions1.json",
     ]);
     cmd.assert().success();
-    // .stdout(predicate::str::contains("guest"));
 
     Ok(())
 }

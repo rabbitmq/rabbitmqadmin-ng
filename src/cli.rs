@@ -236,21 +236,28 @@ pub fn parser() -> Command {
             Command::new("rebalance")
                 .about("rebalances queue leaders")
                 .after_long_help(color_print::cstr!(
-                    "<bold>Doc guide</bold>: https://www.rabbitmq.com/quorum-queues.html"
+                    "<bold>Doc guide</bold>: https://www.rabbitmq.com/docs/quorum-queues"
                 ))
                 .subcommand_value_name("queues")
                 .subcommands(rebalance_subcommands()),
+            Command::new("definitions")
+                .about("operations on definitions")
+                .after_long_help(color_print::cstr!(
+                    "<bold>Doc guide</bold>: https://rabbitmq.com/docs/definitions"
+                ))
+                .subcommand_value_name("export")
+                .subcommands(definitions_subcommands()),
             Command::new("export")
                 .about("export definitions")
                 .after_long_help(color_print::cstr!(
-                    "<bold>Doc guide</bold>: https://rabbitmq.com/definitions.html"
+                    "<bold>Doc guide</bold>: https://rabbitmq.com/docs/definitions"
                 ))
                 .subcommand_value_name("definitions")
                 .subcommands(export_subcommands()),
             Command::new("import")
                 .about("import definitions")
                 .after_long_help(color_print::cstr!(
-                    "<bold>Doc guide</bold>: https://rabbitmq.com/definitions.html"
+                    "<bold>Doc guide</bold>: https://rabbitmq.com/docs/definitions"
                 ))
                 .subcommand_value_name("definitions")
                 .subcommands(import_subcommands()),
@@ -854,11 +861,38 @@ fn close_subcommands() -> [Command; 1] {
         )]
 }
 
+fn definitions_subcommands() -> [Command; 2] {
+    let export_cmd = Command::new("export")
+        .about("export all definitions (queues, exchanges, bindings, users, etc)")
+        .after_long_help(color_print::cstr!(
+            "<bold>Doc guide</bold>: https://rabbitmq.com/docs/definitions/"
+        ))
+        .arg(
+            Arg::new("file")
+                .long("file")
+                .help("output path")
+                .required(false)
+                .default_value("-")
+        );
+
+    let import_cmd = Command::new("import")
+        .about("import all definitions (queues, exchanges, bindings, users, etc) from a JSON file")
+        .after_long_help(color_print::cstr!(
+            "<bold>Doc guide</bold>: https://rabbitmq.com/docs/definitions/"
+        )).arg(
+        Arg::new("file")
+            .long("file")
+            .help("JSON file with definitions")
+            .required(true));
+
+    [export_cmd, import_cmd]
+}
+
 fn export_subcommands() -> [Command; 1] {
     [Command::new("definitions")
         .about("export all definitions (queues, exchanges, bindings, users, etc)")
         .after_long_help(color_print::cstr!(
-            "<bold>Doc guide</bold>: https://rabbitmq.com/definitions.html"
+            "<bold>Doc guide</bold>: https://rabbitmq.com/docs/definitions/"
         ))
         .arg(
             Arg::new("file")
@@ -873,7 +907,7 @@ fn import_subcommands() -> [Command; 1] {
     [Command::new("definitions")
         .about("import all definitions (queues, exchanges, bindings, users, etc) from a JSON file")
         .after_long_help(color_print::cstr!(
-            "<bold>Doc guide</bold>: https://rabbitmq.com/definitions.html"
+            "<bold>Doc guide</bold>: https://rabbitmq.com/docs/definitions/"
         ))
         .arg(
             Arg::new("file")
