@@ -5,6 +5,8 @@ use rabbitmq_http_client::commons::VirtualHostLimitTarget;
 use std::fs;
 use std::process;
 
+use serde_json::json;
+
 use rabbitmq_http_client::blocking::Client as APIClient;
 use rabbitmq_http_client::blocking::Result as ClientResult;
 use rabbitmq_http_client::requests::EnforcedLimitParams;
@@ -540,6 +542,17 @@ pub fn import_definitions(client: APIClient, command_args: &ArgMatches) -> Clien
             eprintln!("`{}` could not be read: {}", file, err);
             process::exit(1)
         }
+    }
+}
+
+pub fn transform_definitions(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
+    let transformation_names = command_args.get_one::<String>("transformations").unwrap();
+    match client.export_definitions_as_data() {
+        Ok(definitions) => {
+            println!("Definitions: {:?}", json!(definitions));
+            Ok(())
+        }
+        Err(err) => Err(err),
     }
 }
 

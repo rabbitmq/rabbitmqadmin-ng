@@ -861,7 +861,7 @@ fn close_subcommands() -> [Command; 1] {
         )]
 }
 
-fn definitions_subcommands() -> [Command; 2] {
+fn definitions_subcommands() -> [Command; 3] {
     let export_cmd = Command::new("export")
         .about("export all definitions (queues, exchanges, bindings, users, etc)")
         .after_long_help(color_print::cstr!(
@@ -885,7 +885,21 @@ fn definitions_subcommands() -> [Command; 2] {
             .help("JSON file with definitions")
             .required(true));
 
-    [export_cmd, import_cmd]
+    let transform_cmd = Command::new("transform")
+        .about("exports and transforms (post-processes) definitions")
+        .after_long_help(color_print::cstr!(
+            "<bold>Doc guide</bold>: https://rabbitmq.com/docs/definitions/"
+        )).arg(
+            Arg::new("file")
+                .long("file")
+                .help("JSON file with definitions")
+                .required(true))
+        .arg(Arg::new("transformations")
+                 .required(true)
+                 .long("transformations")
+                 .help("command-separated names of transformations to apply"));
+
+    [export_cmd, import_cmd, transform_cmd]
 }
 
 fn export_subcommands() -> [Command; 1] {

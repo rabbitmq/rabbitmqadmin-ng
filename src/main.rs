@@ -11,6 +11,7 @@ use tabled::{Table, Tabled};
 mod cli;
 mod commands;
 mod constants;
+mod transformations;
 
 use crate::cli::SharedFlags;
 use crate::constants::DEFAULT_VHOST;
@@ -227,6 +228,10 @@ fn main() {
                 }
                 ("definitions", "import") => {
                     let result = commands::import_definitions(client, command_args);
+                    print_nothing_or_fail(result);
+                }
+                ("definitions", "transform") => {
+                    let result = commands::transform_definitions(client, command_args);
                     print_nothing_or_fail(result);
                 }
                 ("export", "definitions") => {
