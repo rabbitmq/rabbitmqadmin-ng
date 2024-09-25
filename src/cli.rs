@@ -872,18 +872,20 @@ fn definitions_subcommands() -> [Command; 2] {
                 .long("file")
                 .help("output path")
                 .required(false)
-                .default_value("-")
+                .default_value("-"),
         );
 
     let import_cmd = Command::new("import")
         .about("import all definitions (queues, exchanges, bindings, users, etc) from a JSON file")
         .after_long_help(color_print::cstr!(
             "<bold>Doc guide</bold>: https://rabbitmq.com/docs/definitions/"
-        )).arg(
-        Arg::new("file")
-            .long("file")
-            .help("JSON file with definitions")
-            .required(true));
+        ))
+        .arg(
+            Arg::new("file")
+                .long("file")
+                .help("JSON file with definitions")
+                .required(true),
+        );
 
     [export_cmd, import_cmd]
 }
