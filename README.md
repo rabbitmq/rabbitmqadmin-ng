@@ -5,7 +5,7 @@
 If you are migrating from the original `rabbitqadmin`, please see [CLI Changes](#cli-changes)
 to learn about a few breaking change in the interface.
 
-To download a binary build, see [Releases](./releases).
+To download a binary build, see [Releases](https://github.com/rabbitmq/rabbitmqadmin-ng/releases).
 
 For usage documentation, see [Usage](#usage).
 
