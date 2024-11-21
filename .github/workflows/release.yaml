@@ -1,71 +1,138 @@
-name: Deploy
+name: Release
 
 on:
+  workflow_dispatch:
   push:
     tags:
-      - "v[0-9]+.[0-9]+.[0-9]+"
+    - 'v\d\.\d\.\d'
+
+defaults:
+  run:
+    shell: bash
+
+permissions:
+  contents: write
+
 jobs:
-  build-and-upload:
-    name: Buidl and upload
-    runs-on: $${{ matrix.os }}
+  release:
+    name: Build and Archive
+
+    runs-on: ${{ matrix.os }}
 
     strategy:
       matrix:
         include:
-          - build: linux
-            os: ubuntu-latest
-            target: x86_64-unknown-linux-musl
-
-          - build: macos
+          # macOS, aarch64
+          - target: aarch64-apple-darwin
             os: macos-latest
-            target: x86_64-apple-darwin
-
-          - build: windows-gnu
+            target_rustflags: ''
+          # Windoze, x86-64
+          - target: x86_64-pc-windows-gnu
             os: windows-latest
-            target: x86_64-pc-windows-gnu
+            target_rustflags: ''
+          # Linux, x86-64
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+            target_rustflags: ''
+
+    permissions:
+      id-token: write
+      contents: write
 
     steps:
-      - name: Clone repository
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Install Rust toolchain
+      - name: Install Rust toolchains
         uses: dtolnay/rust-toolchain@beta
         with:
-            targets: ${{ matrix.target }}
+          toolchain: beta
+          targets: ${{ matrix.target }}
 
-      - name: Extract release version
-        shell: bash
-        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
-
-      - name: Build
-        uses: actions-rs/cargo@v1
+      - name: Install Nu Shell
+        uses: hustcer/setup-nu@v3
         with:
-          use-cross: true
-          command: build
-          args: --verbose --release --target ${{ matrix.target }}
+          version: '0.100'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Archive
-        shell: bash
-        run: |
-          tool_name = "rabbitmqadmin"
-          dirname="$tool_name-${{ env.VERSION }}-${{ matrix.target }}"
-          mkdir "$dirname"
-          if [ "${{ matrix.os }}" = "windows-latest" ]; then
-            mv "target/${{ matrix.target }}/release/$tool_name.exe" "$dirname"
-          else
-            mv "target/${{ matrix.target }}/release/$tool_name" "$dirname"
-          fi
-
-          if [ "${{ matrix.os }}" = "windows-latest" ]; then
-            7z a "$dirname.zip" "$dirname"
-            echo "ARCHIVE=$dirname.zip" >> $GITHUB_ENV
-          else
-            tar -czf "$dirname.tar.gz" "$dirname"
-            echo "ARCHIVE=$dirname.tar.gz" >> $GITHUB_ENV
-          fi
-
-      - name: Upload
-        uses: softprops/action-gh-release@v1
+      - name: Build an rabbitmqadmin release archive on macOS
+        id: release-build-macos
+        if: ${{ matrix.os == 'macos-latest' }}
+        run: nu ./scripts/release-macos.nu
+        env:
+          OS: ${{ matrix.os }}
+          TARGET: ${{ matrix.target }}
+          TARGET_RUSTFLAGS: ${{ matrix.target_rustflags }}
+          SRC: ${{ github.workspace }}
+      - name: Store macOS build artifact
+        id: upload-macos-artifact
+        if: ${{ matrix.os == 'macos-latest' }}
+        uses: actions/upload-artifact@v4
         with:
-          files: |
-            ${{ env.ARCHIVE }}
+          name: "rabbitmqadmin-${{ vars.NEXT_RELESE_VERSION }}-${{ matrix.target }}.tar.gz"
+          path: "${{ github.workspace }}/target/${{ matrix.target }}/release/rabbitmqadmin-${{ vars.NEXT_RELESE_VERSION }}-${{ matrix.target }}.tar.gz"
+          retention-days: 2
+
+      - name: Build an rabbitmqadmin release archive on Linux
+        id: release-build-linux
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: nu ./scripts/release-linux.nu
+        env:
+          OS: ${{ matrix.os }}
+          TARGET: ${{ matrix.target }}
+          TARGET_RUSTFLAGS: ${{ matrix.target_rustflags }}
+          SRC: ${{ github.workspace }}
+      - name: Store Linux build artifact
+        id: upload-linux-artifact
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: "rabbitmqadmin-${{ vars.NEXT_RELESE_VERSION }}-${{ matrix.target }}.tar.gz"
+          path: "${{ github.workspace }}/target/${{ matrix.target }}/release/rabbitmqadmin-${{ vars.NEXT_RELESE_VERSION }}-${{ matrix.target }}.tar.gz"
+          retention-days: 2
+
+      - name: Build an rabbitmqadmin release archive on Windows
+        id: release-build-windows
+        if: ${{ matrix.os == 'windows-latest' }}
+        run: nu ./scripts/release-windows.nu
+        env:
+          OS: ${{ matrix.os }}
+          TARGET: ${{ matrix.target }}
+          TARGET_RUSTFLAGS: ${{ matrix.target_rustflags }}
+          SRC: ${{ github.workspace }}
+      - name: Store Windows build artifact
+        id: upload-windows-artifact
+        if: ${{ matrix.os == 'windows-latest' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: "rabbitmqadmin-${{ vars.NEXT_RELESE_VERSION }}-${{ matrix.target }}.zip"
+          path: "${{ github.workspace }}/target/${{ matrix.target }}/release/rabbitmqadmin-${{ vars.NEXT_RELESE_VERSION }}-${{ matrix.target }}.zip"
+          retention-days: 2
+
+  create_gh_release:
+    needs: [release]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Fetch macOS archive
+      uses: actions/download-artifact@v4
+      with:
+        name: "rabbitmqadmin-${{ vars.NEXT_RELESE_VERSION }}-aarch64-apple-darwin.tar.gz"
+        path: ./artifacts
+    - name: Fetch Linux archive
+      uses: actions/download-artifact@v4
+      with:
+        name: "rabbitmqadmin-${{ vars.NEXT_RELESE_VERSION }}-x86_64-unknown-linux-gnu.tar.gz"
+        path: ./artifacts
+    - name: Fetch Windows archive
+      uses: actions/download-artifact@v4
+      with:
+        name: "rabbitmqadmin-${{ vars.NEXT_RELESE_VERSION }}-x86_64-pc-windows-gnu.zip"
+        path: ./artifacts
+    - name: Publish rabbitmqadmin release archive
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: v${{ vars.NEXT_RELESE_VERSION }}
+        draft: false
+        files: ./artifacts/*
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
