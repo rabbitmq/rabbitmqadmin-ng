@@ -21,9 +21,6 @@ This version of `rabbitmqadmin` has a few ideas in mind:
  * Output should be revisited: what columns are output by default, whether columns should be selectable
  * Support for JSON and CSV was a popular addition in `rabbitmqctl`, `rabbitmq-diagnostics`, etc. Perhaps `rabbitmqadmin` should consider supporting them, too?
 
-and on top of that, we'd like to expand the Rust expertise on our team, just like
-we did with Elixir in the 2nd generation of `rabbitmqctl`, `rabbitmq-diagnostics`, `rabbitmq-upgrade`,
-and so on.
 
 ## Project Maturity
 
