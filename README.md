@@ -5,6 +5,8 @@
 If you are migrating from the original `rabbitqadmin`, please see [CLI Changes](#cli-changes)
 to learn about a few breaking change in the interface.
 
+To download a binary build, see [Releases](./releases).
+
 For usage documentation, see [Usage](#usage).
 
 
