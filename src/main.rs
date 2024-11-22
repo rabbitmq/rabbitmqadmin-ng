@@ -17,8 +17,8 @@ mod constants;
 
 use crate::cli::SharedFlags;
 use crate::constants::DEFAULT_VHOST;
-use reqwest::blocking::Client as HTTPClient;
 use rabbitmq_http_client::blocking::ClientBuilder;
+use reqwest::blocking::Client as HTTPClient;
 
 const USER_AGENT: &str = "rabbitmqadmin-ng";
 const DEFAULT_TLS_PORT: u16 = 15671;
@@ -47,9 +47,7 @@ fn main() {
             }
 
             let res = match Certificate::from_pem(&pem) {
-                Ok(val) => {
-                    val
-                },
+                Ok(val) => val,
                 Err(err) => {
                     eprintln!(
                         "{} doesn't seem to be a valid PEM file: {}",
@@ -69,16 +67,15 @@ fn main() {
             .danger_accept_invalid_certs(disable_peer_verification)
             .danger_accept_invalid_hostnames(disable_peer_verification);
 
-            if cert.is_some() {
-                b = b.add_root_certificate(cert.unwrap());
-            }
+        if cert.is_some() {
+            b = b.add_root_certificate(cert.unwrap());
+        }
 
-            b.build()
+        b.build()
     } else {
-        HTTPClient::builder()
-            .user_agent(USER_AGENT)
-            .build()
-    }.unwrap();
+        HTTPClient::builder().user_agent(USER_AGENT).build()
+    }
+    .unwrap();
 
     let client = ClientBuilder::new()
         .with_endpoint(endpoint.as_str())
@@ -339,9 +336,7 @@ fn print_result_or_fail<T: fmt::Display>(result: Result<T>) {
 }
 
 #[allow(dead_code)]
-fn print_debug_result_or_fail<T: fmt::Debug>(
-    result: Result<T>,
-) {
+fn print_debug_result_or_fail<T: fmt::Debug>(result: Result<T>) {
     match result {
         Ok(output) => println!("{:?}", output),
         Err(error) => {
