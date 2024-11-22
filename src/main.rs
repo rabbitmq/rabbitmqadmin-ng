@@ -1,12 +1,15 @@
 use clap::ArgMatches;
+use reqwest::Certificate;
 use std::fmt;
 use std::fs::File;
 use std::io::Read;
 use std::path::PathBuf;
-use std::{error::Error, process};
+use std::process;
 
 use tabled::settings::Style;
 use tabled::{Table, Tabled};
+
+use rabbitmq_http_client::blocking::Result;
 
 mod cli;
 mod commands;
@@ -14,7 +17,11 @@ mod constants;
 
 use crate::cli::SharedFlags;
 use crate::constants::DEFAULT_VHOST;
-use rabbitmq_http_client::blocking::Client as APIClient;
+use reqwest::blocking::Client as HTTPClient;
+use rabbitmq_http_client::blocking::ClientBuilder;
+
+const USER_AGENT: &str = "rabbitmqadmin-ng";
+const DEFAULT_TLS_PORT: u16 = 15671;
 
 fn main() {
     let parser = cli::parser();
@@ -22,37 +29,62 @@ fn main() {
 
     let sf = SharedFlags::from_args(&cli);
     let endpoint = sf.endpoint();
-    let mut client =
-        APIClient::new(&endpoint).with_basic_auth_credentials(&sf.username, &sf.password);
 
-    if let Some(pem_file) = cli.get_one::<PathBuf>("tls-ca-cert-file") {
-        let mut file = File::open(pem_file).unwrap_or_else(|err| {
-            eprintln!("unable to open {}: {}", pem_file.to_string_lossy(), err);
-            process::exit(1);
-        });
+    let disable_peer_verification = *cli.get_one::<bool>("insecure").unwrap_or(&false);
 
-        let mut pem = Vec::new();
-        if let Err(err) = file.read_to_end(&mut pem) {
-            eprintln!("unable to read {}: {}", pem_file.to_string_lossy(), err);
-            process::exit(1);
-        }
+    let httpc = if should_use_tls(&sf) {
+        let mut cert = None;
+        if let Some(pem_file) = cli.get_one::<PathBuf>("tls-ca-cert-file") {
+            let mut file = File::open(pem_file).unwrap_or_else(|err| {
+                eprintln!("unable to open {}: {}", pem_file.to_string_lossy(), err);
+                process::exit(1);
+            });
 
-        match client.with_pem_ca_certificate(pem) {
-            Ok(c) => client = c,
-            Err(err) => {
-                eprintln!(
-                    "{} doesn't seem to be a valid PEM file: {}",
-                    pem_file.to_string_lossy(),
-                    err
-                );
+            let mut pem = Vec::new();
+            if let Err(err) = file.read_to_end(&mut pem) {
+                eprintln!("unable to read {}: {}", pem_file.to_string_lossy(), err);
                 process::exit(1);
             }
-        }
-    }
 
-    if *cli.get_one::<bool>("insecure").unwrap_or(&false) {
-        client = client.without_tls_peer_verification();
-    }
+            let res = match Certificate::from_pem(&pem) {
+                Ok(val) => {
+                    val
+                },
+                Err(err) => {
+                    eprintln!(
+                        "{} doesn't seem to be a valid PEM file: {}",
+                        pem_file.to_string_lossy(),
+                        err
+                    );
+                    process::exit(1);
+                }
+            };
+
+            cert = Some(res)
+        }
+
+        let mut b = HTTPClient::builder()
+            .user_agent(USER_AGENT)
+            .min_tls_version(reqwest::tls::Version::TLS_1_2)
+            .danger_accept_invalid_certs(disable_peer_verification)
+            .danger_accept_invalid_hostnames(disable_peer_verification);
+
+            if cert.is_some() {
+                b = b.add_root_certificate(cert.unwrap());
+            }
+
+            b.build()
+    } else {
+        HTTPClient::builder()
+            .user_agent(USER_AGENT)
+            .build()
+    }.unwrap();
+
+    let client = ClientBuilder::new()
+        .with_endpoint(endpoint.as_str())
+        .with_basic_auth_credentials(sf.username.as_str(), sf.password.as_str())
+        .with_client(httpc)
+        .build();
 
     if let Some((verb, group_args)) = cli.subcommand() {
         if let Some((kind, command_args)) = group_args.subcommand() {
@@ -254,6 +286,10 @@ fn main() {
     }
 }
 
+fn should_use_tls(global_flags: &SharedFlags) -> bool {
+    global_flags.scheme.to_lowercase() == "https" || global_flags.port == DEFAULT_TLS_PORT
+}
+
 /// Retrieves a --vhost value, either from global or command-specific arguments
 fn virtual_host(global_flags: &SharedFlags, command_flags: &ArgMatches) -> String {
     // in case a command does not define --vhost
@@ -275,7 +311,7 @@ fn virtual_host(global_flags: &SharedFlags, command_flags: &ArgMatches) -> Strin
     }
 }
 
-fn print_table_or_fail<T>(result: Result<Vec<T>, rabbitmq_http_client::blocking::Error>)
+fn print_table_or_fail<T>(result: Result<Vec<T>>)
 where
     T: fmt::Debug + Tabled,
 {
@@ -286,17 +322,17 @@ where
             println!("{}", table);
         }
         Err(error) => {
-            eprintln!("{}", error.source().unwrap_or(&error),);
+            eprintln!("{}", error);
             process::exit(1)
         }
     }
 }
 
-fn print_result_or_fail<T: fmt::Display>(result: Result<T, rabbitmq_http_client::blocking::Error>) {
+fn print_result_or_fail<T: fmt::Display>(result: Result<T>) {
     match result {
         Ok(output) => println!("{}", output),
         Err(error) => {
-            eprintln!("{}", error.source().unwrap_or(&error),);
+            eprintln!("{}", error);
             process::exit(1)
         }
     }
@@ -304,24 +340,24 @@ fn print_result_or_fail<T: fmt::Display>(result: Result<T, rabbitmq_http_client:
 
 #[allow(dead_code)]
 fn print_debug_result_or_fail<T: fmt::Debug>(
-    result: Result<T, rabbitmq_http_client::blocking::Error>,
+    result: Result<T>,
 ) {
     match result {
         Ok(output) => println!("{:?}", output),
         Err(error) => {
-            eprintln!("{}", error.source().unwrap_or(&error),);
+            eprintln!("{}", error);
             process::exit(1)
         }
     }
 }
 
-fn print_nothing_or_fail<T>(result: Result<T, rabbitmq_http_client::blocking::Error>) {
+fn print_nothing_or_fail<T>(result: Result<T>) {
     match result {
         Ok(_) => {
             println!("Done")
         }
         Err(error) => {
-            eprintln!("{}", error.source().unwrap_or(&error),);
+            eprintln!("{}", error);
             process::exit(1)
         }
     }

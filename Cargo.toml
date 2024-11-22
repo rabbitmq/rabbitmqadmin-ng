@@ -6,8 +6,12 @@ edition = "2021"
 [dependencies]
 clap = { version = "4.5", features = ["derive", "help", "color", "cargo"] }
 url = "2"
-thiserror = "1"
 sysexits = "0.8.1"
+reqwest = { version = "0.12", features = [
+    "json",
+    "multipart",
+    "default-tls"
+] }
 rabbitmq_http_client = { git = "https://github.com/michaelklishin/rabbitmq-http-api-rs", features = ["core", "tabled"] }
 serde = { version = "1.0", features = ["derive", "std"] }
 serde_json = "1"
