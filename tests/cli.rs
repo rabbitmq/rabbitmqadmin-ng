@@ -32,7 +32,9 @@ fn show_overview() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
 
     cmd.arg("show").arg("overview");
-    cmd.assert().success().stdout(predicate::str::contains("RabbitMQ version"));
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("RabbitMQ version"));
 
     Ok(())
 }
@@ -42,7 +44,9 @@ fn show_churn_overview() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
 
     cmd.arg("show").arg("churn");
-    cmd.assert().success().stdout(predicate::str::contains("Client connections opened"));
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("Client connections opened"));
 
     Ok(())
 }

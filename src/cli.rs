@@ -691,12 +691,11 @@ fn declare_subcommands() -> [Command; 11] {
 }
 
 fn show_subcomands() -> [Command; 2] {
-    [Command::new("overview").about(
-        "displays a essential information about target node and its cluster",
-    ),
-    Command::new("churn").about(
-        "displays object churn metrics",
-    )]
+    [
+        Command::new("overview")
+            .about("displays a essential information about target node and its cluster"),
+        Command::new("churn").about("displays object churn metrics"),
+    ]
 }
 
 fn delete_subcommands() -> [Command; 11] {
