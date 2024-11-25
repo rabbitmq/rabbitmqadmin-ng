@@ -12,8 +12,13 @@ use rabbitmq_http_client::requests::EnforcedLimitParams;
 use rabbitmq_http_client::commons::BindingDestinationType;
 use rabbitmq_http_client::commons::QueueType;
 use rabbitmq_http_client::{password_hashing, requests, responses};
+use rabbitmq_http_client::responses::Overview;
 
 type APIClient<'a> = Client<&'a str, &'a str, &'a str>;
+
+pub fn show_overview(client: APIClient) -> ClientResult<Overview> {
+    client.overview()
+}
 
 pub fn list_nodes(client: APIClient) -> ClientResult<Vec<responses::ClusterNode>> {
     client.list_nodes()

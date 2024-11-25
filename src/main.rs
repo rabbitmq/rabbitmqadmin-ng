@@ -14,10 +14,12 @@ use rabbitmq_http_client::blocking::Result;
 mod cli;
 mod commands;
 mod constants;
+mod format;
 
 use crate::cli::SharedFlags;
 use crate::constants::DEFAULT_VHOST;
 use rabbitmq_http_client::blocking::ClientBuilder;
+use rabbitmq_http_client::responses::Overview;
 use reqwest::blocking::Client as HTTPClient;
 
 const USER_AGENT: &str = "rabbitmqadmin-ng";
@@ -90,6 +92,11 @@ fn main() {
             let vhost = virtual_host(&sf, command_args);
 
             match &pair {
+                ("show", "overview") => {
+                    let result = commands::show_overview(client);
+                    print_overview_or_fail(result);
+                }
+
                 ("list", "nodes") => {
                     let result = commands::list_nodes(client);
                     print_table_or_fail(result);
@@ -305,6 +312,21 @@ fn virtual_host(global_flags: &SharedFlags, command_flags: &ArgMatches) -> Strin
         }
     } else {
         global_flags.virtual_host.clone()
+    }
+}
+
+fn print_overview_or_fail(result: Result<Overview>) {
+    match result {
+        Ok(ov) => {
+            let mut table = format::overview_table(ov);
+
+            table.with(Style::modern());
+            println!("{}", table);
+        }
+        Err(error) => {
+            eprintln!("{}", error);
+            process::exit(1)
+        }
     }
 }
 
