@@ -28,6 +28,13 @@ This version of `rabbitmqadmin` should be considered reasonably mature to be use
 
 Before migrating, please see [CLI Changes](#cli-changes) to learn about a few breaking change in the interface.
 
+### Known Limitations
+
+The following `rabbitmqadmin` v1 features are not currently implemented:
+
+* [Configuration file support](https://github.com/rabbitmq/rabbitmqadmin-ng/issues/28)
+* Support for TLS client (x.509, HTTPS) [certificate and private key](https://github.com/rabbitmq/rabbitmqadmin-ng/issues/26)
+
 
 ## Usage
 
@@ -50,6 +57,20 @@ The same command will display global flags. To learn about a specific command, a
 
 ``` shell
 rabbitmqadmin declare queue --help
+```
+
+### Retrieving Basic Node Information
+
+``` shell
+rabbitmqadmin show overview
+```
+
+### Retrieving Connection, Queue/Stream, Channel Churn Information
+
+Helps assess connection, queue/stream, channel [churn metrics](https://www.rabbitmq.com/docs/connections#high-connection-churn) in the cluster.
+
+``` shell
+rabbitmqadmin show overview
 ```
 
 ### Listing cluster nodes
@@ -120,13 +141,14 @@ rabbitmqadmin --vhost "events" declare queue --name "target.classic.queue.name" 
 rabbitmqadmin --vhost "events" delete queue --name "target.queue.name"
 ```
 
-## Differences from `rabbitmq` v1
+## Differences from `rabbitmqadmin` v1
 
-Compared to the original `rabbitmq`, this version:
+Compared to the original `rabbitmqadmin`, this version:
 
  * Is distributed as a standalone binary and does not depend on Python
  * Uses much stricter CLI argument validation and has (relatively minor) breaking changes in the CLI
  * Is better documented
+ * May choose to use different defaults where it makes sense
 
 ### CLI Changes
 
