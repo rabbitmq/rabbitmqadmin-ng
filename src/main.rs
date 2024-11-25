@@ -97,6 +97,11 @@ fn main() {
                     print_overview_or_fail(result);
                 }
 
+                ("show", "churn") => {
+                    let result = commands::show_overview(client);
+                    print_churn_overview_or_fail(result);
+                }
+
                 ("list", "nodes") => {
                     let result = commands::list_nodes(client);
                     print_table_or_fail(result);
@@ -319,6 +324,21 @@ fn print_overview_or_fail(result: Result<Overview>) {
     match result {
         Ok(ov) => {
             let mut table = format::overview_table(ov);
+
+            table.with(Style::modern());
+            println!("{}", table);
+        }
+        Err(error) => {
+            eprintln!("{}", error);
+            process::exit(1)
+        }
+    }
+}
+
+fn print_churn_overview_or_fail(result: Result<Overview>) {
+    match result {
+        Ok(ov) => {
+            let mut table = format::churn_overview_table(ov);
 
             table.with(Style::modern());
             println!("{}", table);

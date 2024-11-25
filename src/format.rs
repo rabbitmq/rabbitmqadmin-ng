@@ -22,3 +22,19 @@ pub fn overview_table(ov: Overview) -> Table {
     t.with(Panel::header("Overview"));
     t
 }
+
+pub fn churn_overview_table(ov: Overview) -> Table {
+    let data = vec![
+        OverviewRow { key: "Client connections opened", value: ov.churn_rates.connection_created.to_string() },
+        OverviewRow { key: "Client connections closed", value: ov.churn_rates.connection_closed.to_string() },
+        OverviewRow { key: "Client channels opened", value: ov.churn_rates.channel_created.to_string() },
+        OverviewRow { key: "Client channels closed", value: ov.churn_rates.channel_closed.to_string() },
+        OverviewRow { key: "Queues and streams (re)declarations", value: ov.churn_rates.queue_declared.to_string() },
+        OverviewRow { key: "Queues and streams created", value: ov.churn_rates.queue_created.to_string() },
+        OverviewRow { key: "Queues and streams deleted", value: ov.churn_rates.queue_deleted.to_string() }
+    ];
+    let tb = Table::builder(data);
+    let mut t= tb.build();
+    t.with(Panel::header("Entity (connections, queues, etc) churn over the most recent sample period"));
+    t
+}

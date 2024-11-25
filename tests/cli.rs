@@ -28,6 +28,26 @@ fn show_subcommands_with_no_arguments() -> Result<(), Box<dyn std::error::Error>
 }
 
 #[test]
+fn show_overview() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+
+    cmd.arg("show").arg("overview");
+    cmd.assert().success().stdout(predicate::str::contains("RabbitMQ version"));
+
+    Ok(())
+}
+
+#[test]
+fn show_churn_overview() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+
+    cmd.arg("show").arg("churn");
+    cmd.assert().success().stdout(predicate::str::contains("Client connections opened"));
+
+    Ok(())
+}
+
+#[test]
 fn list_vhosts() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
 

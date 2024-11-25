@@ -209,7 +209,7 @@ pub fn parser() -> Command {
             Command::new("show")
                 .about("overview")
                 .after_long_help(color_print::cstr!(
-                    "<bold>Doc guide</bold>: https://rabbitmq.com/monitoring.html"
+                    "<bold>Doc guide</bold>: https://www.rabbitmq.com/docs/monitoring"
                 ))
                 .subcommand_value_name("summary")
                 .subcommands(show_subcomands()),
@@ -690,9 +690,12 @@ fn declare_subcommands() -> [Command; 11] {
     ]
 }
 
-fn show_subcomands() -> [Command; 1] {
+fn show_subcomands() -> [Command; 2] {
     [Command::new("overview").about(
-        "displays a subset of aggregated metrics found on the Overview page in management UI",
+        "displays a essential information about target node and its cluster",
+    ),
+    Command::new("churn").about(
+        "displays object churn metrics",
     )]
 }
 
