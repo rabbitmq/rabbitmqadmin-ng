@@ -15,7 +15,7 @@ reqwest = { version = "0.12", features = [
 rabbitmq_http_client = { git = "https://github.com/michaelklishin/rabbitmq-http-api-rs", features = ["core", "tabled"] }
 serde = { version = "1.0", features = ["derive", "std"] }
 serde_json = "1"
-tabled = "0.16"
+tabled = "0.17"
 color-print = "0.3"
 
 [dev-dependencies]
