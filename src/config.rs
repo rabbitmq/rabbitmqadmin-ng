@@ -94,7 +94,7 @@ impl SharedSettings {
     pub fn new_with_defaults(cli_args: &ArgMatches, config_file_defaults: &Self) -> Self {
         let default_hostname = DEFAULT_HOST.to_string();
         let should_use_tls =
-            *cli_args.get_one::<bool>("tls").unwrap() || config_file_defaults.tls || false;
+            *cli_args.get_one::<bool>("tls").unwrap() || config_file_defaults.tls;
         let scheme = if should_use_tls { "https" } else { "http" };
         let hostname = cli_args
             .get_one::<String>("host")
@@ -105,7 +105,7 @@ impl SharedSettings {
             .get_one::<u16>("port")
             .cloned()
             .or(config_file_defaults.port)
-            .or_else(|| {
+            .or({
                 if should_use_tls {
                     Some(DEFAULT_HTTPS_PORT)
                 } else {
@@ -162,7 +162,7 @@ impl SharedSettings {
         let port: u16 = cli_args
             .get_one::<u16>("port")
             .cloned()
-            .or_else(|| {
+            .or({
                 if should_use_tls {
                     Some(DEFAULT_HTTPS_PORT)
                 } else {
@@ -213,7 +213,7 @@ impl SharedSettings {
         let hostname = url.host_str().unwrap_or(DEFAULT_HOST).to_string();
         let port = url
             .port()
-            .or_else(|| {
+            .or({
                 if should_use_tls {
                     Some(DEFAULT_HTTPS_PORT)
                 } else {
@@ -263,7 +263,7 @@ impl SharedSettings {
         let hostname = url.host_str().unwrap_or(DEFAULT_HOST).to_string();
         let port = url
             .port()
-            .or_else(|| {
+            .or({
                 if should_use_tls {
                     Some(DEFAULT_HTTPS_PORT)
                 } else {
@@ -330,8 +330,7 @@ fn from_local_path(path: &PathBuf) -> Result<ConfigurationMap, ConfigFileError> 
 fn read_from_local_path(path: &PathBuf) -> Result<ConfigurationMap, ConfigFileError> {
     let contents = std::fs::read_to_string(path)?;
     toml::from_str(&contents)
-        .and_then(|t| Ok(t))
-        .map_err(|e| ConfigFileError::from(e))
+        .map_err(ConfigFileError::from)
 }
 
 fn default_scheme() -> String {

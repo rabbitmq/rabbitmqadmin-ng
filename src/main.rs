@@ -66,8 +66,8 @@ fn main() {
         );
         process::exit(1)
     }
-    let sf = if cf_ss.is_ok() {
-        SharedSettings::from_args_with_defaults(&cli, &cf_ss.unwrap())
+    let sf = if let Ok(val) = cf_ss {
+        SharedSettings::from_args_with_defaults(&cli, &val)
     } else {
         SharedSettings::from_args(&cli)
     };
