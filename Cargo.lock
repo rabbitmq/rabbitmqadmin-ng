@@ -1166,6 +1166,7 @@ dependencies = [
  "assert_cmd",
  "clap",
  "color-print",
+ "log",
  "predicates",
  "rabbitmq_http_client",
  "reqwest",
