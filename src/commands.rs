@@ -22,11 +22,11 @@ use rabbitmq_http_client::blocking::Client;
 use rabbitmq_http_client::blocking::Result as ClientResult;
 use rabbitmq_http_client::requests::EnforcedLimitParams;
 
+use crate::constants::DEFAULT_QUEUE_TYPE;
 use rabbitmq_http_client::commons::BindingDestinationType;
 use rabbitmq_http_client::commons::QueueType;
 use rabbitmq_http_client::responses::Overview;
 use rabbitmq_http_client::{password_hashing, requests, responses};
-use crate::constants::DEFAULT_QUEUE_TYPE;
 
 type APIClient<'a> = Client<&'a str, &'a str, &'a str>;
 
@@ -346,11 +346,13 @@ pub fn declare_queue(
 ) -> ClientResult<()> {
     // the flag is required
     let name = command_args.get_one::<String>("name").unwrap();
-    let queue_type = command_args.get_one::<QueueType>("type")
+    let queue_type = command_args
+        .get_one::<QueueType>("type")
         .cloned()
         .unwrap_or(QueueType::from(DEFAULT_QUEUE_TYPE));
     // these are optional
-    let durable = command_args.get_one::<bool>("durable")
+    let durable = command_args
+        .get_one::<bool>("durable")
         .cloned()
         .unwrap_or(true);
     let auto_delete = command_args

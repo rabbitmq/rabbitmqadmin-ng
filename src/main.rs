@@ -30,7 +30,6 @@ mod config;
 mod constants;
 mod format;
 
-
 use crate::config::SharedSettings;
 use crate::constants::{
     DEFAULT_CONFIG_FILE_PATH, DEFAULT_HTTPS_PORT, DEFAULT_NODE_ALIAS, DEFAULT_VHOST,

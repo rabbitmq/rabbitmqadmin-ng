@@ -14,7 +14,9 @@ use url::Url;
 pub enum ConfigFileError {
     #[error("provided config file at '{0}' does not exist")]
     MissingFile(PathBuf),
-    #[error("provided configuration section (--node) '{0}' was not found in the configuration file")]
+    #[error(
+        "provided configuration section (--node) '{0}' was not found in the configuration file"
+    )]
     MissingConfigSection(String),
     #[error(transparent)]
     IoError(#[from] std::io::Error),
@@ -93,9 +95,10 @@ impl SharedSettings {
 
     pub fn new_with_defaults(cli_args: &ArgMatches, config_file_defaults: &Self) -> Self {
         let default_hostname = DEFAULT_HOST.to_string();
-        let should_use_tls = cli_args.get_one::<bool>("tls")
-                .cloned()
-                .unwrap_or(config_file_defaults.tls);
+        let should_use_tls = cli_args
+            .get_one::<bool>("tls")
+            .cloned()
+            .unwrap_or(config_file_defaults.tls);
         let scheme = if should_use_tls { "https" } else { "http" };
         let hostname = cli_args
             .get_one::<String>("host")
@@ -330,8 +333,7 @@ fn from_local_path(path: &PathBuf) -> Result<ConfigurationMap, ConfigFileError> 
 
 fn read_from_local_path(path: &PathBuf) -> Result<ConfigurationMap, ConfigFileError> {
     let contents = std::fs::read_to_string(path)?;
-    toml::from_str(&contents)
-        .map_err(ConfigFileError::from)
+    toml::from_str(&contents).map_err(ConfigFileError::from)
 }
 
 fn default_scheme() -> String {
