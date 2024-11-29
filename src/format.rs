@@ -85,7 +85,7 @@ pub fn churn_overview_table(ov: Overview) -> Table {
     let tb = Table::builder(data);
     let mut t = tb.build();
     t.with(Panel::header(
-        "Entity (connections, queues, etc) churn over the most recent sample period",
+        "Entity (connections, queues, etc) churn over the most recent sampling period",
     ));
     t
 }

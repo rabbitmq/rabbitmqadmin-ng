@@ -12,13 +12,13 @@ use url::Url;
 
 #[derive(Error, Debug)]
 pub enum ConfigFileError {
-    #[error("provided config file does not exist")]
+    #[error("provided config file at '{0}' does not exist")]
     MissingFile(PathBuf),
-    #[error("provided configuration section (--node) was not found in the configuration file")]
+    #[error("provided configuration section (--node) '{0}' was not found in the configuration file")]
     MissingConfigSection(String),
     #[error(transparent)]
     IoError(#[from] std::io::Error),
-    #[error(transparent)]
+    #[error("failed to deserialize config file. Make sure it is valid TOML")]
     DeserializationError(#[from] toml::de::Error),
 }
 
@@ -93,8 +93,9 @@ impl SharedSettings {
 
     pub fn new_with_defaults(cli_args: &ArgMatches, config_file_defaults: &Self) -> Self {
         let default_hostname = DEFAULT_HOST.to_string();
-        let should_use_tls =
-            *cli_args.get_one::<bool>("tls").unwrap() || config_file_defaults.tls;
+        let should_use_tls = cli_args.get_one::<bool>("tls")
+                .cloned()
+                .unwrap_or(config_file_defaults.tls);
         let scheme = if should_use_tls { "https" } else { "http" };
         let hostname = cli_args
             .get_one::<String>("host")

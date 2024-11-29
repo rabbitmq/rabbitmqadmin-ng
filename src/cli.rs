@@ -57,8 +57,6 @@ pub fn parser() -> Command {
                 .short('H')
                 .long("host")
                 .help("HTTP API hostname to use when connecting")
-                .required(false)
-                .default_value(DEFAULT_HOST),
         )
         .visible_alias("hostname")
         // --port
@@ -84,34 +82,29 @@ pub fn parser() -> Command {
         .arg(
             Arg::new("path_prefix")
                 .long("path-prefix")
-                .required(false)
-                .default_value(DEFAULT_PATH_PREFIX),
+                .help("use if target node uses a path prefix. Defaults to '/api'")
         )
         // --vhost
         .arg(
             Arg::new("vhost")
                 .short('V')
                 .long("vhost")
-                .help("target virtual host")
-                .required(false)
-                .default_value(DEFAULT_VHOST),
+                .help("target virtual host. Defaults to '/'")
         )
         // --username
         .arg(
             Arg::new("username")
                 .short('u')
                 .long("username")
-                .required(false)
-                .default_value(DEFAULT_USERNAME),
+                .help("this user must have the permissions for HTTP API access, see https://www.rabbitmq.com/docs/management#permissions")
         )
         // --password
         .arg(
             Arg::new("password")
                 .short('p')
                 .long("password")
-                .required(false)
-                .default_value(DEFAULT_PASSWORD)
-                .requires("username"),
+                .requires("username")
+                .help("must be specified if --username is used")
         )
         // --insecure
         .arg(
@@ -128,10 +121,7 @@ pub fn parser() -> Command {
             Arg::new("tls")
                 .long("use-tls")
                 .help("use TLS (HTTPS) for HTTP API requests ")
-                .required(false)
                 .value_parser(clap::value_parser!(bool))
-                .default_value("false")
-                .action(ArgAction::SetFalse),
         )
         // --tls-ca-cert-file
         .arg(

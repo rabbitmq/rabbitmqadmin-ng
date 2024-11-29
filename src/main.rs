@@ -30,6 +30,7 @@ mod config;
 mod constants;
 mod format;
 
+
 use crate::config::SharedSettings;
 use crate::constants::{
     DEFAULT_CONFIG_FILE_PATH, DEFAULT_HTTPS_PORT, DEFAULT_NODE_ALIAS, DEFAULT_VHOST,
@@ -64,6 +65,7 @@ fn main() {
             "Could not load the provided configuration file at {}",
             config_file_path.to_str().unwrap()
         );
+        println!("Underlying error: {}", cf_ss.unwrap_err());
         process::exit(1)
     }
     let sf = if let Ok(val) = cf_ss {
@@ -441,9 +443,7 @@ fn print_debug_result_or_fail<T: fmt::Debug>(result: Result<T>) {
 
 fn print_nothing_or_fail<T>(result: Result<T>) {
     match result {
-        Ok(_) => {
-            println!("Done")
-        }
+        Ok(_) => (),
         Err(error) => {
             eprintln!("{}", error);
             process::exit(1)
