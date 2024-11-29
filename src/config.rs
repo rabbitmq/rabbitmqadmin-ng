@@ -1,16 +1,20 @@
+use crate::constants::{
+    DEFAULT_CONFIG_SECTION_NAME, DEFAULT_HOST, DEFAULT_HTTPS_PORT, DEFAULT_HTTP_PORT,
+    DEFAULT_PASSWORD, DEFAULT_PATH_PREFIX, DEFAULT_SCHEME, DEFAULT_USERNAME, DEFAULT_VHOST,
+    HTTPS_SCHEME,
+};
+use clap::ArgMatches;
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::path::PathBuf;
-use clap::ArgMatches;
 use thiserror::Error;
 use url::Url;
-use crate::constants::{DEFAULT_CONFIG_SECTION_NAME, DEFAULT_HOST, DEFAULT_HTTPS_PORT, DEFAULT_HTTP_PORT, DEFAULT_PASSWORD, DEFAULT_PATH_PREFIX, DEFAULT_SCHEME, DEFAULT_USERNAME, DEFAULT_VHOST, HTTPS_SCHEME};
 
 #[derive(Error, Debug)]
 pub enum ConfigFileError {
-    #[error( "provided config file does not exist")]
+    #[error("provided config file does not exist")]
     MissingFile(PathBuf),
-    #[error( "provided configuration section (--node) was not found in the configuration file")]
+    #[error("provided configuration section (--node) was not found in the configuration file")]
     MissingConfigSection(String),
     #[error(transparent)]
     IoError(#[from] std::io::Error),
@@ -47,21 +51,24 @@ pub struct SharedSettings {
 }
 
 impl SharedSettings {
-    pub fn from_config_file(path: &PathBuf, section_name: Option<String>) -> Result<Self, ConfigFileError> {
+    pub fn from_config_file(
+        path: &PathBuf,
+        section_name: Option<String>,
+    ) -> Result<Self, ConfigFileError> {
         let section = section_name.unwrap_or(DEFAULT_CONFIG_SECTION_NAME.to_string());
 
-        from_local_path(path)
-            .and_then(|cm| {
-                let err = Err(ConfigFileError::MissingConfigSection(section.clone()));
-                match cm.get(section.as_str()) {
-                    None      => err,
-                    Some(val) => Ok(val.clone())
-                }
-            })
+        from_local_path(path).and_then(|cm| {
+            let err = Err(ConfigFileError::MissingConfigSection(section.clone()));
+            match cm.get(section.as_str()) {
+                None => err,
+                Some(val) => Ok(val.clone()),
+            }
+        })
     }
 
     pub fn from_args_with_defaults(general_args: &ArgMatches, config_file_defaults: &Self) -> Self {
-        let base_uri = general_args.get_one::<String>("base_uri")
+        let base_uri = general_args
+            .get_one::<String>("base_uri")
             .cloned()
             .or(config_file_defaults.base_uri.clone());
 
@@ -74,8 +81,7 @@ impl SharedSettings {
     }
 
     pub fn from_args(general_args: &ArgMatches) -> Self {
-        let base_uri = general_args.get_one::<String>("base_uri")
-            .cloned();
+        let base_uri = general_args.get_one::<String>("base_uri").cloned();
 
         if let Some(s) = base_uri {
             let url = Url::parse(&s).unwrap();
@@ -87,28 +93,38 @@ impl SharedSettings {
 
     pub fn new_with_defaults(cli_args: &ArgMatches, config_file_defaults: &Self) -> Self {
         let default_hostname = DEFAULT_HOST.to_string();
-        let should_use_tls = *cli_args.get_one::<bool>("tls").unwrap() || config_file_defaults.tls || false;
+        let should_use_tls =
+            *cli_args.get_one::<bool>("tls").unwrap() || config_file_defaults.tls || false;
         let scheme = if should_use_tls { "https" } else { "http" };
         let hostname = cli_args
             .get_one::<String>("host")
             .cloned()
             .or(config_file_defaults.hostname.clone())
             .unwrap_or(default_hostname);
-        let port: u16 = cli_args.get_one::<u16>("port")
+        let port: u16 = cli_args
+            .get_one::<u16>("port")
             .cloned()
             .or(config_file_defaults.port)
             .or_else(|| {
-                if should_use_tls { Some(DEFAULT_HTTPS_PORT) } else { Some(DEFAULT_HTTP_PORT) }
-            }).unwrap();
-        let path_prefix = cli_args.get_one::<String>("path_prefix")
+                if should_use_tls {
+                    Some(DEFAULT_HTTPS_PORT)
+                } else {
+                    Some(DEFAULT_HTTP_PORT)
+                }
+            })
+            .unwrap();
+        let path_prefix = cli_args
+            .get_one::<String>("path_prefix")
             .cloned()
             .or(Some(config_file_defaults.path_prefix.clone()))
             .unwrap_or(DEFAULT_PATH_PREFIX.to_owned());
-        let username = cli_args.get_one::<String>("username")
+        let username = cli_args
+            .get_one::<String>("username")
             .cloned()
             .or(config_file_defaults.username.clone())
             .unwrap_or(DEFAULT_USERNAME.to_string());
-        let password = cli_args.get_one::<String>("password")
+        let password = cli_args
+            .get_one::<String>("password")
             .cloned()
             .or(config_file_defaults.password.clone())
             .unwrap_or(DEFAULT_PASSWORD.to_string());
@@ -133,26 +149,37 @@ impl SharedSettings {
 
     pub fn new(cli_args: &ArgMatches) -> Self {
         let default_hostname = DEFAULT_HOST.to_string();
-        let should_use_tls = cli_args.get_one::<bool>("tls")
+        let should_use_tls = cli_args
+            .get_one::<bool>("tls")
             .or(Some(&false))
-            .cloned().unwrap();
+            .cloned()
+            .unwrap();
         let scheme = if should_use_tls { "https" } else { "http" };
         let hostname = cli_args
             .get_one::<String>("host")
             .cloned()
             .unwrap_or(default_hostname);
-        let port: u16 = cli_args.get_one::<u16>("port")
+        let port: u16 = cli_args
+            .get_one::<u16>("port")
             .cloned()
             .or_else(|| {
-                if should_use_tls { Some(DEFAULT_HTTPS_PORT) } else { Some(DEFAULT_HTTP_PORT) }
-            }).unwrap();
-        let path_prefix = cli_args.get_one::<String>("path_prefix")
+                if should_use_tls {
+                    Some(DEFAULT_HTTPS_PORT)
+                } else {
+                    Some(DEFAULT_HTTP_PORT)
+                }
+            })
+            .unwrap();
+        let path_prefix = cli_args
+            .get_one::<String>("path_prefix")
             .cloned()
             .unwrap_or(DEFAULT_PATH_PREFIX.to_owned());
-        let username = cli_args.get_one::<String>("username")
+        let username = cli_args
+            .get_one::<String>("username")
             .cloned()
             .unwrap_or(DEFAULT_USERNAME.to_string());
-        let password = cli_args.get_one::<String>("password")
+        let password = cli_args
+            .get_one::<String>("password")
             .cloned()
             .unwrap_or(DEFAULT_PASSWORD.to_string());
         let vhost = cli_args
@@ -173,23 +200,39 @@ impl SharedSettings {
         }
     }
 
-    pub fn new_from_uri_with_defaults(url: &Url, cli_args: &ArgMatches, config_file_defaults: &Self) -> Self {
-        let should_use_tls = *cli_args.get_one::<bool>("tls").unwrap() || config_file_defaults.tls || url.scheme() == HTTPS_SCHEME;
+    pub fn new_from_uri_with_defaults(
+        url: &Url,
+        cli_args: &ArgMatches,
+        config_file_defaults: &Self,
+    ) -> Self {
+        let should_use_tls = *cli_args.get_one::<bool>("tls").unwrap()
+            || config_file_defaults.tls
+            || url.scheme() == HTTPS_SCHEME;
 
         let scheme = url.scheme().to_string();
         let hostname = url.host_str().unwrap_or(DEFAULT_HOST).to_string();
-        let port = url.port().or_else(|| {
-            if should_use_tls { Some(DEFAULT_HTTPS_PORT) } else { Some(DEFAULT_HTTP_PORT) }
-        }).unwrap_or(DEFAULT_HTTP_PORT);
-        let path_prefix = cli_args.get_one::<String>("path_prefix")
+        let port = url
+            .port()
+            .or_else(|| {
+                if should_use_tls {
+                    Some(DEFAULT_HTTPS_PORT)
+                } else {
+                    Some(DEFAULT_HTTP_PORT)
+                }
+            })
+            .unwrap_or(DEFAULT_HTTP_PORT);
+        let path_prefix = cli_args
+            .get_one::<String>("path_prefix")
             .cloned()
             .or(Some(config_file_defaults.path_prefix.clone()))
             .unwrap_or(DEFAULT_PATH_PREFIX.to_owned());
-        let username = cli_args.get_one::<String>("username")
+        let username = cli_args
+            .get_one::<String>("username")
             .cloned()
             .or(config_file_defaults.username.clone())
             .unwrap_or(DEFAULT_USERNAME.to_string());
-        let password = cli_args.get_one::<String>("password")
+        let password = cli_args
+            .get_one::<String>("password")
             .cloned()
             .or(config_file_defaults.password.clone())
             .unwrap_or(DEFAULT_PASSWORD.to_string());
@@ -213,20 +256,31 @@ impl SharedSettings {
     }
 
     pub fn new_from_uri(url: &Url, cli_args: &ArgMatches) -> Self {
-        let should_use_tls = *cli_args.get_one::<bool>("tls").unwrap() || url.scheme() == HTTPS_SCHEME;
+        let should_use_tls =
+            *cli_args.get_one::<bool>("tls").unwrap() || url.scheme() == HTTPS_SCHEME;
 
         let scheme = url.scheme().to_string();
         let hostname = url.host_str().unwrap_or(DEFAULT_HOST).to_string();
-        let port = url.port().or_else(|| {
-            if should_use_tls { Some(DEFAULT_HTTPS_PORT) } else { Some(DEFAULT_HTTP_PORT) }
-        }).unwrap_or(DEFAULT_HTTP_PORT);
-        let path_prefix = cli_args.get_one::<String>("path_prefix")
+        let port = url
+            .port()
+            .or_else(|| {
+                if should_use_tls {
+                    Some(DEFAULT_HTTPS_PORT)
+                } else {
+                    Some(DEFAULT_HTTP_PORT)
+                }
+            })
+            .unwrap_or(DEFAULT_HTTP_PORT);
+        let path_prefix = cli_args
+            .get_one::<String>("path_prefix")
             .cloned()
             .unwrap_or(DEFAULT_PATH_PREFIX.to_owned());
-        let username = cli_args.get_one::<String>("username")
+        let username = cli_args
+            .get_one::<String>("username")
             .cloned()
             .unwrap_or(DEFAULT_USERNAME.to_string());
-        let password = cli_args.get_one::<String>("password")
+        let password = cli_args
+            .get_one::<String>("password")
             .cloned()
             .unwrap_or(DEFAULT_PASSWORD.to_string());
         let vhost = cli_args
@@ -255,8 +309,13 @@ impl SharedSettings {
         };
         format!(
             "{}://{}:{}{}",
-            self.scheme, self.hostname.as_ref().to_owned().unwrap(), self.port.unwrap(), prefix
-        ).trim().to_string()
+            self.scheme,
+            self.hostname.as_ref().to_owned().unwrap(),
+            self.port.unwrap(),
+            prefix
+        )
+        .trim()
+        .to_string()
     }
 }
 
@@ -271,7 +330,7 @@ fn from_local_path(path: &PathBuf) -> Result<ConfigurationMap, ConfigFileError> 
 fn read_from_local_path(path: &PathBuf) -> Result<ConfigurationMap, ConfigFileError> {
     let contents = std::fs::read_to_string(path)?;
     toml::from_str(&contents)
-        .and_then(|t| { Ok(t) })
+        .and_then(|t| Ok(t))
         .map_err(|e| ConfigFileError::from(e))
 }
 

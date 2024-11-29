@@ -36,10 +36,10 @@ pub fn parser() -> Command {
         // --config-file
         .arg(
             Arg::new("config_file_path")
-            .short('c')
-            .long("config")
-            .value_parser(clap::value_parser!(PathBuf))
-            .default_value(DEFAULT_CONFIG_FILE_PATH)
+                .short('c')
+                .long("config")
+                .value_parser(clap::value_parser!(PathBuf))
+                .default_value(DEFAULT_CONFIG_FILE_PATH),
         )
         // --node
         // This is NOT the same as --node in case of rabbitmqctl, rabbitmq-diagnostics, etc.
@@ -643,7 +643,8 @@ fn show_subcomands() -> [Command; 3] {
         Command::new("overview")
             .about("displays a essential information about target node and its cluster"),
         Command::new("churn").about("displays object churn metrics"),
-        Command::new("endpoint").about("for troubleshooting: displays the computed HTTP API endpoint URI"),
+        Command::new("endpoint")
+            .about("for troubleshooting: displays the computed HTTP API endpoint URI"),
     ]
 }
 

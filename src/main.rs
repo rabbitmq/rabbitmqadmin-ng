@@ -26,12 +26,14 @@ use rabbitmq_http_client::blocking::Result;
 
 mod cli;
 mod commands;
+mod config;
 mod constants;
 mod format;
-mod config;
 
 use crate::config::SharedSettings;
-use crate::constants::{DEFAULT_CONFIG_FILE_PATH, DEFAULT_HTTPS_PORT, DEFAULT_NODE_ALIAS, DEFAULT_VHOST};
+use crate::constants::{
+    DEFAULT_CONFIG_FILE_PATH, DEFAULT_HTTPS_PORT, DEFAULT_NODE_ALIAS, DEFAULT_VHOST,
+};
 use rabbitmq_http_client::blocking::ClientBuilder;
 use rabbitmq_http_client::responses::Overview;
 use reqwest::blocking::Client as HTTPClient;
@@ -42,19 +44,26 @@ fn main() {
     let parser = cli::parser();
     let cli = parser.get_matches();
     let default_config_file_path = PathBuf::from(DEFAULT_CONFIG_FILE_PATH);
-    let config_file_path = cli.get_one::<PathBuf>("config_file_path")
+    let config_file_path = cli
+        .get_one::<PathBuf>("config_file_path")
         .cloned()
         .unwrap_or(PathBuf::from(DEFAULT_CONFIG_FILE_PATH));
     let uses_default_config_file_path = config_file_path == default_config_file_path;
 
     // config file entries are historically called nodes
-    let node_alias = cli.get_one::<String>("node_alias").or(Some(&DEFAULT_NODE_ALIAS.to_string())).cloned();
+    let node_alias = cli
+        .get_one::<String>("node_alias")
+        .or(Some(&DEFAULT_NODE_ALIAS.to_string()))
+        .cloned();
 
     let cf_ss = SharedSettings::from_config_file(&config_file_path, node_alias);
     // If the default config file path is used and the function above
     // reports that it is not found, continue. Otherwise exit.
     if cf_ss.is_err() && !uses_default_config_file_path {
-        println!("Could not load the provided configuration file at {}", config_file_path.to_str().unwrap());
+        println!(
+            "Could not load the provided configuration file at {}",
+            config_file_path.to_str().unwrap()
+        );
         process::exit(1)
     }
     let sf = if cf_ss.is_ok() {
@@ -121,7 +130,7 @@ fn main() {
         if let Some((kind, command_args)) = group_args.subcommand() {
             let pair = (verb, kind);
 
-            let vhost = virtual_host(&sf, command_args, );
+            let vhost = virtual_host(&sf, command_args);
 
             match &pair {
                 ("show", "overview") => {
@@ -331,7 +340,8 @@ fn main() {
 }
 
 fn should_use_tls(shared_settings: &SharedSettings) -> bool {
-    shared_settings.scheme.to_lowercase() == "https" || shared_settings.port.unwrap_or(DEFAULT_HTTPS_PORT) == DEFAULT_HTTPS_PORT
+    shared_settings.scheme.to_lowercase() == "https"
+        || shared_settings.port.unwrap_or(DEFAULT_HTTPS_PORT) == DEFAULT_HTTPS_PORT
 }
 
 /// Retrieves a --vhost value, either from global or command-specific arguments
@@ -348,10 +358,16 @@ fn virtual_host(shared_settings: &SharedSettings, command_flags: &ArgMatches) ->
         if command_vhost != DEFAULT_VHOST {
             String::from(command_vhost)
         } else {
-            shared_settings.virtual_host.clone().unwrap_or(DEFAULT_VHOST.to_string())
+            shared_settings
+                .virtual_host
+                .clone()
+                .unwrap_or(DEFAULT_VHOST.to_string())
         }
     } else {
-        shared_settings.virtual_host.clone().unwrap_or(DEFAULT_VHOST.to_string())
+        shared_settings
+            .virtual_host
+            .clone()
+            .unwrap_or(DEFAULT_VHOST.to_string())
     }
 }
 
