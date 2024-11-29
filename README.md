@@ -2,7 +2,7 @@
 
 `rabbitmqadmin` v2 is a major revision of one of the RabbitMQ's CLI tools.
 
-If you are migrating from the original `rabbitqadmin`, please see [CLI Changes](#cli-changes)
+If you are migrating from the original `rabbitqadmin`, please see [Breaking or Potentially Breaking Changes](#changes-compared-to-v1)
 to learn about a few breaking change in the interface.
 
 To download a binary build, see [Releases](https://github.com/rabbitmq/rabbitmqadmin-ng/releases).
@@ -10,23 +10,26 @@ To download a binary build, see [Releases](https://github.com/rabbitmq/rabbitmqa
 For usage documentation, see [Usage](#usage).
 
 
-## Project Goals
+## Project Goals Compared to `rabbitmqadmin` v1
 
 This version of `rabbitmqadmin` has a few ideas in mind:
 
- * This is a major version bump. Therefore, breaking changes are OK. `rabbitmqadmin` hasn't seen a revision in thirteen years
+ * This is a major version bump. Therefore, reasonable breaking changes are OK. `rabbitmqadmin` hasn't seen a revision in fourteen years
  * `rabbitmqadmin` should be standalone binary. There are very few reasons not to build and distribute it that way
+* Standalone project, not an obscure feature: `rabbitmqadmin` should be a standalone tool, not a relatively unknown "feature" of
+  the RabbitMQ management plugin, and should be developed as such, not tied completely to the development
+  environment, practices and release schedule of RabbitMQ itself
  * v2 should be a distributed via GitHub releases and not a special `rabbitmq_management` endpoint
  * There is a lot of room to improve validation of flags and arguments, since breaking changes are OK for v2
+ * This tool as free as practically possible from CVEs in other projects that show up on security scans.
+   CVEs from older Python versions should not plague OCI images that choose to include `rabbitmqadmin`
  * Output should be revisited: what columns are output by default, whether columns should be selectable
- * Support for JSON and CSV was a popular addition in `rabbitmqctl`, `rabbitmq-diagnostics`, etc. Perhaps `rabbitmqadmin` should consider supporting them, too?
-
 
 ## Project Maturity
 
 This version of `rabbitmqadmin` should be considered reasonably mature to be used.
 
-Before migrating, please see [CLI Changes](#cli-changes) to learn about a few breaking change in the interface.
+Before migrating, please see [Breaking or Potentially Breaking Changes](#changes-compared-to-v1) to learn about a few breaking change in the interface.
 
 ### Known Limitations
 
@@ -70,7 +73,7 @@ rabbitmqadmin show overview
 Helps assess connection, queue/stream, channel [churn metrics](https://www.rabbitmq.com/docs/connections#high-connection-churn) in the cluster.
 
 ``` shell
-rabbitmqadmin show overview
+rabbitmqadmin show churn
 ```
 
 ### Listing cluster nodes
@@ -141,18 +144,55 @@ rabbitmqadmin --vhost "events" declare queue --name "target.classic.queue.name" 
 rabbitmqadmin --vhost "events" delete queue --name "target.queue.name"
 ```
 
-## Differences from `rabbitmqadmin` v1
 
-Compared to the original `rabbitmqadmin`, this version:
+## Configuration Files
 
- * Is distributed as a standalone binary and does not depend on Python
- * Uses much stricter CLI argument validation and has (relatively minor) breaking changes in the CLI
- * Is better documented
- * May choose to use different defaults where it makes sense
+`rabbitmqadmin` v2 supports [TOML](https://toml.io/en/)-based configuration files
+stores groups of HTTP API connection settings under aliases ("node names" in original `rabbitmqadmin` speak). 
 
-### CLI Changes
+Here is an example `rabbitmqadmin` v2 configuration file:
 
-#### Global Arguments Come First
+```toml
+[local]
+hostname = "localhost"
+port = 15672
+username = "lolz"
+password = "lolz"
+vhost = '/'
+
+[staging]
+hostname = "192.168.20.31"
+port = 15672
+username = "staging-2387a72329"
+password = "staging-1d20cfbd9d"
+
+[production]
+hostname = "(redacted)"
+port = 15671
+username = "user-2ca6bae15ff6b79e92"
+password = "user-92ee4c479ae604cc72"
+```
+
+Instead of specifying `--hostname` or `--username` on the command line to connect to
+a cluster (or specific node) called `staging`, a `--node` alias can be specified instead:
+
+```shell
+# will use the settings from the section called [staging]
+rabbitmqadmin --node staging show churn
+```
+
+Default configuration file path is at `$HOME/.rabbitmqadmin.conf`, as it was in
+the original version of `rabbitmqadmin`. It can be overridden on the command line:
+
+```shell
+# will use the settings from the section called [staging]
+rabbitmqadmin --config $HOME/.configuration/rabbitmqadmin.conf --node staging show churn
+```
+
+
+## Breaking or Potentially Breaking Changes
+
+### Global Arguments Come First
 
 Global flags in `rabbitmqadmin` v2 must precede the command category (e.g. `list`) and the command itself,
 namely various HTTP API endpoint options and `--vhost`:
@@ -161,7 +201,43 @@ namely various HTTP API endpoint options and `--vhost`:
 rabbitmqadmin --vhost "events" declare queue --name "target.quorum.queue.name" --type "quorum" --durable true
 ```
 
-### Getting Help
+### Configuration File Format Moved to TOML
+
+`rabbitmqadmin` v1 supported ini configuration files that allowed
+the user to group a number of command line values under a name, e.g. a cluster or node nickname.
+
+Due to the "no dependencies other than Python" design goal of `rabbitmqadmin` v1, this feature was not really tested,
+and the specific syntax (that of ini files, supported by Python's [`ConfigParser`](https://docs.python.org/3/library/configparser.html)) linting, parsing or generation tools were not really available.
+
+`rabbitmqadmin` v2 replaces this format with [TOML](https://toml.io/en/), a popular configuration standard
+with [verification and linting tools](https://www.toml-lint.com/), as well as very mature parser
+that is not at all specific to `rabbitmqadmin` v2.
+
+Here is an example `rabbitmqadmin` v2 configuration file:
+
+```toml
+[local]
+hostname = "localhost"
+port = 15672
+username = "lolz"
+password = "lolz"
+vhost = '/'
+
+[staging]
+hostname = "192.168.20.31"
+port = 15672
+username = "staging-2387a72329"
+password = "staging-1d20cfbd9d"
+
+[production]
+hostname = "(redacted)"
+port = 15671
+username = "user-efe1f4d763f6"
+password = "(redacted)"
+```
+
+
+## Getting Help
 
 Please use GitHub Discussions in this repository and [RabbitMQ community Discord server](https://rabbitmq.com/discord/).
 
