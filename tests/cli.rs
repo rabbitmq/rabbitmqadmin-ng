@@ -51,7 +51,7 @@ fn list_vhosts() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn exchanges() -> Result<(), Box<dyn std::error::Error>> {
+fn list_exchanges() -> Result<(), Box<dyn std::error::Error>> {
     // declare vhost 1
     let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
     cmd.args(["declare", "vhost", "--name", "exchange_vhost_1"]);
@@ -132,7 +132,7 @@ fn exchanges() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn queues() -> Result<(), Box<dyn std::error::Error>> {
+fn list_queues() -> Result<(), Box<dyn std::error::Error>> {
     // declare vhost 1
     let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
     cmd.args(["declare", "vhost", "--name", "queue_vhost_1"]);
