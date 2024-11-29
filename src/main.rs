@@ -39,8 +39,6 @@ use rabbitmq_http_client::blocking::ClientBuilder;
 use rabbitmq_http_client::responses::Overview;
 use reqwest::blocking::Client as HTTPClient;
 
-const USER_AGENT: &str = "rabbitmqadmin-ng";
-
 fn main() {
     let parser = cli::parser();
     let cli = parser.get_matches();
@@ -75,6 +73,8 @@ fn main() {
     };
     let endpoint = sf.endpoint();
     let disable_peer_verification = *cli.get_one::<bool>("insecure").unwrap_or(&false);
+
+    let user_agent = format!("rabbitmqadmin-ng {}", clap::crate_version!());
     let httpc = if should_use_tls(&sf) {
         let mut cert = None;
         if let Some(pem_file) = cli.get_one::<PathBuf>("tls-ca-cert-file") {
@@ -105,7 +105,7 @@ fn main() {
         }
 
         let mut b = HTTPClient::builder()
-            .user_agent(USER_AGENT)
+            .user_agent(user_agent)
             .min_tls_version(reqwest::tls::Version::TLS_1_2)
             .danger_accept_invalid_certs(disable_peer_verification)
             .danger_accept_invalid_hostnames(disable_peer_verification);
@@ -116,7 +116,7 @@ fn main() {
 
         b.build()
     } else {
-        HTTPClient::builder().user_agent(USER_AGENT).build()
+        HTTPClient::builder().user_agent(user_agent).build()
     }
     .unwrap();
 

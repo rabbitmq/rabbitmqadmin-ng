@@ -408,7 +408,7 @@ fn declare_subcommands() -> [Command; 11] {
                     .long("type")
                     .help("queue type")
                     .value_parser(clap::value_parser!(QueueType))
-                    .required(true),
+                    .required(false),
             )
             .arg(
                 Arg::new("durable")
