@@ -26,27 +26,55 @@ use rabbitmq_http_client::blocking::Result;
 
 mod cli;
 mod commands;
+mod config;
 mod constants;
 mod format;
 
-use crate::cli::SharedFlags;
-use crate::constants::DEFAULT_VHOST;
+
+use crate::config::SharedSettings;
+use crate::constants::{
+    DEFAULT_CONFIG_FILE_PATH, DEFAULT_HTTPS_PORT, DEFAULT_NODE_ALIAS, DEFAULT_VHOST,
+};
 use rabbitmq_http_client::blocking::ClientBuilder;
 use rabbitmq_http_client::responses::Overview;
 use reqwest::blocking::Client as HTTPClient;
 
 const USER_AGENT: &str = "rabbitmqadmin-ng";
-const DEFAULT_TLS_PORT: u16 = 15671;
 
 fn main() {
     let parser = cli::parser();
     let cli = parser.get_matches();
+    let default_config_file_path = PathBuf::from(DEFAULT_CONFIG_FILE_PATH);
+    let config_file_path = cli
+        .get_one::<PathBuf>("config_file_path")
+        .cloned()
+        .unwrap_or(PathBuf::from(DEFAULT_CONFIG_FILE_PATH));
+    let uses_default_config_file_path = config_file_path == default_config_file_path;
 
-    let sf = SharedFlags::from_args(&cli);
+    // config file entries are historically called nodes
+    let node_alias = cli
+        .get_one::<String>("node_alias")
+        .or(Some(&DEFAULT_NODE_ALIAS.to_string()))
+        .cloned();
+
+    let cf_ss = SharedSettings::from_config_file(&config_file_path, node_alias);
+    // If the default config file path is used and the function above
+    // reports that it is not found, continue. Otherwise exit.
+    if cf_ss.is_err() && !uses_default_config_file_path {
+        println!(
+            "Could not load the provided configuration file at {}",
+            config_file_path.to_str().unwrap()
+        );
+        println!("Underlying error: {}", cf_ss.unwrap_err());
+        process::exit(1)
+    }
+    let sf = if let Ok(val) = cf_ss {
+        SharedSettings::from_args_with_defaults(&cli, &val)
+    } else {
+        SharedSettings::from_args(&cli)
+    };
     let endpoint = sf.endpoint();
-
     let disable_peer_verification = *cli.get_one::<bool>("insecure").unwrap_or(&false);
-
     let httpc = if should_use_tls(&sf) {
         let mut cert = None;
         if let Some(pem_file) = cli.get_one::<PathBuf>("tls-ca-cert-file") {
@@ -92,9 +120,11 @@ fn main() {
     }
     .unwrap();
 
+    let username = sf.username.clone().unwrap();
+    let password = sf.password.clone().unwrap();
     let client = ClientBuilder::new()
         .with_endpoint(endpoint.as_str())
-        .with_basic_auth_credentials(sf.username.as_str(), sf.password.as_str())
+        .with_basic_auth_credentials(username.as_str(), password.as_str())
         .with_client(httpc)
         .build();
 
@@ -109,10 +139,13 @@ fn main() {
                     let result = commands::show_overview(client);
                     print_overview_or_fail(result);
                 }
-
                 ("show", "churn") => {
                     let result = commands::show_overview(client);
                     print_churn_overview_or_fail(result);
+                }
+                ("show", "endpoint") => {
+                    println!("Using endpoint: {}", endpoint);
+                    print_nothing_or_fail(Ok(()))
                 }
 
                 ("list", "nodes") => {
@@ -308,12 +341,13 @@ fn main() {
     }
 }
 
-fn should_use_tls(global_flags: &SharedFlags) -> bool {
-    global_flags.scheme.to_lowercase() == "https" || global_flags.port == DEFAULT_TLS_PORT
+fn should_use_tls(shared_settings: &SharedSettings) -> bool {
+    shared_settings.scheme.to_lowercase() == "https"
+        || shared_settings.port.unwrap_or(DEFAULT_HTTPS_PORT) == DEFAULT_HTTPS_PORT
 }
 
 /// Retrieves a --vhost value, either from global or command-specific arguments
-fn virtual_host(global_flags: &SharedFlags, command_flags: &ArgMatches) -> String {
+fn virtual_host(shared_settings: &SharedSettings, command_flags: &ArgMatches) -> String {
     // in case a command does not define --vhost
     if command_flags.try_contains_id("vhost").is_ok() {
         // if the command-specific flag is not set to default,
@@ -326,10 +360,16 @@ fn virtual_host(global_flags: &SharedFlags, command_flags: &ArgMatches) -> Strin
         if command_vhost != DEFAULT_VHOST {
             String::from(command_vhost)
         } else {
-            global_flags.virtual_host.clone()
+            shared_settings
+                .virtual_host
+                .clone()
+                .unwrap_or(DEFAULT_VHOST.to_string())
         }
     } else {
-        global_flags.virtual_host.clone()
+        shared_settings
+            .virtual_host
+            .clone()
+            .unwrap_or(DEFAULT_VHOST.to_string())
     }
 }
 
@@ -403,9 +443,7 @@ fn print_debug_result_or_fail<T: fmt::Debug>(result: Result<T>) {
 
 fn print_nothing_or_fail<T>(result: Result<T>) {
     match result {
-        Ok(_) => {
-            println!("Done")
-        }
+        Ok(_) => (),
         Err(error) => {
             eprintln!("{}", error);
             process::exit(1)

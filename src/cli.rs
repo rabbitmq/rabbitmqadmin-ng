@@ -14,91 +14,8 @@
 use std::path::PathBuf;
 
 use super::constants::*;
-use clap::{Arg, ArgAction, ArgMatches, Command};
+use clap::{Arg, ArgAction, Command};
 use rabbitmq_http_client::commons::{BindingDestinationType, QueueType};
-use url::Url;
-
-#[derive(Debug, Clone)]
-pub struct SharedFlags {
-    pub scheme: String,
-    pub hostname: String,
-    pub port: u16,
-    pub path_prefix: Option<String>,
-
-    pub username: String,
-    pub password: String,
-
-    pub virtual_host: String,
-}
-
-impl SharedFlags {
-    pub fn from_args(general_args: &ArgMatches) -> SharedFlags {
-        if let Some(base_uri) = general_args.get_one::<String>("base_uri") {
-            let url = Url::parse(base_uri).unwrap();
-            SharedFlags::new_from_uri(&url, general_args)
-        } else {
-            SharedFlags::new(general_args)
-        }
-    }
-
-    pub fn new(cli_args: &ArgMatches) -> Self {
-        let default_hostname = DEFAULT_HOST.to_owned();
-        let hostname = cli_args
-            .get_one::<String>("host")
-            .unwrap_or(&default_hostname);
-        let port = cli_args.get_one::<u16>("port").unwrap();
-        let path_prefix = cli_args.get_one::<String>("path_prefix").cloned();
-        let username = cli_args.get_one::<String>("username").unwrap();
-        let password = cli_args.get_one::<String>("password").unwrap();
-        let default_vhost = DEFAULT_VHOST.to_owned();
-        let vhost = cli_args
-            .get_one::<String>("vhost")
-            .unwrap_or(&default_vhost);
-
-        Self {
-            scheme: "http".to_string(),
-            hostname: hostname.clone(),
-            port: (*port),
-            path_prefix,
-            username: username.clone(),
-            password: password.clone(),
-            virtual_host: vhost.clone(),
-        }
-    }
-
-    pub fn new_from_uri(url: &Url, cli_args: &ArgMatches) -> Self {
-        let scheme = url.scheme().to_string();
-        let hostname = url.host_str().unwrap_or(DEFAULT_HOST).to_string();
-        let port = url.port().unwrap_or(DEFAULT_HTTP_PORT);
-        let path_prefix = cli_args.get_one::<String>("path_prefix").cloned();
-        let username = cli_args.get_one::<String>("username").unwrap();
-        let password = cli_args.get_one::<String>("password").unwrap();
-        let default_vhost = DEFAULT_VHOST.to_owned();
-        let vhost = cli_args
-            .get_one::<String>("vhost")
-            .unwrap_or(&default_vhost);
-
-        Self {
-            scheme,
-            hostname,
-            port,
-            path_prefix,
-            username: username.clone(),
-            password: password.clone(),
-            virtual_host: vhost.clone(),
-        }
-    }
-
-    pub fn endpoint(&self) -> String {
-        match &self.path_prefix {
-            Some(prefix) => format!(
-                "{}://{}:{}{}/api",
-                self.scheme, self.hostname, self.port, prefix
-            ),
-            None => format!("{}://{}:{}/api", self.scheme, self.hostname, self.port),
-        }
-    }
-}
 
 pub fn parser() -> Command {
     let after_help: &'static str = color_print::cstr!(
@@ -116,11 +33,19 @@ pub fn parser() -> Command {
         .long_about("RabbitMQ CLI that uses the HTTP API")
         .after_help(after_help)
         .disable_version_flag(true)
+        // --config-file
+        .arg(
+            Arg::new("config_file_path")
+                .short('c')
+                .long("config")
+                .value_parser(clap::value_parser!(PathBuf))
+                .default_value(DEFAULT_CONFIG_FILE_PATH),
+        )
         // --node
         // This is NOT the same as --node in case of rabbitmqctl, rabbitmq-diagnostics, etc.
         // This is node section name in the configuration file. MK.
         .arg(
-            Arg::new("node")
+            Arg::new("node_alias")
                 .short('N')
                 .long("node")
                 .required(false)
@@ -132,8 +57,6 @@ pub fn parser() -> Command {
                 .short('H')
                 .long("host")
                 .help("HTTP API hostname to use when connecting")
-                .required(false)
-                .default_value(DEFAULT_HOST),
         )
         .visible_alias("hostname")
         // --port
@@ -159,34 +82,29 @@ pub fn parser() -> Command {
         .arg(
             Arg::new("path_prefix")
                 .long("path-prefix")
-                .required(false)
-                .default_value(DEFAULT_PATH_PREFIX),
+                .help("use if target node uses a path prefix. Defaults to '/api'")
         )
         // --vhost
         .arg(
             Arg::new("vhost")
                 .short('V')
                 .long("vhost")
-                .help("target virtual host")
-                .required(false)
-                .default_value(DEFAULT_VHOST),
+                .help("target virtual host. Defaults to '/'")
         )
         // --username
         .arg(
             Arg::new("username")
                 .short('u')
                 .long("username")
-                .required(false)
-                .default_value(DEFAULT_USERNAME),
+                .help("this user must have the permissions for HTTP API access, see https://www.rabbitmq.com/docs/management#permissions")
         )
         // --password
         .arg(
             Arg::new("password")
                 .short('p')
                 .long("password")
-                .required(false)
-                .default_value(DEFAULT_PASSWORD)
-                .requires("username"),
+                .requires("username")
+                .help("must be specified if --username is used")
         )
         // --insecure
         .arg(
@@ -196,7 +114,14 @@ pub fn parser() -> Command {
                 .required(false)
                 .help("disables TLS peer (certificate chain) verification")
                 .value_parser(clap::value_parser!(bool))
-                .action(clap::ArgAction::SetTrue),
+                .action(ArgAction::SetTrue),
+        )
+        // --tls
+        .arg(
+            Arg::new("tls")
+                .long("use-tls")
+                .help("use TLS (HTTPS) for HTTP API requests ")
+                .value_parser(clap::value_parser!(bool))
         )
         // --tls-ca-cert-file
         .arg(
@@ -214,7 +139,7 @@ pub fn parser() -> Command {
                 .help("produce less output")
                 .required(false)
                 .value_parser(clap::value_parser!(bool))
-                .action(clap::ArgAction::SetTrue),
+                .action(ArgAction::SetTrue),
         )
         .subcommand_required(true)
         .subcommand_value_name("command")
@@ -703,11 +628,13 @@ fn declare_subcommands() -> [Command; 11] {
     ]
 }
 
-fn show_subcomands() -> [Command; 2] {
+fn show_subcomands() -> [Command; 3] {
     [
         Command::new("overview")
             .about("displays a essential information about target node and its cluster"),
         Command::new("churn").about("displays object churn metrics"),
+        Command::new("endpoint")
+            .about("for troubleshooting: displays the computed HTTP API endpoint URI"),
     ]
 }
 
