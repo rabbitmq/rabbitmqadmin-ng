@@ -19,9 +19,6 @@ use std::io::Read;
 use std::path::PathBuf;
 use std::process;
 
-use tabled::settings::Style;
-use tabled::{Table, Tabled};
-
 use rabbitmq_http_client::blocking::Result;
 
 mod cli;
@@ -29,13 +26,14 @@ mod commands;
 mod config;
 mod constants;
 mod format;
+mod output;
 
 use crate::config::SharedSettings;
 use crate::constants::{
     DEFAULT_CONFIG_FILE_PATH, DEFAULT_HTTPS_PORT, DEFAULT_NODE_ALIAS, DEFAULT_VHOST,
 };
+use crate::output::*;
 use rabbitmq_http_client::blocking::ClientBuilder;
-use rabbitmq_http_client::responses::Overview;
 use reqwest::blocking::Client as HTTPClient;
 
 fn main() {
@@ -369,53 +367,6 @@ fn virtual_host(shared_settings: &SharedSettings, command_flags: &ArgMatches) ->
             .virtual_host
             .clone()
             .unwrap_or(DEFAULT_VHOST.to_string())
-    }
-}
-
-fn print_overview_or_fail(result: Result<Overview>) {
-    match result {
-        Ok(ov) => {
-            let mut table = format::overview_table(ov);
-
-            table.with(Style::modern());
-            println!("{}", table);
-        }
-        Err(error) => {
-            eprintln!("{}", error);
-            process::exit(1)
-        }
-    }
-}
-
-fn print_churn_overview_or_fail(result: Result<Overview>) {
-    match result {
-        Ok(ov) => {
-            let mut table = format::churn_overview_table(ov);
-
-            table.with(Style::modern());
-            println!("{}", table);
-        }
-        Err(error) => {
-            eprintln!("{}", error);
-            process::exit(1)
-        }
-    }
-}
-
-fn print_table_or_fail<T>(result: Result<Vec<T>>)
-where
-    T: fmt::Debug + Tabled,
-{
-    match result {
-        Ok(rows) => {
-            let mut table = Table::new(rows);
-            table.with(Style::modern());
-            println!("{}", table);
-        }
-        Err(error) => {
-            eprintln!("{}", error);
-            process::exit(1)
-        }
     }
 }
 
