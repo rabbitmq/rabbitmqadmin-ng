@@ -11,12 +11,12 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-use std::{fmt, process};
-use rabbitmq_http_client::responses::Overview;
+use crate::format;
 use rabbitmq_http_client::blocking::Result as ClientResult;
+use rabbitmq_http_client::responses::Overview;
+use std::{fmt, process};
 use tabled::settings::Style;
 use tabled::{Table, Tabled};
-use crate::format;
 
 pub fn print_overview_or_fail(result: ClientResult<Overview>) {
     match result {
