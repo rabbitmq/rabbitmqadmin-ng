@@ -154,7 +154,7 @@ pub fn declare_exchange(
     let exchange_type = command_args
         .get_one::<String>("type")
         .map(|s| Into::<rabbitmq_http_client::commons::ExchangeType>::into(s.as_str()))
-        .unwrap_or(rabbitmq_http_client::commons::ExchangeType::Direct);
+        .unwrap_or(commons::ExchangeType::Direct);
     let durable = command_args.get_one::<bool>("durable").unwrap_or(&true);
     let auto_delete = command_args
         .get_one::<bool>("auto_delete")
