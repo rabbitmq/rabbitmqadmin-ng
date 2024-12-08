@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 use crate::format;
-use rabbitmq_http_client::blocking::Result as ClientResult;
+use rabbitmq_http_client::blocking_api::Result as ClientResult;
 use rabbitmq_http_client::responses::Overview;
 use std::{fmt, process};
 use tabled::settings::Style;

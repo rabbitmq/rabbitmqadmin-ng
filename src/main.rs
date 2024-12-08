@@ -19,7 +19,7 @@ use std::io::Read;
 use std::path::PathBuf;
 use std::process;
 
-use rabbitmq_http_client::blocking::Result;
+use rabbitmq_http_client::blocking_api::Result;
 
 mod cli;
 mod commands;
@@ -33,7 +33,7 @@ use crate::constants::{
     DEFAULT_CONFIG_FILE_PATH, DEFAULT_HTTPS_PORT, DEFAULT_NODE_ALIAS, DEFAULT_VHOST,
 };
 use crate::output::*;
-use rabbitmq_http_client::blocking::ClientBuilder;
+use rabbitmq_http_client::blocking_api::ClientBuilder;
 use reqwest::blocking::Client as HTTPClient;
 
 fn main() {

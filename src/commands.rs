@@ -18,8 +18,8 @@ use rabbitmq_http_client::commons::VirtualHostLimitTarget;
 use std::fs;
 use std::process;
 
-use rabbitmq_http_client::blocking::Client;
-use rabbitmq_http_client::blocking::Result as ClientResult;
+use rabbitmq_http_client::blocking_api::Client;
+use rabbitmq_http_client::blocking_api::Result as ClientResult;
 use rabbitmq_http_client::requests::EnforcedLimitParams;
 
 use crate::constants::DEFAULT_QUEUE_TYPE;
