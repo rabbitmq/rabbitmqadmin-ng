@@ -3,7 +3,7 @@
 ## Running Tests
 
 While tests support the standard `cargo test` option, another option
-for running tests is []().
+for running tests is [`cargo nextest`](https://nexte.st/).
 
 ### Run All Tests
 
