@@ -8,7 +8,7 @@ for running tests is []().
 ### Run All Tests
 
 ``` bash
-NEXTEST_RETRIES=3 cargo nextest
+NEXTEST_RETRIES=3 cargo nextest run --all-features
 ```
 
 ### Run a Specific Test
