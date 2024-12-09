@@ -86,8 +86,8 @@ jobs:
         if: ${{ matrix.os == 'ubuntu-latest' }}
         uses: actions/upload-artifact@v4
         with:
-          name: "rabbitmqadmin-${{ vars.NEXT_RELESE_VERSION }}-${{ matrix.target }}.tar.gz"
-          path: "${{ github.workspace }}/target/${{ matrix.target }}/release/rabbitmqadmin-${{ vars.NEXT_RELESE_VERSION }}-${{ matrix.target }}.tar.gz"
+          name: "rabbitmqadmin-${{ vars.NEXT_RELESE_VERSION }}-${{ matrix.target }}"
+          path: "${{ github.workspace }}/target/${{ matrix.target }}/release/rabbitmqadmin-${{ vars.NEXT_RELESE_VERSION }}-${{ matrix.target }}"
           retention-days: 2
 
       - name: Build an rabbitmqadmin release archive on Windows
@@ -120,7 +120,7 @@ jobs:
     - name: Fetch Linux archive
       uses: actions/download-artifact@v4
       with:
-        name: "rabbitmqadmin-${{ vars.NEXT_RELESE_VERSION }}-x86_64-unknown-linux-gnu.tar.gz"
+        name: "rabbitmqadmin-${{ vars.NEXT_RELESE_VERSION }}-x86_64-unknown-linux-gnu"
         path: ./artifacts
     - name: Fetch Windows archive
       uses: actions/download-artifact@v4
