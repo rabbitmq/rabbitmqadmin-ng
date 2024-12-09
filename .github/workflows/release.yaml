@@ -110,7 +110,7 @@ jobs:
 
   create_gh_release:
     needs: [release]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
     - name: Fetch macOS archive
       uses: actions/download-artifact@v4
