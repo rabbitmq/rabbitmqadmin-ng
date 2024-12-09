@@ -39,6 +39,7 @@ cd $release_dir
 let artifact_filename = $'($binary)-($version)-($target)'
 
 print $"Renaming release artifact to ($artifact_filename)..."
+chmod +x $binary
 cp -v $binary $'($release_dir)/($artifact_filename)'
 
 print $'Release artifact at ($artifact_filename) is ready'
