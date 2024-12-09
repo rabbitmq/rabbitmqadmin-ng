@@ -70,16 +70,18 @@ cp -r LICENSE* $release_dir
 cp -r README* $release_dir
 
 cd $release_dir
-ls $release_dir
 
-print "Compiling a release archive..."
+let artifact_filename = $'($binary)-($version)-($target)'
 
-let archive_filename = $'($binary)-($version)-($target).tar.gz'
-print $'Release archive name: ($archive_filename)'
-tar --verbose -C $release_dir -czf $archive_filename $binary
-print $'Release archive at ($archive_filename) is ready'
-echo $'archive=($archive_filename)' | save --append $env.GITHUB_OUTPUT
+print $"Renaming release artifact to ($artifact_filename)..."
+cp -v $binary $'($release_dir)/($artifact_filename)'
+
+print $'Release artifact at ($artifact_filename) is ready'
+print $"Release directory: ($release_dir)"
+ls $release_dir | print
+
+echo $'artifact=($artifact_filename)' | save --append $env.GITHUB_OUTPUT
 
 def 'build-with-cargo' [] {
-  cargo rustc --bin $binary --target $target --release
+  cargo rustc -q --bin $binary --target $target --release
 }
