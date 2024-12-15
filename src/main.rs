@@ -13,11 +13,11 @@
 // limitations under the License.
 use clap::ArgMatches;
 use reqwest::Certificate;
-use sysexits::ExitCode;
 use std::fs::File;
 use std::io::Read;
 use std::path::PathBuf;
 use std::process;
+use sysexits::ExitCode;
 
 mod cli;
 mod commands;
@@ -368,4 +368,3 @@ fn virtual_host(shared_settings: &SharedSettings, command_flags: &ArgMatches) ->
             .unwrap_or(DEFAULT_VHOST.to_string())
     }
 }
-

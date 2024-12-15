@@ -14,20 +14,19 @@
 use crate::format;
 use clap::ArgMatches;
 use rabbitmq_http_client::blocking_api::{HttpClientError, Result as ClientResult};
-use rabbitmq_http_client::error::{Error as ClientError};
+use rabbitmq_http_client::error::Error as ClientError;
 use rabbitmq_http_client::responses::Overview;
-use sysexits::ExitCode;
 use std::{fmt, process};
+use sysexits::ExitCode;
 use tabled::settings::object::Rows;
 use tabled::settings::{Remove, Style};
 use tabled::{Table, Tabled};
-
 
 #[allow(dead_code)]
 pub struct ResultHandler {
     pub non_interactive: bool,
     pub quiet: bool,
-    pub exit_code: Option<ExitCode>
+    pub exit_code: Option<ExitCode>,
 }
 
 impl ResultHandler {
@@ -41,7 +40,7 @@ impl ResultHandler {
         Self {
             quiet,
             non_interactive,
-            exit_code: None
+            exit_code: None,
         }
     }
 
@@ -62,9 +61,7 @@ impl ResultHandler {
                 self.exit_code = Some(ExitCode::Ok);
                 println!("{}", table);
             }
-            Err(error) => {
-                self.print_to_stderr_and_exit(&error)
-            }
+            Err(error) => self.print_to_stderr_and_exit(&error),
         }
     }
 
@@ -83,13 +80,14 @@ impl ResultHandler {
                 }
                 println!("{}", table);
             }
-            Err(error) => {
-                self.print_to_stderr_and_exit(&error)
-            }
+            Err(error) => self.print_to_stderr_and_exit(&error),
         }
     }
 
-    pub fn tabular_result<T>(self: &mut Self, result: ClientResult<Vec<T>>) where T: fmt::Debug + Tabled {
+    pub fn tabular_result<T>(self: &mut Self, result: ClientResult<Vec<T>>)
+    where
+        T: fmt::Debug + Tabled,
+    {
         match result {
             Ok(rows) => {
                 self.exit_code = Some(ExitCode::Ok);
@@ -105,9 +103,7 @@ impl ResultHandler {
 
                 println!("{}", table);
             }
-            Err(error) => {
-                self.print_to_stderr_and_exit(&error)
-            }
+            Err(error) => self.print_to_stderr_and_exit(&error),
         }
     }
 
@@ -116,10 +112,8 @@ impl ResultHandler {
             Ok(output) => {
                 self.exit_code = Some(ExitCode::Ok);
                 println!("{}", output)
-            },
-            Err(error) => {
-                self.print_to_stderr_and_exit(&error)
             }
+            Err(error) => self.print_to_stderr_and_exit(&error),
         }
     }
 
@@ -129,9 +123,7 @@ impl ResultHandler {
                 self.exit_code = Some(ExitCode::Ok);
                 process::exit(ExitCode::Ok.into())
             }
-            Err(error) => {
-                self.print_to_stderr_and_exit(&error)
-            }
+            Err(error) => self.print_to_stderr_and_exit(&error),
         }
     }
 
@@ -147,17 +139,30 @@ impl ResultHandler {
     }
 }
 
-
 // We cannot implement From<T> for two types in other crates, so…
 pub(crate) fn client_error_to_exit_code(error: &HttpClientError) -> ExitCode {
     match error {
-        ClientError::ClientErrorResponse { status_code: _, response: _, backtrace: _ } => ExitCode::DataErr,
-        ClientError::ServerErrorResponse { status_code: _, response: _, backtrace: _ } => ExitCode::Unavailable,
-        ClientError::HealthCheckFailed { details: _, status_code: _ } => ExitCode::Unavailable,
+        ClientError::ClientErrorResponse {
+            status_code: _,
+            response: _,
+            backtrace: _,
+        } => ExitCode::DataErr,
+        ClientError::ServerErrorResponse {
+            status_code: _,
+            response: _,
+            backtrace: _,
+        } => ExitCode::Unavailable,
+        ClientError::HealthCheckFailed {
+            details: _,
+            status_code: _,
+        } => ExitCode::Unavailable,
         ClientError::NotFound => ExitCode::DataErr,
         ClientError::MultipleMatchingBindings => ExitCode::DataErr,
         ClientError::InvalidHeaderValue { error: _ } => ExitCode::DataErr,
-        ClientError::RequestError { error: _, backtrace: _ } => ExitCode::IoErr,
+        ClientError::RequestError {
+            error: _,
+            backtrace: _,
+        } => ExitCode::IoErr,
         ClientError::Other => ExitCode::Usage,
     }
 }
