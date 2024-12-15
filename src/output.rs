@@ -44,7 +44,7 @@ impl ResultHandler {
         }
     }
 
-    pub fn show_overview(self: &mut Self, result: ClientResult<Overview>) {
+    pub fn show_overview(&mut self, result: ClientResult<Overview>) {
         match result {
             Ok(ov) => {
                 self.exit_code = Some(ExitCode::Ok);
@@ -65,7 +65,7 @@ impl ResultHandler {
         }
     }
 
-    pub fn show_churn(self: &mut Self, result: ClientResult<Overview>) {
+    pub fn show_churn(&mut self, result: ClientResult<Overview>) {
         match result {
             Ok(ov) => {
                 self.exit_code = Some(ExitCode::Ok);
@@ -84,7 +84,7 @@ impl ResultHandler {
         }
     }
 
-    pub fn tabular_result<T>(self: &mut Self, result: ClientResult<Vec<T>>)
+    pub fn tabular_result<T>(&mut self, result: ClientResult<Vec<T>>)
     where
         T: fmt::Debug + Tabled,
     {
@@ -107,7 +107,7 @@ impl ResultHandler {
         }
     }
 
-    pub fn single_value_result<T: fmt::Display>(self: &mut Self, result: ClientResult<T>) {
+    pub fn single_value_result<T: fmt::Display>(&mut self, result: ClientResult<T>) {
         match result {
             Ok(output) => {
                 self.exit_code = Some(ExitCode::Ok);
@@ -117,7 +117,7 @@ impl ResultHandler {
         }
     }
 
-    pub fn no_output_on_success<T>(self: &mut Self, result: ClientResult<T>) {
+    pub fn no_output_on_success<T>(&mut self, result: ClientResult<T>) {
         match result {
             Ok(_) => {
                 self.exit_code = Some(ExitCode::Ok);
@@ -131,9 +131,9 @@ impl ResultHandler {
     // Implementation
     //
 
-    fn print_to_stderr_and_exit(self: &mut Self, error: &HttpClientError) {
+    fn print_to_stderr_and_exit(&mut self, error: &HttpClientError) {
         eprintln!("{}", error);
-        let code = client_error_to_exit_code(&error);
+        let code = client_error_to_exit_code(error);
         self.exit_code = Some(code);
         process::exit(code.into())
     }
