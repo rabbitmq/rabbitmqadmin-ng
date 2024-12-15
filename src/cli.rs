@@ -141,6 +141,15 @@ pub fn parser() -> Command {
                 .value_parser(clap::value_parser!(bool))
                 .action(ArgAction::SetTrue),
         )
+        .arg(
+            Arg::new("non_interactive")
+                .long("non-interactive")
+                .help("pass when invoking from scripts")
+                .required(false)
+                .default_value("false")
+                .value_parser(clap::value_parser!(bool))
+                .action(ArgAction::SetTrue)
+        )
         .subcommand_required(true)
         .subcommand_value_name("command")
         .subcommands([

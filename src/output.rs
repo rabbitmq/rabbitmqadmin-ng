@@ -12,18 +12,45 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 use crate::format;
+use clap::ArgMatches;
 use rabbitmq_http_client::blocking_api::Result as ClientResult;
 use rabbitmq_http_client::responses::Overview;
+use tabled::settings::object::Rows;
 use std::{fmt, process};
-use tabled::settings::Style;
+use tabled::settings::{Remove, Style};
 use tabled::{Table, Tabled};
 
-pub fn print_overview_or_fail(result: ClientResult<Overview>) {
+#[derive(Debug, Clone, Copy)]
+pub enum TableStyle {
+    Modern,
+    Rounded,
+    Empty
+}
+
+impl From<&str> for TableStyle {
+    fn from(value: &str) -> Self {
+        match value {
+            "modern" => TableStyle::Modern,
+            "rounded" => TableStyle::Rounded,
+            "empty" => TableStyle::Empty,
+            _ => TableStyle::Modern
+        }
+    }
+}
+
+pub fn print_overview_or_fail(result: ClientResult<Overview>, args: &ArgMatches) {
+    let non_interactive = *(args.get_one::<bool>("non_interactive").unwrap());
+
     match result {
         Ok(ov) => {
             let mut table = format::overview_table(ov);
 
-            table.with(Style::modern());
+            if non_interactive {
+                table.with(Style::empty());
+                table.with(Remove::row(Rows::first()));
+            } else {
+                table.with(Style::modern());
+            }
             println!("{}", table);
         }
         Err(error) => {
@@ -33,12 +60,19 @@ pub fn print_overview_or_fail(result: ClientResult<Overview>) {
     }
 }
 
-pub fn print_churn_overview_or_fail(result: ClientResult<Overview>) {
+pub fn print_churn_overview_or_fail(result: ClientResult<Overview>, args: &ArgMatches) {
+    let non_interactive = *(args.get_one::<bool>("non_interactive").unwrap());
+
     match result {
         Ok(ov) => {
             let mut table = format::churn_overview_table(ov);
 
-            table.with(Style::modern());
+            if non_interactive {
+                table.with(Style::empty());
+                table.with(Remove::row(Rows::first()));
+            } else {
+                table.with(Style::modern());
+            }
             println!("{}", table);
         }
         Err(error) => {
@@ -48,14 +82,23 @@ pub fn print_churn_overview_or_fail(result: ClientResult<Overview>) {
     }
 }
 
-pub fn print_table_or_fail<T>(result: ClientResult<Vec<T>>)
+pub fn print_table_or_fail<T>(result: ClientResult<Vec<T>>, args: &ArgMatches)
 where
     T: fmt::Debug + Tabled,
 {
+    let non_interactive = *(args.get_one::<bool>("non_interactive").unwrap());
+
     match result {
         Ok(rows) => {
             let mut table = Table::new(rows);
-            table.with(Style::modern());
+
+            if non_interactive {
+                table.with(Style::empty());
+                table.with(Remove::row(Rows::first()));
+            } else {
+                table.with(Style::modern());
+            }
+
             println!("{}", table);
         }
         Err(error) => {

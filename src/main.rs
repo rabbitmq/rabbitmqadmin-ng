@@ -134,11 +134,11 @@ fn main() {
             match &pair {
                 ("show", "overview") => {
                     let result = commands::show_overview(client);
-                    print_overview_or_fail(result);
+                    print_overview_or_fail(result, &cli);
                 }
                 ("show", "churn") => {
                     let result = commands::show_overview(client);
-                    print_churn_overview_or_fail(result);
+                    print_churn_overview_or_fail(result, &cli);
                 }
                 ("show", "endpoint") => {
                     println!("Using endpoint: {}", endpoint);
@@ -147,63 +147,63 @@ fn main() {
 
                 ("list", "nodes") => {
                     let result = commands::list_nodes(client);
-                    print_table_or_fail(result);
+                    print_table_or_fail(result, &cli);
                 }
                 ("list", "vhosts") => {
                     let result = commands::list_vhosts(client);
-                    print_table_or_fail(result);
+                    print_table_or_fail(result, &cli);
                 }
                 ("list", "vhost_limits") => {
                     let result = commands::list_vhost_limits(client, &vhost);
-                    print_table_or_fail(result);
+                    print_table_or_fail(result, &cli);
                 }
                 ("list", "user_limits") => {
                     let result = commands::list_user_limits(client, command_args);
-                    print_table_or_fail(result);
+                    print_table_or_fail(result, &cli);
                 }
                 ("list", "users") => {
                     let result = commands::list_users(client);
-                    print_table_or_fail(result);
+                    print_table_or_fail(result, &cli);
                 }
                 ("list", "connections") => {
                     let result = commands::list_connections(client);
-                    print_table_or_fail(result);
+                    print_table_or_fail(result, &cli);
                 }
                 ("list", "channels") => {
                     let result = commands::list_channels(client);
-                    print_table_or_fail(result);
+                    print_table_or_fail(result, &cli);
                 }
                 ("list", "consumers") => {
                     let result = commands::list_consumers(client);
-                    print_table_or_fail(result);
+                    print_table_or_fail(result, &cli);
                 }
                 ("list", "policies") => {
                     let result = commands::list_policies(client);
-                    print_table_or_fail(result);
+                    print_table_or_fail(result, &cli);
                 }
                 ("list", "operator_policies") => {
                     let result = commands::list_operator_policies(client);
-                    print_table_or_fail(result);
+                    print_table_or_fail(result, &cli);
                 }
                 ("list", "queues") => {
                     let result = commands::list_queues(client, &vhost);
-                    print_table_or_fail(result);
+                    print_table_or_fail(result, &cli);
                 }
                 ("list", "bindings") => {
                     let result = commands::list_bindings(client);
-                    print_table_or_fail(result);
+                    print_table_or_fail(result, &cli);
                 }
                 ("list", "permissions") => {
                     let result = commands::list_permissions(client);
-                    print_table_or_fail(result);
+                    print_table_or_fail(result, &cli);
                 }
                 ("list", "parameters") => {
                     let result = commands::list_parameters(client, &vhost, command_args);
-                    print_table_or_fail(result);
+                    print_table_or_fail(result, &cli);
                 }
                 ("list", "exchanges") => {
                     let result = commands::list_exchanges(client, &vhost);
-                    print_table_or_fail(result);
+                    print_table_or_fail(result, &cli);
                 }
                 ("declare", "vhost") => {
                     let result = commands::declare_vhost(client, command_args);
@@ -327,7 +327,7 @@ fn main() {
                 }
                 ("get", "messages") => {
                     let result = commands::get_messages(client, &vhost, command_args);
-                    print_table_or_fail(result);
+                    print_table_or_fail(result, &cli);
                 }
                 _ => {
                     println!("Unknown command and subcommand pair: {:?}", &pair);
