@@ -15,28 +15,10 @@ use crate::format;
 use clap::ArgMatches;
 use rabbitmq_http_client::blocking_api::Result as ClientResult;
 use rabbitmq_http_client::responses::Overview;
-use tabled::settings::object::Rows;
 use std::{fmt, process};
+use tabled::settings::object::Rows;
 use tabled::settings::{Remove, Style};
 use tabled::{Table, Tabled};
-
-#[derive(Debug, Clone, Copy)]
-pub enum TableStyle {
-    Modern,
-    Rounded,
-    Empty
-}
-
-impl From<&str> for TableStyle {
-    fn from(value: &str) -> Self {
-        match value {
-            "modern" => TableStyle::Modern,
-            "rounded" => TableStyle::Rounded,
-            "empty" => TableStyle::Empty,
-            _ => TableStyle::Modern
-        }
-    }
-}
 
 pub fn print_overview_or_fail(result: ClientResult<Overview>, args: &ArgMatches) {
     let non_interactive = *(args.get_one::<bool>("non_interactive").unwrap());
