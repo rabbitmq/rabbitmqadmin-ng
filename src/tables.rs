@@ -21,7 +21,7 @@ struct OverviewRow<'a> {
     value: String,
 }
 
-pub fn overview_table(ov: Overview) -> Table {
+pub fn overview(ov: Overview) -> Table {
     let data = vec![
         OverviewRow {
             key: "Product name",
@@ -51,7 +51,7 @@ pub fn overview_table(ov: Overview) -> Table {
     t
 }
 
-pub fn churn_overview_table(ov: Overview) -> Table {
+pub fn churn_overview(ov: Overview) -> Table {
     let data = vec![
         OverviewRow {
             key: "Client connections opened",

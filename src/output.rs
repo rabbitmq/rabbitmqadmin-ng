@@ -78,7 +78,7 @@ impl ResultHandler {
             Ok(ov) => {
                 self.exit_code = Some(ExitCode::Ok);
 
-                let mut table = tables::overview_table(ov);
+                let mut table = tables::overview(ov);
                 self.table_styler.apply(&mut table);
 
                 println!("{}", table);
@@ -92,7 +92,7 @@ impl ResultHandler {
             Ok(ov) => {
                 self.exit_code = Some(ExitCode::Ok);
 
-                let mut table = tables::churn_overview_table(ov);
+                let mut table = tables::churn_overview(ov);
                 self.table_styler.apply(&mut table);
 
                 println!("{}", table);
