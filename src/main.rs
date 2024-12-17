@@ -25,7 +25,7 @@ mod commands;
 mod config;
 mod constants;
 mod errors;
-mod format;
+mod tables;
 mod output;
 
 use crate::config::SharedSettings;
