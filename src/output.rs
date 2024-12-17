@@ -62,7 +62,7 @@ impl ResultHandler {
             .cloned()
             .unwrap_or(false);
         let quiet = args.get_one::<bool>("quiet").cloned().unwrap_or(false);
-        let table_formatter = TableFormatter::new(&args);
+        let table_formatter = TableFormatter::new(args);
 
         Self {
             quiet,
