@@ -139,7 +139,7 @@ fn main() {
     }
 }
 
-fn dispatch_subcommand<'a>(pair: (&str, &str), command_args: &ArgMatches, client: APIClient<'a>, endpoint: String, vhost: String, res_handler: &mut ResultHandler) -> sysexits::ExitCode {
+fn dispatch_subcommand(pair: (&str, &str), command_args: &ArgMatches, client: APIClient<'_>, endpoint: String, vhost: String, res_handler: &mut ResultHandler) -> sysexits::ExitCode {
     match &pair {
         ("show", "overview") => {
             let result = commands::show_overview(client);
