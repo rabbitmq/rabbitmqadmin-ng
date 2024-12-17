@@ -22,11 +22,37 @@ use tabled::settings::object::Rows;
 use tabled::settings::{Remove, Style};
 use tabled::{Table, Tabled};
 
+#[derive(Copy, Clone)]
+pub struct TableFormatter {
+    non_interactive: bool,
+}
+
+impl TableFormatter {
+    pub fn new(args: &ArgMatches) -> Self {
+        let non_interactive = args
+            .get_one::<bool>("non_interactive")
+            .cloned()
+            .unwrap_or(false);
+
+        Self { non_interactive }
+    }
+
+    pub fn format(self, table: &mut Table) {
+        if self.non_interactive {
+            table.with(Style::empty());
+            table.with(Remove::row(Rows::first()));
+        } else {
+            table.with(Style::modern());
+        }
+    }
+}
+
 #[allow(dead_code)]
 pub struct ResultHandler {
     pub non_interactive: bool,
     pub quiet: bool,
     pub exit_code: Option<ExitCode>,
+    table_formatter: TableFormatter,
 }
 
 impl ResultHandler {
@@ -36,11 +62,13 @@ impl ResultHandler {
             .cloned()
             .unwrap_or(false);
         let quiet = args.get_one::<bool>("quiet").cloned().unwrap_or(false);
+        let table_formatter = TableFormatter::new(&args);
 
         Self {
             quiet,
             non_interactive,
             exit_code: None,
+            table_formatter,
         }
     }
 
@@ -50,15 +78,8 @@ impl ResultHandler {
                 self.exit_code = Some(ExitCode::Ok);
 
                 let mut table = format::overview_table(ov);
+                self.table_formatter.format(&mut table);
 
-                if self.non_interactive {
-                    table.with(Style::empty());
-                    table.with(Remove::row(Rows::first()));
-                } else {
-                    table.with(Style::modern());
-                }
-
-                self.exit_code = Some(ExitCode::Ok);
                 println!("{}", table);
             }
             Err(error) => self.report_command_run_error(&error),
@@ -71,13 +92,8 @@ impl ResultHandler {
                 self.exit_code = Some(ExitCode::Ok);
 
                 let mut table = format::churn_overview_table(ov);
+                self.table_formatter.format(&mut table);
 
-                if self.non_interactive {
-                    table.with(Style::empty());
-                    table.with(Remove::row(Rows::first()));
-                } else {
-                    table.with(Style::modern());
-                }
                 println!("{}", table);
             }
             Err(error) => self.report_command_run_error(&error),
@@ -93,13 +109,7 @@ impl ResultHandler {
                 self.exit_code = Some(ExitCode::Ok);
 
                 let mut table = Table::new(rows);
-
-                if self.non_interactive {
-                    table.with(Style::empty());
-                    table.with(Remove::row(Rows::first()));
-                } else {
-                    table.with(Style::modern());
-                }
+                self.table_formatter.format(&mut table);
 
                 println!("{}", table);
             }

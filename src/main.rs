@@ -31,7 +31,7 @@ use crate::constants::{
     DEFAULT_CONFIG_FILE_PATH, DEFAULT_HTTPS_PORT, DEFAULT_NODE_ALIAS, DEFAULT_VHOST,
 };
 use crate::output::*;
-use rabbitmq_http_client::blocking_api::{ClientBuilder, Client as GenericAPIClient};
+use rabbitmq_http_client::blocking_api::{Client as GenericAPIClient, ClientBuilder};
 use reqwest::blocking::Client as HTTPClient;
 
 type APIClient<'a> = GenericAPIClient<&'a str, &'a str, &'a str>;
@@ -132,14 +132,28 @@ fn main() {
             let vhost = virtual_host(&sf, command_args);
 
             let mut res_handler = ResultHandler::new(&cli);
-            let exit_code = dispatch_subcommand(pair, command_args, client, sf.endpoint(), vhost, &mut res_handler);
+            let exit_code = dispatch_subcommand(
+                pair,
+                command_args,
+                client,
+                sf.endpoint(),
+                vhost,
+                &mut res_handler,
+            );
 
             process::exit(exit_code.into())
         }
     }
 }
 
-fn dispatch_subcommand(pair: (&str, &str), command_args: &ArgMatches, client: APIClient<'_>, endpoint: String, vhost: String, res_handler: &mut ResultHandler) -> sysexits::ExitCode {
+fn dispatch_subcommand(
+    pair: (&str, &str),
+    command_args: &ArgMatches,
+    client: APIClient<'_>,
+    endpoint: String,
+    vhost: String,
+    res_handler: &mut ResultHandler,
+) -> sysexits::ExitCode {
     match &pair {
         ("show", "overview") => {
             let result = commands::show_overview(client);
@@ -340,7 +354,10 @@ fn dispatch_subcommand(pair: (&str, &str), command_args: &ArgMatches, client: AP
         }
         _ => {
             // TODO: this is a hack, it should use a rabbitmqadmin-specific error type
-            let message = format!("Unknown command and subcommand pair '{} {}", &pair.0, &pair.1);
+            let message = format!(
+                "Unknown command and subcommand pair '{} {}",
+                &pair.0, &pair.1
+            );
             res_handler.report_pre_command_run_error(&message, ExitCode::Usage);
         }
     }
