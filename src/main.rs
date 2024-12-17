@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 use clap::ArgMatches;
+use errors::CommandRunError;
 use reqwest::Certificate;
 use std::fs::File;
 use std::io::Read;
@@ -23,6 +24,7 @@ mod cli;
 mod commands;
 mod config;
 mod constants;
+mod errors;
 mod format;
 mod output;
 
@@ -353,12 +355,11 @@ fn dispatch_subcommand(
             res_handler.tabular_result(result)
         }
         _ => {
-            // TODO: this is a hack, it should use a rabbitmqadmin-specific error type
-            let message = format!(
-                "Unknown command and subcommand pair '{} {}",
-                &pair.0, &pair.1
-            );
-            res_handler.report_pre_command_run_error(&message, ExitCode::Usage);
+            let error = CommandRunError::UnknownCommandTarget {
+                command: pair.0.into(),
+                subcommand: pair.1.into(),
+            };
+            res_handler.report_pre_command_run_error(&error);
         }
     }
 

@@ -1,3 +1,4 @@
+use crate::errors::CommandRunError;
 // Copyright (C) 2023-2024 RabbitMQ Core Team (teamrabbitmq@gmail.com)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -136,9 +137,9 @@ impl ResultHandler {
         }
     }
 
-    pub fn report_pre_command_run_error(&mut self, message: &str, exit_code: ExitCode) {
-        eprintln!("{}", message);
-        self.exit_code = Some(exit_code);
+    pub fn report_pre_command_run_error(&mut self, error: &CommandRunError) {
+        eprintln!("{}", error);
+        self.exit_code = Some(ExitCode::Usage);
     }
 
     //
@@ -155,27 +156,13 @@ impl ResultHandler {
 // We cannot implement From<T> for two types in other crates, so…
 pub(crate) fn client_error_to_exit_code(error: &HttpClientError) -> ExitCode {
     match error {
-        ClientError::ClientErrorResponse {
-            status_code: _,
-            response: _,
-            backtrace: _,
-        } => ExitCode::DataErr,
-        ClientError::ServerErrorResponse {
-            status_code: _,
-            response: _,
-            backtrace: _,
-        } => ExitCode::Unavailable,
-        ClientError::HealthCheckFailed {
-            details: _,
-            status_code: _,
-        } => ExitCode::Unavailable,
+        ClientError::ClientErrorResponse { .. } => ExitCode::DataErr,
+        ClientError::ServerErrorResponse { .. } => ExitCode::Unavailable,
+        ClientError::HealthCheckFailed { .. } => ExitCode::Unavailable,
         ClientError::NotFound => ExitCode::DataErr,
         ClientError::MultipleMatchingBindings => ExitCode::DataErr,
         ClientError::InvalidHeaderValue { error: _ } => ExitCode::DataErr,
-        ClientError::RequestError {
-            error: _,
-            backtrace: _,
-        } => ExitCode::IoErr,
+        ClientError::RequestError { .. } => ExitCode::IoErr,
         ClientError::Other => ExitCode::Usage,
     }
 }

@@ -19,6 +19,7 @@ tabled = "0.17"
 toml = "0.8"
 color-print = "0.3"
 thiserror = "2"
+backtrace = "0.3"
 log = "0.4.22"
 
 [dev-dependencies]
