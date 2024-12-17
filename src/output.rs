@@ -23,11 +23,11 @@ use tabled::settings::{Remove, Style};
 use tabled::{Table, Tabled};
 
 #[derive(Copy, Clone)]
-pub struct TableFormatter {
+pub struct TableStyler {
     non_interactive: bool,
 }
 
-impl TableFormatter {
+impl TableStyler {
     pub fn new(args: &ArgMatches) -> Self {
         let non_interactive = args
             .get_one::<bool>("non_interactive")
@@ -37,7 +37,7 @@ impl TableFormatter {
         Self { non_interactive }
     }
 
-    pub fn format(self, table: &mut Table) {
+    pub fn apply(self, table: &mut Table) {
         if self.non_interactive {
             table.with(Style::empty());
             table.with(Remove::row(Rows::first()));
@@ -52,7 +52,7 @@ pub struct ResultHandler {
     pub non_interactive: bool,
     pub quiet: bool,
     pub exit_code: Option<ExitCode>,
-    table_formatter: TableFormatter,
+    table_styler: TableStyler,
 }
 
 impl ResultHandler {
@@ -62,13 +62,13 @@ impl ResultHandler {
             .cloned()
             .unwrap_or(false);
         let quiet = args.get_one::<bool>("quiet").cloned().unwrap_or(false);
-        let table_formatter = TableFormatter::new(args);
+        let table_formatter = TableStyler::new(args);
 
         Self {
             quiet,
             non_interactive,
             exit_code: None,
-            table_formatter,
+            table_styler: table_formatter,
         }
     }
 
@@ -78,7 +78,7 @@ impl ResultHandler {
                 self.exit_code = Some(ExitCode::Ok);
 
                 let mut table = format::overview_table(ov);
-                self.table_formatter.format(&mut table);
+                self.table_styler.apply(&mut table);
 
                 println!("{}", table);
             }
@@ -92,7 +92,7 @@ impl ResultHandler {
                 self.exit_code = Some(ExitCode::Ok);
 
                 let mut table = format::churn_overview_table(ov);
-                self.table_formatter.format(&mut table);
+                self.table_styler.apply(&mut table);
 
                 println!("{}", table);
             }
@@ -109,7 +109,7 @@ impl ResultHandler {
                 self.exit_code = Some(ExitCode::Ok);
 
                 let mut table = Table::new(rows);
-                self.table_formatter.format(&mut table);
+                self.table_styler.apply(&mut table);
 
                 println!("{}", table);
             }
