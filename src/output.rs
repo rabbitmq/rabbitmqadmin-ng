@@ -16,7 +16,7 @@ use clap::ArgMatches;
 use rabbitmq_http_client::blocking_api::{HttpClientError, Result as ClientResult};
 use rabbitmq_http_client::error::Error as ClientError;
 use rabbitmq_http_client::responses::Overview;
-use std::{fmt, process};
+use std::fmt;
 use sysexits::ExitCode;
 use tabled::settings::object::Rows;
 use tabled::settings::{Remove, Style};
@@ -61,7 +61,7 @@ impl ResultHandler {
                 self.exit_code = Some(ExitCode::Ok);
                 println!("{}", table);
             }
-            Err(error) => self.print_to_stderr_and_exit(&error),
+            Err(error) => self.report_command_run_error(&error),
         }
     }
 
@@ -80,7 +80,7 @@ impl ResultHandler {
                 }
                 println!("{}", table);
             }
-            Err(error) => self.print_to_stderr_and_exit(&error),
+            Err(error) => self.report_command_run_error(&error),
         }
     }
 
@@ -103,7 +103,7 @@ impl ResultHandler {
 
                 println!("{}", table);
             }
-            Err(error) => self.print_to_stderr_and_exit(&error),
+            Err(error) => self.report_command_run_error(&error),
         }
     }
 
@@ -113,29 +113,32 @@ impl ResultHandler {
                 self.exit_code = Some(ExitCode::Ok);
                 println!("{}", output)
             }
-            Err(error) => self.print_to_stderr_and_exit(&error),
+            Err(error) => self.report_command_run_error(&error),
         }
     }
 
-    pub fn no_output_on_success<T>(&mut self, result: ClientResult<T>) {
+    pub fn no_output_on_success<T>(&mut self, result: Result<T, HttpClientError>) {
         match result {
             Ok(_) => {
                 self.exit_code = Some(ExitCode::Ok);
-                process::exit(ExitCode::Ok.into())
             }
-            Err(error) => self.print_to_stderr_and_exit(&error),
+            Err(error) => self.report_command_run_error(&error),
         }
+    }
+
+    pub fn report_pre_command_run_error(&mut self, message: &str, exit_code: ExitCode) {
+        eprintln!("{}", message);
+        self.exit_code = Some(exit_code);
     }
 
     //
     // Implementation
     //
 
-    fn print_to_stderr_and_exit(&mut self, error: &HttpClientError) {
+    fn report_command_run_error(&mut self, error: &HttpClientError) {
         eprintln!("{}", error);
         let code = client_error_to_exit_code(error);
         self.exit_code = Some(code);
-        process::exit(code.into())
     }
 }
 

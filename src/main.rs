@@ -31,8 +31,10 @@ use crate::constants::{
     DEFAULT_CONFIG_FILE_PATH, DEFAULT_HTTPS_PORT, DEFAULT_NODE_ALIAS, DEFAULT_VHOST,
 };
 use crate::output::*;
-use rabbitmq_http_client::blocking_api::ClientBuilder;
+use rabbitmq_http_client::blocking_api::{ClientBuilder, Client as GenericAPIClient};
 use reqwest::blocking::Client as HTTPClient;
+
+type APIClient<'a> = GenericAPIClient<&'a str, &'a str, &'a str>;
 
 fn main() {
     let parser = cli::parser();
@@ -128,213 +130,222 @@ fn main() {
             let pair = (verb, kind);
 
             let vhost = virtual_host(&sf, command_args);
-            let mut fmt = ResultHandler::new(&cli);
 
-            match &pair {
-                ("show", "overview") => {
-                    let result = commands::show_overview(client);
-                    fmt.show_overview(result)
-                }
-                ("show", "churn") => {
-                    let result = commands::show_overview(client);
-                    fmt.show_churn(result)
-                }
-                ("show", "endpoint") => {
-                    println!("Using endpoint: {}", endpoint);
-                    fmt.no_output_on_success(Ok(()))
-                }
+            let mut res_handler = ResultHandler::new(&cli);
+            let exit_code = dispatch_subcommand(pair, command_args, client, sf.endpoint(), vhost, &mut res_handler);
 
-                ("list", "nodes") => {
-                    let result = commands::list_nodes(client);
-                    fmt.tabular_result(result)
-                }
-                ("list", "vhosts") => {
-                    let result = commands::list_vhosts(client);
-                    fmt.tabular_result(result)
-                }
-                ("list", "vhost_limits") => {
-                    let result = commands::list_vhost_limits(client, &vhost);
-                    fmt.tabular_result(result)
-                }
-                ("list", "user_limits") => {
-                    let result = commands::list_user_limits(client, command_args);
-                    fmt.tabular_result(result)
-                }
-                ("list", "users") => {
-                    let result = commands::list_users(client);
-                    fmt.tabular_result(result)
-                }
-                ("list", "connections") => {
-                    let result = commands::list_connections(client);
-                    fmt.tabular_result(result)
-                }
-                ("list", "channels") => {
-                    let result = commands::list_channels(client);
-                    fmt.tabular_result(result)
-                }
-                ("list", "consumers") => {
-                    let result = commands::list_consumers(client);
-                    fmt.tabular_result(result)
-                }
-                ("list", "policies") => {
-                    let result = commands::list_policies(client);
-                    fmt.tabular_result(result)
-                }
-                ("list", "operator_policies") => {
-                    let result = commands::list_operator_policies(client);
-                    fmt.tabular_result(result)
-                }
-                ("list", "queues") => {
-                    let result = commands::list_queues(client, &vhost);
-                    fmt.tabular_result(result)
-                }
-                ("list", "bindings") => {
-                    let result = commands::list_bindings(client);
-                    fmt.tabular_result(result)
-                }
-                ("list", "permissions") => {
-                    let result = commands::list_permissions(client);
-                    fmt.tabular_result(result)
-                }
-                ("list", "parameters") => {
-                    let result = commands::list_parameters(client, &vhost, command_args);
-                    fmt.tabular_result(result)
-                }
-                ("list", "exchanges") => {
-                    let result = commands::list_exchanges(client, &vhost);
-                    fmt.tabular_result(result)
-                }
-                ("declare", "vhost") => {
-                    let result = commands::declare_vhost(client, command_args);
-                    fmt.no_output_on_success(result);
-                }
-                ("declare", "exchange") => {
-                    let result = commands::declare_exchange(client, &vhost, command_args);
-                    fmt.no_output_on_success(result);
-                }
-                ("declare", "user") => {
-                    let result = commands::declare_user(client, command_args);
-                    fmt.no_output_on_success(result);
-                }
-                ("declare", "permissions") => {
-                    let result = commands::declare_permissions(client, &vhost, command_args);
-                    fmt.no_output_on_success(result);
-                }
-                ("delete", "permissions") => {
-                    let result = commands::delete_permissions(client, &vhost, command_args);
-                    fmt.no_output_on_success(result);
-                }
-                ("declare", "queue") => {
-                    let result = commands::declare_queue(client, &vhost, command_args);
-                    fmt.no_output_on_success(result);
-                }
-                ("declare", "binding") => {
-                    let result = commands::declare_binding(client, &vhost, command_args);
-                    fmt.no_output_on_success(result);
-                }
-                ("declare", "policy") => {
-                    let result = commands::declare_policy(client, &vhost, command_args);
-                    fmt.no_output_on_success(result);
-                }
-                ("declare", "operator_policy") => {
-                    let result = commands::declare_operator_policy(client, &vhost, command_args);
-                    fmt.no_output_on_success(result);
-                }
-                ("declare", "vhost_limit") => {
-                    let result = commands::declare_vhost_limit(client, &vhost, command_args);
-                    fmt.no_output_on_success(result);
-                }
-                ("declare", "user_limit") => {
-                    let result = commands::declare_user_limit(client, command_args);
-                    fmt.no_output_on_success(result);
-                }
-                ("declare", "parameter") => {
-                    let result = commands::declare_parameter(client, &vhost, command_args);
-                    fmt.no_output_on_success(result);
-                }
-                ("delete", "vhost") => {
-                    let result = commands::delete_vhost(client, command_args);
-                    fmt.no_output_on_success(result);
-                }
-                ("delete", "exchange") => {
-                    let result = commands::delete_exchange(client, &vhost, command_args);
-                    fmt.no_output_on_success(result);
-                }
-                ("delete", "user") => {
-                    let result = commands::delete_user(client, command_args);
-                    fmt.no_output_on_success(result);
-                }
-                ("delete", "queue") => {
-                    let result = commands::delete_queue(client, &vhost, command_args);
-                    fmt.no_output_on_success(result);
-                }
-                ("delete", "binding") => {
-                    let result = commands::delete_binding(client, &vhost, command_args);
-                    fmt.no_output_on_success(result);
-                }
-                ("delete", "policy") => {
-                    let result = commands::delete_policy(client, &vhost, command_args);
-                    fmt.no_output_on_success(result);
-                }
-                ("delete", "operator_policy") => {
-                    let result = commands::delete_operator_policy(client, &vhost, command_args);
-                    fmt.no_output_on_success(result);
-                }
-                ("delete", "vhost_limit") => {
-                    let result = commands::delete_vhost_limit(client, &vhost, command_args);
-                    fmt.no_output_on_success(result);
-                }
-                ("delete", "user_limit") => {
-                    let result = commands::delete_user_limit(client, command_args);
-                    fmt.no_output_on_success(result);
-                }
-                ("delete", "parameter") => {
-                    let result = commands::delete_parameter(client, &vhost, command_args);
-                    fmt.no_output_on_success(result);
-                }
-                ("purge", "queue") => {
-                    let result = commands::purge_queue(client, &vhost, command_args);
-                    fmt.no_output_on_success(result);
-                }
-                ("rebalance", "queues") => {
-                    let result = commands::rebalance_queues(client);
-                    fmt.no_output_on_success(result);
-                }
-                ("close", "connection") => {
-                    let result = commands::close_connection(client, command_args);
-                    fmt.no_output_on_success(result);
-                }
-                ("definitions", "export") => {
-                    let result = commands::export_definitions(client, command_args);
-                    fmt.no_output_on_success(result);
-                }
-                ("definitions", "import") => {
-                    let result = commands::import_definitions(client, command_args);
-                    fmt.no_output_on_success(result);
-                }
-                ("export", "definitions") => {
-                    let result = commands::export_definitions(client, command_args);
-                    fmt.no_output_on_success(result);
-                }
-                ("import", "definitions") => {
-                    let result = commands::import_definitions(client, command_args);
-                    fmt.no_output_on_success(result);
-                }
-                ("publish", "message") => {
-                    let result = commands::publish_message(client, &vhost, command_args);
-                    fmt.single_value_result(result)
-                }
-                ("get", "messages") => {
-                    let result = commands::get_messages(client, &vhost, command_args);
-                    fmt.tabular_result(result)
-                }
-                _ => {
-                    println!("Unknown command and subcommand pair: {:?}", &pair);
-                    process::exit(ExitCode::Usage.into())
-                }
-            }
+            process::exit(exit_code.into())
         }
     }
+}
+
+fn dispatch_subcommand<'a>(pair: (&str, &str), command_args: &ArgMatches, client: APIClient<'a>, endpoint: String, vhost: String, res_handler: &mut ResultHandler) -> sysexits::ExitCode {
+    match &pair {
+        ("show", "overview") => {
+            let result = commands::show_overview(client);
+            res_handler.show_overview(result)
+        }
+        ("show", "churn") => {
+            let result = commands::show_overview(client);
+            res_handler.show_churn(result)
+        }
+        ("show", "endpoint") => {
+            println!("Using endpoint: {}", endpoint);
+            res_handler.no_output_on_success(Ok(()))
+        }
+
+        ("list", "nodes") => {
+            let result = commands::list_nodes(client);
+            res_handler.tabular_result(result)
+        }
+        ("list", "vhosts") => {
+            let result = commands::list_vhosts(client);
+            res_handler.tabular_result(result)
+        }
+        ("list", "vhost_limits") => {
+            let result = commands::list_vhost_limits(client, &vhost);
+            res_handler.tabular_result(result)
+        }
+        ("list", "user_limits") => {
+            let result = commands::list_user_limits(client, command_args);
+            res_handler.tabular_result(result)
+        }
+        ("list", "users") => {
+            let result = commands::list_users(client);
+            res_handler.tabular_result(result)
+        }
+        ("list", "connections") => {
+            let result = commands::list_connections(client);
+            res_handler.tabular_result(result)
+        }
+        ("list", "channels") => {
+            let result = commands::list_channels(client);
+            res_handler.tabular_result(result)
+        }
+        ("list", "consumers") => {
+            let result = commands::list_consumers(client);
+            res_handler.tabular_result(result)
+        }
+        ("list", "policies") => {
+            let result = commands::list_policies(client);
+            res_handler.tabular_result(result)
+        }
+        ("list", "operator_policies") => {
+            let result = commands::list_operator_policies(client);
+            res_handler.tabular_result(result)
+        }
+        ("list", "queues") => {
+            let result = commands::list_queues(client, &vhost);
+            res_handler.tabular_result(result)
+        }
+        ("list", "bindings") => {
+            let result = commands::list_bindings(client);
+            res_handler.tabular_result(result)
+        }
+        ("list", "permissions") => {
+            let result = commands::list_permissions(client);
+            res_handler.tabular_result(result)
+        }
+        ("list", "parameters") => {
+            let result = commands::list_parameters(client, &vhost, command_args);
+            res_handler.tabular_result(result)
+        }
+        ("list", "exchanges") => {
+            let result = commands::list_exchanges(client, &vhost);
+            res_handler.tabular_result(result)
+        }
+        ("declare", "vhost") => {
+            let result = commands::declare_vhost(client, command_args);
+            res_handler.no_output_on_success(result);
+        }
+        ("declare", "exchange") => {
+            let result = commands::declare_exchange(client, &vhost, command_args);
+            res_handler.no_output_on_success(result);
+        }
+        ("declare", "user") => {
+            let result = commands::declare_user(client, command_args);
+            res_handler.no_output_on_success(result);
+        }
+        ("declare", "permissions") => {
+            let result = commands::declare_permissions(client, &vhost, command_args);
+            res_handler.no_output_on_success(result);
+        }
+        ("delete", "permissions") => {
+            let result = commands::delete_permissions(client, &vhost, command_args);
+            res_handler.no_output_on_success(result);
+        }
+        ("declare", "queue") => {
+            let result = commands::declare_queue(client, &vhost, command_args);
+            res_handler.no_output_on_success(result);
+        }
+        ("declare", "binding") => {
+            let result = commands::declare_binding(client, &vhost, command_args);
+            res_handler.no_output_on_success(result);
+        }
+        ("declare", "policy") => {
+            let result = commands::declare_policy(client, &vhost, command_args);
+            res_handler.no_output_on_success(result);
+        }
+        ("declare", "operator_policy") => {
+            let result = commands::declare_operator_policy(client, &vhost, command_args);
+            res_handler.no_output_on_success(result);
+        }
+        ("declare", "vhost_limit") => {
+            let result = commands::declare_vhost_limit(client, &vhost, command_args);
+            res_handler.no_output_on_success(result);
+        }
+        ("declare", "user_limit") => {
+            let result = commands::declare_user_limit(client, command_args);
+            res_handler.no_output_on_success(result);
+        }
+        ("declare", "parameter") => {
+            let result = commands::declare_parameter(client, &vhost, command_args);
+            res_handler.no_output_on_success(result);
+        }
+        ("delete", "vhost") => {
+            let result = commands::delete_vhost(client, command_args);
+            res_handler.no_output_on_success(result);
+        }
+        ("delete", "exchange") => {
+            let result = commands::delete_exchange(client, &vhost, command_args);
+            res_handler.no_output_on_success(result);
+        }
+        ("delete", "user") => {
+            let result = commands::delete_user(client, command_args);
+            res_handler.no_output_on_success(result);
+        }
+        ("delete", "queue") => {
+            let result = commands::delete_queue(client, &vhost, command_args);
+            res_handler.no_output_on_success(result);
+        }
+        ("delete", "binding") => {
+            let result = commands::delete_binding(client, &vhost, command_args);
+            res_handler.no_output_on_success(result);
+        }
+        ("delete", "policy") => {
+            let result = commands::delete_policy(client, &vhost, command_args);
+            res_handler.no_output_on_success(result);
+        }
+        ("delete", "operator_policy") => {
+            let result = commands::delete_operator_policy(client, &vhost, command_args);
+            res_handler.no_output_on_success(result);
+        }
+        ("delete", "vhost_limit") => {
+            let result = commands::delete_vhost_limit(client, &vhost, command_args);
+            res_handler.no_output_on_success(result);
+        }
+        ("delete", "user_limit") => {
+            let result = commands::delete_user_limit(client, command_args);
+            res_handler.no_output_on_success(result);
+        }
+        ("delete", "parameter") => {
+            let result = commands::delete_parameter(client, &vhost, command_args);
+            res_handler.no_output_on_success(result);
+        }
+        ("purge", "queue") => {
+            let result = commands::purge_queue(client, &vhost, command_args);
+            res_handler.no_output_on_success(result);
+        }
+        ("rebalance", "queues") => {
+            let result = commands::rebalance_queues(client);
+            res_handler.no_output_on_success(result);
+        }
+        ("close", "connection") => {
+            let result = commands::close_connection(client, command_args);
+            res_handler.no_output_on_success(result);
+        }
+        ("definitions", "export") => {
+            let result = commands::export_definitions(client, command_args);
+            res_handler.no_output_on_success(result);
+        }
+        ("definitions", "import") => {
+            let result = commands::import_definitions(client, command_args);
+            res_handler.no_output_on_success(result);
+        }
+        ("export", "definitions") => {
+            let result = commands::export_definitions(client, command_args);
+            res_handler.no_output_on_success(result);
+        }
+        ("import", "definitions") => {
+            let result = commands::import_definitions(client, command_args);
+            res_handler.no_output_on_success(result);
+        }
+        ("publish", "message") => {
+            let result = commands::publish_message(client, &vhost, command_args);
+            res_handler.single_value_result(result)
+        }
+        ("get", "messages") => {
+            let result = commands::get_messages(client, &vhost, command_args);
+            res_handler.tabular_result(result)
+        }
+        _ => {
+            // TODO: this is a hack, it should use a rabbitmqadmin-specific error type
+            let message = format!("Unknown command and subcommand pair '{} {}", &pair.0, &pair.1);
+            res_handler.report_pre_command_run_error(&message, ExitCode::Usage);
+        }
+    }
+
+    res_handler.exit_code.unwrap_or(ExitCode::Usage)
 }
 
 fn should_use_tls(shared_settings: &SharedSettings) -> bool {
