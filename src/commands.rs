@@ -156,17 +156,21 @@ pub fn declare_exchange(
         .get_one::<ExchangeType>("type")
         .cloned()
         .unwrap_or(commons::ExchangeType::Direct);
-    let durable = command_args.get_one::<bool>("durable").unwrap_or(&true);
+    let durable = command_args
+        .get_one::<bool>("durable")
+        .cloned()
+        .unwrap_or(true);
     let auto_delete = command_args
         .get_one::<bool>("auto_delete")
-        .unwrap_or(&false);
+        .cloned()
+        .unwrap_or(false);
     let arguments = command_args.get_one::<String>("arguments").unwrap();
 
     let params = requests::ExchangeParams {
         name,
         exchange_type,
-        durable: *durable,
-        auto_delete: *auto_delete,
+        durable: durable,
+        auto_delete: auto_delete,
         arguments: serde_json::from_str::<requests::XArguments>(arguments).unwrap_or_else(|err| {
             eprintln!("`{}` is not a valid JSON: {}", arguments, err);
             process::exit(1);
