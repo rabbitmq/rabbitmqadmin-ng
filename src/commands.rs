@@ -169,8 +169,8 @@ pub fn declare_exchange(
     let params = requests::ExchangeParams {
         name,
         exchange_type,
-        durable: durable,
-        auto_delete: auto_delete,
+        durable,
+        auto_delete,
         arguments: serde_json::from_str::<requests::XArguments>(arguments).unwrap_or_else(|err| {
             eprintln!("`{}` is not a valid JSON: {}", arguments, err);
             process::exit(1);
