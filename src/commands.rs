@@ -141,7 +141,7 @@ pub fn declare_vhost(client: APIClient, command_args: &ArgMatches) -> ClientResu
         description,
         default_queue_type: dqt,
         tags: None,
-        tracing: tracing,
+        tracing,
     };
 
     client.create_vhost(&params)
