@@ -131,14 +131,17 @@ pub fn declare_vhost(client: APIClient, command_args: &ArgMatches) -> ClientResu
         .get_one::<String>("default_queue_type")
         .map(|s| Into::<QueueType>::into(s.as_str()));
     // TODO: tags
-    let tracing = command_args.get_one::<bool>("tracing").unwrap_or(&false);
+    let tracing = command_args
+        .get_one::<bool>("tracing")
+        .cloned()
+        .unwrap_or(false);
 
     let params = requests::VirtualHostParams {
         name,
         description,
         default_queue_type: dqt,
         tags: None,
-        tracing: *tracing,
+        tracing: tracing,
     };
 
     client.create_vhost(&params)
