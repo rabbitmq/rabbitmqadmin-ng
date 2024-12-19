@@ -15,7 +15,7 @@ use std::path::PathBuf;
 
 use super::constants::*;
 use clap::{Arg, ArgAction, Command};
-use rabbitmq_http_client::commons::{BindingDestinationType, QueueType};
+use rabbitmq_http_client::commons::{BindingDestinationType, ExchangeType, QueueType};
 
 pub fn parser() -> Command {
     let after_help: &'static str = color_print::cstr!(
@@ -454,6 +454,7 @@ fn declare_subcommands() -> [Command; 11] {
                 Arg::new("type")
                     .long("type")
                     .help("exchange type")
+                .value_parser(clap::value_parser!(ExchangeType))
                     .required(false),
             )
             .arg(

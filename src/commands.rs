@@ -13,6 +13,7 @@
 // limitations under the License.
 use clap::ArgMatches;
 use rabbitmq_http_client::commons;
+use rabbitmq_http_client::commons::ExchangeType;
 use rabbitmq_http_client::commons::UserLimitTarget;
 use rabbitmq_http_client::commons::VirtualHostLimitTarget;
 use std::fs;
@@ -152,8 +153,8 @@ pub fn declare_exchange(
     let name = command_args.get_one::<String>("name").unwrap();
     // these are optional
     let exchange_type = command_args
-        .get_one::<String>("type")
-        .map(|s| Into::<rabbitmq_http_client::commons::ExchangeType>::into(s.as_str()))
+        .get_one::<ExchangeType>("type")
+        .cloned()
         .unwrap_or(commons::ExchangeType::Direct);
     let durable = command_args.get_one::<bool>("durable").unwrap_or(&true);
     let auto_delete = command_args
