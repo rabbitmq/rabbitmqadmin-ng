@@ -144,6 +144,26 @@ rabbitmqadmin --vhost "events" declare queue --name "target.classic.queue.name" 
 rabbitmqadmin --vhost "events" delete queue --name "target.queue.name"
 ```
 
+### Declare an exchange
+
+```shell
+rabbitmqadmin --vhost "events" declare exchange --name "events.all_types.topic" --type "topic" --durable true
+```
+
+```shell
+rabbitmqadmin --vhost "events" declare exchange --name "events.all_type.uncategorized" --type "fanout" --durable true --auto-delete false
+```
+
+```shell
+rabbitmqadmin --vhost "events" declare exchange --name "local.random.c60bda92" --type "x-local-random" --durable true
+```
+
+### Delete an exchange
+
+``` shell
+rabbitmqadmin --vhost "events" delete exchange --name "target.exchange.name"
+```
+
 
 ## Configuration Files
 
