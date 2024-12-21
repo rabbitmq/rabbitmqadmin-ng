@@ -480,7 +480,7 @@ fn declare_subcommands() -> [Command; 11] {
                     .value_parser(clap::value_parser!(String)),
             ),
         Command::new("binding")
-            .about("binds to an exchange")
+            .about("creates a binding between a source exchange and a destination (a queue or an exchange)")
             .arg(vhost_arg.clone())
             .arg(
                 Arg::new("source")
