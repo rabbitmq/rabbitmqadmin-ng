@@ -1,6 +1,14 @@
 name: CI
 
-on: [push, pull_request]
+on:
+  push:
+    paths:
+      - ".github/workflows/ci.yaml"
+      - "src/**"
+      - "tests/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+  pull_request: {}
 
 env:
   RUSTFLAGS: -D warnings
