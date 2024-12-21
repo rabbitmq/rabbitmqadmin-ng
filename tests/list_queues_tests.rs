@@ -15,8 +15,8 @@
 use assert_cmd::Command;
 use predicates::prelude::*;
 
-mod common;
-use crate::common::*;
+mod test_helpers;
+use crate::test_helpers::*;
 
 #[test]
 fn list_queues() -> Result<(), Box<dyn std::error::Error>> {

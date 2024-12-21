@@ -133,7 +133,7 @@ fn main() {
 
             let vhost = virtual_host(&sf, command_args);
 
-            let mut res_handler = ResultHandler::new(&cli);
+            let mut res_handler = ResultHandler::new(&cli, &command_args);
             let exit_code = dispatch_subcommand(
                 pair,
                 command_args,
@@ -284,7 +284,7 @@ fn dispatch_subcommand(
         }
         ("delete", "exchange") => {
             let result = commands::delete_exchange(client, &vhost, command_args);
-            res_handler.no_output_on_success(result);
+            res_handler.delete_operation_result(result);
         }
         ("delete", "user") => {
             let result = commands::delete_user(client, command_args);

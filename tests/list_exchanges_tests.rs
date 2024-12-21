@@ -1,4 +1,3 @@
-use std::process::Command;
 // Copyright (C) 2023-2024 RabbitMQ Core Team (teamrabbitmq@gmail.com)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,6 +13,7 @@ use std::process::Command;
 // limitations under the License.
 use assert_cmd::prelude::*;
 use predicates::prelude::*;
+use std::process::Command;
 
 #[test]
 fn list_exchanges() -> Result<(), Box<dyn std::error::Error>> {
@@ -27,7 +27,7 @@ fn list_exchanges() -> Result<(), Box<dyn std::error::Error>> {
     cmd.args(["declare", "vhost", "--name", "exchange_vhost_2"]);
     cmd.assert().success();
 
-    // declare new exchange in vhost 1
+    // declare a new exchange in vhost 1
     let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
     cmd.arg("-V")
         .arg("exchange_vhost_1")
@@ -37,7 +37,7 @@ fn list_exchanges() -> Result<(), Box<dyn std::error::Error>> {
         .arg("new_exchange1");
     cmd.assert().success();
 
-    // declare new exchange in vhost 2
+    // declare a new exchange in vhost 2
     let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
     cmd.arg("-V")
         .arg("exchange_vhost_2")

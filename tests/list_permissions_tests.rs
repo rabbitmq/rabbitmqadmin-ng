@@ -1,4 +1,3 @@
-use std::process::Command;
 // Copyright (C) 2023-2024 RabbitMQ Core Team (teamrabbitmq@gmail.com)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,6 +13,7 @@ use std::process::Command;
 // limitations under the License.
 use assert_cmd::prelude::*;
 use predicates::prelude::*;
+use std::process::Command;
 
 #[test]
 fn test_list_permissions() -> Result<(), Box<dyn std::error::Error>> {

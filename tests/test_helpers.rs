@@ -11,17 +11,33 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+#![allow(dead_code)]
 
 use std::env;
 use std::time::Duration;
 
-#[allow(dead_code)]
+use assert_cmd::prelude::*;
+use std::process::Command;
+
 pub fn await_metric_emission(ms: u64) {
     std::thread::sleep(Duration::from_millis(ms));
 }
 
-#[allow(dead_code)]
 pub fn await_queue_metric_emission() {
     let delay = env::var("TEST_STATS_DELAY").unwrap_or("500".to_owned());
     await_metric_emission(delay.parse::<u64>().unwrap());
+}
+
+pub fn create_vhost(vhost: &str) -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    cmd.args(["declare", "vhost", "--name", vhost]);
+    cmd.assert().success();
+    Ok(())
+}
+
+pub fn delete_vhost(vhost: &str) -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    cmd.args(["delete", "vhost", "--name", vhost]);
+    cmd.assert().success();
+    Ok(())
 }

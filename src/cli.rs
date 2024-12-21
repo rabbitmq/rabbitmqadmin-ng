@@ -658,19 +658,32 @@ fn delete_subcommands() -> [Command; 11] {
         .required(false)
         .default_value(DEFAULT_VHOST);
 
+    let idempotently_arg = Arg::new("idempotently")
+        .long("idempotently")
+        .value_parser(clap::value_parser!(bool))
+        .action(ArgAction::SetTrue)
+        .help("do not consider 404 Not Found API responses to be errors")
+        .required(false);
+
     [
-        Command::new("user").about("deletes a user").arg(
-            Arg::new("name")
-                .long("name")
-                .help("username")
-                .required(true),
-        ),
-        Command::new("vhost").about("deletes a virtual host").arg(
-            Arg::new("name")
-                .long("name")
-                .help("virtual host")
-                .required(true),
-        ),
+        Command::new("user")
+            .about("deletes a user")
+            .arg(
+                Arg::new("name")
+                    .long("name")
+                    .help("username")
+                    .required(true),
+            )
+            .arg(idempotently_arg.clone()),
+        Command::new("vhost")
+            .about("deletes a virtual host")
+            .arg(
+                Arg::new("name")
+                    .long("name")
+                    .help("virtual host")
+                    .required(true),
+            )
+            .arg(idempotently_arg.clone()),
         Command::new("permissions")
             .about("revokes user permissions to a given vhost")
             .arg(vhost_arg.clone())
@@ -679,20 +692,28 @@ fn delete_subcommands() -> [Command; 11] {
                     .long("user")
                     .help("username")
                     .required(true),
-            ),
+            )
+            .arg(idempotently_arg.clone()),
         Command::new("queue")
             .about("deletes a queue")
             .arg(vhost_arg.clone())
-            .arg(Arg::new("name").long("name").help("queue").required(true)),
+            .arg(
+                Arg::new("name")
+                    .long("name")
+                    .help("queue name")
+                    .required(true),
+            )
+            .arg(idempotently_arg.clone()),
         Command::new("exchange")
             .about("deletes an exchange")
             .arg(vhost_arg.clone())
             .arg(
                 Arg::new("name")
                     .long("name")
-                    .help("exchange")
+                    .help("exchange name")
                     .required(true),
-            ),
+            )
+            .arg(idempotently_arg.clone()),
         Command::new("binding")
             .about("deletes a binding")
             .arg(vhost_arg.clone())

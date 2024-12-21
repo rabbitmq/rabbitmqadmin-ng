@@ -37,7 +37,7 @@ pub enum CommandRunError {
         details: HealthCheckFailureDetails,
         status_code: StatusCode,
     },
-    #[error("Could not find the requested resource")]
+    #[error("API responded with a 404 Not Found")]
     NotFound,
     #[error("{message}")]
     ConflictingOptions { message: String },

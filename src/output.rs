@@ -17,6 +17,7 @@ use clap::ArgMatches;
 use rabbitmq_http_client::blocking_api::{HttpClientError, Result as ClientResult};
 use rabbitmq_http_client::error::Error as ClientError;
 use rabbitmq_http_client::responses::Overview;
+use reqwest::StatusCode;
 use std::fmt;
 use sysexits::ExitCode;
 use tabled::settings::object::Rows;
@@ -52,22 +53,31 @@ impl TableStyler {
 pub struct ResultHandler {
     pub non_interactive: bool,
     pub quiet: bool,
+    pub idempotently: bool,
     pub exit_code: Option<ExitCode>,
     table_styler: TableStyler,
 }
 
 impl ResultHandler {
-    pub fn new(args: &ArgMatches) -> Self {
-        let non_interactive = args
+    pub fn new(common_args: &ArgMatches, command_args: &ArgMatches) -> Self {
+        let non_interactive = common_args
             .get_one::<bool>("non_interactive")
             .cloned()
             .unwrap_or(false);
-        let quiet = args.get_one::<bool>("quiet").cloned().unwrap_or(false);
-        let table_formatter = TableStyler::new(args);
+        let quiet = common_args
+            .get_one::<bool>("quiet")
+            .cloned()
+            .unwrap_or(false);
+        let idempotently = match command_args.try_get_one::<bool>("idempotently") {
+            Ok(val) => val.cloned().unwrap_or(false),
+            Err(_) => false,
+        };
+        let table_formatter = TableStyler::new(common_args);
 
         Self {
             quiet,
             non_interactive,
+            idempotently,
             exit_code: None,
             table_styler: table_formatter,
         }
@@ -134,6 +144,35 @@ impl ResultHandler {
                 self.exit_code = Some(ExitCode::Ok);
             }
             Err(error) => self.report_command_run_error(&error),
+        }
+    }
+
+    pub fn delete_operation_result<T>(&mut self, result: Result<T, HttpClientError>) {
+        match result {
+            Ok(_) => {
+                self.exit_code = Some(ExitCode::Ok);
+            }
+            Err(error) => match error {
+                ClientError::ClientErrorResponse {
+                    status_code: http_code,
+                    response: _,
+                    backtrace: _,
+                } if http_code == StatusCode::NOT_FOUND => {
+                    if self.idempotently {
+                        self.exit_code = Some(ExitCode::Ok)
+                    } else {
+                        self.report_command_run_error(&error)
+                    }
+                }
+                ClientError::NotFound => {
+                    if self.idempotently {
+                        self.exit_code = Some(ExitCode::Ok)
+                    } else {
+                        self.report_command_run_error(&error)
+                    }
+                }
+                _ => self.report_command_run_error(&error),
+            },
         }
     }
 

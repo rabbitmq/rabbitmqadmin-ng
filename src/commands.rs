@@ -279,13 +279,21 @@ pub fn delete_parameter(
 pub fn delete_vhost(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
     // the flag is required
     let name = command_args.get_one::<String>("name").unwrap();
-    client.delete_vhost(name)
+    let idempotently = command_args
+        .get_one::<bool>("idempotently")
+        .cloned()
+        .unwrap_or(false);
+    client.delete_vhost(name, idempotently)
 }
 
 pub fn delete_user(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
     // the flag is required
     let name = command_args.get_one::<String>("name").unwrap();
-    client.delete_user(name)
+    let idempotently = command_args
+        .get_one::<bool>("idempotently")
+        .cloned()
+        .unwrap_or(false);
+    client.delete_user(name, idempotently)
 }
 
 pub fn delete_permissions(
@@ -295,7 +303,11 @@ pub fn delete_permissions(
 ) -> ClientResult<()> {
     // the flag is required
     let user = command_args.get_one::<String>("user").unwrap();
-    client.clear_permissions(vhost, user)
+    let idempotently = command_args
+        .get_one::<bool>("idempotently")
+        .cloned()
+        .unwrap_or(false);
+    client.clear_permissions(vhost, user, idempotently)
 }
 
 pub fn declare_user(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
@@ -465,7 +477,11 @@ pub fn declare_parameter(
 pub fn delete_queue(client: APIClient, vhost: &str, command_args: &ArgMatches) -> ClientResult<()> {
     // the flag is required
     let name = command_args.get_one::<String>("name").unwrap();
-    client.delete_queue(vhost, name)
+    let idempotently = command_args
+        .get_one::<bool>("idempotently")
+        .cloned()
+        .unwrap_or(false);
+    client.delete_queue(vhost, name, idempotently)
 }
 
 pub fn delete_binding(
@@ -503,7 +519,11 @@ pub fn delete_exchange(
 ) -> ClientResult<()> {
     // the flag is required
     let name = command_args.get_one::<String>("name").unwrap();
-    client.delete_exchange(vhost, name)
+    let idempotent = command_args
+        .get_one::<bool>("idempotently")
+        .cloned()
+        .unwrap_or(false);
+    client.delete_exchange(vhost, name, idempotent)
 }
 
 pub fn delete_policy(
