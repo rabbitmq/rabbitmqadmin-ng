@@ -201,6 +201,12 @@ namely various HTTP API endpoint options and `--vhost`:
 rabbitmqadmin --vhost "events" declare queue --name "target.quorum.queue.name" --type "quorum" --durable true
 ```
 
+### --prefix Overrides API Path Prefix
+
+In `rabbitmqadmin` v1, `--path-prefix` appended to the default [API path prefix](https://www.rabbitmq.com/docs/management#path-prefix).
+In this version, the value passed to `--path-prefix` will be used as given, in other words,
+it replaces the default prefix, `/api`.
+
 ### Configuration File Format Moved to TOML
 
 `rabbitmqadmin` v1 supported ini configuration files that allowed
