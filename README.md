@@ -41,7 +41,58 @@ The following `rabbitmqadmin` v1 features are not currently implemented:
 
 ## Usage
 
-### Getting Help
+### Interactive vs. Use in Scripts
+
+Like the original version, `rabbitmqadmin` v2 is first and foremost built for interactive use
+by humans. Many commands will output formatted tables, for example:
+
+```shell
+rabbitmqadmin show overview
+```
+
+will output a table that looks like this:
+
+```
+┌──────────────────┬───────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ Overview                                                                                                             │
+├──────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ key              │ value                                                                                             │
+├──────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Product name     │ RabbitMQ                                                                                          │
+├──────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Product version  │ 4.0.5                                                                                             │
+├──────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ RabbitMQ version │ 4.0.5                                                                                             │
+├──────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Erlang version   │ 26.2.5.6                                                                                          │
+├──────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Erlang details   │ Erlang/OTP 26 [erts-14.2.5.5] [source] [64-bit] [smp:10:10] [ds:10:10:10] [async-threads:1] [jit] │
+└──────────────────┴───────────────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+As it is easy to observe, parsing such output in a script will be challenging.
+
+For this reason, `rabbitmqadmin` v2 can render results in a way that would be much more friendly
+for scripting if the `--non-interactive` flag is passed. It is a global flag so it must be
+passed before the command and subcommand name:
+
+```shell
+rabbitmqadmin --non-interactive show overview
+```
+
+The output of the above command will not include any table borders and will is much easier to parse
+as a result:
+
+```
+ key
+ Product name      RabbitMQ
+ Product version   4.0.5
+ RabbitMQ version  4.0.5
+ Erlang version    26.2.5.6
+ Erlang details    Erlang/OTP 26 [erts-14.2.5.5] [source] [64-bit] [smp:10:10] [ds:10:10:10] [async-threads:1] [jit]
+```
+
+### Exploring the CLI with --help
 
 To learn about what command groups and specific commands are available, run
 
@@ -49,17 +100,24 @@ To learn about what command groups and specific commands are available, run
 rabbitmqadmin --help
 ```
 
-Note that in this version, **global flags must precede the command category (e.g. `list`) and the command itself**:
+This flag can be appended to a command or subcommand to get command-specific documentation:
 
 ```shell
-rabbitmqadmin --vhost "events" declare queue --name "target.quorum.queue.name" --type "quorum" --durable true
+rabbitmqadmin declare queue --help
+# => creates or declares things
+# =>
+# => Usage: rabbitmqadmin declare [object]
+# => ...
 ```
 
-The same command will display global flags. To learn about a specific command, append
-`--help` to it:
+And with a specific subcommand:
 
-``` shell
+```shell
 rabbitmqadmin declare queue --help
+# => declares a queue
+# =>
+# => Usage: rabbitmqadmin declare queue [OPTIONS] --name <name>
+# => ...
 ```
 
 ### Retrieving Basic Node Information
@@ -67,6 +125,8 @@ rabbitmqadmin declare queue --help
 ``` shell
 rabbitmqadmin show overview
 ```
+
+will display essential node information in tabular form.
 
 ### Retrieving Connection, Queue/Stream, Channel Churn Information
 
