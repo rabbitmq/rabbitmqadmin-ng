@@ -133,7 +133,7 @@ fn main() {
 
             let vhost = virtual_host(&sf, command_args);
 
-            let mut res_handler = ResultHandler::new(&cli, &command_args);
+            let mut res_handler = ResultHandler::new(&cli, command_args);
             let exit_code = dispatch_subcommand(
                 pair,
                 command_args,
