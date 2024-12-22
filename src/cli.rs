@@ -20,17 +20,22 @@ use rabbitmq_http_client::commons::{BindingDestinationType, ExchangeType, QueueT
 pub fn parser() -> Command {
     let after_help: &'static str = color_print::cstr!(
         r#"
-<bold><yellow>Getting Help</yellow></bold>
+<bold><blue>Documentation and Community Resources</blue></bold>
+
   RabbitMQ docs: https://rabbitmq.com/docs/
+  GitHub Discussions: https://github.com/rabbitmq/rabbitmq-server/discussions
   Discord server: https://rabbitmq.com/discord/
-  GitHub Discussions: https://github.com/rabbitmq/rabbitmq-server/discussions"#
+
+<bold><blue>Contribute</blue></bold>
+
+  On GitHub: https://github.com/rabbitmq/rabbitmqadmin-ng"#
     );
 
     Command::new("rabbitmqadmin")
         .version(clap::crate_version!())
         .author("RabbitMQ Core Team")
         .about("rabbitmqadmin gen 2")
-        .long_about("RabbitMQ CLI that uses the HTTP API")
+        .long_about(format!("RabbitMQ CLI that uses the HTTP API. Version: {}", clap::crate_version!()))
         .after_help(after_help)
         .disable_version_flag(true)
         // --config-file
