@@ -1,5 +1,25 @@
 # rabbitmqadmin-ng Change Log
 
+## v0.13.0 (Dec 21, 2024)
+
+## Enhancements
+
+ * Several key `delete` commands, namely `delete vhost`, `delete user`, `delete queue` and `delete exchange` now support a new flag, `--idempotently`.
+   When this flag is used, 404 Not Found responses from the HTTP
+
+   GitHub issue: [#32](https://github.com/rabbitmq/rabbitmqadmin-ng/issues/32)
+
+ * `--non-interactive` is a new global flag. When used, this flag will instruct `rabbitmqadmin` to not produce table border formatting,
+    and generally try to use output that'd be easier to consume from scripts
+
+ * Initial work on improving error reporting
+
+## Bug Fixes
+
+ * `declare exchange` propduced an incorrect API request payload
+   when target exchange `--type` was a custom `x-*` type, such as `x-local-random` or `x-consistent-hash`
+
+
 ## v0.12.0 (Dec 8, 2024)
 
 ### Enhancements
