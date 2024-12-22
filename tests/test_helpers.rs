@@ -37,7 +37,7 @@ pub fn create_vhost(vhost: &str) -> Result<(), Box<dyn std::error::Error>> {
 
 pub fn delete_vhost(vhost: &str) -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.args(["delete", "vhost", "--name", vhost]);
+    cmd.args(["delete", "vhost", "--name", vhost, "--idempotently"]);
     cmd.assert().success();
     Ok(())
 }

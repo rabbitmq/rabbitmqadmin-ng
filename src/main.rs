@@ -51,19 +51,20 @@ fn main() {
     // config file entries are historically called nodes
     let node_alias = cli
         .get_one::<String>("node_alias")
-        .or(Some(&DEFAULT_NODE_ALIAS.to_string()))
-        .cloned();
+        .cloned()
+        .or(Some(DEFAULT_NODE_ALIAS.to_string()));
 
-    let cf_ss = SharedSettings::from_config_file(&config_file_path, node_alias);
+    let cf_ss = SharedSettings::from_config_file(&config_file_path, node_alias.clone());
     // If the default config file path is used and the function above
     // reports that it is not found, continue. Otherwise exit.
     if cf_ss.is_err() && !uses_default_config_file_path {
-        println!(
-            "Could not load the provided configuration file at {}",
+        eprintln!(
+            "Encountered an error when trying to load configuration for node alias '{}' in configuration file '{}'",
+            &node_alias.unwrap(),
             config_file_path.to_str().unwrap()
         );
-        println!("Underlying error: {}", cf_ss.unwrap_err());
-        process::exit(1)
+        eprintln!("Underlying error: {}", cf_ss.unwrap_err());
+        process::exit(ExitCode::DataErr.into())
     }
     let common_settings = if let Ok(val) = cf_ss {
         SharedSettings::from_args_with_defaults(&cli, &val)

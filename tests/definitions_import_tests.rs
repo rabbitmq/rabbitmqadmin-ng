@@ -22,7 +22,7 @@ fn test_import_definitions() -> Result<(), Box<dyn std::error::Error>> {
         "definitions",
         "import",
         "--file",
-        "tests/fixtures/definitions1.json",
+        "tests/fixtures/definitions/definitions1.json",
     ]);
     cmd.assert().success();
 
