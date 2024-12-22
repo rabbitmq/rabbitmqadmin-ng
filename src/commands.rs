@@ -560,6 +560,10 @@ pub fn health_check_cluster_wide_alarms(client: APIClient) -> ClientResult<()> {
     client.health_check_cluster_wide_alarms()
 }
 
+pub fn health_check_node_is_quorum_critical(client: APIClient) -> ClientResult<()> {
+    client.health_check_if_node_is_quorum_critical()
+}
+
 pub fn close_connection(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
     // the flag is required
     let name = command_args.get_one::<String>("name").unwrap();

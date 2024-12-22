@@ -823,13 +823,15 @@ fn purge_subcommands() -> [Command; 1] {
         )]
 }
 
-fn health_check_subcommands() -> [Command; 2] {
+fn health_check_subcommands() -> [Command; 3] {
     let local_alarms = Command::new("local_alarms")
         .about("checks if there are any resource alarms in effect on the target node");
     let cluster_wide_alarms = Command::new("cluster_wide_alarms")
         .about("checks if there are any resource alarms in effect across the entire cluster");
+    let node_is_quorum_critical = Command::new("node_is_quorum_critical")
+        .about("fails if there are queues/streams with minimum online quorum (queues/streams that will lose their quorum if the target node shuts down)");
 
-    [local_alarms, cluster_wide_alarms]
+    [local_alarms, cluster_wide_alarms, node_is_quorum_critical]
 }
 
 fn rebalance_subcommands() -> [Command; 1] {

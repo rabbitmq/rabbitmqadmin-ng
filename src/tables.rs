@@ -141,11 +141,8 @@ pub fn health_check_failure(
             rabbitmq_http_client::responses::QuorumCriticalityCheckDetails { reason: _, queues },
         ) => {
             for q in queues {
-                let key = "Affected queue or stream";
-                let value = format!(
-                    "queue '{}' of type {} in virtual host '{}' ",
-                    q.name, q.queue_type, q.vhost
-                );
+                let key = "affected queue, stream or internal component";
+                let value = q.readable_name;
                 tb.push_record([key, value.as_str()]);
             }
         }
