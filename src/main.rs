@@ -280,19 +280,19 @@ fn dispatch_subcommand(
         }
         ("delete", "vhost") => {
             let result = commands::delete_vhost(client, command_args);
-            res_handler.no_output_on_success(result);
+            res_handler.delete_operation_result(result);
+        }
+        ("delete", "user") => {
+            let result = commands::delete_user(client, command_args);
+            res_handler.delete_operation_result(result);
         }
         ("delete", "exchange") => {
             let result = commands::delete_exchange(client, &vhost, command_args);
             res_handler.delete_operation_result(result);
         }
-        ("delete", "user") => {
-            let result = commands::delete_user(client, command_args);
-            res_handler.no_output_on_success(result);
-        }
         ("delete", "queue") => {
             let result = commands::delete_queue(client, &vhost, command_args);
-            res_handler.no_output_on_success(result);
+            res_handler.delete_operation_result(result);
         }
         ("delete", "binding") => {
             let result = commands::delete_binding(client, &vhost, command_args);
@@ -321,6 +321,10 @@ fn dispatch_subcommand(
         ("purge", "queue") => {
             let result = commands::purge_queue(client, &vhost, command_args);
             res_handler.no_output_on_success(result);
+        }
+        ("health_check", "local_alarms") => {
+            let result = commands::health_check_local_alarms(client);
+            res_handler.health_check_result(result);
         }
         ("rebalance", "queues") => {
             let result = commands::rebalance_queues(client);

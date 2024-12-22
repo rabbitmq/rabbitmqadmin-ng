@@ -138,7 +138,7 @@ impl ResultHandler {
         }
     }
 
-    pub fn no_output_on_success<T>(&mut self, result: Result<T, HttpClientError>) {
+    pub fn no_output_on_success<T>(&mut self, result: ClientResult<T>) {
         match result {
             Ok(_) => {
                 self.exit_code = Some(ExitCode::Ok);
@@ -147,7 +147,7 @@ impl ResultHandler {
         }
     }
 
-    pub fn delete_operation_result<T>(&mut self, result: Result<T, HttpClientError>) {
+    pub fn delete_operation_result<T>(&mut self, result: ClientResult<T>) {
         match result {
             Ok(_) => {
                 self.exit_code = Some(ExitCode::Ok);
@@ -173,6 +173,32 @@ impl ResultHandler {
                 }
                 _ => self.report_command_run_error(&error),
             },
+        }
+    }
+
+    pub fn health_check_result(&mut self, result: ClientResult<()>) {
+        match result {
+            Ok(_) => {
+                self.exit_code = Some(ExitCode::Ok);
+                if !self.quiet {
+                    println!("{}", "health check passed");
+                }
+            }
+            Err(ClientError::HealthCheckFailed {
+                path,
+                details,
+                status_code,
+            }) => {
+                self.exit_code = Some(ExitCode::Unavailable);
+
+                let mut table = tables::health_check_failure(&path, status_code, details);
+                self.table_styler.apply(&mut table);
+
+                println!("{}", table);
+            }
+            _ => {
+                self.exit_code = Some(ExitCode::Unavailable);
+            }
         }
     }
 

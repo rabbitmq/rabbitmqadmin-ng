@@ -176,6 +176,10 @@ pub fn parser() -> Command {
                 .about("purges queues")
                 .subcommand_value_name("queue")
                 .subcommands(purge_subcommands()),
+            Command::new("health_check")
+                .about("runs health checks")
+                .subcommand_value_name("check")
+                .subcommands(health_check_subcommands()),
             Command::new("close")
                 .about("closes connections")
                 .subcommand_value_name("connection")
@@ -817,6 +821,15 @@ fn purge_subcommands() -> [Command; 1] {
                 .help("name of the queue to purge")
                 .required(true),
         )]
+}
+
+fn health_check_subcommands() -> [Command; 2] {
+    let local_alarms = Command::new("local_alarms")
+        .about("checks if there are any resource alarms in effect on the target node");
+    let cluster_alarms = Command::new("cluster_alarms")
+        .about("checks if there are any resource alarms in effect across the cluster");
+
+    [local_alarms, cluster_alarms]
 }
 
 fn rebalance_subcommands() -> [Command; 1] {

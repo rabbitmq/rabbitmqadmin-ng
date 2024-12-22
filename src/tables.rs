@@ -11,7 +11,8 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-use rabbitmq_http_client::responses::Overview;
+use rabbitmq_http_client::responses::{HealthCheckFailureDetails, Overview};
+use reqwest::StatusCode;
 use tabled::settings::Panel;
 use tabled::{Table, Tabled};
 
@@ -19,6 +20,12 @@ use tabled::{Table, Tabled};
 struct OverviewRow<'a> {
     key: &'a str,
     value: String,
+}
+
+#[derive(Tabled)]
+struct RowOfTwoStrings<'a> {
+    key: &'a str,
+    value: &'a str,
 }
 
 pub fn overview(ov: Overview) -> Table {
@@ -87,5 +94,39 @@ pub fn churn_overview(ov: Overview) -> Table {
     t.with(Panel::header(
         "Entity (connections, queues, etc) churn over the most recent sampling period",
     ));
+    t
+}
+
+pub fn health_check_failure(
+    path: &str,
+    status_code: StatusCode,
+    details: HealthCheckFailureDetails,
+) -> Table {
+    let reason = match details {
+        HealthCheckFailureDetails::AlarmCheck(details) => details.reason,
+        HealthCheckFailureDetails::NodeIsQuorumCritical(details) => details.reason,
+    };
+    let code_str = format!("{}", status_code);
+
+    let vec = vec![
+        RowOfTwoStrings {
+            key: "result",
+            value: "health check failed",
+        },
+        RowOfTwoStrings {
+            key: "path",
+            value: path,
+        },
+        RowOfTwoStrings {
+            key: "status_code",
+            value: code_str.as_str(),
+        },
+        RowOfTwoStrings {
+            key: "reason",
+            value: reason.as_str(),
+        },
+    ];
+    let tb = Table::builder(vec);
+    let t = tb.build();
     t
 }
