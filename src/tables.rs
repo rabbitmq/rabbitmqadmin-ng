@@ -103,8 +103,8 @@ pub fn health_check_failure(
     details: HealthCheckFailureDetails,
 ) -> Table {
     let reason = match details {
-        HealthCheckFailureDetails::AlarmCheck(details) => details.reason,
-        HealthCheckFailureDetails::NodeIsQuorumCritical(details) => details.reason,
+        HealthCheckFailureDetails::AlarmCheck(ref details) => details.reason.clone(),
+        HealthCheckFailureDetails::NodeIsQuorumCritical(ref details) => details.reason.clone(),
     };
     let code_str = format!("{}", status_code);
 
@@ -126,7 +126,30 @@ pub fn health_check_failure(
             value: reason.as_str(),
         },
     ];
-    let tb = Table::builder(vec);
-    
+    let mut tb = Table::builder(vec);
+    match details {
+        HealthCheckFailureDetails::AlarmCheck(
+            rabbitmq_http_client::responses::ClusterAlarmCheckDetails { reason: _, alarms },
+        ) => {
+            for alarm in alarms {
+                let key = format!("alarm in effect on node {}", alarm.node);
+                let value = alarm.resource;
+                tb.push_record([key.as_str(), value.as_str()]);
+            }
+        }
+        HealthCheckFailureDetails::NodeIsQuorumCritical(
+            rabbitmq_http_client::responses::QuorumCriticalityCheckDetails { reason: _, queues },
+        ) => {
+            for q in queues {
+                let key = "Affected queue or stream";
+                let value = format!(
+                    "queue '{}' of type {} in virtual host '{}' ",
+                    q.name, q.queue_type, q.vhost
+                );
+                tb.push_record([key, value.as_str()]);
+            }
+        }
+    };
+
     tb.build()
 }
