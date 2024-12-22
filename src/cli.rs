@@ -179,7 +179,10 @@ pub fn parser() -> Command {
             Command::new("health_check")
                 .about("runs health checks")
                 .subcommand_value_name("check")
-                .subcommands(health_check_subcommands()),
+                .subcommands(health_check_subcommands())
+                .after_long_help(color_print::cstr!(
+                    "<bold>Doc guide</bold>: https://rabbitmq.com/docs/monitoring#health-checks"
+                )),
             Command::new("close")
                 .about("closes connections")
                 .subcommand_value_name("connection")
