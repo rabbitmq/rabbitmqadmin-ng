@@ -17,7 +17,7 @@
 ## Bug Fixes
 
  * `declare exchange` propduced an incorrect API request payload
-   when target exchange `--type` was a custom `x-*` type, such as `x-local-random` or `x-consistent-hash`
+   when target exchange `--type` was an `x-*` type (a plugin provided-type), such as `x-local-random` or `x-consistent-hash`
 
 
 ## v0.12.0 (Dec 8, 2024)
