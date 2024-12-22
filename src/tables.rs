@@ -127,6 +127,6 @@ pub fn health_check_failure(
         },
     ];
     let tb = Table::builder(vec);
-    let t = tb.build();
-    t
+    
+    tb.build()
 }

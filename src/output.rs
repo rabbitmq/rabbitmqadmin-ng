@@ -181,7 +181,7 @@ impl ResultHandler {
             Ok(_) => {
                 self.exit_code = Some(ExitCode::Ok);
                 if !self.quiet {
-                    println!("{}", "health check passed");
+                    println!("health check passed");
                 }
             }
             Err(ClientError::HealthCheckFailed {
