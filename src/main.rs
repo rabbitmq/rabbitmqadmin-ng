@@ -65,16 +65,20 @@ fn main() {
         println!("Underlying error: {}", cf_ss.unwrap_err());
         process::exit(1)
     }
-    let sf = if let Ok(val) = cf_ss {
+    let common_settings = if let Ok(val) = cf_ss {
         SharedSettings::from_args_with_defaults(&cli, &val)
     } else {
+        println!(
+            "Instantiating SharedState only from CLI args: {}",
+            cf_ss.unwrap_err()
+        );
         SharedSettings::from_args(&cli)
     };
-    let endpoint = sf.endpoint();
+    let endpoint = common_settings.endpoint();
     let disable_peer_verification = *cli.get_one::<bool>("insecure").unwrap_or(&false);
 
     let user_agent = format!("rabbitmqadmin-ng {}", clap::crate_version!());
-    let httpc = if should_use_tls(&sf) {
+    let httpc = if should_use_tls(&common_settings) {
         let mut cert = None;
         if let Some(pem_file) = cli.get_one::<PathBuf>("tls-ca-cert-file") {
             let mut file = File::open(pem_file).unwrap_or_else(|err| {
@@ -119,8 +123,8 @@ fn main() {
     }
     .unwrap();
 
-    let username = sf.username.clone().unwrap();
-    let password = sf.password.clone().unwrap();
+    let username = common_settings.username.clone().unwrap();
+    let password = common_settings.password.clone().unwrap();
     let client = ClientBuilder::new()
         .with_endpoint(endpoint.as_str())
         .with_basic_auth_credentials(username.as_str(), password.as_str())
@@ -131,14 +135,14 @@ fn main() {
         if let Some((kind, command_args)) = group_args.subcommand() {
             let pair = (verb, kind);
 
-            let vhost = virtual_host(&sf, command_args);
+            let vhost = virtual_host(&common_settings, command_args);
 
-            let mut res_handler = ResultHandler::new(&cli, command_args);
+            let mut res_handler = ResultHandler::new(&common_settings, command_args);
             let exit_code = dispatch_subcommand(
                 pair,
                 command_args,
                 client,
-                sf.endpoint(),
+                common_settings.endpoint(),
                 vhost,
                 &mut res_handler,
             );
@@ -155,7 +159,7 @@ fn dispatch_subcommand(
     endpoint: String,
     vhost: String,
     res_handler: &mut ResultHandler,
-) -> sysexits::ExitCode {
+) -> ExitCode {
     match &pair {
         ("show", "overview") => {
             let result = commands::show_overview(client);

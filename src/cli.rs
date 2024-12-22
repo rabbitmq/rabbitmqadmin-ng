@@ -146,7 +146,6 @@ pub fn parser() -> Command {
                 .long("non-interactive")
                 .help("pass when invoking from scripts")
                 .required(false)
-                .default_value("false")
                 .value_parser(clap::value_parser!(bool))
                 .action(ArgAction::SetTrue)
         )

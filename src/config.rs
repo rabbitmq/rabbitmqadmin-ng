@@ -39,6 +39,8 @@ pub enum ConfigFileError {
 
 type ConfigurationMap<'a> = HashMap<String, SharedSettings>;
 
+/// Represents a set of settings that can be set both via
+/// the command line arguments and an optional configuration file.
 #[derive(Debug, Clone, Deserialize, Default)]
 pub struct SharedSettings {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -46,6 +48,11 @@ pub struct SharedSettings {
 
     #[serde(default = "default_tls")]
     pub tls: bool,
+
+    #[serde(default = "default_non_interactive")]
+    pub non_interactive: bool,
+    #[serde(default = "default_quiet")]
+    pub quiet: bool,
 
     #[serde(default = "default_scheme")]
     pub scheme: String,
@@ -112,6 +119,18 @@ impl SharedSettings {
             .get_one::<bool>("tls")
             .cloned()
             .unwrap_or(config_file_defaults.tls);
+        let non_interactive = cli_args
+            .get_one::<bool>("non_interactive")
+            .cloned()
+            .or(Some(false))
+            .unwrap()
+            || config_file_defaults.non_interactive;
+        let quiet = cli_args
+            .get_one::<bool>("quiet")
+            .cloned()
+            .or(Some(false))
+            .unwrap()
+            || config_file_defaults.quiet;
         let scheme = if should_use_tls { "https" } else { "http" };
         let hostname = cli_args
             .get_one::<String>("host")
@@ -153,6 +172,8 @@ impl SharedSettings {
 
         Self {
             tls: should_use_tls,
+            non_interactive,
+            quiet,
             base_uri: None,
             scheme: scheme.to_string(),
             hostname: Some(hostname),
@@ -168,9 +189,21 @@ impl SharedSettings {
         let default_hostname = DEFAULT_HOST.to_string();
         let should_use_tls = cli_args
             .get_one::<bool>("tls")
-            .or(Some(&false))
             .cloned()
+            .or(Some(false))
             .unwrap();
+        let non_interactive = cli_args
+            .get_one::<bool>("non_interactive")
+            .cloned()
+            .or(Some(false))
+            .unwrap()
+            || default_non_interactive();
+        let quiet = cli_args
+            .get_one::<bool>("quiet")
+            .cloned()
+            .or(Some(false))
+            .unwrap()
+            || default_quiet();
         let scheme = if should_use_tls { "https" } else { "http" };
         let hostname = cli_args
             .get_one::<String>("host")
@@ -206,6 +239,8 @@ impl SharedSettings {
 
         Self {
             tls: should_use_tls,
+            non_interactive,
+            quiet,
             base_uri: None,
             scheme: scheme.to_string(),
             hostname: Some(hostname),
@@ -222,9 +257,25 @@ impl SharedSettings {
         cli_args: &ArgMatches,
         config_file_defaults: &Self,
     ) -> Self {
-        let should_use_tls = *cli_args.get_one::<bool>("tls").unwrap()
+        let should_use_tls = cli_args
+            .get_one::<bool>("tls")
+            .cloned()
+            .or(Some(false))
+            .unwrap()
             || config_file_defaults.tls
             || url.scheme() == HTTPS_SCHEME;
+        let non_interactive = cli_args
+            .get_one::<bool>("non_interactive")
+            .cloned()
+            .or(Some(false))
+            .unwrap()
+            || config_file_defaults.non_interactive;
+        let quiet = cli_args
+            .get_one::<bool>("quiet")
+            .cloned()
+            .or(Some(false))
+            .unwrap()
+            || config_file_defaults.quiet;
 
         let scheme = url.scheme().to_string();
         let hostname = url.host_str().unwrap_or(DEFAULT_HOST).to_string();
@@ -261,6 +312,8 @@ impl SharedSettings {
 
         Self {
             tls: should_use_tls,
+            non_interactive,
+            quiet,
             base_uri: Some(url.to_string()),
             scheme: scheme.to_string(),
             hostname: Some(hostname),
@@ -275,6 +328,16 @@ impl SharedSettings {
     pub fn new_from_uri(url: &Url, cli_args: &ArgMatches) -> Self {
         let should_use_tls =
             *cli_args.get_one::<bool>("tls").unwrap() || url.scheme() == HTTPS_SCHEME;
+        let non_interactive = cli_args
+            .get_one::<bool>("non_interactive")
+            .cloned()
+            .or(Some(default_non_interactive()))
+            .unwrap();
+        let quiet = cli_args
+            .get_one::<bool>("quiet")
+            .cloned()
+            .or(Some(default_quiet()))
+            .unwrap();
 
         let scheme = url.scheme().to_string();
         let hostname = url.host_str().unwrap_or(DEFAULT_HOST).to_string();
@@ -307,6 +370,8 @@ impl SharedSettings {
 
         Self {
             tls: should_use_tls,
+            non_interactive,
+            quiet,
             base_uri: Some(url.to_string()),
             scheme: scheme.to_string(),
             hostname: Some(hostname),
@@ -337,10 +402,12 @@ impl SharedSettings {
 }
 
 fn from_local_path(path: &PathBuf) -> Result<ConfigurationMap, ConfigFileError> {
-    if path.exists() {
-        read_from_local_path(path)
+    let expanded_s = shellexpand::tilde(&path.to_string_lossy()).to_string();
+    let expanded_path = PathBuf::from(&expanded_s);
+    if expanded_path.exists() {
+        read_from_local_path(&expanded_path)
     } else {
-        Err(ConfigFileError::MissingFile((*path).clone()))
+        Err(ConfigFileError::MissingFile((*expanded_path).to_path_buf()))
     }
 }
 
@@ -354,6 +421,14 @@ fn default_scheme() -> String {
 }
 
 fn default_tls() -> bool {
+    false
+}
+
+fn default_non_interactive() -> bool {
+    false
+}
+
+fn default_quiet() -> bool {
     false
 }
 

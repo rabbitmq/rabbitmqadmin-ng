@@ -12,6 +12,7 @@ use crate::errors::CommandRunError;
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+use crate::config::SharedSettings;
 use crate::tables;
 use clap::ArgMatches;
 use rabbitmq_http_client::blocking_api::{HttpClientError, Result as ClientResult};
@@ -30,11 +31,8 @@ pub struct TableStyler {
 }
 
 impl TableStyler {
-    pub fn new(args: &ArgMatches) -> Self {
-        let non_interactive = args
-            .get_one::<bool>("non_interactive")
-            .cloned()
-            .unwrap_or(false);
+    pub fn new(args: &SharedSettings) -> Self {
+        let non_interactive = args.non_interactive;
 
         Self { non_interactive }
     }
@@ -59,15 +57,9 @@ pub struct ResultHandler {
 }
 
 impl ResultHandler {
-    pub fn new(common_args: &ArgMatches, command_args: &ArgMatches) -> Self {
-        let non_interactive = common_args
-            .get_one::<bool>("non_interactive")
-            .cloned()
-            .unwrap_or(false);
-        let quiet = common_args
-            .get_one::<bool>("quiet")
-            .cloned()
-            .unwrap_or(false);
+    pub fn new(common_args: &SharedSettings, command_args: &ArgMatches) -> Self {
+        let non_interactive = common_args.non_interactive;
+        let quiet = common_args.quiet;
         let idempotently = match command_args.try_get_one::<bool>("idempotently") {
             Ok(val) => val.cloned().unwrap_or(false),
             Err(_) => false,
