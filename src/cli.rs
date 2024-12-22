@@ -826,10 +826,10 @@ fn purge_subcommands() -> [Command; 1] {
 fn health_check_subcommands() -> [Command; 2] {
     let local_alarms = Command::new("local_alarms")
         .about("checks if there are any resource alarms in effect on the target node");
-    let cluster_alarms = Command::new("cluster_alarms")
-        .about("checks if there are any resource alarms in effect across the cluster");
+    let cluster_wide_alarms = Command::new("cluster_wide_alarms")
+        .about("checks if there are any resource alarms in effect across the entire cluster");
 
-    [local_alarms, cluster_alarms]
+    [local_alarms, cluster_wide_alarms]
 }
 
 fn rebalance_subcommands() -> [Command; 1] {

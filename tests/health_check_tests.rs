@@ -25,3 +25,15 @@ fn test_health_check_local_alarms() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
+
+#[test]
+fn test_health_check_cluster_wide_alarms() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+
+    cmd.args(["health_check", "cluster_wide_alarms"]);
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("passed"));
+
+    Ok(())
+}

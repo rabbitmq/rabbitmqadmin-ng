@@ -556,6 +556,10 @@ pub fn health_check_local_alarms(client: APIClient) -> ClientResult<()> {
     client.health_check_local_alarms()
 }
 
+pub fn health_check_cluster_wide_alarms(client: APIClient) -> ClientResult<()> {
+    client.health_check_cluster_wide_alarms()
+}
+
 pub fn close_connection(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
     // the flag is required
     let name = command_args.get_one::<String>("name").unwrap();

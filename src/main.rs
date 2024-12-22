@@ -326,6 +326,10 @@ fn dispatch_subcommand(
             let result = commands::health_check_local_alarms(client);
             res_handler.health_check_result(result);
         }
+        ("health_check", "cluster_wide_alarms") => {
+            let result = commands::health_check_cluster_wide_alarms(client);
+            res_handler.health_check_result(result);
+        }
         ("rebalance", "queues") => {
             let result = commands::rebalance_queues(client);
             res_handler.no_output_on_success(result);
