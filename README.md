@@ -2,7 +2,7 @@
 
 `rabbitmqadmin` v2 is a major revision of one of the RabbitMQ's CLI tools.
 
-If you are migrating from the original `rabbitqadmin`, please see [Breaking or Potentially Breaking Changes](#changes-compared-to-v1)
+If you are migrating from the original `rabbitqadmin`, please see [Breaking or Potentially Breaking Changes](#breaking-or-potentially-breaking-changes)
 to learn about a few breaking change in the interface.
 
 To download a binary build, see [Releases](https://github.com/rabbitmq/rabbitmqadmin-ng/releases).
@@ -29,7 +29,7 @@ This version of `rabbitmqadmin` has a few ideas in mind:
 
 This version of `rabbitmqadmin` should be considered reasonably mature to be used.
 
-Before migrating, please see [Breaking or Potentially Breaking Changes](#changes-compared-to-v1) to learn about a few breaking change in the interface.
+Before migrating, please see [Breaking or Potentially Breaking Changes](#breaking-or-potentially-breaking-changes) to learn about a few breaking change in the interface.
 
 ### Known Limitations
 
