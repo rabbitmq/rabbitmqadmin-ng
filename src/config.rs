@@ -19,7 +19,7 @@ use crate::constants::{
 use clap::ArgMatches;
 use serde::Deserialize;
 use std::collections::HashMap;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use thiserror::Error;
 use url::Url;
 
@@ -74,7 +74,7 @@ pub struct SharedSettings {
 
 impl SharedSettings {
     pub fn from_config_file(
-        path: &PathBuf,
+        path: &Path,
         section_name: Option<String>,
     ) -> Result<Self, ConfigFileError> {
         let section = section_name.unwrap_or(DEFAULT_CONFIG_SECTION_NAME.to_string());
@@ -375,7 +375,7 @@ impl SharedSettings {
     }
 }
 
-fn from_local_path(path: &PathBuf) -> Result<ConfigurationMap, ConfigFileError> {
+fn from_local_path(path: &Path) -> Result<ConfigurationMap, ConfigFileError> {
     let expanded_s = shellexpand::tilde(&path.to_string_lossy()).to_string();
     let expanded_path = PathBuf::from(&expanded_s);
     if expanded_path.exists() {
