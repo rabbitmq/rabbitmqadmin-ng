@@ -22,6 +22,11 @@ No changes yet.
 
  * `health_check help` now includes a link to the respective RabbitMQ documentation guide. 
 
+### Bug Fixes
+
+* Configuration paths with a tilda (`~`), including the  default configuration file at `~/.rabbitmqadmin.conf`,
+  were not loaded correctly.
+
 
 ## v0.13.0 (Dec 21, 2024)
 
