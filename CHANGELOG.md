@@ -1,8 +1,26 @@
 # rabbitmqadmin-ng Change Log
 
+## v0.14.0 (Dec 22, 2024)
+
+### Breaking Changes
+
+ * Multi-word command line flags now use the more common `--snake-case[=]{value}` format
+   instead of `rabbitmqadmin` v1's `lower_case={value}`.
+
+### Enhancements
+
+ * New command category: `health_check` which provides access to the [health check endpoints](https://www.rabbitmq.com/docs/monitoring#health-checks).
+
+   Currently, only the three (arguably) most important health checks are implemented: `local_alarms`, `cluster_wide_alarms`, and `node_is_quorum_critical`.
+
+   GitHub issues: [#33](https://github.com/rabbitmq/rabbitmqadmin-ng/issues/33), [#34](https://github.com/rabbitmq/rabbitmqadmin-ng/issues/34).
+
+ * `health_check help` now includes a link to the respective RabbitMQ documentation guide. 
+
+
 ## v0.13.0 (Dec 21, 2024)
 
-## Enhancements
+### Enhancements
 
  * Several key `delete` commands, namely `delete vhost`, `delete user`, `delete queue` and `delete exchange` now support a new flag, `--idempotently`.
    When this flag is used, 404 Not Found responses from the HTTP
