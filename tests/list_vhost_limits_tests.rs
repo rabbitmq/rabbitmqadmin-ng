@@ -1,4 +1,3 @@
-use std::process::Command;
 // Copyright (C) 2023-2024 RabbitMQ Core Team (teamrabbitmq@gmail.com)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,38 +11,27 @@ use std::process::Command;
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-use assert_cmd::prelude::*;
 use predicates::prelude::*;
+
+mod test_helpers;
+use crate::test_helpers::*;
 
 #[test]
 fn test_vhost_limits() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-
-    cmd.args([
+    let limit_name = "max-connections";
+    run_succeeds([
         "declare",
         "vhost_limit",
         "--name",
-        "max-connections",
+        limit_name,
         "--value",
         "1234",
     ]);
-    cmd.assert().success();
 
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.args(["list", "vhost_limits"]);
-    cmd.assert()
-        .success()
-        .stdout(predicate::str::contains("max-connections").and(predicate::str::contains("1234")));
-
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.args(["delete", "vhost_limit", "--name", "max-connections"]);
-    cmd.assert().success();
-
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.args(["list", "vhost_limits"]);
-    cmd.assert()
-        .success()
-        .stdout(predicate::str::contains("max-connections").not());
+    run_succeeds(["list", "vhost_limits"])
+        .stdout(predicate::str::contains(limit_name).and(predicate::str::contains("1234")));
+    run_succeeds(["delete", "vhost_limit", "--name", limit_name]);
+    run_succeeds(["list", "vhost_limits"]).stdout(predicate::str::contains(limit_name).not());
 
     Ok(())
 }
