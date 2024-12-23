@@ -23,6 +23,9 @@ fn test_list_bindings() -> Result<(), Box<dyn std::error::Error>> {
     let q1 = "new_queue_1";
     let q2 = "new_queue_2";
 
+    delete_vhost(vh1).expect("failed to delete a virtual host");
+    delete_vhost(vh2).expect("failed to delete a virtual host");
+
     // declare vhost 1
     run_succeeds(["declare", "vhost", "--name", vh1]);
 
@@ -92,10 +95,7 @@ fn test_list_bindings() -> Result<(), Box<dyn std::error::Error>> {
             .and(predicate::str::contains("routing_key_exchange")),
     );
 
-    // delete vhost 1
     delete_vhost(vh1).expect("failed to delete a virtual host");
-
-    // delete vhost 2
     delete_vhost(vh2).expect("failed to delete a virtual host");
 
     Ok(())
