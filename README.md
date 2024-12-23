@@ -21,8 +21,8 @@ This version of `rabbitmqadmin` has a few ideas in mind:
   environment, practices and release schedule of RabbitMQ itself
  * v2 should be a distributed via GitHub releases and not a special `rabbitmq_management` endpoint
  * There is a lot of room to improve validation of flags and arguments, since breaking changes are OK for v2
- * This tool as free as practically possible from CVEs in other projects that show up on security scans.
-   CVEs from older Python versions should not plague OCI images that choose to include `rabbitmqadmin`
+ * This tool should strive to be as free as practically possible from CVEs in other projects that show up on security scans.
+   CVEs from older Python versions should not plague OCI images that choose to include `rabbitmqadmin` v2
  * Output should be revisited: what columns are output by default, whether columns should be selectable
 
 ## Project Maturity
