@@ -11,6 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+use rabbitmq_http_client::blocking_api::{HttpClientError, HttpClientResponse};
 use rabbitmq_http_client::responses::{HealthCheckFailureDetails, Overview};
 use reqwest::StatusCode;
 use tabled::settings::Panel;
@@ -95,6 +96,175 @@ pub fn churn_overview(ov: Overview) -> Table {
         "Entity (connections, queues, etc) churn over the most recent sampling period",
     ));
     t
+}
+
+pub fn failure_details(error: &HttpClientError) -> Table {
+    match error {
+        HttpClientError::ClientErrorResponse {
+            status_code,
+            response,
+            backtrace: _,
+        } => generic_failed_request_details(status_code, response),
+        HttpClientError::ServerErrorResponse {
+            status_code,
+            response,
+            backtrace: _,
+        } => generic_failed_request_details(status_code, response),
+        HttpClientError::HealthCheckFailed {
+            status_code,
+            path,
+            details,
+        } => {
+            let path_s = path.clone();
+            let status_code_s = format!("{}", status_code);
+            let mut data = vec![
+                RowOfTwoStrings {
+                    key: "result",
+                    value: "request failed",
+                },
+                RowOfTwoStrings {
+                    key: "status_code",
+                    value: status_code_s.as_str(),
+                },
+                RowOfTwoStrings {
+                    key: "path",
+                    value: path_s.as_str(),
+                },
+            ];
+
+            match details {
+                HealthCheckFailureDetails::AlarmCheck(details) => {
+                    data.push(RowOfTwoStrings {
+                        key: "reason",
+                        value: details.reason.as_str(),
+                    });
+                }
+                HealthCheckFailureDetails::NodeIsQuorumCritical(details) => {
+                    data.push(RowOfTwoStrings {
+                        key: "reason",
+                        value: details.reason.as_str(),
+                    });
+                }
+            };
+
+            let tb = Table::builder(data);
+            tb.build()
+        }
+        HttpClientError::NotFound => {
+            let status_code_s = format!("{}", StatusCode::NOT_FOUND);
+            let data = vec![
+                RowOfTwoStrings {
+                    key: "result",
+                    value: "request failed",
+                },
+                RowOfTwoStrings {
+                    key: "status_code",
+                    value: status_code_s.as_str(),
+                },
+            ];
+
+            let tb = Table::builder(data);
+            tb.build()
+        }
+        HttpClientError::MultipleMatchingBindings => {
+            let data = vec![
+                RowOfTwoStrings {
+                    key: "result",
+                    value: "request failed",
+                },
+                RowOfTwoStrings {
+                    key: "status_code",
+                    value: StatusCode::CONFLICT.as_str(),
+                },
+                RowOfTwoStrings {
+                    key: "reason",
+                    value: "multiple bindings found between the source and destination, please specify a --routing-key of the target binding"
+                }
+            ];
+
+            let tb = Table::builder(data);
+            tb.build()
+        }
+        HttpClientError::InvalidHeaderValue { .. } => {
+            let reason = "invalid HTTP request header value";
+            let data = vec![
+                RowOfTwoStrings {
+                    key: "result",
+                    value: "request failed",
+                },
+                RowOfTwoStrings {
+                    key: "reason",
+                    value: reason,
+                },
+            ];
+
+            let tb = Table::builder(data);
+            tb.build()
+        }
+        HttpClientError::RequestError {
+            error,
+            backtrace: _,
+        } => {
+            let reason = format!("HTTP API request failed: {}", error);
+            let data = vec![
+                RowOfTwoStrings {
+                    key: "result",
+                    value: "request failed",
+                },
+                RowOfTwoStrings {
+                    key: "reason",
+                    value: reason.as_str(),
+                },
+            ];
+
+            let tb = Table::builder(data);
+            tb.build()
+        }
+        HttpClientError::Other => {
+            let data = vec![
+                RowOfTwoStrings {
+                    key: "result",
+                    value: "request failed",
+                },
+                RowOfTwoStrings {
+                    key: "reason",
+                    value: "(not available)",
+                },
+            ];
+
+            let tb = Table::builder(data);
+            tb.build()
+        }
+    }
+}
+
+fn generic_failed_request_details(
+    status_code: &StatusCode,
+    response: &Option<HttpClientResponse>,
+) -> Table {
+    let status_code_s = status_code.to_string();
+    let mut data = vec![
+        RowOfTwoStrings {
+            key: "result",
+            value: "request failed",
+        },
+        RowOfTwoStrings {
+            key: "status_code",
+            value: status_code_s.as_str(),
+        },
+    ];
+    match response {
+        None => (),
+        Some(ref val) => {
+            data.push(RowOfTwoStrings {
+                key: "request URL",
+                value: val.url().as_str(),
+            });
+        }
+    }
+
+    let tb = Table::builder(data);
+    tb.build()
 }
 
 pub fn health_check_failure(

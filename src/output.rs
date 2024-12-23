@@ -204,7 +204,9 @@ impl ResultHandler {
     //
 
     fn report_command_run_error(&mut self, error: &HttpClientError) {
-        eprintln!("{}", error);
+        let mut table = tables::failure_details(error);
+        self.table_styler.apply(&mut table);
+        eprintln!("{}", table);
         let code = client_error_to_exit_code(error);
         self.exit_code = Some(code);
     }
