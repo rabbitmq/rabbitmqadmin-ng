@@ -184,7 +184,25 @@ rabbitmqadmin list bindings
 rabbitmqadmin --vhost "events" list bindings
 ```
 
-### Declare a queue
+### Create a Virtual Host
+
+```shell
+rabbitmqadmin declare vhost --name "vh-789" --default-queue-type "quorum" --description "Used to reproduce issue #789"
+```
+
+### Delete a Virtual Host
+
+```shell
+rabbitmqadmin delete vhost --name "vh-789"
+```
+
+```shell
+# --idempotently means that 404 Not Found responses will not be  considered errors
+rabbitmqadmin delete vhost --name "vh-789" --idempotently
+```
+
+
+### Declare a Queue
 
 ```shell
 rabbitmqadmin --vhost "events" declare queue --name "target.quorum.queue.name" --type "quorum" --durable true
@@ -204,7 +222,12 @@ rabbitmqadmin --vhost "events" declare queue --name "target.classic.queue.name" 
 rabbitmqadmin --vhost "events" delete queue --name "target.queue.name"
 ```
 
-### Declare an exchange
+``` shell
+# --idempotently means that 404 Not Found responses will not be  considered errors
+rabbitmqadmin --vhost "events" delete queue --name "target.queue.name" --idempotently
+```
+
+### Declare an Exchange
 
 ```shell
 rabbitmqadmin --vhost "events" declare exchange --name "events.all_types.topic" --type "topic" --durable true
@@ -222,6 +245,11 @@ rabbitmqadmin --vhost "events" declare exchange --name "local.random.c60bda92" -
 
 ``` shell
 rabbitmqadmin --vhost "events" delete exchange --name "target.exchange.name"
+```
+
+``` shell
+# --idempotently means that 404 Not Found responses will not be  considered errors
+rabbitmqadmin --vhost "events" delete exchange --name "target.exchange.name" --idempotently
 ```
 
 
