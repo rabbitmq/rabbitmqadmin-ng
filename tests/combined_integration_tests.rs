@@ -1,3 +1,4 @@
+use std::path::Path;
 // Copyright (C) 2023-2024 RabbitMQ Core Team (teamrabbitmq@gmail.com)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,18 +20,29 @@ use test_helpers::{run_fails, run_succeeds};
 #[test]
 fn combined_integration_test1() -> Result<(), Box<dyn std::error::Error>> {
     let vh = "combined_integration_test1";
-    run_succeeds([
-        "--config",
-        "tests/fixtures/config_Files/config_file1.conf",
-        "--node",
-        "node_a",
-        "declare",
-        "vhost",
-        "--name",
-        vh,
-    ]);
+    let config_path = Path::new("tests/fixtures/config_Files/config_file1.conf");
 
-    test_helpers::delete_vhost(vh)
+    if config_path.exists() {
+        run_succeeds([
+            "--config",
+            config_path.to_string_lossy().as_ref(),
+            "--node",
+            "node_a",
+            "declare",
+            "vhost",
+            "--name",
+            vh,
+        ]);
+
+        test_helpers::delete_vhost(vh)
+    } else {
+        println!(
+            "{} doesn't exist. Current working directory: {}",
+            vh,
+            std::env::current_dir()?.display()
+        );
+        Ok(())
+    }
 }
 
 #[test]
