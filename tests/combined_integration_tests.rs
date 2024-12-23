@@ -13,6 +13,7 @@
 // limitations under the License.
 use predicates::prelude::*;
 use std::path;
+use std::path::PathBuf;
 
 mod test_helpers;
 use test_helpers::{run_fails, run_succeeds};
@@ -37,11 +38,7 @@ fn combined_integration_test1() -> Result<(), Box<dyn std::error::Error>> {
 
         test_helpers::delete_vhost(vh)
     } else {
-        println!(
-            "{} doesn't exist. Current working directory: {}",
-            config_path.to_string_lossy(),
-            std::env::current_dir()?.display()
-        );
+        report_a_missing_config_file(config_path)?;
         Ok(())
     }
 }
@@ -51,21 +48,31 @@ fn combined_integration_test2() -> Result<(), Box<dyn std::error::Error>> {
     let vh = "combined_integration_test2";
 
     // Uses a node alias that does not exist in the file
-    run_fails([
-        "--config",
-        "tests/fixtures/config_Files/config_file1.conf",
-        "--node",
-        "n0n_ex1stent_nod3",
-        "declare",
-        "vhost",
-        "--name",
-        vh,
-    ])
-    .stderr(predicate::str::contains(
-        "Encountered an error when trying to load configuration",
-    ));
+    let config_path = path::absolute("tests/fixtures/config_files/config_file1.conf")
+        .expect("failed to compute an absolute version for a ./test/fixtures path");
 
-    test_helpers::delete_vhost(vh)
+    if config_path.exists() {
+        run_fails([
+            "--config",
+            config_path.to_string_lossy().as_ref(),
+            "--node",
+            "n0n_ex1stent_nod3",
+            "declare",
+            "vhost",
+            "--name",
+            vh,
+        ])
+        .stderr(
+            predicate::str::contains("provided configuration section (--node)").and(
+                predicate::str::contains("was not found in the configuration file"),
+            ),
+        );
+
+        test_helpers::delete_vhost(vh)
+    } else {
+        report_a_missing_config_file(config_path)?;
+        Ok(())
+    }
 }
 
 #[test]
@@ -73,9 +80,11 @@ fn combined_integration_test3() -> Result<(), Box<dyn std::error::Error>> {
     let vh = "combined_integration_test3";
 
     // Uses a node alias that does not exist in the file
+    let config_path = path::absolute("tests/fixtures/config_files/non_exis7ent_c0nfig_f1le.conf")
+        .expect("failed to compute an absolute version for a ./test/fixtures path");
     run_fails([
         "--config",
-        "tests/fixtures/config_Files/non_exis7ent_c0nfig_f1le.conf",
+        config_path.to_string_lossy().as_ref(),
         "declare",
         "vhost",
         "--name",
@@ -219,4 +228,17 @@ fn combined_integration_test4() -> Result<(), Box<dyn std::error::Error>> {
 
     test_helpers::delete_user(new_user).expect("failed to delete a user");
     test_helpers::delete_vhost(vh)
+}
+
+//
+// Implementation
+//
+
+fn report_a_missing_config_file(config_path: PathBuf) -> Result<(), Box<dyn std::error::Error>> {
+    println!(
+        "{} doesn't exist. Current working directory: {}",
+        config_path.to_string_lossy(),
+        std::env::current_dir()?.display()
+    );
+    Ok(())
 }

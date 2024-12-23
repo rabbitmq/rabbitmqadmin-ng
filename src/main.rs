@@ -69,10 +69,6 @@ fn main() {
     let common_settings = if let Ok(val) = cf_ss {
         SharedSettings::from_args_with_defaults(&cli, &val)
     } else {
-        println!(
-            "Instantiating SharedState only from CLI args: {}",
-            cf_ss.unwrap_err()
-        );
         SharedSettings::from_args(&cli)
     };
     let endpoint = common_settings.endpoint();
