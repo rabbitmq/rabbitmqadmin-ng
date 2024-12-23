@@ -49,7 +49,7 @@ fn combined_integration_test2() -> Result<(), Box<dyn std::error::Error>> {
         vh,
     ])
     .stderr(predicate::str::contains(
-        "was not found in the configuration file",
+        "Encountered an error when trying to load configuration",
     ));
 
     test_helpers::delete_vhost(vh)
