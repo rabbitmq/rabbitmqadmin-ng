@@ -41,3 +41,11 @@ fn show_subcommands_with_category_name_and_help() -> Result<(), Box<dyn std::err
 
     Ok(())
 }
+
+#[test]
+fn shows_subcommand_specific_info_with_help() -> Result<(), Box<dyn std::error::Error>> {
+    let args = ["declare", "queue", "--help"];
+    run_succeeds(args).stdout(predicate::str::contains("Usage:"));
+
+    Ok(())
+}
