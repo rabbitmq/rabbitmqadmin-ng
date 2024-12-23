@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use assert_cmd::Command;
 use predicates::prelude::*;
 
 mod test_helpers;
@@ -20,75 +19,43 @@ use crate::test_helpers::*;
 
 #[test]
 fn list_queues() -> Result<(), Box<dyn std::error::Error>> {
+    let vh1 = "queue_vhost_1";
+    let vh2 = "queue_vhost_2";
+    let q1 = "new_queue1";
+    let q2 = "new_queue2";
+
+    delete_vhost(vh1).expect("failed to delete a virtual host");
+    delete_vhost(vh2).expect("failed to delete a virtual host");
+
     // declare vhost 1
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.args(["declare", "vhost", "--name", "queue_vhost_1"]);
-    cmd.assert().success();
+    run_succeeds(["declare", "vhost", "--name", vh1]);
 
     // declare vhost 2
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.args(["declare", "vhost", "--name", "queue_vhost_2"]);
-    cmd.assert().success();
+    run_succeeds(["declare", "vhost", "--name", vh2]);
 
-    // declare new queue in vhost 1
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.arg("-V")
-        .arg("queue_vhost_1")
-        .arg("declare")
-        .arg("queue")
-        .arg("--name")
-        .arg("new_queue1")
-        .arg("--type")
-        .arg("classic");
-    cmd.assert().success();
+    // declare a new queue in vhost 1
+    run_succeeds(["-V", vh1, "declare", "queue", "--name", q1, "--type", "classic"]);
 
     // declare new queue in vhost 2
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.arg("-V")
-        .arg("queue_vhost_2")
-        .arg("declare")
-        .arg("queue")
-        .arg("--name")
-        .arg("new_queue2")
-        .arg("--type")
-        .arg("quorum");
-    cmd.assert().success();
+    run_succeeds(["-V", vh2, "declare", "queue", "--name", q2, "--type", "quorum"]);
 
     await_queue_metric_emission();
 
     // list queues in vhost 1
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.args(["-V", "queue_vhost_1", "list", "queues"]);
-    cmd.assert().success().stdout(
-        predicate::str::contains("new_queue1").and(predicate::str::contains("new_queue2").not()),
+    run_succeeds(["-V", vh1, "list", "queues"]).stdout(
+        predicate::str::contains(q1).and(predicate::str::contains("new_queue2").not()),
     );
 
-    // delete the queues from vhost 1
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.arg("-V")
-        .arg("queue_vhost_1")
-        .arg("delete")
-        .arg("queue")
-        .arg("--name")
-        .arg("new_queue1");
-    cmd.assert().success();
+    // delete the queue in vhost 1
+    run_succeeds(["-V", vh1, "delete", "queue", "--name", q1]);
 
-    // list queue in vhost 1
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.arg("-V").arg("queue_vhost_1").arg("list").arg("queues");
-    cmd.assert()
-        .success()
-        .stdout(predicate::str::contains("new_queue1").not());
+    // list queues in vhost 1
+    run_succeeds(["-V", vh1, "list", "queues"]).stdout(
+        predicate::str::contains(q1).not()
+    );
 
-    // delete vhost 1
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.args(["delete", "vhost", "--name", "queue_vhost_1"]);
-    cmd.assert().success();
-
-    // delete vhost 2
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.args(["delete", "vhost", "--name", "queue_vhost_2"]);
-    cmd.assert().success();
+    delete_vhost(vh1).expect("failed to delete a virtual host");
+    delete_vhost(vh2).expect("failed to delete a virtual host");
 
     Ok(())
 }
