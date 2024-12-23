@@ -1,4 +1,3 @@
-use std::path::Path;
 // Copyright (C) 2023-2024 RabbitMQ Core Team (teamrabbitmq@gmail.com)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,6 +11,7 @@ use std::path::Path;
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+use std::path;
 use predicates::prelude::*;
 
 mod test_helpers;
@@ -20,7 +20,7 @@ use test_helpers::{run_fails, run_succeeds};
 #[test]
 fn combined_integration_test1() -> Result<(), Box<dyn std::error::Error>> {
     let vh = "combined_integration_test1";
-    let config_path = Path::new("tests/fixtures/config_Files/config_file1.conf");
+    let config_path = path::absolute("./tests/fixtures/config_Files/config_file1.conf").expect("failed to compute an absolute version for a ./test/fixtures path");
 
     if config_path.exists() {
         run_succeeds([
