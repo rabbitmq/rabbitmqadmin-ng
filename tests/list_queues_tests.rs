@@ -34,25 +34,26 @@ fn list_queues() -> Result<(), Box<dyn std::error::Error>> {
     run_succeeds(["declare", "vhost", "--name", vh2]);
 
     // declare a new queue in vhost 1
-    run_succeeds(["-V", vh1, "declare", "queue", "--name", q1, "--type", "classic"]);
+    run_succeeds([
+        "-V", vh1, "declare", "queue", "--name", q1, "--type", "classic",
+    ]);
 
     // declare new queue in vhost 2
-    run_succeeds(["-V", vh2, "declare", "queue", "--name", q2, "--type", "quorum"]);
+    run_succeeds([
+        "-V", vh2, "declare", "queue", "--name", q2, "--type", "quorum",
+    ]);
 
     await_queue_metric_emission();
 
     // list queues in vhost 1
-    run_succeeds(["-V", vh1, "list", "queues"]).stdout(
-        predicate::str::contains(q1).and(predicate::str::contains("new_queue2").not()),
-    );
+    run_succeeds(["-V", vh1, "list", "queues"])
+        .stdout(predicate::str::contains(q1).and(predicate::str::contains("new_queue2").not()));
 
     // delete the queue in vhost 1
     run_succeeds(["-V", vh1, "delete", "queue", "--name", q1]);
 
     // list queues in vhost 1
-    run_succeeds(["-V", vh1, "list", "queues"]).stdout(
-        predicate::str::contains(q1).not()
-    );
+    run_succeeds(["-V", vh1, "list", "queues"]).stdout(predicate::str::contains(q1).not());
 
     delete_vhost(vh1).expect("failed to delete a virtual host");
     delete_vhost(vh2).expect("failed to delete a virtual host");

@@ -35,8 +35,8 @@ fn test_list_policies() -> Result<(), Box<dyn std::error::Error>> {
         "{\"max-length\": 12345}",
     ]);
 
-
-    run_succeeds(["list", "policies"]).stdout(predicate::str::contains(policy_name).and(predicate::str::contains("12345")));
+    run_succeeds(["list", "policies"])
+        .stdout(predicate::str::contains(policy_name).and(predicate::str::contains("12345")));
     run_succeeds(["delete", "policy", "--name", policy_name]);
     run_succeeds(["list", "policies"]).stdout(predicate::str::contains(policy_name).not());
 
@@ -65,13 +65,9 @@ fn test_operator_policies() -> Result<(), Box<dyn std::error::Error>> {
     run_succeeds(["list", "operator_policies"]).stdout(
         predicate::str::contains(operator_policy_name).and(predicate::str::contains("op-foo")),
     );
-    run_succeeds([
-        "delete",
-        "operator_policy",
-        "--name",
-        operator_policy_name,
-    ]);
-    run_succeeds(["list", "operator_policies"]).stdout(predicate::str::contains(operator_policy_name).not());
+    run_succeeds(["delete", "operator_policy", "--name", operator_policy_name]);
+    run_succeeds(["list", "operator_policies"])
+        .stdout(predicate::str::contains(operator_policy_name).not());
 
     Ok(())
 }

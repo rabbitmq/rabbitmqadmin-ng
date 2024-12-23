@@ -41,7 +41,8 @@ fn test_runtime_parameters() -> Result<(), Box<dyn std::error::Error>> {
         "parameters",
         "--component",
         "federation-upstream",
-    ]).stdout(predicate::str::contains("my-upstream").and(predicate::str::contains("3600000")));
+    ])
+    .stdout(predicate::str::contains("my-upstream").and(predicate::str::contains("3600000")));
 
     run_succeeds([
         "-V",
@@ -61,7 +62,8 @@ fn test_runtime_parameters() -> Result<(), Box<dyn std::error::Error>> {
         "parameters",
         "--component",
         "federation-upstream",
-    ]).stdout(predicate::str::contains("my-upstream").not());
+    ])
+    .stdout(predicate::str::contains("my-upstream").not());
 
     delete_vhost(vh).expect("failed to delete a virtual host");
 
