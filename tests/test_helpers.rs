@@ -17,9 +17,9 @@ use std::env;
 use std::ffi::OsStr;
 use std::time::Duration;
 
+use assert_cmd::assert::Assert;
 use assert_cmd::prelude::*;
 use std::process::Command;
-use assert_cmd::assert::Assert;
 
 type CommandRunResult = Result<(), Box<dyn std::error::Error>>;
 
@@ -32,17 +32,20 @@ pub fn await_queue_metric_emission() {
     await_metric_emission(delay.parse::<u64>().unwrap());
 }
 
-
 pub fn run_succeeds<I, S>(args: I) -> Assert
-    where I: IntoIterator<Item = S>,
-          S: AsRef<OsStr> {
+where
+    I: IntoIterator<Item = S>,
+    S: AsRef<OsStr>,
+{
     let mut cmd = Command::cargo_bin("rabbitmqadmin").unwrap();
     cmd.args(args).assert().success()
 }
 
 pub fn run_fails<I, S>(args: I) -> Assert
-    where I: IntoIterator<Item = S>,
-          S: AsRef<OsStr> {
+where
+    I: IntoIterator<Item = S>,
+    S: AsRef<OsStr>,
+{
     let mut cmd = Command::cargo_bin("rabbitmqadmin").unwrap();
     cmd.args(args).assert().failure()
 }

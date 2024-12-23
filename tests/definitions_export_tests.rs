@@ -15,7 +15,7 @@
 use predicates::prelude::*;
 
 mod test_helpers;
-use test_helpers::{run_succeeds};
+use test_helpers::run_succeeds;
 
 #[test]
 fn test_export_definitions() -> Result<(), Box<dyn std::error::Error>> {

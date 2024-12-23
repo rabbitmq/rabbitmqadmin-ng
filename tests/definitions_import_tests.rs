@@ -13,7 +13,7 @@
 // limitations under the License.
 
 mod test_helpers;
-use test_helpers::{run_succeeds};
+use test_helpers::run_succeeds;
 #[test]
 fn test_import_definitions() -> Result<(), Box<dyn std::error::Error>> {
     run_succeeds([

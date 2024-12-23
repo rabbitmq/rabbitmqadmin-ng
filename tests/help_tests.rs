@@ -11,17 +11,16 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-use assert_cmd::prelude::*;
 use predicates::prelude::*;
-use std::process::Command;
+
+mod test_helpers;
+use test_helpers::{run_fails, run_succeeds};
 
 #[test]
 fn show_help_with_no_arguments() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-
-    // cmd.arg("foobar").arg("test/file/doesnt/exist");
-    cmd.assert().failure().stderr(predicate::str::contains(
-        "equires a subcommand but one was not provided",
+    let args: [&str; 0] = [];
+    run_fails(args).stderr(predicate::str::contains(
+        "requires a subcommand but one was not provided",
     ));
 
     Ok(())
@@ -29,11 +28,16 @@ fn show_help_with_no_arguments() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn show_subcommands_with_no_arguments() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    let args: [&str; 0] = [];
+    run_fails(args).stderr(predicate::str::contains("subcommands:"));
 
-    cmd.assert().failure().stderr(predicate::str::contains(
-        "requires a subcommand but one was not provided",
-    ));
+    Ok(())
+}
+
+#[test]
+fn show_subcommands_with_category_name_and_help() -> Result<(), Box<dyn std::error::Error>> {
+    let args = ["declare", "--help"];
+    run_succeeds(args).stdout(predicate::str::contains("Commands:"));
 
     Ok(())
 }

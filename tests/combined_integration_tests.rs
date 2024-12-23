@@ -14,7 +14,7 @@
 use predicates::prelude::*;
 
 mod test_helpers;
-use test_helpers::{run_succeeds, run_fails};
+use test_helpers::{run_fails, run_succeeds};
 
 #[test]
 fn combined_integration_test1() -> Result<(), Box<dyn std::error::Error>> {
@@ -38,18 +38,17 @@ fn combined_integration_test2() -> Result<(), Box<dyn std::error::Error>> {
     let vh = "combined_integration_test2";
 
     // Uses a node alias that does not exist in the file
-    run_fails(
-        [
-            "--config",
-            "tests/fixtures/config_Files/config_file1.conf",
-            "--node",
-            "n0n_ex1stent_nod3",
-            "declare",
-            "vhost",
-            "--name",
-            vh,
-        ]
-    ).stderr(predicate::str::contains(
+    run_fails([
+        "--config",
+        "tests/fixtures/config_Files/config_file1.conf",
+        "--node",
+        "n0n_ex1stent_nod3",
+        "declare",
+        "vhost",
+        "--name",
+        vh,
+    ])
+    .stderr(predicate::str::contains(
         "was not found in the configuration file",
     ));
 
@@ -68,7 +67,8 @@ fn combined_integration_test3() -> Result<(), Box<dyn std::error::Error>> {
         "vhost",
         "--name",
         vh,
-    ]).stderr(predicate::str::contains("does not exist"));
+    ])
+    .stderr(predicate::str::contains("does not exist"));
 
     test_helpers::delete_vhost(vh)
 }
@@ -84,16 +84,123 @@ fn combined_integration_test4() -> Result<(), Box<dyn std::error::Error>> {
     let q = "queue_from_combined_integration_test4";
 
     run_succeeds(["declare", "vhost", "--name", vh]);
-    run_succeeds(["declare", "user", "--name", new_user, "--password", new_pass, "--tags", "administrator"]);
-    run_succeeds(["--vhost", vh, "declare", "permissions", "--user", new_user, "--configure", ".*", "--read", ".*", "--write", ".*"]);
-    run_succeeds(["--vhost", vh, "--username", new_user, "--password", new_pass, "declare", "exchange", "--name", x, "--type", "fanout", "--durable", "true", "--auto_delete", "false"]);
-    run_succeeds(["--vhost", vh, "--username", new_user, "--password", new_pass, "declare", "queue", "--name", q, "--type", "quorum", "--durable", "true", "--auto_delete", "false"]);
-    run_succeeds(["--vhost", vh, "--username", new_user, "--password", new_pass, "declare", "queue", "--name", q, "--type", "quorum", "--durable", "true", "--auto_delete", "false"]);
-    run_succeeds(["--vhost", vh, "--username", new_user, "--password", new_pass, "declare", "binding", "--source", x, "--destination_type", "queue", "--destination", q, "--routing_key", "rk"]);
+    run_succeeds([
+        "declare",
+        "user",
+        "--name",
+        new_user,
+        "--password",
+        new_pass,
+        "--tags",
+        "administrator",
+    ]);
+    run_succeeds([
+        "--vhost",
+        vh,
+        "declare",
+        "permissions",
+        "--user",
+        new_user,
+        "--configure",
+        ".*",
+        "--read",
+        ".*",
+        "--write",
+        ".*",
+    ]);
+    run_succeeds([
+        "--vhost",
+        vh,
+        "--username",
+        new_user,
+        "--password",
+        new_pass,
+        "declare",
+        "exchange",
+        "--name",
+        x,
+        "--type",
+        "fanout",
+        "--durable",
+        "true",
+        "--auto_delete",
+        "false",
+    ]);
+    run_succeeds([
+        "--vhost",
+        vh,
+        "--username",
+        new_user,
+        "--password",
+        new_pass,
+        "declare",
+        "queue",
+        "--name",
+        q,
+        "--type",
+        "quorum",
+        "--durable",
+        "true",
+        "--auto_delete",
+        "false",
+    ]);
+    run_succeeds([
+        "--vhost",
+        vh,
+        "--username",
+        new_user,
+        "--password",
+        new_pass,
+        "declare",
+        "queue",
+        "--name",
+        q,
+        "--type",
+        "quorum",
+        "--durable",
+        "true",
+        "--auto_delete",
+        "false",
+    ]);
+    run_succeeds([
+        "--vhost",
+        vh,
+        "--username",
+        new_user,
+        "--password",
+        new_pass,
+        "declare",
+        "binding",
+        "--source",
+        x,
+        "--destination_type",
+        "queue",
+        "--destination",
+        q,
+        "--routing_key",
+        "rk",
+    ]);
 
     // We don't have to clear this topology because the entire virtual host will be deleted
     // soon but this is an integration test, so let's do that
-    run_succeeds(["--vhost", vh, "--username", new_user, "--password", new_pass, "delete", "binding", "--source", x, "--destination_type", "queue", "--destination", q, "--routing_key", "rk"]);
+    run_succeeds([
+        "--vhost",
+        vh,
+        "--username",
+        new_user,
+        "--password",
+        new_pass,
+        "delete",
+        "binding",
+        "--source",
+        x,
+        "--destination_type",
+        "queue",
+        "--destination",
+        q,
+        "--routing_key",
+        "rk",
+    ]);
     run_succeeds(["-V", vh, "delete", "exchange", "--name", x]);
     run_succeeds(["-V", vh, "delete", "queue", "--name", q]);
 

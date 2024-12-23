@@ -11,28 +11,21 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-use assert_cmd::Command;
 use predicates::prelude::*;
+
+mod test_helpers;
+use test_helpers::run_succeeds;
 
 #[test]
 fn test_health_check_local_alarms() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-
-    cmd.args(["health_check", "local_alarms"]);
-    cmd.assert()
-        .success()
-        .stdout(predicate::str::contains("passed"));
+    run_succeeds(["health_check", "local_alarms"]).stdout(predicate::str::contains("passed"));
 
     Ok(())
 }
 
 #[test]
 fn test_health_check_cluster_wide_alarms() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-
-    cmd.args(["health_check", "cluster_wide_alarms"]);
-    cmd.assert()
-        .success()
+    run_succeeds(["health_check", "cluster_wide_alarms"])
         .stdout(predicate::str::contains("passed"));
 
     Ok(())

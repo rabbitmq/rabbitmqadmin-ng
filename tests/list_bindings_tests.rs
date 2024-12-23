@@ -11,7 +11,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-use assert_cmd::Command;
 use predicates::prelude::*;
 
 mod test_helpers;
@@ -19,96 +18,73 @@ use crate::test_helpers::*;
 
 #[test]
 fn test_list_bindings() -> Result<(), Box<dyn std::error::Error>> {
+    let vh1 = "bindings_vhost_1";
+    let vh2 = "bindings_vhost_2";
+    let q1 = "new_queue_1";
+    let q2 = "new_queue_2";
+
     // declare vhost 1
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.args(["declare", "vhost", "--name", "bindings_vhost_1"]);
-    cmd.assert().success();
+    run_succeeds(["declare", "vhost", "--name", vh1]);
 
     // declare vhost 2
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.args(["declare", "vhost", "--name", "bindings_vhost_2"]);
-    cmd.assert().success();
+    run_succeeds(["declare", "vhost", "--name", vh2]);
 
-    // declare new queue in vhost 1
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.arg("-V")
-        .arg("bindings_vhost_1")
-        .arg("declare")
-        .arg("queue")
-        .arg("--name")
-        .arg("new_queue_1")
-        .arg("--type")
-        .arg("classic");
-    cmd.assert().success();
+    // declare a new queue in vhost 1
+    run_succeeds([
+        "-V", vh1, "declare", "queue", "--name", q1, "--type", "classic",
+    ]);
 
-    // declare new queue in vhost 2
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.arg("-V")
-        .arg("bindings_vhost_2")
-        .arg("declare")
-        .arg("queue")
-        .arg("--name")
-        .arg("new_queue_2")
-        .arg("--type")
-        .arg("quorum");
-    cmd.assert().success();
+    // declare a new queue in vhost 2
+    run_succeeds([
+        "-V", vh2, "declare", "queue", "--name", q2, "--type", "quorum",
+    ]);
 
-    // declare exchange -> queue binding
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.arg("-V")
-        .arg("bindings_vhost_1")
-        .arg("declare")
-        .arg("binding")
-        .arg("--source")
-        .arg("amq.direct")
-        .arg("--destination_type")
-        .arg("queue")
-        .arg("--destination")
-        .arg("new_queue_1")
-        .arg("--routing_key")
-        .arg("routing_key_queue");
-    cmd.assert().success();
+    // bind the queue -> a pre-existing exchange
+    run_succeeds([
+        "-V",
+        vh1,
+        "declare",
+        "binding",
+        "--source",
+        "amq.direct",
+        "--destination_type",
+        "queue",
+        "--destination",
+        q1,
+        "--routing_key",
+        "routing_key_queue",
+    ]);
 
-    // declare exchange -> exchange binding
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.arg("-V")
-        .arg("bindings_vhost_1")
-        .arg("declare")
-        .arg("binding")
-        .arg("--source")
-        .arg("amq.direct")
-        .arg("--destination_type")
-        .arg("exchange")
-        .arg("--destination")
-        .arg("amq.topic")
-        .arg("--routing_key")
-        .arg("routing_key_exchange");
-    cmd.assert().success();
+    // declare an exchange -> exchange binding
+    run_succeeds([
+        "-V",
+        vh1,
+        "declare",
+        "binding",
+        "--source",
+        "amq.direct",
+        "--destination_type",
+        "exchange",
+        "--destination",
+        "amq.topic",
+        "--routing_key",
+        "routing_key_exchange",
+    ]);
+
     await_queue_metric_emission();
 
     // list bindings in vhost 1
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.args(["-V", "bindings_vhost_1", "list", "bindings"]);
-    cmd.assert().success().stdout(
+    run_succeeds(["-V", "bindings_vhost_1", "list", "bindings"]).stdout(
         predicate::str::contains("new_queue_1")
             .and(predicate::str::contains("routing_key_queue"))
             .and(predicate::str::contains("routing_key_exchange")),
     );
 
-    // delete the queues from vhost 1
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.arg("-V")
-        .arg("bindings_vhost_1")
-        .arg("delete")
-        .arg("queue")
-        .arg("--name")
-        .arg("new_queue_1");
-    cmd.assert().success();
+    // delete the queue from vhost 1
+    run_succeeds(["-V", vh1, "delete", "queue", "--name", q1]);
 
-    // this routing_key should not longer be present
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.args(["-V", "bindings_vhost_1", "list", "bindings"]);
-    cmd.assert().success().stdout(
+    // these bindings were deleted with the queue
+    run_succeeds(["-V", "bindings_vhost_1", "list", "bindings"]).stdout(
         predicate::str::contains("new_queue_1")
             .not()
             .and(predicate::str::contains("routing_key_queue"))
@@ -117,13 +93,10 @@ fn test_list_bindings() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     // delete vhost 1
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.args(["delete", "vhost", "--name", "bindings_vhost_1"]);
-    cmd.assert().success();
+    delete_vhost(vh1).expect("failed to delete a virtual host");
 
     // delete vhost 2
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.args(["delete", "vhost", "--name", "bindings_vhost_2"]);
-    cmd.assert().success();
+    delete_vhost(vh2).expect("failed to delete a virtual host");
+
     Ok(())
 }

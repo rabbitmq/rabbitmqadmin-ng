@@ -14,7 +14,7 @@
 use predicates::prelude::*;
 
 mod test_helpers;
-use test_helpers::{run_succeeds, run_fails};
+use test_helpers::{run_fails, run_succeeds};
 
 #[test]
 fn delete_an_existing_exchange() -> Result<(), Box<dyn std::error::Error>> {
@@ -51,13 +51,25 @@ fn delete_a_non_existing_exchange() -> Result<(), Box<dyn std::error::Error>> {
 
     // try deleting a non-existent exchange with --idempotently
     run_succeeds([
-        "--vhost", vh, "delete", "exchange", "--name", "7s98df7s79df-non-existent", "--idempotently"
+        "--vhost",
+        vh,
+        "delete",
+        "exchange",
+        "--name",
+        "7s98df7s79df-non-existent",
+        "--idempotently",
     ]);
 
     // try deleting it without
     run_fails([
-        "--vhost", vh, "delete", "exchange", "--name", "7s98df7s79df-non-existent"
-    ]).stderr(predicate::str::contains("Not Found"));
+        "--vhost",
+        vh,
+        "delete",
+        "exchange",
+        "--name",
+        "7s98df7s79df-non-existent",
+    ])
+    .stderr(predicate::str::contains("Not Found"));
 
     // delete the vhost
     test_helpers::delete_vhost(vh)?;
