@@ -1,4 +1,3 @@
-use std::process::Command;
 // Copyright (C) 2023-2024 RabbitMQ Core Team (teamrabbitmq@gmail.com)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,20 +11,19 @@ use std::process::Command;
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-use assert_cmd::prelude::*;
+
 use predicates::prelude::*;
+
+mod test_helpers;
+use crate::test_helpers::*;
 
 #[test]
 fn test_runtime_parameters() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.args(["declare", "vhost", "--name", "parameters_vhost_1"]);
-    cmd.assert().success();
-
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-
-    cmd.args([
+    let vh = "parameters_vhost_1";
+    run_succeeds(["declare", "vhost", "--name", vh]);
+    run_succeeds([
         "-V",
-        "parameters_vhost_1",
+        vh,
         "declare",
         "parameter",
         "--component",
@@ -35,25 +33,19 @@ fn test_runtime_parameters() -> Result<(), Box<dyn std::error::Error>> {
         "--value",
         "{\"uri\":\"amqp://target.hostname\",\"expires\":3600000}",
     ]);
-    cmd.assert().success();
 
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.args([
+    run_succeeds([
         "-V",
-        "parameters_vhost_1",
+        vh,
         "list",
         "parameters",
         "--component",
         "federation-upstream",
-    ]);
-    cmd.assert()
-        .success()
-        .stdout(predicate::str::contains("my-upstream").and(predicate::str::contains("3600000")));
+    ]).stdout(predicate::str::contains("my-upstream").and(predicate::str::contains("3600000")));
 
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.args([
+    run_succeeds([
         "-V",
-        "parameters_vhost_1",
+        vh,
         "delete",
         "parameter",
         "--component",
@@ -61,24 +53,17 @@ fn test_runtime_parameters() -> Result<(), Box<dyn std::error::Error>> {
         "--name",
         "my-upstream",
     ]);
-    cmd.assert().success();
 
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.args([
+    run_succeeds([
         "-V",
-        "parameters_vhost_1",
+        vh,
         "list",
         "parameters",
         "--component",
         "federation-upstream",
-    ]);
-    cmd.assert()
-        .success()
-        .stdout(predicate::str::contains("my-upstream").not());
+    ]).stdout(predicate::str::contains("my-upstream").not());
 
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.args(["delete", "vhost", "--name", "parameters_vhost_1"]);
-    cmd.assert().success();
+    delete_vhost(vh).expect("failed to delete a virtual host");
 
     Ok(())
 }
