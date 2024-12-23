@@ -11,30 +11,29 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-use assert_cmd::prelude::*;
 use predicates::prelude::*;
-use std::process::Command;
+
+mod test_helpers;
+use crate::test_helpers::*;
 
 #[test]
 fn test_list_permissions() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-
-    cmd.args([
+    let username = "user_with_permissions";
+    let password = "pa$$w0rd";
+    run_succeeds([
         "declare",
         "user",
         "--name",
-        "user_with_permissions",
+        username,
         "--password",
-        "pa$$w0rd",
+        password,
     ]);
-    cmd.assert().success();
 
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.args([
+    run_succeeds([
         "declare",
         "permissions",
         "--user",
-        "user_with_permissions",
+        username,
         "--configure",
         "foo",
         "--read",
@@ -42,28 +41,16 @@ fn test_list_permissions() -> Result<(), Box<dyn std::error::Error>> {
         "--write",
         "baz",
     ]);
-    cmd.assert().success();
 
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.args(["list", "permissions"]);
-    cmd.assert().success().stdout(
+    run_succeeds(["list", "permissions"]).stdout(
         predicate::str::contains("foo")
             .and(predicate::str::contains("bar"))
             .and(predicate::str::contains("baz")),
     );
 
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.args(["delete", "permissions", "--user", "user_with_permissions"]);
-    cmd.assert().success();
+    run_succeeds(["delete", "permissions", "--user", username]);
+    run_succeeds(["list", "permissions"]).stdout(predicate::str::contains(username).not());
+    run_succeeds(["delete", "user", "--name", username]);
 
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.args(["list", "permissions"]);
-    cmd.assert()
-        .success()
-        .stdout(predicate::str::contains("user_with_permissions").not());
-
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.args(["delete", "user", "--name", "user_with_permissions"]);
-    cmd.assert().success();
     Ok(())
 }
