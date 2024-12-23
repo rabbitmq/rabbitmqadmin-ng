@@ -11,8 +11,8 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-use std::path;
 use predicates::prelude::*;
+use std::path;
 
 mod test_helpers;
 use test_helpers::{run_fails, run_succeeds};
@@ -20,7 +20,8 @@ use test_helpers::{run_fails, run_succeeds};
 #[test]
 fn combined_integration_test1() -> Result<(), Box<dyn std::error::Error>> {
     let vh = "combined_integration_test1";
-    let config_path = path::absolute("./tests/fixtures/config_Files/config_file1.conf").expect("failed to compute an absolute version for a ./test/fixtures path");
+    let config_path = path::absolute("./tests/fixtures/config_Files/config_file1.conf")
+        .expect("failed to compute an absolute version for a ./test/fixtures path");
 
     if config_path.exists() {
         run_succeeds([
