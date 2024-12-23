@@ -272,6 +272,22 @@ rabbitmqadmin --config $HOME/.configuration/rabbitmqadmin.conf --node staging sh
 
 ## Breaking or Potentially Breaking Changes
 
+### --snake-case for Command Options
+
+`rabbitmqadmin` v1 used `lower_case` for named command arguments, for example:
+
+```shell
+# Note: auto_delete
+rabbitmqadmin-v1 --vhost "vh-2" declare queue name="qq.1" type="quorum" durable=true auto_delete=false
+```
+
+`rabbitmqadmin` v2 uses a more typical `--snake-case` format for the same arguments:
+
+```shell
+# Note: --auto-delete
+rabbitmqadmin --vhost "vh-2" declare queue --name "qq.1" --type "quorum" --durable true --auto-delete false 
+```
+
 ### Global Arguments Come First
 
 Global flags in `rabbitmqadmin` v2 must precede the command category (e.g. `list`) and the command itself,
