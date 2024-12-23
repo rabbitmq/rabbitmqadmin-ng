@@ -20,7 +20,7 @@ use test_helpers::{run_fails, run_succeeds};
 #[test]
 fn combined_integration_test1() -> Result<(), Box<dyn std::error::Error>> {
     let vh = "combined_integration_test1";
-    let config_path = path::absolute("./tests/fixtures/config_Files/config_file1.conf")
+    let config_path = path::absolute("./tests/fixtures/config_files/config_file1.conf")
         .expect("failed to compute an absolute version for a ./test/fixtures path");
 
     if config_path.exists() {
