@@ -1,4 +1,3 @@
-use std::process::Command;
 // Copyright (C) 2023-2024 RabbitMQ Core Team (teamrabbitmq@gmail.com)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,37 +11,29 @@ use std::process::Command;
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-use assert_cmd::prelude::*;
+
 use predicates::prelude::*;
+
+mod test_helpers;
+use crate::test_helpers::*;
 
 #[test]
 fn test_list_users() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.args([
+    let username = "new_user";
+    let password = "pa$$w0rd";
+    run_succeeds([
         "declare",
         "user",
         "--name",
-        "new_user",
+        username,
         "--password",
-        "pa$$w0rd",
+        password,
     ]);
-    cmd.assert().success();
 
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.args(["list", "users"]);
-    cmd.assert()
-        .success()
-        .stdout(predicate::str::contains("new_user"));
+    run_succeeds(["list", "users"]).stdout(predicate::str::contains(username));
+    run_succeeds(["delete", "user", "--name", username]);
 
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.args(["delete", "user", "--name", "new_user"]);
-    cmd.assert().success();
-
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.args(["list", "users"]);
-    cmd.assert()
-        .success()
-        .stdout(predicate::str::contains("new_user").not());
+    run_succeeds(["list", "users"]).stdout(predicate::str::contains(username).not());
 
     Ok(())
 }

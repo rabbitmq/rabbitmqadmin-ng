@@ -803,7 +803,7 @@ fn delete_subcommands() -> [Command; 11] {
                     .required(true),
             ),
         Command::new("user_limit")
-            .about("delete a user limit")
+            .about("clears a user limit")
             .arg(
                 Arg::new("user")
                     .long("user")

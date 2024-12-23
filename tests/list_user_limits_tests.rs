@@ -11,47 +11,48 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-use assert_cmd::Command;
 use predicates::prelude::*;
+
+mod test_helpers;
+use crate::test_helpers::*;
 
 #[test]
 fn test_user_limits() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-
-    cmd.args([
+    let limit_name = "max-connections";
+    let username = "guest";
+    run_succeeds([
         "declare",
         "user_limit",
         "--user",
-        "guest",
+        username,
         "--name",
-        "max-connections",
+        limit_name,
         "--value",
         "1234",
     ]);
-    cmd.assert().success();
 
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.args(["list", "user_limits"]);
-    cmd.assert()
-        .success()
-        .stdout(predicate::str::contains("max-connections").and(predicate::str::contains("1234")));
+    run_succeeds(["list", "user_limits"])
+        .stdout(predicate::str::contains(limit_name).and(predicate::str::contains("1234")));
 
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.args([
+    run_succeeds([
         "delete",
         "user_limit",
         "--user",
-        "guest",
+        username,
         "--name",
-        "max-connections",
+        limit_name,
     ]);
-    cmd.assert().success();
 
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.args(["list", "user_limits"]);
-    cmd.assert()
-        .success()
-        .stdout(predicate::str::contains("max-connections").not());
+    run_succeeds(["list", "user_limits"]).stdout(predicate::str::contains(limit_name).not());
+
+    run_succeeds([
+        "delete",
+        "user_limit",
+        "--user",
+        username,
+        "--name",
+        limit_name,
+    ]);
 
     Ok(())
 }
