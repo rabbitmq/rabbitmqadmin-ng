@@ -11,18 +11,20 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-use assert_cmd::Command;
 use predicates::prelude::*;
+
+mod test_helpers;
+use crate::test_helpers::*;
 
 #[test]
 fn test_list_policies() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    let policy_name = "test_policy";
 
-    cmd.args([
+    run_succeeds([
         "declare",
         "policy",
         "--name",
-        "test_policy",
+        policy_name,
         "--pattern",
         "foo-.*",
         "--apply-to",
@@ -32,36 +34,24 @@ fn test_list_policies() -> Result<(), Box<dyn std::error::Error>> {
         "--definition",
         "{\"max-length\": 12345}",
     ]);
-    cmd.assert().success();
 
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.args(["list", "policies"]);
-    cmd.assert()
-        .success()
-        .stdout(predicate::str::contains("test_policy").and(predicate::str::contains("12345")));
 
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.args(["delete", "policy", "--name", "test_policy"]);
-    cmd.assert().success();
-
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.args(["list", "policies"]);
-    cmd.assert()
-        .success()
-        .stdout(predicate::str::contains("test_policy").not());
+    run_succeeds(["list", "policies"]).stdout(predicate::str::contains(policy_name).and(predicate::str::contains("12345")));
+    run_succeeds(["delete", "policy", "--name", policy_name]);
+    run_succeeds(["list", "policies"]).stdout(predicate::str::contains(policy_name).not());
 
     Ok(())
 }
 
 #[test]
 fn test_operator_policies() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    let operator_policy_name = "test_operator_policy";
 
-    cmd.args([
+    run_succeeds([
         "declare",
         "operator_policy",
         "--name",
-        "test_operator_policy",
+        operator_policy_name,
         "--pattern",
         "op-foo.*",
         "--apply-to",
@@ -71,28 +61,17 @@ fn test_operator_policies() -> Result<(), Box<dyn std::error::Error>> {
         "--definition",
         "{\"max-length\": 12345}",
     ]);
-    cmd.assert().success();
 
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.args(["list", "operator_policies"]);
-    cmd.assert().success().stdout(
-        predicate::str::contains("test_operator_policy").and(predicate::str::contains("op-foo")),
+    run_succeeds(["list", "operator_policies"]).stdout(
+        predicate::str::contains(operator_policy_name).and(predicate::str::contains("op-foo")),
     );
-
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.args([
+    run_succeeds([
         "delete",
         "operator_policy",
         "--name",
-        "test_operator_policy",
+        operator_policy_name,
     ]);
-    cmd.assert().success();
-
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.args(["list", "operator_policies"]);
-    cmd.assert()
-        .success()
-        .stdout(predicate::str::contains("test_operator_policy").not());
+    run_succeeds(["list", "operator_policies"]).stdout(predicate::str::contains(operator_policy_name).not());
 
     Ok(())
 }
