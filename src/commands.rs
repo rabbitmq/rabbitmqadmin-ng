@@ -319,7 +319,7 @@ pub fn declare_user(client: APIClient, command_args: &ArgMatches) -> ClientResul
     if password.is_empty() && provided_hash.is_empty()
         || !password.is_empty() && !provided_hash.is_empty()
     {
-        eprintln!("Please provide either --password or --password_hash");
+        eprintln!("Please provide either --password or --password-hash");
         process::exit(1)
     }
 
@@ -617,7 +617,7 @@ pub fn publish_message(
     command_args: &ArgMatches,
 ) -> ClientResult<responses::MessageRouted> {
     let exchange = command_args.get_one::<String>("exchange").unwrap();
-    let routing_key = command_args.get_one::<String>("routing-key").unwrap();
+    let routing_key = command_args.get_one::<String>("routing_key").unwrap();
     let payload = command_args.get_one::<String>("payload").unwrap();
     let properties = command_args.get_one::<String>("properties").unwrap();
     let parsed_properties = serde_json::from_str::<requests::MessageProperties>(properties)
@@ -636,6 +636,6 @@ pub fn get_messages(
 ) -> ClientResult<Vec<responses::GetMessage>> {
     let queue = command_args.get_one::<String>("queue").unwrap();
     let count = command_args.get_one::<String>("count").unwrap();
-    let ack_mode = command_args.get_one::<String>("ack-mode").unwrap();
+    let ack_mode = command_args.get_one::<String>("ack_mode").unwrap();
     client.get_messages(vhost, queue, count.parse::<u32>().unwrap(), ack_mode)
 }

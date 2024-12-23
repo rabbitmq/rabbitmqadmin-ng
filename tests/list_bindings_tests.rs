@@ -50,11 +50,11 @@ fn test_list_bindings() -> Result<(), Box<dyn std::error::Error>> {
         "binding",
         "--source",
         "amq.direct",
-        "--destination_type",
+        "--destination-type",
         "queue",
         "--destination",
         q1,
-        "--routing_key",
+        "--routing-key",
         "routing_key_queue",
     ]);
 
@@ -66,11 +66,11 @@ fn test_list_bindings() -> Result<(), Box<dyn std::error::Error>> {
         "binding",
         "--source",
         "amq.direct",
-        "--destination_type",
+        "--destination-type",
         "exchange",
         "--destination",
         "amq.topic",
-        "--routing_key",
+        "--routing-key",
         "routing_key_exchange",
     ]);
 

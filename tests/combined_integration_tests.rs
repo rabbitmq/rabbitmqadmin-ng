@@ -123,7 +123,7 @@ fn combined_integration_test4() -> Result<(), Box<dyn std::error::Error>> {
         "fanout",
         "--durable",
         "true",
-        "--auto_delete",
+        "--auto-delete",
         "false",
     ]);
     run_succeeds([
@@ -141,7 +141,7 @@ fn combined_integration_test4() -> Result<(), Box<dyn std::error::Error>> {
         "quorum",
         "--durable",
         "true",
-        "--auto_delete",
+        "--auto-delete",
         "false",
     ]);
     run_succeeds([
@@ -159,7 +159,7 @@ fn combined_integration_test4() -> Result<(), Box<dyn std::error::Error>> {
         "quorum",
         "--durable",
         "true",
-        "--auto_delete",
+        "--auto-delete",
         "false",
     ]);
     run_succeeds([
@@ -173,11 +173,11 @@ fn combined_integration_test4() -> Result<(), Box<dyn std::error::Error>> {
         "binding",
         "--source",
         x,
-        "--destination_type",
+        "--destination-type",
         "queue",
         "--destination",
         q,
-        "--routing_key",
+        "--routing-key",
         "rk",
     ]);
 
@@ -194,11 +194,11 @@ fn combined_integration_test4() -> Result<(), Box<dyn std::error::Error>> {
         "binding",
         "--source",
         x,
-        "--destination_type",
+        "--destination-type",
         "queue",
         "--destination",
         q,
-        "--routing_key",
+        "--routing-key",
         "rk",
     ]);
     run_succeeds(["-V", vh, "delete", "exchange", "--name", x]);

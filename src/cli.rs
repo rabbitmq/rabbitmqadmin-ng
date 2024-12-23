@@ -347,7 +347,7 @@ fn declare_subcommands() -> [Command; 11] {
             .arg(
                 Arg::new("password_hash")
                     .help("salted password hash, see https://rabbitmq.com/docs/passwords")
-                    .long("password_hash")
+                    .long("password-hash")
                     .required(false)
                     .default_value(""),
             )
@@ -439,7 +439,7 @@ fn declare_subcommands() -> [Command; 11] {
             )
             .arg(
                 Arg::new("auto_delete")
-                    .long("auto_delete")
+                    .long("auto-delete")
                     .help("should it be deleted when the last consumer disconnects")
                     .required(false)
                     .value_parser(clap::value_parser!(bool)),
@@ -477,7 +477,7 @@ fn declare_subcommands() -> [Command; 11] {
             )
             .arg(
                 Arg::new("auto_delete")
-                    .long("auto_delete")
+                    .long("auto-delete")
                     .help("should it be deleted when the last queue is unbound")
                     .required(false)
                     .value_parser(clap::value_parser!(bool)),
@@ -501,7 +501,7 @@ fn declare_subcommands() -> [Command; 11] {
             )
             .arg(
                 Arg::new("destination_type")
-                    .long("destination_type")
+                    .long("destination-type")
                     .help("destination type: exchange or queue")
                     .required(true)
                     .value_parser(clap::value_parser!(BindingDestinationType)),
@@ -514,7 +514,7 @@ fn declare_subcommands() -> [Command; 11] {
             )
             .arg(
                 Arg::new("routing_key")
-                    .long("routing_key")
+                    .long("routing-key")
                     .help("routing key")
                     .required(true),
             )
@@ -560,7 +560,7 @@ fn declare_subcommands() -> [Command; 11] {
                     .required(true),
             )
             .arg(
-                Arg::new("apply-to")
+                Arg::new("apply_to")
                     .long("apply-to")
                     .help("entities to apply to (queues, classic_queues, quorum_queues, streams, exchanges, all)")
                     .required(true),
@@ -594,7 +594,7 @@ fn declare_subcommands() -> [Command; 11] {
                     .required(true),
             )
             .arg(
-                Arg::new("apply-to")
+                Arg::new("apply_to")
                     .long("apply-to")
                     .help("entities to apply to (queues, classic_queues, quorum_queues, streams, exchanges, all)")
                     .required(true),
@@ -736,7 +736,7 @@ fn delete_subcommands() -> [Command; 11] {
             )
             .arg(
                 Arg::new("destination_type")
-                    .long("destination_type")
+                    .long("destination-type")
                     .help("destination type: exchange or queue")
                     .required(true),
             )
@@ -748,7 +748,7 @@ fn delete_subcommands() -> [Command; 11] {
             )
             .arg(
                 Arg::new("routing_key")
-                    .long("routing_key")
+                    .long("routing-key")
                     .help("routing key")
                     .required(true),
             )
@@ -918,7 +918,7 @@ pub fn publish_subcommands() -> [Command; 1] {
     [Command::new("message")
         .about("Publishes a message to an exchange")
         .arg(
-            Arg::new("routing-key")
+            Arg::new("routing_key")
                 .short('k')
                 .long("routing-key")
                 .required(false)
@@ -970,7 +970,7 @@ pub fn get_subcommands() -> [Command; 1] {
                 .help("Maximum number of messages to consume"),
         )
         .arg(
-            Arg::new("ack-mode")
+            Arg::new("ack_mode")
                 .short('a')
                 .long("ack-mode")
                 .required(false)
