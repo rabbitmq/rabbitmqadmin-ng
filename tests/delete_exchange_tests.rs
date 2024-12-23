@@ -11,11 +11,10 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-use assert_cmd::prelude::*;
 use predicates::prelude::*;
-use std::process::Command;
 
 mod test_helpers;
+use test_helpers::{run_succeeds, run_fails};
 
 #[test]
 fn delete_an_existing_exchange() -> Result<(), Box<dyn std::error::Error>> {
@@ -23,42 +22,22 @@ fn delete_an_existing_exchange() -> Result<(), Box<dyn std::error::Error>> {
     let x = "exchange_1_to_delete";
 
     // create a vhost
-    test_helpers::create_vhost(vh).unwrap();
+    test_helpers::create_vhost(vh)?;
 
     // declare an exchange
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.arg("-V")
-        .arg(vh)
-        .arg("declare")
-        .arg("exchange")
-        .arg("--name")
-        .arg(x);
-    cmd.assert().success();
+    run_succeeds(["-V", vh, "declare", "exchange", "--name", x]);
 
     // list exchanges in vhost 1
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.args(["-V", vh, "list", "exchanges"]);
-    cmd.assert().success().stdout(predicate::str::contains(x));
+    run_succeeds(["-V", vh, "list", "exchanges"]).stdout(predicate::str::contains(x));
 
     // delete the exchange
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.arg("-V")
-        .arg(vh)
-        .arg("delete")
-        .arg("exchange")
-        .arg("--name")
-        .arg(x);
-    cmd.assert().success();
+    run_succeeds(["-V", vh, "delete", "exchange", "--name", x]);
 
     // list exchange in vhost 1
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.arg("-V").arg(vh).arg("list").arg("exchanges");
-    cmd.assert()
-        .success()
-        .stdout(predicate::str::contains(x).not());
+    run_succeeds(["-V", vh, "list", "exchanges"]).stdout(predicate::str::contains(x).not());
 
     // delete the vhost
-    test_helpers::delete_vhost(vh).unwrap();
+    test_helpers::delete_vhost(vh)?;
 
     Ok(())
 }
@@ -68,33 +47,20 @@ fn delete_a_non_existing_exchange() -> Result<(), Box<dyn std::error::Error>> {
     let vh = "delete_exchange_vhost_2";
 
     // declare a vhost
-    test_helpers::create_vhost(vh).unwrap();
+    test_helpers::create_vhost(vh)?;
 
     // try deleting a non-existent exchange with --idempotently
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.arg("-V")
-        .arg(vh)
-        .arg("delete")
-        .arg("exchange")
-        .arg("--name")
-        .arg("7s98df7s79df-non-existent")
-        .arg("--idempotently");
-    cmd.assert().success();
+    run_succeeds([
+        "--vhost", vh, "delete", "exchange", "--name", "7s98df7s79df-non-existent", "--idempotently"
+    ]);
 
     // try deleting it without
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.arg("-V")
-        .arg(vh)
-        .arg("delete")
-        .arg("exchange")
-        .arg("--name")
-        .arg("7s98df7s79df-non-existent");
-    cmd.assert()
-        .failure()
-        .stderr(predicate::str::contains("Not Found"));
+    run_fails([
+        "--vhost", vh, "delete", "exchange", "--name", "7s98df7s79df-non-existent"
+    ]).stderr(predicate::str::contains("Not Found"));
 
     // delete the vhost
-    test_helpers::delete_vhost(vh).unwrap();
+    test_helpers::delete_vhost(vh)?;
 
     Ok(())
 }

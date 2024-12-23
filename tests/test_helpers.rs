@@ -14,10 +14,14 @@
 #![allow(dead_code)]
 
 use std::env;
+use std::ffi::OsStr;
 use std::time::Duration;
 
 use assert_cmd::prelude::*;
 use std::process::Command;
+use assert_cmd::assert::Assert;
+
+type CommandRunResult = Result<(), Box<dyn std::error::Error>>;
 
 pub fn await_metric_emission(ms: u64) {
     std::thread::sleep(Duration::from_millis(ms));
@@ -28,16 +32,38 @@ pub fn await_queue_metric_emission() {
     await_metric_emission(delay.parse::<u64>().unwrap());
 }
 
-pub fn create_vhost(vhost: &str) -> Result<(), Box<dyn std::error::Error>> {
+
+pub fn run_succeeds<I, S>(args: I) -> Assert
+    where I: IntoIterator<Item = S>,
+          S: AsRef<OsStr> {
+    let mut cmd = Command::cargo_bin("rabbitmqadmin").unwrap();
+    cmd.args(args).assert().success()
+}
+
+pub fn run_fails<I, S>(args: I) -> Assert
+    where I: IntoIterator<Item = S>,
+          S: AsRef<OsStr> {
+    let mut cmd = Command::cargo_bin("rabbitmqadmin").unwrap();
+    cmd.args(args).assert().failure()
+}
+
+pub fn create_vhost(vhost: &str) -> CommandRunResult {
     let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
     cmd.args(["declare", "vhost", "--name", vhost]);
     cmd.assert().success();
     Ok(())
 }
 
-pub fn delete_vhost(vhost: &str) -> Result<(), Box<dyn std::error::Error>> {
+pub fn delete_vhost(vhost: &str) -> CommandRunResult {
     let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
     cmd.args(["delete", "vhost", "--name", vhost, "--idempotently"]);
+    cmd.assert().success();
+    Ok(())
+}
+
+pub fn delete_user(username: &str) -> CommandRunResult {
+    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    cmd.args(["delete", "user", "--name", username, "--idempotently"]);
     cmd.assert().success();
     Ok(())
 }

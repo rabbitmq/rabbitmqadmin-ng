@@ -1,4 +1,3 @@
-use std::process::Command;
 // Copyright (C) 2023-2024 RabbitMQ Core Team (teamrabbitmq@gmail.com)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,17 +11,15 @@ use std::process::Command;
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-use assert_cmd::prelude::*;
+
 use predicates::prelude::*;
+
+mod test_helpers;
+use test_helpers::{run_succeeds};
 
 #[test]
 fn test_export_definitions() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-
-    cmd.arg("definitions").arg("export");
-    cmd.assert()
-        .success()
-        .stdout(predicate::str::contains("guest"));
+    run_succeeds(["definitions", "export"]).stdout(predicate::str::contains("guest"));
 
     Ok(())
 }
