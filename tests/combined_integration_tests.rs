@@ -38,7 +38,7 @@ fn combined_integration_test1() -> Result<(), Box<dyn std::error::Error>> {
     } else {
         println!(
             "{} doesn't exist. Current working directory: {}",
-            vh,
+            config_path.to_string_lossy(),
             std::env::current_dir()?.display()
         );
         Ok(())
