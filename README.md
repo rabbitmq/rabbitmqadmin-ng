@@ -6,6 +6,8 @@ that target the [HTTP API](https://www.rabbitmq.com/docs/management#http-api).
 If you are migrating from the original `rabbitqadmin`, please see [Breaking or Potentially Breaking Changes](#breaking-or-potentially-breaking-changes)
 to learn about a few breaking change in the interface.
 
+## Getting Started
+
 To download a binary build, see [Releases](https://github.com/rabbitmq/rabbitmqadmin-ng/releases).
 
 For usage documentation, see [Usage](#usage).
