@@ -245,7 +245,8 @@ pub fn parser() -> Command {
                 .subcommand_value_name("message")
                 .subcommands(publish_subcommands()),
             Command::new("get")
-                .about("get message(s) from a queue")
+                .about(color_print::cstr!("fetches message(s) from a queue or stream via <bold><red>polling, extremely inefficiently</red></bold>"))
+                .after_long_help(color_print::cformat!("<bold>Doc guide</bold>: {}", POLLING_CONSUMER_GUIDE_URL))
                 .subcommand_value_name("message")
                 .subcommands(get_subcommands()),
         ])
@@ -931,8 +932,8 @@ fn definitions_subcommands() -> [Command; 2] {
 fn export_subcommands() -> [Command; 1] {
     [Command::new("definitions")
         .about("prefer 'definitions export'")
-        .after_long_help(color_print::cstr!(
-            "<bold>Doc guide</bold>: https://rabbitmq.com/docs/definitions/"
+        .after_long_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}", DEFINITION_GUIDE_URL
         ))
         .arg(
             Arg::new("file")
@@ -946,8 +947,8 @@ fn export_subcommands() -> [Command; 1] {
 fn import_subcommands() -> [Command; 1] {
     [Command::new("definitions")
         .about("prefer 'definitions import'")
-        .after_long_help(color_print::cstr!(
-            "<bold>Doc guide</bold>: https://rabbitmq.com/docs/definitions/"
+        .after_long_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}", DEFINITION_GUIDE_URL
         ))
         .arg(
             Arg::new("file")
@@ -996,7 +997,8 @@ pub fn publish_subcommands() -> [Command; 1] {
 
 pub fn get_subcommands() -> [Command; 1] {
     [Command::new("messages")
-        .about("Consumes message(s) from a queue")
+        .about(color_print::cstr!("Fetches (via <red>polling, very inefficiently</red>) message(s) from a queue. <bold><red>Only suitable for development and test environments</red></bold>"))
+        .after_long_help(color_print::cformat!("<bold>Doc guide</bold>: {}", POLLING_CONSUMER_GUIDE_URL))
         .arg(
             Arg::new("queue")
                 .short('q')
@@ -1018,6 +1020,6 @@ pub fn get_subcommands() -> [Command; 1] {
                 .long("ack-mode")
                 .required(false)
                 .default_value("ack_requeue_false")
-                .help("ack_requeue_false, reject_requeue_false, ack_requeue_true or reject_requeue_true"),
+                .help("Accepted values are: ack_requeue_false, reject_requeue_false, ack_requeue_true, reject_requeue_true"),
         )]
 }

@@ -130,7 +130,7 @@ will display essential node information in tabular form.
 
 ### Retrieving Connection, Queue/Stream, Channel Churn Information
 
-Helps assess connection, queue/stream, channel [churn metrics](https://www.rabbitmq.com/docs/connections#high-connection-churn) in the cluster.
+Helps assess connection, queue/stream, channel [churn metrics](https://rabbitmq.com/docs/connections#high-connection-churn) in the cluster.
 
 ``` shell
 rabbitmqadmin show churn
@@ -327,7 +327,7 @@ rabbitmqadmin --vhost "events" declare queue --name "target.quorum.queue.name" -
 
 ### --prefix Overrides API Path Prefix
 
-In `rabbitmqadmin` v1, `--path-prefix` appended to the default [API path prefix](https://www.rabbitmq.com/docs/management#path-prefix).
+In `rabbitmqadmin` v1, `--path-prefix` appended to the default [API path prefix](https://rabbitmq.com/docs/management#path-prefix).
 In this version, the value passed to `--path-prefix` will be used as given, in other words,
 it replaces the default prefix, `/api`.
 

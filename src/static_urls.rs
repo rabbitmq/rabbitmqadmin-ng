@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#![allow(dead_code)]
+#![allow(unused_variables)]
+
 pub(crate) const RABBITMQ_DOC_GUIDES_URL: &str = "https://rabbitmq.com/docs/";
 pub(crate) const GITHUB_DISCUSSIONS_URL: &str =
     "https://github.com/rabbitmq/rabbitmq-server/discussions";
@@ -21,11 +24,10 @@ pub(crate) const GITHUB_REPOSITORY_URL: &str = "https://github.com/rabbitmq/rabb
 
 pub(crate) const QUORUM_QUEUE_GUIDE_URL: &str = "https://rabbitmq.com/docs/quorum-queues";
 pub(crate) const QUORUM_QUEUE_FAILURE_HANDLING_GUIDE_URL: &str =
-    "https://www.rabbitmq.com/docs/quorum-queues#leader-election";
+    "https://rabbitmq.com/docs/quorum-queues#leader-election";
 pub(crate) const UPGRADE_GUIDE_URL: &str = "https://rabbitmq.com/docs/upgrade";
-#[allow(unused)]
 pub(crate) const BLUE_GREEN_UPGRADE_GUIDE_URL: &str =
-    "https://www.rabbitmq.com/docs/blue-green-upgrade";
+    "https://rabbitmq.com/docs/blue-green-upgrade";
 pub(crate) const MONITORING_GUIDE_URL: &str = "https://rabbitmq.com/docs/monitoring";
 pub(crate) const HEALTH_CHECK_GUIDE_URL: &str =
     "https://rabbitmq.com/docs/monitoring#health-checks";
@@ -34,3 +36,5 @@ pub(crate) const DEPRECATED_FEATURE_GUIDE_URL: &str =
 pub(crate) const HTTP_API_ACCESS_PERMISSIONS_GUIDE_URL: &str =
     "https://rabbitmq.com/docs/management#permissions";
 pub(crate) const DEFINITION_GUIDE_URL: &str = "https://rabbitmq.com/docs/definitions";
+pub(crate) const CONSUMER_GUIDE_URL: &str = "https://rabbitmq.com/docs/consumers";
+pub(crate) const POLLING_CONSUMER_GUIDE_URL: &str = "https://rabbitmq.com/docs/consumers#polling";

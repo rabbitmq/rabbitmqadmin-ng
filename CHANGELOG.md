@@ -14,7 +14,7 @@ No changes yet.
 
 ### Enhancements
 
- * New command category: `health_check` which provides access to the [health check endpoints](https://www.rabbitmq.com/docs/monitoring#health-checks).
+ * New command category: `health_check` which provides access to the [health check endpoints](https://rabbitmq.com/docs/monitoring#health-checks).
 
    Currently, only the three (arguably) most important health checks are implemented: `local_alarms`, `cluster_wide_alarms`, and `node_is_quorum_critical`.
 
@@ -63,7 +63,7 @@ No changes yet.
 
  * `declare queue` no longer requires a `--queue-type`. If not type is specified,
    it will not be included into the request and the queue will be declared
-   with the [default queue type of the target virtual host](https://www.rabbitmq.com/docs/vhosts#default-queue-type).
+   with the [default queue type of the target virtual host](https://rabbitmq.com/docs/vhosts#default-queue-type).
 
    GitHub issue: [#29](https://github.com/rabbitmq/rabbitmqadmin-ng/issues/29)
 
