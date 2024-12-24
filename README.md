@@ -1,6 +1,7 @@
-# rabbitmqadmin v2
+# rabbitmqadmin v2: a Modern Command Line Client for the [RabbitMQ HTTP API](https://www.rabbitmq.com/docs/management#http-api)
 
-`rabbitmqadmin` v2 is a major revision of one of the RabbitMQ's CLI tools.
+`rabbitmqadmin` v2 is a major revision of `rabbitmqadmin`, one of the [RabbitMQ CLI tools](https://www.rabbitmq.com/docs/cli)
+that target the [HTTP API](https://www.rabbitmq.com/docs/management#http-api).
 
 If you are migrating from the original `rabbitqadmin`, please see [Breaking or Potentially Breaking Changes](#breaking-or-potentially-breaking-changes)
 to learn about a few breaking change in the interface.
