@@ -268,40 +268,46 @@ fn list_subcommands() -> [Command; 15] {
         Command::new("users").long_about("Lists users in the internal database"),
         Command::new("vhosts")
             .long_about("Lists virtual hosts")
-            .after_long_help(color_print::cstr!(
-                "<bold>Doc guide</bold>: https://rabbitmq.com/docs/vhosts"
+            .after_long_help(color_print::cformat!(
+                "<bold>Doc guide</bold>: {}",
+                VIRTUAL_HOST_GUIDE_URL
             )),
         Command::new("permissions")
             .arg(vhost_arg.clone())
             .long_about("Lists user permissions")
-            .after_long_help(color_print::cstr!(
-                "<bold>Doc guide</bold>: https://rabbitmq.com/docs/access-control"
+            .after_long_help(color_print::cformat!(
+                "<bold>Doc guide</bold>: {}",
+                ACCESS_CONTROL_GUIDE_URL
             )),
         Command::new("connections")
             .arg(vhost_arg.clone())
             .long_about("Lists client connections")
-            .after_long_help(color_print::cstr!(
-                "<bold>Doc guide</bold>: https://rabbitmq.com/docs/connections"
+            .after_long_help(color_print::cformat!(
+                "<bold>Doc guide</bold>: {}",
+                CONNECTION_GUIDE_URL
             )),
         Command::new("channels")
             .arg(vhost_arg.clone())
             .long_about("Lists AMQP 0-9-1 channels")
-            .after_long_help(color_print::cstr!(
-                "<bold>Doc guide</bold>: https://rabbitmq.com/docs/channels"
+            .after_long_help(color_print::cformat!(
+                "<bold>Doc guide</bold>: {}",
+                CHANNEL_GUIDE_URL
             )),
         Command::new("queues")
             .arg(vhost_arg.clone())
             .long_about("Lists queues")
-            .after_long_help(color_print::cstr!(
-                "<bold>Doc guide</bold>: https://rabbitmq.com/docs/queues"
+            .after_long_help(color_print::cformat!(
+                "<bold>Doc guide</bold>: {}",
+                QUEUE_GUIDE_URL
             )),
         Command::new("exchanges").arg(vhost_arg.clone()),
         Command::new("bindings").arg(vhost_arg.clone()),
         Command::new("consumers")
             .arg(vhost_arg.clone())
             .long_about("Lists consumers")
-            .after_long_help(color_print::cstr!(
-                "<bold>Doc guide</bold>: https://rabbitmq.com/docs/consumers"
+            .after_long_help(color_print::cformat!(
+                "<bold>Doc guide</bold>: {}",
+                CONSUMER_GUIDE_URL
             )),
         Command::new("parameters")
             .arg(vhost_arg.clone())
@@ -312,26 +318,30 @@ fn list_subcommands() -> [Command; 15] {
                     .required(false),
             )
             .long_about("Lists runtime parameters")
-            .after_long_help(color_print::cstr!(
-                "<bold>Doc guide</bold>: https://rabbitmq.com/docs/parameters"
+            .after_long_help(color_print::cformat!(
+                "<bold>Doc guide</bold>: {}",
+                RUNTIME_PARAMETER_GUIDE_URL
             )),
         Command::new("policies")
             .arg(vhost_arg.clone())
             .long_about("Lists policies")
-            .after_long_help(color_print::cstr!(
-                "<bold>Doc guide</bold>: https://rabbitmq.com/docs/parameters"
+            .after_long_help(color_print::cformat!(
+                "<bold>Doc guide</bold>: {}",
+                POLICY_GUIDE_URL
             )),
         Command::new("operator_policies")
             .arg(vhost_arg.clone())
             .long_about("Lists operator policies")
-            .after_long_help(color_print::cstr!(
-                "<bold>Doc guide</bold>: https://rabbitmq.com/docs/parameters"
+            .after_long_help(color_print::cformat!(
+                "<bold>Doc guide</bold>: {}",
+                OPERATOR_POLICY_GUIDE_URL
             )),
         Command::new("vhost_limits")
             .arg(vhost_arg.clone())
             .long_about("Lists virtual host (resource) limits")
-            .after_long_help(color_print::cstr!(
-                "<bold>Doc guide</bold>: https://rabbitmq.com/docs/vhosts"
+            .after_long_help(color_print::cformat!(
+                "<bold>Doc guide</bold>: {}",
+                VIRTUAL_HOST_GUIDE_URL
             )),
         Command::new("user_limits")
             .arg(vhost_arg.clone())
@@ -342,8 +352,9 @@ fn list_subcommands() -> [Command; 15] {
                     .required(false),
             )
             .long_about("Lists per-user (resource) limits")
-            .after_long_help(color_print::cstr!(
-                "<bold>Doc guide</bold>: https://rabbitmq.com/docs/user-limits"
+            .after_long_help(color_print::cformat!(
+                "<bold>Doc guide</bold>: {}",
+                USER_LIMIT_GUIDE_URL
             )),
     ]
 }
@@ -369,7 +380,7 @@ fn declare_subcommands() -> [Command; 11] {
             )
             .arg(
                 Arg::new("password_hash")
-                    .help("salted password hash, see https://rabbitmq.com/docs/passwords")
+                    .help(color_print::cformat!("salted password hash, see {}", PASSWORD_GUIDE_URL))
                     .long("password-hash")
                     .required(false)
                     .default_value(""),
@@ -377,7 +388,7 @@ fn declare_subcommands() -> [Command; 11] {
             .arg(
                 Arg::new("password")
                     .long("password")
-                    .help("prefer providing a hash, see https://rabbitmq.com/docs/passwords")
+                    .help(color_print::cformat!("prefer providing a hash, see {}", PASSWORD_GUIDE_URL))
                     .required(false)
                     .default_value(""),
             )
@@ -389,6 +400,7 @@ fn declare_subcommands() -> [Command; 11] {
             ),
         Command::new("vhost")
             .about("creates a virtual host")
+            .after_long_help(color_print::cformat!("<bold>Doc guide:</bold>: {}", VIRTUAL_HOST_GUIDE_URL))
             .arg(
                 Arg::new("name")
                     .long("name")
@@ -400,13 +412,13 @@ fn declare_subcommands() -> [Command; 11] {
                     .long("default-queue-type")
                     .required(false)
                     .default_value(DEFAULT_QUEUE_TYPE)
-                    .help("default queue type, one of: classic, quorum, stream"),
+                    .help(color_print::cformat!("default queue type, one of: <bold>classic</bold>, <bright-blue>quorum</bright-blue>, <bright-magenta>stream</bright-magenta>"))
             )
             .arg(
                 Arg::new("description")
                     .long("description")
                     .required(false)
-                    .help("a brief description of this virtual host"),
+                    .help("what's the purpose of this virtual host?"),
             )
             .arg(
                 Arg::new("tracing")
@@ -417,6 +429,7 @@ fn declare_subcommands() -> [Command; 11] {
             ),
         Command::new("permissions")
             .about("grants permissions to a user")
+            .after_long_help(color_print::cformat!("<bold>Doc guide:</bold>: {}", ACCESS_CONTROL_GUIDE_URL))
             .arg(vhost_arg.clone())
             .arg(
                 Arg::new("user")
@@ -443,7 +456,8 @@ fn declare_subcommands() -> [Command; 11] {
                     .required(true),
             ),
         Command::new("queue")
-            .about("declares a queue")
+            .about("declares a queue or a stream")
+            .after_long_help(color_print::cformat!("<bold>Doc guide:</bold>: {}", QUEUE_GUIDE_URL))
             .arg(vhost_arg.clone())
             .arg(Arg::new("name").long("name").required(true).help("name"))
             .arg(
@@ -551,6 +565,7 @@ fn declare_subcommands() -> [Command; 11] {
             ),
         Command::new("parameter").
             about("sets a runtime parameter")
+            .after_long_help(color_print::cformat!("<bold>Doc guide:</bold>: {}", RUNTIME_PARAMETER_GUIDE_URL))
             .arg(vhost_arg.clone())
             .arg(
                 Arg::new("name")
@@ -569,6 +584,7 @@ fn declare_subcommands() -> [Command; 11] {
                     .required(true)),
         Command::new("policy")
             .about("creates or updates a policy")
+            .after_long_help(color_print::cformat!("<bold>Doc guide:</bold>: {}", POLICY_GUIDE_URL))
             .arg(vhost_arg.clone())
             .arg(
                 Arg::new("name")
@@ -603,6 +619,7 @@ fn declare_subcommands() -> [Command; 11] {
             ),
         Command::new("operator_policy")
             .about("creates or updates an operator policy")
+            .after_long_help(color_print::cformat!("<bold>Doc guide:</bold>: {}", OPERATOR_POLICY_GUIDE_URL))
             .arg(vhost_arg.clone())
             .arg(
                 Arg::new("name")
@@ -637,6 +654,7 @@ fn declare_subcommands() -> [Command; 11] {
             ),
         Command::new("vhost_limit")
             .about("set a vhost limit")
+            .after_long_help(color_print::cformat!("<bold>Doc guide:</bold>: {}", VIRTUAL_HOST_LIMIT_GUIDE_URL))
             .arg(vhost_arg.clone())
             .arg(
                 Arg::new("name")
@@ -650,7 +668,9 @@ fn declare_subcommands() -> [Command; 11] {
                     .help("limit value")
                     .required(true),
             ),
-        Command::new("user_limit").about("set a user limit")
+        Command::new("user_limit")
+            .about("set a user limit")
+            .after_long_help(color_print::cformat!("<bold>Doc guide:</bold>: {}", USER_LIMIT_GUIDE_URL))
             .arg(
                 Arg::new("user")
                     .long("user")
