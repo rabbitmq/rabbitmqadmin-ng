@@ -241,7 +241,8 @@ pub fn parser() -> Command {
                 .subcommand_value_name("definitions")
                 .subcommands(import_subcommands()),
             Command::new("publish")
-                .about("publish a message")
+                .about(color_print::cstr!("Publishes (<red>inefficiently</red>) message(s) to a queue or a stream. <bold><red>Only suitable for development and test environments</red></bold>."))
+                .after_long_help(color_print::cformat!("<bold>Doc guide</bold>: {}", PUBLISHER_GUIDE_URL))
                 .subcommand_value_name("message")
                 .subcommands(publish_subcommands()),
             Command::new("get")
@@ -963,6 +964,8 @@ fn import_subcommands() -> [Command; 1] {
 pub fn publish_subcommands() -> [Command; 1] {
     [Command::new("message")
         .about("Publishes a message to an exchange")
+        .about(color_print::cstr!("Publishes (<red>inefficiently</red>) message(s) to a queue or a stream. <bold><red>Only suitable for development and test environments</red></bold>. Prefer messaging or streaming protocol clients!"))
+        .after_long_help(color_print::cformat!("<bold>Doc guide</bold>: {}", PUBLISHER_GUIDE_URL))
         .arg(
             Arg::new("routing_key")
                 .short('k')

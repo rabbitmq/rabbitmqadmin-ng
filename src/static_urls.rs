@@ -38,3 +38,4 @@ pub(crate) const HTTP_API_ACCESS_PERMISSIONS_GUIDE_URL: &str =
 pub(crate) const DEFINITION_GUIDE_URL: &str = "https://rabbitmq.com/docs/definitions";
 pub(crate) const CONSUMER_GUIDE_URL: &str = "https://rabbitmq.com/docs/consumers";
 pub(crate) const POLLING_CONSUMER_GUIDE_URL: &str = "https://rabbitmq.com/docs/consumers#polling";
+pub(crate) const PUBLISHER_GUIDE_URL: &str = "https://rabbitmq.com/docs/publishers";
