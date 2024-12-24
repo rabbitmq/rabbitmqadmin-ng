@@ -933,7 +933,8 @@ fn export_subcommands() -> [Command; 1] {
     [Command::new("definitions")
         .about("prefer 'definitions export'")
         .after_long_help(color_print::cformat!(
-            "<bold>Doc guide</bold>: {}", DEFINITION_GUIDE_URL
+            "<bold>Doc guide</bold>: {}",
+            DEFINITION_GUIDE_URL
         ))
         .arg(
             Arg::new("file")
@@ -948,7 +949,8 @@ fn import_subcommands() -> [Command; 1] {
     [Command::new("definitions")
         .about("prefer 'definitions import'")
         .after_long_help(color_print::cformat!(
-            "<bold>Doc guide</bold>: {}", DEFINITION_GUIDE_URL
+            "<bold>Doc guide</bold>: {}",
+            DEFINITION_GUIDE_URL
         ))
         .arg(
             Arg::new("file")
