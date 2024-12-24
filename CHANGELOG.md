@@ -2,7 +2,16 @@
 
 ## v0.15.0 (in development)
 
-No changes yet.
+### Enhancements
+
+ * CLI interface `help` message polishing. 
+   
+   More commands now provide links to the relevant documentation guides,
+   use (a reasonable amount of) coloring and recommend against features such as that are
+   [polling message consumption]((https://www.rabbitmq.com/docs/consumers#polling)) that were never designed or intended to be used in production
+
+ * README documentation improvements
+
 
 
 ## v0.14.0 (Dec 22, 2024)
