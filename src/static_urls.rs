@@ -17,8 +17,7 @@ pub(crate) const GITHUB_DISCUSSIONS_URL: &str =
     "https://github.com/rabbitmq/rabbitmq-server/discussions";
 pub(crate) const DISCORD_SERVER_INVITATION_URL: &str = "https://rabbitmq.com/discord/";
 
-pub(crate) const GITHUB_REPOSITORY_URL: &str =
-    "https://github.com/rabbitmq/rabbitmqadmin-ng";
+pub(crate) const GITHUB_REPOSITORY_URL: &str = "https://github.com/rabbitmq/rabbitmqadmin-ng";
 
 pub(crate) const QUORUM_QUEUE_GUIDE_URL: &str = "https://rabbitmq.com/docs/quorum-queues";
 pub(crate) const QUORUM_QUEUE_FAILURE_HANDLING_GUIDE_URL: &str =
