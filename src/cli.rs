@@ -1006,7 +1006,7 @@ pub fn get_subcommands() -> [Command; 1] {
                 .short('q')
                 .long("queue")
                 .required(true)
-                .help("Queue name"),
+                .help("Target queue or stream name"),
         )
         .arg(
             Arg::new("count")
