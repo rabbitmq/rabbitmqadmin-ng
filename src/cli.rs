@@ -246,7 +246,7 @@ pub fn parser() -> Command {
                 .subcommand_value_name("message")
                 .subcommands(publish_subcommands()),
             Command::new("get")
-                .about(color_print::cstr!("fetches message(s) from a queue or stream via <bold><red>polling, extremely inefficiently</red></bold>"))
+                .about(color_print::cstr!("fetches message(s) from a queue or stream via <bold><red>polling</red></bold>. <bold><red>Only suitable for development and test environments</red></bold>."))
                 .after_long_help(color_print::cformat!("<bold>Doc guide</bold>: {}", POLLING_CONSUMER_GUIDE_URL))
                 .subcommand_value_name("message")
                 .subcommands(get_subcommands()),
@@ -300,8 +300,12 @@ fn list_subcommands() -> [Command; 15] {
                 "<bold>Doc guide</bold>: {}",
                 QUEUE_GUIDE_URL
             )),
-        Command::new("exchanges").arg(vhost_arg.clone()),
-        Command::new("bindings").arg(vhost_arg.clone()),
+        Command::new("exchanges")
+            .arg(vhost_arg.clone())
+            .long_about("Lists exchanges"),
+        Command::new("bindings")
+            .arg(vhost_arg.clone())
+            .long_about("Lists bindings"),
         Command::new("consumers")
             .arg(vhost_arg.clone())
             .long_about("Lists consumers")

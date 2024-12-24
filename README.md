@@ -8,25 +8,13 @@ to learn about a few breaking change in the interface.
 
 ## Getting Started
 
+### Releases
+
 To download a binary build, see [Releases](https://github.com/rabbitmq/rabbitmqadmin-ng/releases).
 
+### Documentation
+
 For usage documentation, see [Usage](#usage).
-
-
-## Project Goals Compared to `rabbitmqadmin` v1
-
-This version of `rabbitmqadmin` has a few ideas in mind:
-
- * This is a major version bump. Therefore, reasonable breaking changes are OK. `rabbitmqadmin` hasn't seen a revision in fourteen years
- * `rabbitmqadmin` should be standalone binary. There are very few reasons not to build and distribute it that way
-* Standalone project, not an obscure feature: `rabbitmqadmin` should be a standalone tool, not a relatively unknown "feature" of
-  the RabbitMQ management plugin, and should be developed as such, not tied completely to the development
-  environment, practices and release schedule of RabbitMQ itself
- * v2 should be a distributed via GitHub releases and not a special `rabbitmq_management` endpoint
- * There is a lot of room to improve validation of flags and arguments, since breaking changes are OK for v2
- * This tool should strive to be as free as practically possible from CVEs in other projects that show up on security scans.
-   CVEs from older Python versions should not plague OCI images that choose to include `rabbitmqadmin` v2
- * Output should be revisited: what columns are output by default, whether columns should be selectable
 
 ## Project Maturity
 
@@ -43,6 +31,74 @@ The following `rabbitmqadmin` v1 features are not currently implemented:
 
 
 ## Usage
+
+### Exploring Available Command Groups and Sub-commands
+
+To explore what command groups are available, use
+
+```shell
+rabbitmqadmin help
+```
+
+which will output a list of command groups:
+
+```
+Usage: rabbitmqadmin [OPTIONS] <command>
+
+Commands:
+  show          overview
+  list          lists objects by type
+  declare       creates or declares things
+  delete        deletes objects
+  purge         purges queues
+  health_check  runs health checks
+  close         closes connections
+  rebalance     rebalances queue leaders
+  definitions   operations on definitions
+  export        see 'definitions export'
+  import        see 'definitions import'
+  publish       publish a message
+  get           get message(s) from a queue
+  help          Print this message or the help of the given subcommand(s)
+```
+
+To explore commands in a specific group, use
+
+```shell
+rabbitmqadmin {group name} help
+```
+
+### Exploring the CLI with `help`, `--help`
+
+To learn about what command groups and specific commands are available, run
+
+``` shell
+rabbitmqadmin help
+```
+
+This flag can be appended to a command or subcommand to get command-specific documentation:
+
+```shell
+rabbitmqadmin declare queue --help
+# => creates or declares things
+# =>
+# => Usage: rabbitmqadmin declare [object]
+# => ...
+```
+
+Alternatively, the `help` subcommand can be given a command name. It's the equivalent
+of tagging on `--help` at the end of command name:
+
+```shell
+rabbitmqadmin declare help queue
+# => creates or declares things
+# =>
+# => Usage: rabbitmqadmin declare [object]
+# => ...
+```
+
+More specific examples are covered in the Examples section below.
+
 
 ### Interactive vs. Use in Scripts
 
@@ -93,34 +149,6 @@ as a result:
  RabbitMQ version  4.0.5
  Erlang version    26.2.5.6
  Erlang details    Erlang/OTP 26 [erts-14.2.5.5] [source] [64-bit] [smp:10:10] [ds:10:10:10] [async-threads:1] [jit]
-```
-
-### Exploring the CLI with --help
-
-To learn about what command groups and specific commands are available, run
-
-``` shell
-rabbitmqadmin --help
-```
-
-This flag can be appended to a command or subcommand to get command-specific documentation:
-
-```shell
-rabbitmqadmin declare queue --help
-# => creates or declares things
-# =>
-# => Usage: rabbitmqadmin declare [object]
-# => ...
-```
-
-And with a specific subcommand:
-
-```shell
-rabbitmqadmin declare queue --help
-# => declares a queue
-# =>
-# => Usage: rabbitmqadmin declare queue [OPTIONS] --name <name>
-# => ...
 ```
 
 ### Retrieving Basic Node Information
@@ -299,6 +327,21 @@ the original version of `rabbitmqadmin`. It can be overridden on the command lin
 # will use the settings from the section called [staging]
 rabbitmqadmin --config $HOME/.configuration/rabbitmqadmin.conf --node staging show churn
 ```
+
+
+## Project Goals Compared to `rabbitmqadmin` v1
+
+This version of `rabbitmqadmin` has a few ideas in mind:
+
+* This is a major version bump. Therefore, reasonable breaking changes are OK. `rabbitmqadmin` hasn't seen a revision in fourteen years
+* `rabbitmqadmin` should be standalone binary. There are very few reasons not to build and distribute it that way
+* Standalone project, not an obscure feature: `rabbitmqadmin` should be a standalone tool, not a relatively unknown "feature" of
+  the RabbitMQ management plugin, and should be developed as such, not tied completely to the development
+  environment, practices and release schedule of RabbitMQ itself
+* v2 should be a distributed via GitHub releases and not a special `rabbitmq_management` endpoint
+* There is a lot of room to improve validation of flags and arguments, since breaking changes are OK for v2
+* This tool should strive to be as free as practically possible from CVEs in other projects that show up on security scans.
+  CVEs from older Python versions should not plague OCI images that choose to include `rabbitmqadmin` v2
 
 
 ## Breaking or Potentially Breaking Changes
