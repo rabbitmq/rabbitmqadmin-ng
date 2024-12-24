@@ -14,28 +14,36 @@
 use std::path::PathBuf;
 
 use super::constants::*;
+use super::static_urls::*;
 use clap::{Arg, ArgAction, Command};
 use rabbitmq_http_client::commons::{BindingDestinationType, ExchangeType, QueueType};
 
 pub fn parser() -> Command {
-    let after_help: &'static str = color_print::cstr!(
+    let after_help = color_print::cformat!(
         r#"
 <bold><blue>Documentation and Community Resources</blue></bold>
 
-  RabbitMQ docs: https://rabbitmq.com/docs/
-  GitHub Discussions: https://github.com/rabbitmq/rabbitmq-server/discussions
-  Discord server: https://rabbitmq.com/discord/
+  RabbitMQ docs: {}
+  GitHub Discussions: {}
+  Discord server: {}
 
 <bold><blue>Contribute</blue></bold>
 
-  On GitHub: https://github.com/rabbitmq/rabbitmqadmin-ng"#
+  On GitHub: {}"#,
+        RABBITMQ_DOC_GUIDES_URL,
+        GITHUB_DISCUSSIONS_URL,
+        DISCORD_SERVER_INVITATION_URL,
+        GITHUB_REPOSITORY_URL
     );
 
     Command::new("rabbitmqadmin")
         .version(clap::crate_version!())
         .author("RabbitMQ Core Team")
         .about("rabbitmqadmin gen 2")
-        .long_about(format!("RabbitMQ CLI that uses the HTTP API. Version: {}", clap::crate_version!()))
+        .long_about(format!(
+            "RabbitMQ CLI that uses the HTTP API. Version: {}",
+            clap::crate_version!()
+        ))
         .after_help(after_help)
         .disable_version_flag(true)
         // --config-file
@@ -61,7 +69,7 @@ pub fn parser() -> Command {
             Arg::new("host")
                 .short('H')
                 .long("host")
-                .help("HTTP API hostname to use when connecting")
+                .help("HTTP API hostname to use when connecting"),
         )
         .visible_alias("hostname")
         // --port
@@ -87,21 +95,24 @@ pub fn parser() -> Command {
         .arg(
             Arg::new("path_prefix")
                 .long("path-prefix")
-                .help("use if target node uses a path prefix. Defaults to '/api'")
+                .help("use if target node uses a path prefix. Defaults to '/api'"),
         )
         // --vhost
         .arg(
             Arg::new("vhost")
                 .short('V')
                 .long("vhost")
-                .help("target virtual host. Defaults to '/'")
+                .help("target virtual host. Defaults to '/'"),
         )
         // --username
         .arg(
             Arg::new("username")
                 .short('u')
                 .long("username")
-                .help("this user must have the permissions for HTTP API access, see https://www.rabbitmq.com/docs/management#permissions")
+                .help(format!(
+                    "this user must have the permissions for HTTP API access, see {}",
+                    HTTP_API_ACCESS_PERMISSIONS_GUIDE_URL
+                )),
         )
         // --password
         .arg(
@@ -109,7 +120,7 @@ pub fn parser() -> Command {
                 .short('p')
                 .long("password")
                 .requires("username")
-                .help("must be specified if --username is used")
+                .help("must be specified if --username is used"),
         )
         // --insecure
         .arg(
@@ -126,7 +137,7 @@ pub fn parser() -> Command {
             Arg::new("tls")
                 .long("use-tls")
                 .help("use TLS (HTTPS) for HTTP API requests ")
-                .value_parser(clap::value_parser!(bool))
+                .value_parser(clap::value_parser!(bool)),
         )
         // --tls-ca-cert-file
         .arg(
@@ -152,15 +163,16 @@ pub fn parser() -> Command {
                 .help("pass when invoking from scripts")
                 .required(false)
                 .value_parser(clap::value_parser!(bool))
-                .action(ArgAction::SetTrue)
+                .action(ArgAction::SetTrue),
         )
         .subcommand_required(true)
         .subcommand_value_name("command")
         .subcommands([
             Command::new("show")
                 .about("overview")
-                .after_long_help(color_print::cstr!(
-                    "<bold>Doc guide</bold>: https://www.rabbitmq.com/docs/monitoring"
+                .after_long_help(color_print::cformat!(
+                    "<bold>Doc guide</bold>: {}",
+                    MONITORING_GUIDE_URL
                 ))
                 .subcommand_value_name("summary")
                 .subcommands(show_subcommands()),
@@ -184,8 +196,13 @@ pub fn parser() -> Command {
                 .about("runs health checks")
                 .subcommand_value_name("check")
                 .subcommands(health_check_subcommands())
-                .after_long_help(color_print::cstr!(
-                    "<bold>Doc guide</bold>: https://rabbitmq.com/docs/monitoring#health-checks"
+                .after_long_help(color_print::cformat!(
+                    r#"<bold>Doc guides</bold>:
+
+ * {}
+ * {}"#,
+                    HEALTH_CHECK_GUIDE_URL,
+                    DEPRECATED_FEATURE_GUIDE_URL
                 )),
             Command::new("close")
                 .about("closes connections")
@@ -193,29 +210,33 @@ pub fn parser() -> Command {
                 .subcommands(close_subcommands()),
             Command::new("rebalance")
                 .about("rebalances queue leaders")
-                .after_long_help(color_print::cstr!(
-                    "<bold>Doc guide</bold>: https://www.rabbitmq.com/docs/quorum-queues"
+                .after_long_help(color_print::cformat!(
+                    "<bold>Doc guide</bold>: {}",
+                    QUORUM_QUEUE_GUIDE_URL
                 ))
                 .subcommand_value_name("queues")
                 .subcommands(rebalance_subcommands()),
             Command::new("definitions")
                 .about("operations on definitions")
-                .after_long_help(color_print::cstr!(
-                    "<bold>Doc guide</bold>: https://rabbitmq.com/docs/definitions"
+                .after_long_help(color_print::cformat!(
+                    "<bold>Doc guide</bold>: {}",
+                    DEFINITION_GUIDE_URL
                 ))
                 .subcommand_value_name("export")
                 .subcommands(definitions_subcommands()),
             Command::new("export")
                 .about("see 'definitions export'")
-                .after_long_help(color_print::cstr!(
-                    "<bold>Doc guide</bold>: https://rabbitmq.com/docs/definitions"
+                .after_long_help(color_print::cformat!(
+                    "<bold>Doc guide</bold>: {}",
+                    DEFINITION_GUIDE_URL
                 ))
                 .subcommand_value_name("definitions")
                 .subcommands(export_subcommands()),
             Command::new("import")
                 .about("see 'definitions import'")
-                .after_long_help(color_print::cstr!(
-                    "<bold>Doc guide</bold>: https://rabbitmq.com/docs/definitions"
+                .after_long_help(color_print::cformat!(
+                    "<bold>Doc guide</bold>: {}",
+                    DEFINITION_GUIDE_URL
                 ))
                 .subcommand_value_name("definitions")
                 .subcommands(import_subcommands()),
@@ -830,15 +851,37 @@ fn purge_subcommands() -> [Command; 1] {
         )]
 }
 
-fn health_check_subcommands() -> [Command; 3] {
+fn health_check_subcommands() -> [Command; 4] {
+    let node_is_quorum_critical_after_help = color_print::cformat!(
+        r#"
+<bold>Doc guides</bold>:
+
+ * {}
+ * {}"#,
+        QUORUM_QUEUE_FAILURE_HANDLING_GUIDE_URL,
+        UPGRADE_GUIDE_URL
+    );
+
     let local_alarms = Command::new("local_alarms")
         .about("checks if there are any resource alarms in effect on the target node");
     let cluster_wide_alarms = Command::new("cluster_wide_alarms")
         .about("checks if there are any resource alarms in effect across the entire cluster");
     let node_is_quorum_critical = Command::new("node_is_quorum_critical")
-        .about("fails if there are queues/streams with minimum online quorum (queues/streams that will lose their quorum if the target node shuts down)");
+        .about("fails if there are queues/streams with minimum online quorum (queues/streams that will lose their quorum if the target node shuts down)")
+        .after_long_help(node_is_quorum_critical_after_help);
+    let deprecated_features_in_use = Command::new("deprecated_features_in_use")
+        .about("fails if there are any deprecated features in use in the cluster")
+        .after_long_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            DEPRECATED_FEATURE_GUIDE_URL
+        ));
 
-    [local_alarms, cluster_wide_alarms, node_is_quorum_critical]
+    [
+        local_alarms,
+        cluster_wide_alarms,
+        node_is_quorum_critical,
+        deprecated_features_in_use,
+    ]
 }
 
 fn rebalance_subcommands() -> [Command; 1] {
@@ -858,22 +901,22 @@ fn close_subcommands() -> [Command; 1] {
 
 fn definitions_subcommands() -> [Command; 2] {
     let export_cmd = Command::new("export")
-        .about("export all definitions (queues, exchanges, bindings, users, etc)")
-        .after_long_help(color_print::cstr!(
-            "<bold>Doc guide</bold>: https://rabbitmq.com/docs/definitions/"
+        .about("export cluster-wide definitions (everything except for messages: virtual hosts, queues, streams, exchanges, bindings, users, etc)")
+        .after_long_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}", DEFINITION_GUIDE_URL
         ))
         .arg(
             Arg::new("file")
                 .long("file")
-                .help("output path")
+                .help("output path or '-' for standard output")
                 .required(false)
                 .default_value("-"),
         );
 
     let import_cmd = Command::new("import")
-        .about("import all definitions (queues, exchanges, bindings, users, etc) from a JSON file")
-        .after_long_help(color_print::cstr!(
-            "<bold>Doc guide</bold>: https://rabbitmq.com/docs/definitions/"
+        .about("import definitions (everything except for messages: virtual hosts, queues, streams, exchanges, bindings, users, etc")
+        .after_long_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}", DEFINITION_GUIDE_URL
         ))
         .arg(
             Arg::new("file")

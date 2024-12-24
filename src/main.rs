@@ -26,6 +26,7 @@ mod config;
 mod constants;
 mod errors;
 mod output;
+mod static_urls;
 mod tables;
 
 use crate::config::SharedSettings;
