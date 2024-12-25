@@ -53,7 +53,7 @@
 
 ## Bug Fixes
 
- * `declare exchange` propduced an incorrect API request payload
+ * `declare exchange` produced an incorrect API request payload
    when target exchange `--type` was an `x-*` type (a plugin provided-type), such as `x-local-random` or `x-consistent-hash`
 
 
