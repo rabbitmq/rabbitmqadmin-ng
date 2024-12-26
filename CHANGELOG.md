@@ -4,6 +4,11 @@
 
 ### Enhancements
 
+ * Improved error reporting.
+
+   A failed HTTP API request now prints the request URL (this does NOT include the credentials),
+   and the response body, making it easier to identify the problem without consulting [RabbitMQ node logs](https://www.rabbitmq.com/docs/management#http-logging).
+
  * CLI interface `help` message polishing. 
    
    More commands now provide links to the relevant documentation guides,
