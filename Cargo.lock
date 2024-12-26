@@ -1175,8 +1175,8 @@ dependencies = [
 
 [[package]]
 name = "rabbitmq_http_client"
-version = "0.9.0"
-source = "git+https://github.com/michaelklishin/rabbitmq-http-api-rs#f8f6300f526d9686745dc6daa422a3aa291488ea"
+version = "0.10.0"
+source = "git+https://github.com/michaelklishin/rabbitmq-http-api-rs#4ac95650b1e5a52facc04b273b22fcb25b50cf7b"
 dependencies = [
  "backtrace",
  "percent-encoding",
@@ -1873,9 +1873,9 @@ checksum = "e421abadd41a4225275504ea4d6566923418b7f05506fbc9c0fe86ba7396114b"
 
 [[package]]
 name = "unicase"
-version = "2.8.0"
+version = "2.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7e51b68083f157f853b6379db119d1c1be0e6e4dec98101079dec41f6f5cf6df"
+checksum = "75b844d17643ee918803943289730bec8aac480150456169e647ed0b576ba539"
 
 [[package]]
 name = "unicode-ident"

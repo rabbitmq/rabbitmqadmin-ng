@@ -14,8 +14,11 @@
 
 use rabbitmq_http_client::error::Error as ApiClientError;
 use rabbitmq_http_client::{blocking_api::HttpClientError, responses::HealthCheckFailureDetails};
-use reqwest::blocking::Response;
-use reqwest::{header::InvalidHeaderValue, StatusCode};
+use reqwest::{
+    header::{HeaderMap, InvalidHeaderValue},
+    StatusCode,
+};
+use url::Url;
 
 #[derive(thiserror::Error, Debug)]
 pub enum CommandRunError {
@@ -24,12 +27,16 @@ pub enum CommandRunError {
     #[error("API responded with a client error: status code of {status_code}")]
     ClientError {
         status_code: StatusCode,
-        response: Option<Response>,
+        url: Option<Url>,
+        body: Option<String>,
+        headers: Option<HeaderMap>,
     },
     #[error("API responded with a client error: status code of {status_code}")]
     ServerError {
         status_code: StatusCode,
-        response: Option<Response>,
+        url: Option<Url>,
+        body: Option<String>,
+        headers: Option<HeaderMap>,
     },
     #[error("Health check failed")]
     HealthCheckFailed {
@@ -52,18 +59,18 @@ pub enum CommandRunError {
 impl From<HttpClientError> for CommandRunError {
     fn from(value: HttpClientError) -> Self {
         match value {
-            ApiClientError::ClientErrorResponse { status_code, response, .. } => {
-                Self::ClientError { status_code, response }
+            ApiClientError::ClientErrorResponse { status_code, url, body, headers, .. } => {
+                Self::ClientError { status_code, url, body, headers }
             },
-            ApiClientError::ServerErrorResponse { status_code, response, .. } => {
-                Self::ServerError { status_code, response }
+            ApiClientError::ServerErrorResponse { status_code, url, body, headers, .. } => {
+                Self::ServerError { status_code, url, body, headers }
             },
             ApiClientError::HealthCheckFailed { path, details, status_code } => {
                 Self::HealthCheckFailed { health_check_path: path, details, status_code }
             },
             ApiClientError::NotFound => Self::NotFound,
             ApiClientError::MultipleMatchingBindings => Self::ConflictingOptions {
-                message: "multiple bindings match, cannot determing which binding to delete without explicitly provided binding properties".to_owned()
+                message: "multiple bindings match, cannot determine which binding to delete without explicitly provided binding properties".to_owned()
             },
             ApiClientError::InvalidHeaderValue { error } => {
                 Self::InvalidHeaderValue { error }

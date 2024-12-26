@@ -11,11 +11,12 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-use rabbitmq_http_client::blocking_api::{HttpClientError, HttpClientResponse};
+use rabbitmq_http_client::blocking_api::HttpClientError;
 use rabbitmq_http_client::responses::{HealthCheckFailureDetails, Overview};
 use reqwest::StatusCode;
 use tabled::settings::Panel;
 use tabled::{Table, Tabled};
+use url::Url;
 
 #[derive(Tabled)]
 struct OverviewRow<'a> {
@@ -102,14 +103,16 @@ pub fn failure_details(error: &HttpClientError) -> Table {
     match error {
         HttpClientError::ClientErrorResponse {
             status_code,
-            response,
-            backtrace: _,
-        } => generic_failed_request_details(status_code, response),
+            url,
+            body,
+            ..
+        } => generic_failed_request_details(status_code, url, body),
         HttpClientError::ServerErrorResponse {
             status_code,
-            response,
-            backtrace: _,
-        } => generic_failed_request_details(status_code, response),
+            url,
+            body,
+            ..
+        } => generic_failed_request_details(status_code, url, body),
         HttpClientError::HealthCheckFailed {
             status_code,
             path,
@@ -240,10 +243,14 @@ pub fn failure_details(error: &HttpClientError) -> Table {
 
 fn generic_failed_request_details(
     status_code: &StatusCode,
-    response: &Option<HttpClientResponse>,
+    url: &Option<Url>,
+    body: &Option<String>,
 ) -> Table {
     let status_code_s = status_code.to_string();
-    let mut data = vec![
+    let url_s = url.clone().unwrap().to_string();
+    let body_s = body.clone().unwrap_or("N/A".to_string());
+
+    let data = vec![
         RowOfTwoStrings {
             key: "result",
             value: "request failed",
@@ -252,16 +259,15 @@ fn generic_failed_request_details(
             key: "status_code",
             value: status_code_s.as_str(),
         },
+        RowOfTwoStrings {
+            key: "url",
+            value: url_s.as_str(),
+        },
+        RowOfTwoStrings {
+            key: "body",
+            value: body_s.as_str(),
+        },
     ];
-    match response {
-        None => (),
-        Some(ref val) => {
-            data.push(RowOfTwoStrings {
-                key: "request URL",
-                value: val.url().as_str(),
-            });
-        }
-    }
 
     let tb = Table::builder(data);
     tb.build()

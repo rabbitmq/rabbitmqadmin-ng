@@ -147,8 +147,7 @@ impl ResultHandler {
             Err(error) => match error {
                 ClientError::ClientErrorResponse {
                     status_code: http_code,
-                    response: _,
-                    backtrace: _,
+                    ..
                 } if http_code == StatusCode::NOT_FOUND => {
                     if self.idempotently {
                         self.exit_code = Some(ExitCode::Ok)
