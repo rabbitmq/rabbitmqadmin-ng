@@ -1176,7 +1176,8 @@ dependencies = [
 [[package]]
 name = "rabbitmq_http_client"
 version = "0.10.0"
-source = "git+https://github.com/michaelklishin/rabbitmq-http-api-rs#24405493bdb5a6ff66d1f59963bcbe6ae9e6b49d"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "102098178be72dd0a58f13b40d512ce8e8b2d36c7cb45d4712dc0ec020f2a95a"
 dependencies = [
  "backtrace",
  "percent-encoding",
@@ -1315,9 +1316,9 @@ checksum = "2b15c43186be67a4fd63bee50d0303afffcef381492ebe2c5d87f324e1b8815c"
 
 [[package]]
 name = "reqwest"
-version = "0.12.10"
+version = "0.12.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3d3536321cfc54baa8cf3e273d5e1f63f889067829c4b410fcdbac8ca7b80994"
+checksum = "7fe060fe50f524be480214aba758c71f99f90ee8c83c5a36b5e9e1d568eb4eb3"
 dependencies = [
  "base64",
  "bytes",
