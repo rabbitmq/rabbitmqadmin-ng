@@ -232,6 +232,10 @@ fn dispatch_subcommand(
             let result = commands::list_exchanges(client, &vhost);
             res_handler.tabular_result(result)
         }
+        ("list", "feature_flags") => {
+            let result = commands::list_feature_flags(client);
+            res_handler.tabular_result(result.map(|val| val.0))
+        }
         ("list", "deprecated_features") => {
             let result = commands::list_deprecated_features(client);
             res_handler.tabular_result(result.map(|val| val.0))

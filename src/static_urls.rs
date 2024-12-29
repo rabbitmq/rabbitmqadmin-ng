@@ -34,6 +34,7 @@ pub(crate) const BLUE_GREEN_UPGRADE_GUIDE_URL: &str =
 pub(crate) const MONITORING_GUIDE_URL: &str = "https://rabbitmq.com/docs/monitoring";
 pub(crate) const HEALTH_CHECK_GUIDE_URL: &str =
     "https://rabbitmq.com/docs/monitoring#health-checks";
+pub(crate) const FEATURE_FLAG_GUIDE_URL: &str = "https://rabbitmq.com/docs/feature-flags";
 pub(crate) const DEPRECATED_FEATURE_GUIDE_URL: &str =
     "https://rabbitmq.com/docs/deprecated-features";
 pub(crate) const ACCESS_CONTROL_GUIDE_URL: &str = "https://rabbitmq.com/docs/access-control";

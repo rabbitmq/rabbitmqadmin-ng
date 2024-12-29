@@ -28,7 +28,7 @@ use rabbitmq_http_client::requests::EnforcedLimitParams;
 use crate::constants::DEFAULT_QUEUE_TYPE;
 use rabbitmq_http_client::commons::BindingDestinationType;
 use rabbitmq_http_client::commons::QueueType;
-use rabbitmq_http_client::responses::Overview;
+use rabbitmq_http_client::responses::{FeatureFlagList, Overview};
 use rabbitmq_http_client::{password_hashing, requests, responses};
 
 type APIClient<'a> = Client<&'a str, &'a str, &'a str>;
@@ -120,6 +120,10 @@ pub fn list_parameters(
         }
         Some(c) => client.list_runtime_parameters_of_component_in(c, vhost),
     }
+}
+
+pub fn list_feature_flags(client: APIClient) -> ClientResult<FeatureFlagList> {
+    client.list_feature_flags()
 }
 
 pub fn list_deprecated_features(
