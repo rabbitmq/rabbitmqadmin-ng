@@ -1,8 +1,37 @@
 # rabbitmqadmin-ng Change Log
 
-## v0.16.0 (in development)
+## v0.17.0 (in development)
 
 No (documented) changes yet.
+
+
+## v0.16.0 (Dec 29, 2024)
+
+### Enhancements
+
+ * `rabbitmqadmin feature_flags list` (also available as `rabbitmqadmin list feature_flags`) is a new command
+    that lists feature flags and their cluster state.
+ 
+    GitHub issue: [#38](https://github.com/rabbitmq/rabbitmqadmin-ng/issues/38)
+
+* `rabbitmqadmin feature_flags enable --name {feature flag}` and `rabbitmqadmin feature_flags enable_all` are new commands
+  that enable feature flags.
+
+  Just like its `rabbitmqctl` counterpart, `rabbitmqadmin feature_flags enable_all` will only enable
+  the stable feature flags and will skip the experimental ones.
+
+  GitHub issues: [#41](https://github.com/rabbitmq/rabbitmqadmin-ng/issues/41)
+
+ * `rabbitmqadmin deprecated_features list` (also available as `rabbitmqadmin list deprecated_features`) is a new
+    function that lists all [deprecated features](https://www.rabbitmq.com/docs/deprecated-features).
+
+    GitHub issue: [#39](https://github.com/rabbitmq/rabbitmqadmin-ng/issues/39)
+
+* `rabbitmqadmin deprecated_features list_used` (also available as `rabbitmqadmin list deprecated_features_in_use`) is a new
+  function that lists the [deprecated features](https://www.rabbitmq.com/docs/deprecated-features) that are found to be
+  used in the cluster.
+
+  GitHub issue: [#40](https://github.com/rabbitmq/rabbitmqadmin-ng/issues/40)
 
 
 ## v0.15.0 (Dec 26, 2024)

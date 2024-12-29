@@ -120,7 +120,7 @@ pub fn parser() -> Command {
                 .short('p')
                 .long("password")
                 .requires("username")
-                .help("must be specified if --username is used"),
+                .help("requires username to be specified via --username or in the config file"),
         )
         // --insecure
         .arg(
@@ -248,6 +248,14 @@ pub fn parser() -> Command {
                 ))
                 .subcommand_value_name("feature flag")
                 .subcommands(feature_flags_subcommands()),
+            Command::new("deprecated_features")
+                .about("operations on deprecated features")
+                .after_long_help(color_print::cformat!(
+                    "<bold>Doc guide</bold>: {}",
+                    DEPRECATED_FEATURE_GUIDE_URL
+                ))
+                .subcommand_value_name("deprecated feature")
+                .subcommands(deprecated_features_subcommands()),
             Command::new("publish")
                 .about(color_print::cstr!("Publishes (<red>inefficiently</red>) message(s) to a queue or a stream. <bold><red>Only suitable for development and test environments</red></bold>."))
                 .after_long_help(color_print::cformat!("<bold>Doc guide</bold>: {}", PUBLISHER_GUIDE_URL))
@@ -1040,6 +1048,24 @@ pub fn feature_flags_subcommands() -> [Command; 3] {
         ));
 
     [list_cmd, enable_cmd, enable_all_cmd]
+}
+
+pub fn deprecated_features_subcommands() -> [Command; 2] {
+    let list_cmd = Command::new("list")
+        .long_about("Lists deprecated features")
+        .after_long_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            DEPRECATED_FEATURE_GUIDE_URL
+        ));
+
+    let list_in_use_cmd = Command::new("list_used")
+        .long_about("Lists the deprecated features that are found to be in use in the cluster")
+        .after_long_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            DEPRECATED_FEATURE_GUIDE_URL
+        ));
+
+    [list_cmd, list_in_use_cmd]
 }
 
 pub fn publish_subcommands() -> [Command; 1] {

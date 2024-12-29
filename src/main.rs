@@ -384,6 +384,14 @@ fn dispatch_subcommand(
             let result = commands::enable_all_stable_feature_flags(client);
             res_handler.no_output_on_success(result);
         }
+        ("deprecated_features", "list") => {
+            let result = commands::list_deprecated_features(client);
+            res_handler.tabular_result(result.map(|val| val.0))
+        }
+        ("deprecated_features", "list_used") => {
+            let result = commands::list_deprecated_features_in_use(client);
+            res_handler.tabular_result(result.map(|val| val.0))
+        }
         ("publish", "message") => {
             let result = commands::publish_message(client, &vhost, command_args);
             res_handler.single_value_result(result)
