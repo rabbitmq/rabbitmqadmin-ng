@@ -8,9 +8,19 @@ to learn about a few breaking change in the interface.
 
 ## Getting Started
 
-### Releases
+### Installation
+
+#### Binary Releases
 
 To download a binary build, see [Releases](https://github.com/rabbitmq/rabbitmqadmin-ng/releases).
+
+#### Building from Source with `cargo install`
+
+On platforms not covered by the binary builds, `rabbitmqadmin` v2 can be installed with [Cargo](https://doc.rust-lang.org/cargo/commands/cargo-install.html):
+
+```shell
+cargo install rabbitmqadmin
+```
 
 ### Documentation
 
