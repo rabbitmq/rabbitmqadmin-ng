@@ -124,7 +124,7 @@ fn delete_a_non_existing_exchange() -> Result<(), Box<dyn std::error::Error>> {
         "--name",
         "7s98df7s79df-non-existent",
     ])
-        .stderr(predicate::str::contains("Not Found"));
+    .stderr(predicate::str::contains("Not Found"));
 
     // delete the vhost
     delete_vhost(vh)?;
