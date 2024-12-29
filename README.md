@@ -56,20 +56,22 @@ which will output a list of command groups:
 Usage: rabbitmqadmin [OPTIONS] <command>
 
 Commands:
-  show          overview
-  list          lists objects by type
-  declare       creates or declares things
-  delete        deletes objects
-  purge         purges queues
-  health_check  runs health checks
-  close         closes connections
-  rebalance     rebalances queue leaders
-  definitions   operations on definitions
-  export        see 'definitions export'
-  import        see 'definitions import'
-  publish       publish a message
-  get           get message(s) from a queue
-  help          Print this message or the help of the given subcommand(s)
+  show                 overview
+  list                 lists objects by type
+  declare              creates or declares things
+  delete               deletes objects
+  purge                purges queues
+  health_check         runs health checks
+  close                closes connections
+  rebalance            rebalances queue leaders
+  definitions          operations on definitions
+  export               see 'definitions export'
+  import               see 'definitions import'
+  feature_flags        operations on feature flags
+  deprecated_features  operations on deprecated features
+  publish              Publishes (inefficiently) message(s) to a queue or a stream. Only suitable for development and test environments.
+  get                  fetches message(s) from a queue or stream via polling. Only suitable for development and test environments.
+  help                 Print this message or the help of the given subcommand(s)
 ```
 
 To explore commands in a specific group, use
