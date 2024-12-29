@@ -1175,9 +1175,9 @@ dependencies = [
 
 [[package]]
 name = "rabbitmq_http_client"
-version = "0.11.0"
+version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9e0094d181a87e35e8bf89f0a4f8776500f31bd0ed49e9ee8feb72b741863133"
+checksum = "a4717825cf65121a9b0485aea26b45ade4909d4709cb930522b4b5190299b74d"
 dependencies = [
  "backtrace",
  "percent-encoding",
