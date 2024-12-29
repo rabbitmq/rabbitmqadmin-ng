@@ -10,7 +10,7 @@ No (documented) changes yet.
 ### Enhancements
 
  * `rabbitmqadmin feature_flags list` (also available as `rabbitmqadmin list feature_flags`) is a new command
-    that lists feature flags and their cluster state.
+    that lists [feature flags](https://www.rabbitmq.com/docs/feature-flags) and their cluster state.
  
     GitHub issue: [#38](https://github.com/rabbitmq/rabbitmqadmin-ng/issues/38)
 
@@ -18,7 +18,7 @@ No (documented) changes yet.
   that enable feature flags.
 
   Just like its `rabbitmqctl` counterpart, `rabbitmqadmin feature_flags enable_all` will only enable
-  the stable feature flags and will skip the experimental ones.
+  the stable [feature flags](https://www.rabbitmq.com/docs/feature-flags) and will skip the experimental ones.
 
   GitHub issues: [#41](https://github.com/rabbitmq/rabbitmqadmin-ng/issues/41)
 
