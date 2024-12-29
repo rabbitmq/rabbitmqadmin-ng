@@ -126,6 +126,15 @@ pub fn list_feature_flags(client: APIClient) -> ClientResult<FeatureFlagList> {
     client.list_feature_flags()
 }
 
+pub fn enable_feature_flag(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
+    let name = command_args.get_one::<String>("name").cloned().unwrap();
+    client.enable_feature_flag(&name)
+}
+
+pub fn enable_all_stable_feature_flags(client: APIClient) -> ClientResult<()> {
+    client.enable_all_stable_feature_flags()
+}
+
 pub fn list_deprecated_features(
     client: APIClient,
 ) -> ClientResult<responses::DeprecatedFeatureList> {

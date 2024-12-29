@@ -372,6 +372,18 @@ fn dispatch_subcommand(
             let result = commands::import_definitions(client, command_args);
             res_handler.no_output_on_success(result);
         }
+        ("feature_flags", "list") => {
+            let result = commands::list_feature_flags(client);
+            res_handler.tabular_result(result.map(|val| val.0))
+        }
+        ("feature_flags", "enable") => {
+            let result = commands::enable_feature_flag(client, command_args);
+            res_handler.no_output_on_success(result);
+        }
+        ("feature_flags", "enable_all") => {
+            let result = commands::enable_all_stable_feature_flags(client);
+            res_handler.no_output_on_success(result);
+        }
         ("publish", "message") => {
             let result = commands::publish_message(client, &vhost, command_args);
             res_handler.single_value_result(result)

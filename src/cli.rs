@@ -240,6 +240,14 @@ pub fn parser() -> Command {
                 ))
                 .subcommand_value_name("definitions")
                 .subcommands(import_subcommands()),
+            Command::new("feature_flags")
+                .about("operations on feature flags")
+                .after_long_help(color_print::cformat!(
+                    "<bold>Doc guide</bold>: {}",
+                    FEATURE_FLAG_GUIDE_URL
+                ))
+                .subcommand_value_name("feature flag")
+                .subcommands(feature_flags_subcommands()),
             Command::new("publish")
                 .about(color_print::cstr!("Publishes (<red>inefficiently</red>) message(s) to a queue or a stream. <bold><red>Only suitable for development and test environments</red></bold>."))
                 .after_long_help(color_print::cformat!("<bold>Doc guide</bold>: {}", PUBLISHER_GUIDE_URL))
@@ -1001,6 +1009,37 @@ fn import_subcommands() -> [Command; 1] {
                 .help("JSON file with definitions")
                 .required(true),
         )]
+}
+
+pub fn feature_flags_subcommands() -> [Command; 3] {
+    let list_cmd = Command::new("list")
+        .long_about("Lists feature flags and their cluster state")
+        .after_long_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            FEATURE_FLAG_GUIDE_URL
+        ));
+
+    let enable_cmd = Command::new("enable")
+        .long_about("Enables a feature flag")
+        .after_long_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            FEATURE_FLAG_GUIDE_URL
+        ))
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("feature flag name (identifier)")
+                .required(true),
+        );
+
+    let enable_all_cmd = Command::new("enable_all")
+        .long_about("Enables all stable feature flags")
+        .after_long_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            FEATURE_FLAG_GUIDE_URL
+        ));
+
+    [list_cmd, enable_cmd, enable_all_cmd]
 }
 
 pub fn publish_subcommands() -> [Command; 1] {
