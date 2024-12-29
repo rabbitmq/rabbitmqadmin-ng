@@ -253,7 +253,7 @@ pub fn parser() -> Command {
         ])
 }
 
-fn list_subcommands() -> [Command; 15] {
+fn list_subcommands() -> [Command; 17] {
     // duplicate this very common global argument so that
     // it can be passed as the end of argument list
     let vhost_arg = Arg::new("vhost")
@@ -359,6 +359,18 @@ fn list_subcommands() -> [Command; 15] {
             .after_long_help(color_print::cformat!(
                 "<bold>Doc guide</bold>: {}",
                 USER_LIMIT_GUIDE_URL
+            )),
+        Command::new("deprecated_features")
+            .long_about("Lists all deprecated features")
+            .after_long_help(color_print::cformat!(
+                "<bold>Doc guide</bold>: {}",
+                DEPRECATED_FEATURE_GUIDE_URL
+            )),
+        Command::new("deprecated_features_in_use")
+            .long_about("Lists the deprecated features that are in used in the cluster")
+            .after_long_help(color_print::cformat!(
+                "<bold>Doc guide</bold>: {}",
+                DEPRECATED_FEATURE_GUIDE_URL
             )),
     ]
 }

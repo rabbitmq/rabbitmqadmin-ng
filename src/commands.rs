@@ -122,6 +122,18 @@ pub fn list_parameters(
     }
 }
 
+pub fn list_deprecated_features(
+    client: APIClient,
+) -> ClientResult<responses::DeprecatedFeatureList> {
+    client.list_all_deprecated_features()
+}
+
+pub fn list_deprecated_features_in_use(
+    client: APIClient,
+) -> ClientResult<responses::DeprecatedFeatureList> {
+    client.list_deprecated_features_in_use()
+}
+
 pub fn declare_vhost(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
     // the flag is required
     let name = command_args.get_one::<String>("name").unwrap();
