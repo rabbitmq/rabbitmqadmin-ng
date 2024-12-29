@@ -295,6 +295,46 @@ rabbitmqadmin --vhost "events" delete exchange --name "target.exchange.name"
 rabbitmqadmin --vhost "events" delete exchange --name "target.exchange.name" --idempotently
 ```
 
+### List feature flags and their state
+
+```shell
+rabbitmqadmin feature_flags list
+```
+
+```shell
+# same command as above
+rabbitmqadmin list feature_flags
+```
+
+### Enable a feature flag
+
+```shell
+rabbitmqadmin feature_flags enable rabbitmq_4.0.0
+```
+
+### Enable all stable feature flags
+
+```shell
+rabbitmqadmin feature_flags enable_all
+```
+
+### List deprecated features in use in the cluster
+
+```shell
+rabbitmqadmin deprecated_features list_used
+```
+
+### List all deprecated features
+
+```shell
+rabbitmqadmin deprecated_features list
+```
+
+```shell
+# same command as above
+rabbitmqadmin list deprecated_features
+```
+
 
 ## Configuration Files
 
