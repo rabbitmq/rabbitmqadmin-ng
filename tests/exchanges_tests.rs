@@ -70,3 +70,64 @@ fn list_exchanges() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
+
+#[test]
+fn delete_an_existing_exchange() -> Result<(), Box<dyn std::error::Error>> {
+    let vh = "delete_exchange_vhost_1";
+    let x = "exchange_1_to_delete";
+
+    // create a vhost
+    create_vhost(vh)?;
+
+    // declare an exchange
+    run_succeeds(["-V", vh, "declare", "exchange", "--name", x]);
+
+    // list exchanges in vhost 1
+    run_succeeds(["-V", vh, "list", "exchanges"]).stdout(predicate::str::contains(x));
+
+    // delete the exchange
+    run_succeeds(["-V", vh, "delete", "exchange", "--name", x]);
+
+    // list exchange in vhost 1
+    run_succeeds(["-V", vh, "list", "exchanges"]).stdout(predicate::str::contains(x).not());
+
+    // delete the vhost
+    delete_vhost(vh)?;
+
+    Ok(())
+}
+
+#[test]
+fn delete_a_non_existing_exchange() -> Result<(), Box<dyn std::error::Error>> {
+    let vh = "delete_exchange_vhost_2";
+
+    // declare a vhost
+    create_vhost(vh)?;
+
+    // try deleting a non-existent exchange with --idempotently
+    run_succeeds([
+        "--vhost",
+        vh,
+        "delete",
+        "exchange",
+        "--name",
+        "7s98df7s79df-non-existent",
+        "--idempotently",
+    ]);
+
+    // try deleting it without
+    run_fails([
+        "--vhost",
+        vh,
+        "delete",
+        "exchange",
+        "--name",
+        "7s98df7s79df-non-existent",
+    ])
+        .stderr(predicate::str::contains("Not Found"));
+
+    // delete the vhost
+    delete_vhost(vh)?;
+
+    Ok(())
+}
