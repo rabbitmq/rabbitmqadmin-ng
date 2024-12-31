@@ -187,7 +187,8 @@ impl ResultHandler {
 
                 println!("{}", table);
             }
-            _ => {
+            Err(e) => {
+                println!("Error: {:?}", e);
                 self.exit_code = Some(ExitCode::Unavailable);
             }
         }

@@ -348,6 +348,14 @@ fn dispatch_subcommand(
             let result = commands::health_check_node_is_quorum_critical(client);
             res_handler.health_check_result(result);
         }
+        ("health_check", "port_listener") => {
+            let result = commands::health_check_port_listener(client, command_args);
+            res_handler.health_check_result(result);
+        }
+        ("health_check", "protocol_listener") => {
+            let result = commands::health_check_protocol_listener(client, command_args);
+            res_handler.health_check_result(result);
+        }
         ("rebalance", "queues") => {
             let result = commands::rebalance_queues(client);
             res_handler.no_output_on_success(result);

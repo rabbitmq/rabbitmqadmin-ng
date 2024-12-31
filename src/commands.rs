@@ -15,9 +15,9 @@
 
 use clap::ArgMatches;
 use rabbitmq_http_client::commons;
-use rabbitmq_http_client::commons::ExchangeType;
 use rabbitmq_http_client::commons::UserLimitTarget;
 use rabbitmq_http_client::commons::VirtualHostLimitTarget;
+use rabbitmq_http_client::commons::{ExchangeType, SupportedProtocol};
 use std::fs;
 use std::process;
 
@@ -589,6 +589,27 @@ pub fn health_check_cluster_wide_alarms(client: APIClient) -> ClientResult<()> {
 
 pub fn health_check_node_is_quorum_critical(client: APIClient) -> ClientResult<()> {
     client.health_check_if_node_is_quorum_critical()
+}
+
+pub fn health_check_port_listener(
+    client: APIClient,
+    command_args: &ArgMatches,
+) -> ClientResult<()> {
+    // the flag is required
+    let port = command_args.get_one::<u16>("port").cloned().unwrap();
+    client.health_check_port_listener(port)
+}
+
+pub fn health_check_protocol_listener(
+    client: APIClient,
+    command_args: &ArgMatches,
+) -> ClientResult<()> {
+    // the flag is required
+    let proto = command_args
+        .get_one::<SupportedProtocol>("protocol")
+        .cloned()
+        .unwrap();
+    client.health_check_protocol_listener(proto)
 }
 
 pub fn close_connection(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {

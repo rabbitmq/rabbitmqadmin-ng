@@ -12,7 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 use rabbitmq_http_client::blocking_api::HttpClientError;
-use rabbitmq_http_client::responses::{HealthCheckFailureDetails, Overview};
+use rabbitmq_http_client::responses::{
+    ClusterAlarmCheckDetails, HealthCheckFailureDetails, Overview, QuorumCriticalityCheckDetails,
+};
 use reqwest::StatusCode;
 use tabled::settings::Panel;
 use tabled::{Table, Tabled};
@@ -135,20 +137,18 @@ pub fn failure_details(error: &HttpClientError) -> Table {
                 },
             ];
 
-            match details {
-                HealthCheckFailureDetails::AlarmCheck(details) => {
-                    data.push(RowOfTwoStrings {
-                        key: "reason",
-                        value: details.reason.as_str(),
-                    });
-                }
-                HealthCheckFailureDetails::NodeIsQuorumCritical(details) => {
-                    data.push(RowOfTwoStrings {
-                        key: "reason",
-                        value: details.reason.as_str(),
-                    });
+            let reason = match details {
+                HealthCheckFailureDetails::AlarmCheck(details) => details.reason.clone(),
+                HealthCheckFailureDetails::NodeIsQuorumCritical(details) => details.reason.clone(),
+                HealthCheckFailureDetails::NoActivePortListener(details) => details.reason.clone(),
+                HealthCheckFailureDetails::NoActiveProtocolListener(details) => {
+                    details.reason.clone()
                 }
             };
+            data.push(RowOfTwoStrings {
+                key: "reason",
+                value: reason.as_str(),
+            });
 
             let tb = Table::builder(data);
             tb.build()
@@ -281,6 +281,8 @@ pub fn health_check_failure(
     let reason = match details {
         HealthCheckFailureDetails::AlarmCheck(ref details) => details.reason.clone(),
         HealthCheckFailureDetails::NodeIsQuorumCritical(ref details) => details.reason.clone(),
+        HealthCheckFailureDetails::NoActivePortListener(ref details) => details.reason.clone(),
+        HealthCheckFailureDetails::NoActiveProtocolListener(ref details) => details.reason.clone(),
     };
     let code_str = format!("{}", status_code);
 
@@ -304,23 +306,31 @@ pub fn health_check_failure(
     ];
     let mut tb = Table::builder(vec);
     match details {
-        HealthCheckFailureDetails::AlarmCheck(
-            rabbitmq_http_client::responses::ClusterAlarmCheckDetails { reason: _, alarms },
-        ) => {
+        HealthCheckFailureDetails::AlarmCheck(ClusterAlarmCheckDetails { reason: _, alarms }) => {
             for alarm in alarms {
                 let key = format!("alarm in effect on node {}", alarm.node);
                 let value = alarm.resource;
                 tb.push_record([key.as_str(), value.as_str()]);
             }
         }
-        HealthCheckFailureDetails::NodeIsQuorumCritical(
-            rabbitmq_http_client::responses::QuorumCriticalityCheckDetails { reason: _, queues },
-        ) => {
+        HealthCheckFailureDetails::NodeIsQuorumCritical(QuorumCriticalityCheckDetails {
+            reason: _,
+            queues,
+        }) => {
             for q in queues {
                 let key = "affected queue, stream or internal component";
                 let value = q.readable_name;
                 tb.push_record([key, value.as_str()]);
             }
+        }
+        HealthCheckFailureDetails::NoActivePortListener(details) => {
+            tb.push_record(["inactive port", details.inactive_port.to_string().as_str()]);
+        }
+        HealthCheckFailureDetails::NoActiveProtocolListener(details) => {
+            tb.push_record([
+                "inactive protocol",
+                details.inactive_protocol.to_string().as_str(),
+            ]);
         }
     };
 

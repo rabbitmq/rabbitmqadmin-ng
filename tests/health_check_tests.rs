@@ -14,7 +14,7 @@
 use predicates::prelude::*;
 
 mod test_helpers;
-use test_helpers::run_succeeds;
+use test_helpers::{run_fails, run_succeeds};
 
 #[test]
 fn test_health_check_local_alarms() -> Result<(), Box<dyn std::error::Error>> {
@@ -27,6 +27,50 @@ fn test_health_check_local_alarms() -> Result<(), Box<dyn std::error::Error>> {
 fn test_health_check_cluster_wide_alarms() -> Result<(), Box<dyn std::error::Error>> {
     run_succeeds(["health_check", "cluster_wide_alarms"])
         .stdout(predicate::str::contains("passed"));
+
+    Ok(())
+}
+
+#[test]
+fn test_health_check_port_listener_succeeds() -> Result<(), Box<dyn std::error::Error>> {
+    run_succeeds(["health_check", "port_listener", "--port", "15672"])
+        .stdout(predicate::str::contains("passed"));
+
+    Ok(())
+}
+
+#[test]
+fn test_health_check_port_listener_fails() -> Result<(), Box<dyn std::error::Error>> {
+    run_fails(["health_check", "port_listener", "--port", "15679"])
+        .stdout(predicate::str::contains("failed"));
+
+    Ok(())
+}
+
+#[test]
+fn test_health_check_protocol_listener_succeeds() -> Result<(), Box<dyn std::error::Error>> {
+    run_succeeds(["health_check", "protocol_listener", "--protocol", "amqp"])
+        .stdout(predicate::str::contains("passed"));
+
+    Ok(())
+}
+
+#[test]
+fn test_health_check_protocol_listener_fails() -> Result<(), Box<dyn std::error::Error>> {
+    run_fails([
+        "health_check",
+        "protocol_listener",
+        "--protocol",
+        "https/prometheus",
+    ])
+    .stdout(predicate::str::contains("failed"));
+    run_fails([
+        "health_check",
+        "protocol_listener",
+        "--protocol",
+        "unknown/proto",
+    ])
+    .stdout(predicate::str::contains("failed"));
 
     Ok(())
 }

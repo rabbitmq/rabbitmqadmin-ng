@@ -16,7 +16,9 @@ use std::path::PathBuf;
 use super::constants::*;
 use super::static_urls::*;
 use clap::{Arg, ArgAction, Command};
-use rabbitmq_http_client::commons::{BindingDestinationType, ExchangeType, QueueType};
+use rabbitmq_http_client::commons::{
+    BindingDestinationType, ExchangeType, QueueType, SupportedProtocol,
+};
 
 pub fn parser() -> Command {
     let after_help = color_print::cformat!(
@@ -911,7 +913,7 @@ fn purge_subcommands() -> [Command; 1] {
         )]
 }
 
-fn health_check_subcommands() -> [Command; 4] {
+fn health_check_subcommands() -> [Command; 6] {
     let node_is_quorum_critical_after_help = color_print::cformat!(
         r#"
 <bold>Doc guides</bold>:
@@ -936,11 +938,42 @@ fn health_check_subcommands() -> [Command; 4] {
             DEPRECATED_FEATURE_GUIDE_URL
         ));
 
+    let port_listener = Command::new("port_listener")
+        .about(
+            "verifies that there's a reachable TCP listener on the given port on the target node",
+        )
+        .arg(
+            Arg::new("port")
+                .long("port")
+                .value_parser(clap::value_parser!(u16)),
+        )
+        .after_long_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            HEALTH_CHECK_GUIDE_URL
+        ));
+
+    let protocol_listener = Command::new("protocol_listener")
+        .about(
+            "verifies that there's a reachable TCP listener on the given protocol alias on the target node",
+        )
+        .arg(
+            Arg::new("protocol")
+                .long("protocol")
+                .value_parser(clap::value_parser!(SupportedProtocol))
+                .long_help("An alias for one of the protocols that RabbitMQ supports, with or without TLS: 'amqp', 'amqp/ssl', 'stream', 'stream/ssl', 'mqtt', 'mqtt/ssl', 'stomp', 'stomp/ssl', 'http/web-mqtt', 'https/web-mqtt', 'http/web-stomp', 'https/web-stomp', 'http/prometheus', 'https/prometheus', 'http', 'https'"),
+        )
+        .after_long_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            HEALTH_CHECK_GUIDE_URL
+        ));
+
     [
         local_alarms,
         cluster_wide_alarms,
         node_is_quorum_critical,
         deprecated_features_in_use,
+        port_listener,
+        protocol_listener,
     ]
 }
 
