@@ -1,8 +1,25 @@
 # rabbitmqadmin-ng Change Log
 
-## v0.17.0 (in development)
+## v0.18.0 (in development)
 
 No (documented) changes yet.
+
+
+## v0.17.0 (Dec 31, 2024)
+
+### Enhancements
+
+ * New [health checks](https://www.rabbitmq.com/docs/monitoring#health-checks):
+
+   ```shell
+   # To see help: 'rabbitmqadmin health_check help port_listener'
+   rabbitmqadmin health_check port_listener --port [port]
+   ```
+
+   ```shell
+   # To see help: 'rabbitmqadmin health_check help protocol_listener'
+   rabbitmqadmin health_check protoocl_listener --protocol [protocol]
+   ```
 
 
 ## v0.16.0 (Dec 29, 2024)
