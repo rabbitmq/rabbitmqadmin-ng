@@ -69,7 +69,7 @@ Commands:
   import               see 'definitions import'
   feature_flags        operations on feature flags
   deprecated_features  operations on deprecated features
-  publish              Publishes (inefficiently) message(s) to a queue or a stream. Only suitable for development and test environments.
+  publish              publishes (inefficiently) message(s) to a queue or a stream. Only suitable for development and test environments.
   get                  fetches message(s) from a queue or stream via polling. Only suitable for development and test environments.
   help                 Print this message or the help of the given subcommand(s)
 ```

@@ -259,7 +259,7 @@ pub fn parser() -> Command {
                 .subcommand_value_name("deprecated feature")
                 .subcommands(deprecated_features_subcommands()),
             Command::new("publish")
-                .about(color_print::cstr!("Publishes (<red>inefficiently</red>) message(s) to a queue or a stream. <bold><red>Only suitable for development and test environments</red></bold>."))
+                .about(color_print::cstr!("publishes (<red>inefficiently</red>) message(s) to a queue or a stream. <bold><red>Only suitable for development and test environments</red></bold>."))
                 .after_long_help(color_print::cformat!("<bold>Doc guide</bold>: {}", PUBLISHER_GUIDE_URL))
                 .subcommand_value_name("message")
                 .subcommands(publish_subcommands()),
@@ -1103,8 +1103,8 @@ pub fn deprecated_features_subcommands() -> [Command; 2] {
 
 pub fn publish_subcommands() -> [Command; 1] {
     [Command::new("message")
-        .about("Publishes a message to an exchange")
-        .about(color_print::cstr!("Publishes (<red>inefficiently</red>) message(s) to a queue or a stream. <bold><red>Only suitable for development and test environments</red></bold>. Prefer messaging or streaming protocol clients!"))
+        .about("publishes a message to an exchange")
+        .about(color_print::cstr!("publishes (<red>inefficiently</red>) message(s) to a queue or a stream. <bold><red>Only suitable for development and test environments</red></bold>. Prefer messaging or streaming protocol clients!"))
         .after_long_help(color_print::cformat!("<bold>Doc guide</bold>: {}", PUBLISHER_GUIDE_URL))
         .arg(
             Arg::new("routing_key")
