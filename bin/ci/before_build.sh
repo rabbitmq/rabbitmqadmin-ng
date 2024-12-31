@@ -30,12 +30,14 @@ $CTL set_cluster_name rabbitmq@localhost
 
 $CTL enable_feature_flag all
 
-# Enable shovel plugin
+# Enable the plugins
 $PLUGINS enable rabbitmq_shovel
 $PLUGINS enable rabbitmq_shovel_management
 
-# Enable federation plugin
 $PLUGINS enable rabbitmq_federation
 $PLUGINS enable rabbitmq_federation_management
+
+$PLUGINS enable rabbitmq_stream
+$PLUGINS enable rabbitmq_stream_management
 
 true
