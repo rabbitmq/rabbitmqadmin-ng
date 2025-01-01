@@ -15,12 +15,12 @@
 
 use clap::ArgMatches;
 use errors::CommandRunError;
-use reqwest::{Certificate, Identity};
-use std::fs::File;
-use std::io::Read;
+use reqwest::Identity;
 use std::path::PathBuf;
-use std::process;
+use std::{fs, process};
 use sysexits::ExitCode;
+
+use rustls::pki_types::pem::PemObject;
 
 mod cli;
 mod commands;
@@ -38,6 +38,8 @@ use crate::constants::{
 use crate::output::*;
 use rabbitmq_http_client::blocking_api::{Client as GenericAPIClient, ClientBuilder};
 use reqwest::blocking::Client as HTTPClient;
+use rustls::crypto::CryptoProvider;
+use rustls::pki_types::{CertificateDer, PrivateKeyDer};
 
 type APIClient<'a> = GenericAPIClient<&'a str, &'a str, &'a str>;
 
@@ -133,25 +135,16 @@ fn build_http_client(
 ) -> Result<HTTPClient, CommandRunError> {
     let user_agent = format!("rabbitmqadmin-ng {}", clap::crate_version!());
     if should_use_tls(common_settings) {
-        let ca_cert = if let Some(pem_file) = cli.get_one::<PathBuf>("tls-ca-cert-file") {
-            load_certificate(pem_file)?
-        } else {
-            None
-        };
-        let client_cert_pem_file = cli.get_one::<PathBuf>("tls-cert-file");
-        let maybe_client_cert = if let Some(pem_file) = client_cert_pem_file {
-            let pem = load_pem_file(pem_file)?;
-            Some(pem)
-        } else {
-            None
-        };
-        let client_key_pem_file = cli.get_one::<PathBuf>("tls-key-file");
-        let maybe_client_key = if let Some(pem_file) = client_key_pem_file {
-            let pem = load_pem_file(pem_file)?;
-            Some(pem)
-        } else {
-            None
-        };
+        let _ = CryptoProvider::install_default(rustls::crypto::aws_lc_rs::default_provider());
+
+        let ca_cert_pem_file = cli.get_one::<PathBuf>("tls-ca-cert-file");
+
+        let maybe_client_cert_pem_file = cli.get_one::<PathBuf>("tls-cert-file");
+        let maybe_client_key_pem_file = cli.get_one::<PathBuf>("tls-key-file");
+
+        let ca_certs = ca_cert_pem_file
+            .map(|path| load_certs(&path.to_string_lossy()))
+            .unwrap()?;
 
         let disable_peer_verification = *cli.get_one::<bool>("insecure").unwrap_or(&false);
 
@@ -166,24 +159,41 @@ fn build_http_client(
             .danger_accept_invalid_hostnames(disable_peer_verification);
 
         // --tls-ca-cert-file
-        if ca_cert.is_some() {
-            builder = builder.add_root_certificate(ca_cert.clone().unwrap());
-        }
-        log::debug!("after adding root CA cert: {:?}", &ca_cert.clone().unwrap());
-        // --tls-cert-file, --tls-key-file
-        if maybe_client_cert.is_some() && maybe_client_key.is_some() {
-            let client_cert = maybe_client_cert.unwrap();
-            let client_key = maybe_client_key.unwrap();
-
-            let concatenated = [&client_cert[..], &client_key[..]].concat();
-            let client_id = Identity::from_pem(&concatenated).map_err(|err| {
-                let readable_path = client_key_pem_file.unwrap().to_string_lossy().to_string();
-                CommandRunError::CertificateFileCouldNotBeLoaded {
+        let mut store = rustls::RootCertStore::empty();
+        for c in ca_certs {
+            store.add(c).map_err(|err| {
+                let readable_path = maybe_client_cert_pem_file
+                    .unwrap()
+                    .to_string_lossy()
+                    .to_string();
+                CommandRunError::CertificateStoreRejectedCertificate {
                     local_path: readable_path,
                     cause: err,
                 }
-            });
-            builder = builder.identity(client_id.unwrap());
+            })?;
+        }
+
+        // --tls-cert-file, --tls-key-file
+        if maybe_client_cert_pem_file.is_some() && maybe_client_key_pem_file.is_some() {
+            let client_cert_pem_file = maybe_client_cert_pem_file.unwrap();
+            let client_key_pem_file = maybe_client_key_pem_file.unwrap();
+
+            let client_cert = fs::read(client_cert_pem_file)?;
+            let client_key = fs::read(client_key_pem_file)?;
+
+            let concatenated = [&client_cert[..], &client_key[..]].concat();
+            let client_id = Identity::from_pem(&concatenated).map_err(|err| {
+                let readable_path = maybe_client_key_pem_file
+                    .unwrap()
+                    .to_string_lossy()
+                    .to_string();
+                CommandRunError::CertificateFileCouldNotBeLoaded1 {
+                    local_path: readable_path,
+                    cause: err,
+                }
+            })?;
+
+            builder = builder.identity(client_id);
         }
 
         Ok(builder.build().unwrap())
@@ -195,39 +205,31 @@ fn build_http_client(
     }
 }
 
-fn load_certificate(pem_file_path: &PathBuf) -> Result<Option<Certificate>, CommandRunError> {
-    let pem = load_pem_file(pem_file_path)?;
+type CertificateChain = Vec<CertificateDer<'static>>;
 
-    let res = Certificate::from_pem(&pem).map_err(|err| {
-        let readable_path = pem_file_path.to_string_lossy().to_string();
-        CommandRunError::CertificateFileCouldNotBeLoaded {
-            local_path: readable_path,
-            cause: err,
-        }
-    })?;
-
-    Ok(Some(res))
+fn load_certs(filename: &str) -> Result<CertificateChain, CommandRunError> {
+    let results = CertificateDer::pem_file_iter(filename)
+        .map_err(|err| {
+            let readable_path = filename.to_string();
+            CommandRunError::CertificateFileCouldNotBeLoaded2 {
+                local_path: readable_path,
+                cause: err,
+            }
+        })
+        .unwrap();
+    let certs = results.map(|it| it.unwrap()).collect::<CertificateChain>();
+    Ok(certs)
 }
 
-fn load_pem_file(pem_file_path: &PathBuf) -> Result<Vec<u8>, CommandRunError> {
-    let mut file = File::open(pem_file_path).map_err(|err| {
-        let readable_path = pem_file_path.to_string_lossy().to_string();
-        CommandRunError::LocalFileDoesNotExitOrIsNotReadable {
+#[allow(dead_code)]
+fn load_private_key(filename: &str) -> Result<PrivateKeyDer<'static>, CommandRunError> {
+    PrivateKeyDer::from_pem_file(filename).map_err(|err| {
+        let readable_path = filename.to_string();
+        CommandRunError::CertificateFileCouldNotBeLoaded2 {
             local_path: readable_path,
             cause: err,
         }
-    })?;
-
-    let mut pem = Vec::new();
-    file.read_to_end(&mut pem).map_err(|err| {
-        let readable_path = pem_file_path.to_string_lossy().to_string();
-        CommandRunError::LocalFileDoesNotExitOrIsNotReadable {
-            local_path: readable_path,
-            cause: err,
-        }
-    })?;
-
-    Ok(pem)
+    })
 }
 
 fn dispatch_subcommand(

@@ -14,7 +14,8 @@ reqwest = { version = "0.12.12", features = [
     "blocking",
     "json",
     "multipart",
-    "rustls-tls"
+    "__rustls",
+    "rustls-tls-native-roots"
 ]}
 rabbitmq_http_client = { version = "0.14.0", features = [
     "core",
@@ -30,6 +31,7 @@ thiserror = "2"
 shellexpand = "3.0"
 
 log = "0.4.22"
+rustls = { version = "0.23.20", features = ["aws_lc_rs"] }
 # fern = "0.7"
 # humantime = "2.1.0"
 # backtrace = "0.3"

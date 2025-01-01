@@ -24,15 +24,22 @@ use url::Url;
 pub enum CommandRunError {
     #[error("Asked to run an unknown command '{command} {subcommand}")]
     UnknownCommandTarget { command: String, subcommand: String },
-    #[error("Local file at {local_path} does not exist or is not readable by the effective user: {cause}")]
-    LocalFileDoesNotExitOrIsNotReadable {
-        local_path: String,
-        cause: std::io::Error,
-    },
-    #[error("Local TLS certificate file at {local_path} does not exist, cannot be read or pased as a PEM file: {cause}")]
-    CertificateFileCouldNotBeLoaded {
+    #[error("Local TLS certificate file at {local_path} does not exist, cannot be read or passed as a PEM file: {cause}")]
+    CertificateFileCouldNotBeLoaded1 {
         local_path: String,
         cause: reqwest::Error,
+    },
+    #[error("Local TLS certificate file at {local_path} does not exist, cannot be read or passed as a PEM file: {cause}")]
+    CertificateFileCouldNotBeLoaded2 {
+        local_path: String,
+        cause: rustls::pki_types::pem::Error,
+    },
+    #[error("Run into an I/O error when loading a file: {0}")]
+    IoError(std::io::Error),
+    #[error("Local TLS certificate file at {local_path} does not exist, cannot be read or passed as a PEM file: {cause}")]
+    CertificateStoreRejectedCertificate {
+        local_path: String,
+        cause: rustls::Error,
     },
     #[error("API responded with a client error: status code of {status_code}")]
     ClientError {
@@ -64,6 +71,12 @@ pub enum CommandRunError {
     RequestError { error: reqwest::Error },
     #[error("an unspecified error")]
     Other,
+}
+
+impl From<std::io::Error> for CommandRunError {
+    fn from(value: std::io::Error) -> Self {
+        CommandRunError::IoError(value)
+    }
 }
 
 impl From<HttpClientError> for CommandRunError {

@@ -198,8 +198,9 @@ impl ResultHandler {
         eprintln!("{}", error);
         let code = match error {
             CommandRunError::UnknownCommandTarget { .. } => ExitCode::Usage,
-            CommandRunError::LocalFileDoesNotExitOrIsNotReadable { .. } => ExitCode::DataErr,
-            CommandRunError::CertificateFileCouldNotBeLoaded { .. } => ExitCode::DataErr,
+            CommandRunError::CertificateFileCouldNotBeLoaded1 { .. } => ExitCode::DataErr,
+            CommandRunError::CertificateFileCouldNotBeLoaded2 { .. } => ExitCode::DataErr,
+            CommandRunError::IoError { .. } => ExitCode::DataErr,
             _ => ExitCode::Usage,
         };
         self.exit_code = Some(code);

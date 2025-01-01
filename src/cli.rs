@@ -140,13 +140,15 @@ pub fn parser() -> Command {
                 .long("use-tls")
                 .help("use TLS (HTTPS) for HTTP API requests ")
                 .value_parser(clap::value_parser!(bool))
-                .action(ArgAction::SetTrue),
+                .action(ArgAction::SetTrue)
+                .requires("tls-ca-cert-file"),
         )
         // --tls-ca-cert-file
         .arg(
             Arg::new("tls-ca-cert-file")
                 .long("tls-ca-cert-file")
                 .required(false)
+                .requires("tls")
                 .help("Local path to a CA certificate file in the PEM format")
                 .value_parser(clap::value_parser!(PathBuf)),
         )
