@@ -21,12 +21,16 @@ No (documented) changes yet
                  list connections
    ```
 
+   GitHub issue: [#26](https://github.com/rabbitmq/rabbitmqadmin-ng/issues/26)
+
  * Initial cross-platform support for loading of [trusted CA certificates](https://www.rabbitmq.com/docs/ssl#peer-verification-trusted-certificates)
    from system locations.
 
    This behavior is enabled automatically. The certificates in a PEM file passed in
    via `--tls-ca-cert-file` are merged with the list of CA certificates discovered in
-   the platform-specific stores
+   the platform-specific stores.
+
+   GitHub issue: [#42](https://github.com/rabbitmq/rabbitmqadmin-ng/issues/42)
 
 
 ## v0.17.0 (Dec 31, 2024)
