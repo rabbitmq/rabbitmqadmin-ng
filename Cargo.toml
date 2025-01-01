@@ -9,14 +9,18 @@ license = "MIT OR Apache-2.0"
 [dependencies]
 clap = { version = "4.5", features = ["derive", "help", "color", "cargo"] }
 url = "2"
-sysexits = "0.8.1"
-reqwest = { version = "0.12", features = [
+sysexits = "0.8.5"
+reqwest = { version = "0.12.12", features = [
+    "blocking",
     "json",
     "multipart",
-    "default-tls",
-    "native-tls"
-] }
-rabbitmq_http_client = { version = "0.14.0", features = ["core", "blocking", "tabled"] }
+    "rustls-tls"
+]}
+rabbitmq_http_client = { version = "0.14.0", features = [
+    "core",
+    "blocking",
+    "tabled"
+]}
 serde = { version = "1.0", features = ["derive", "std"] }
 serde_json = "1"
 tabled = "0.17"
@@ -25,9 +29,10 @@ color-print = "0.3"
 thiserror = "2"
 shellexpand = "3.0"
 
-backtrace = "0.3"
 log = "0.4.22"
-rustls = "0.23.20"
+# fern = "0.7"
+# humantime = "2.1.0"
+# backtrace = "0.3"
 
 [dev-dependencies]
 assert_cmd = "2.0"

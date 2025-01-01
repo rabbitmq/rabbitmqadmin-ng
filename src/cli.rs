@@ -139,7 +139,8 @@ pub fn parser() -> Command {
             Arg::new("tls")
                 .long("use-tls")
                 .help("use TLS (HTTPS) for HTTP API requests ")
-                .value_parser(clap::value_parser!(bool)),
+                .value_parser(clap::value_parser!(bool))
+                .action(ArgAction::SetTrue),
         )
         // --tls-ca-cert-file
         .arg(

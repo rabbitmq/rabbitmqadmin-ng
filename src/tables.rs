@@ -20,13 +20,13 @@ use tabled::settings::Panel;
 use tabled::{Table, Tabled};
 use url::Url;
 
-#[derive(Tabled)]
+#[derive(Debug, Tabled)]
 struct OverviewRow<'a> {
     key: &'a str,
     value: String,
 }
 
-#[derive(Tabled)]
+#[derive(Debug, Tabled)]
 struct RowOfTwoStrings<'a> {
     key: &'a str,
     value: &'a str,
