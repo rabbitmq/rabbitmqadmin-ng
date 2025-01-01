@@ -11,6 +11,8 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+#![allow(clippy::result_large_err)]
+
 use clap::ArgMatches;
 use errors::CommandRunError;
 use reqwest::Certificate;
@@ -73,37 +75,83 @@ fn main() {
         SharedSettings::from_args(&cli)
     };
     let endpoint = common_settings.endpoint();
-    let disable_peer_verification = *cli.get_one::<bool>("insecure").unwrap_or(&false);
 
+    match build_http_client(&cli, &common_settings) {
+        Ok(httpc) => {
+            let username = common_settings.username.clone().unwrap();
+            let password = common_settings.password.clone().unwrap();
+            let client = ClientBuilder::new()
+                .with_endpoint(endpoint.as_str())
+                .with_basic_auth_credentials(username.as_str(), password.as_str())
+                .with_client(httpc)
+                .build();
+
+            if let Some((verb, group_args)) = cli.subcommand() {
+                if let Some((kind, command_args)) = group_args.subcommand() {
+                    let pair = (verb, kind);
+
+                    let vhost = virtual_host(&common_settings, command_args);
+
+                    let mut res_handler = ResultHandler::new(&common_settings, command_args);
+                    let exit_code = dispatch_subcommand(
+                        pair,
+                        command_args,
+                        client,
+                        common_settings.endpoint(),
+                        vhost,
+                        &mut res_handler,
+                    );
+
+                    process::exit(exit_code.into())
+                }
+            }
+        }
+        Err(err) => {
+            let mut res_handler = ResultHandler::new(&common_settings, &cli);
+            res_handler.report_pre_command_run_error(&err);
+            let code = res_handler.exit_code.unwrap_or(ExitCode::DataErr);
+            process::exit(code.into())
+        }
+    }
+}
+
+fn build_http_client(
+    cli: &ArgMatches,
+    common_settings: &SharedSettings,
+) -> Result<HTTPClient, CommandRunError> {
     let user_agent = format!("rabbitmqadmin-ng {}", clap::crate_version!());
-    let httpc = if should_use_tls(&common_settings) {
+    if should_use_tls(common_settings) {
         let mut cert = None;
         if let Some(pem_file) = cli.get_one::<PathBuf>("tls-ca-cert-file") {
-            let mut file = File::open(pem_file).unwrap_or_else(|err| {
-                eprintln!("unable to open {}: {}", pem_file.to_string_lossy(), err);
-                process::exit(1);
-            });
+            let mut file = File::open(pem_file).map_err(|err| {
+                let readable_path = pem_file.to_string_lossy().to_string();
+                CommandRunError::LocalFileDoesNotExitOrIsNotReadable {
+                    local_path: readable_path,
+                    cause: err,
+                }
+            })?;
 
             let mut pem = Vec::new();
-            if let Err(err) = file.read_to_end(&mut pem) {
-                eprintln!("unable to read {}: {}", pem_file.to_string_lossy(), err);
-                process::exit(1);
-            }
-
-            let res = match Certificate::from_pem(&pem) {
-                Ok(val) => val,
-                Err(err) => {
-                    eprintln!(
-                        "{} doesn't seem to be a valid PEM file: {}",
-                        pem_file.to_string_lossy(),
-                        err
-                    );
-                    process::exit(1);
+            file.read_to_end(&mut pem).map_err(|err| {
+                let readable_path = pem_file.to_string_lossy().to_string();
+                CommandRunError::LocalFileDoesNotExitOrIsNotReadable {
+                    local_path: readable_path,
+                    cause: err,
                 }
-            };
+            })?;
+
+            let res = Certificate::from_pem(&pem).map_err(|err| {
+                let readable_path = pem_file.to_string_lossy().to_string();
+                CommandRunError::CertificateFileCouldNotBeLoaded {
+                    local_path: readable_path,
+                    cause: err,
+                }
+            })?;
 
             cert = Some(res)
         }
+
+        let disable_peer_verification = *cli.get_one::<bool>("insecure").unwrap_or(&false);
 
         let mut b = HTTPClient::builder()
             .user_agent(user_agent)
@@ -115,38 +163,12 @@ fn main() {
             b = b.add_root_certificate(cert.unwrap());
         }
 
-        b.build()
+        Ok(b.build().unwrap())
     } else {
-        HTTPClient::builder().user_agent(user_agent).build()
-    }
-    .unwrap();
-
-    let username = common_settings.username.clone().unwrap();
-    let password = common_settings.password.clone().unwrap();
-    let client = ClientBuilder::new()
-        .with_endpoint(endpoint.as_str())
-        .with_basic_auth_credentials(username.as_str(), password.as_str())
-        .with_client(httpc)
-        .build();
-
-    if let Some((verb, group_args)) = cli.subcommand() {
-        if let Some((kind, command_args)) = group_args.subcommand() {
-            let pair = (verb, kind);
-
-            let vhost = virtual_host(&common_settings, command_args);
-
-            let mut res_handler = ResultHandler::new(&common_settings, command_args);
-            let exit_code = dispatch_subcommand(
-                pair,
-                command_args,
-                client,
-                common_settings.endpoint(),
-                vhost,
-                &mut res_handler,
-            );
-
-            process::exit(exit_code.into())
-        }
+        Ok(HTTPClient::builder()
+            .user_agent(user_agent)
+            .build()
+            .unwrap())
     }
 }
 

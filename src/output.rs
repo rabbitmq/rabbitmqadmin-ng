@@ -196,7 +196,13 @@ impl ResultHandler {
 
     pub fn report_pre_command_run_error(&mut self, error: &CommandRunError) {
         eprintln!("{}", error);
-        self.exit_code = Some(ExitCode::Usage);
+        let code = match error {
+            CommandRunError::UnknownCommandTarget { .. } => ExitCode::Usage,
+            CommandRunError::LocalFileDoesNotExitOrIsNotReadable { .. } => ExitCode::DataErr,
+            CommandRunError::CertificateFileCouldNotBeLoaded { .. } => ExitCode::DataErr,
+            _ => ExitCode::Usage,
+        };
+        self.exit_code = Some(code);
     }
 
     //

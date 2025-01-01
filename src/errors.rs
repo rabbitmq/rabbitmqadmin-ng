@@ -24,6 +24,16 @@ use url::Url;
 pub enum CommandRunError {
     #[error("Asked to run an unknown command '{command} {subcommand}")]
     UnknownCommandTarget { command: String, subcommand: String },
+    #[error("Local file at {local_path} does not exist or is not readable by the effective user: {cause}")]
+    LocalFileDoesNotExitOrIsNotReadable {
+        local_path: String,
+        cause: std::io::Error,
+    },
+    #[error("Local TLS certificate file at {local_path} does not exist, cannot be read or pased as a PEM file: {cause}")]
+    CertificateFileCouldNotBeLoaded {
+        local_path: String,
+        cause: reqwest::Error,
+    },
     #[error("API responded with a client error: status code of {status_code}")]
     ClientError {
         status_code: StatusCode,
