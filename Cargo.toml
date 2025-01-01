@@ -13,7 +13,8 @@ sysexits = "0.8.1"
 reqwest = { version = "0.12", features = [
     "json",
     "multipart",
-    "default-tls"
+    "default-tls",
+    "native-tls"
 ] }
 rabbitmq_http_client = { version = "0.14.0", features = ["core", "blocking", "tabled"] }
 serde = { version = "1.0", features = ["derive", "std"] }
@@ -22,9 +23,11 @@ tabled = "0.17"
 toml = "0.8"
 color-print = "0.3"
 thiserror = "2"
+shellexpand = "3.0"
+
 backtrace = "0.3"
 log = "0.4.22"
-shellexpand = "3.0"
+rustls = "0.23.20"
 
 [dev-dependencies]
 assert_cmd = "2.0"

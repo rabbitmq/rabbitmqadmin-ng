@@ -15,7 +15,7 @@
 
 use clap::ArgMatches;
 use errors::CommandRunError;
-use reqwest::Certificate;
+use reqwest::{Certificate, Identity};
 use std::fs::File;
 use std::io::Read;
 use std::path::PathBuf;
@@ -133,55 +133,109 @@ fn build_http_client(
 ) -> Result<HTTPClient, CommandRunError> {
     let user_agent = format!("rabbitmqadmin-ng {}", clap::crate_version!());
     if should_use_tls(common_settings) {
-        let mut cert = None;
-        if let Some(pem_file) = cli.get_one::<PathBuf>("tls-ca-cert-file") {
-            let mut file = File::open(pem_file).map_err(|err| {
-                let readable_path = pem_file.to_string_lossy().to_string();
-                CommandRunError::LocalFileDoesNotExitOrIsNotReadable {
-                    local_path: readable_path,
-                    cause: err,
-                }
-            })?;
-
-            let mut pem = Vec::new();
-            file.read_to_end(&mut pem).map_err(|err| {
-                let readable_path = pem_file.to_string_lossy().to_string();
-                CommandRunError::LocalFileDoesNotExitOrIsNotReadable {
-                    local_path: readable_path,
-                    cause: err,
-                }
-            })?;
-
-            let res = Certificate::from_pem(&pem).map_err(|err| {
-                let readable_path = pem_file.to_string_lossy().to_string();
-                CommandRunError::CertificateFileCouldNotBeLoaded {
-                    local_path: readable_path,
-                    cause: err,
-                }
-            })?;
-
-            cert = Some(res)
-        }
+        let ca_cert = if let Some(pem_file) = cli.get_one::<PathBuf>("tls-ca-cert-file") {
+            load_certificate(pem_file)?
+        } else {
+            None
+        };
+        let client_cert_pem_file = cli.get_one::<PathBuf>("tls-cert-file");
+        let client_cert = if let Some(pem_file) = client_cert_pem_file {
+            let pem = load_pem_file(pem_file)?;
+            Some(pem)
+        } else {
+            None
+        };
+        let client_key_pem_file = cli.get_one::<PathBuf>("tls-key-file");
+        let client_key = if let Some(pem_file) = client_key_pem_file {
+            let pem = load_pem_file(pem_file)?;
+            Some(pem)
+        } else {
+            None
+        };
 
         let disable_peer_verification = *cli.get_one::<bool>("insecure").unwrap_or(&false);
 
-        let mut b = HTTPClient::builder()
+        let mut builder = HTTPClient::builder()
             .user_agent(user_agent)
+            .use_native_tls()
+            .https_only(true)
+            .tls_info(true)
             .min_tls_version(reqwest::tls::Version::TLS_1_2)
+            .tls_sni(true)
+            .tls_built_in_root_certs(true)
             .danger_accept_invalid_certs(disable_peer_verification)
             .danger_accept_invalid_hostnames(disable_peer_verification);
 
-        if cert.is_some() {
-            b = b.add_root_certificate(cert.unwrap());
+        // --tls-ca-cert-file
+        if ca_cert.is_some() {
+            builder = builder.add_root_certificate(ca_cert.unwrap());
+        }
+        // --tls-cert-file, --tls-key-file
+        if client_cert.is_some() && client_key.is_some() {
+            let client_id =
+                Identity::from_pkcs8_pem(&client_cert.unwrap()[..], &client_key.unwrap()[..])
+                    .map_err(|err| {
+                        let readable_path =
+                            client_key_pem_file.unwrap().to_string_lossy().to_string();
+                        CommandRunError::CertificateFileCouldNotBeLoaded {
+                            local_path: readable_path,
+                            cause: err,
+                        }
+                    })?;
+            builder = builder.identity(client_id);
         }
 
-        Ok(b.build().unwrap())
+        Ok(builder.build().unwrap())
     } else {
         Ok(HTTPClient::builder()
             .user_agent(user_agent)
             .build()
             .unwrap())
     }
+}
+
+fn load_certificate(pem_file_path: &PathBuf) -> Result<Option<Certificate>, CommandRunError> {
+    let pem = load_pem_file(pem_file_path)?;
+
+    let res = Certificate::from_pem(&pem).map_err(|err| {
+        let readable_path = pem_file_path.to_string_lossy().to_string();
+        CommandRunError::CertificateFileCouldNotBeLoaded {
+            local_path: readable_path,
+            cause: err,
+        }
+    })?;
+
+    Ok(Some(res))
+}
+
+fn load_pem_file(pem_file_path: &PathBuf) -> Result<Vec<u8>, CommandRunError> {
+    let mut file = File::open(pem_file_path).map_err(|err| {
+        let readable_path = pem_file_path.to_string_lossy().to_string();
+        CommandRunError::LocalFileDoesNotExitOrIsNotReadable {
+            local_path: readable_path,
+            cause: err,
+        }
+    })?;
+
+    let mut pem = Vec::new();
+    file.read_to_end(&mut pem).map_err(|err| {
+        let readable_path = pem_file_path.to_string_lossy().to_string();
+        CommandRunError::LocalFileDoesNotExitOrIsNotReadable {
+            local_path: readable_path,
+            cause: err,
+        }
+    })?;
+
+    // parse the file to validate it
+    let _ = Certificate::from_pem(&pem).map_err(|err| {
+        let readable_path = pem_file_path.to_string_lossy().to_string();
+        CommandRunError::CertificateFileCouldNotBeLoaded {
+            local_path: readable_path,
+            cause: err,
+        }
+    })?;
+
+    Ok(pem)
 }
 
 fn dispatch_subcommand(

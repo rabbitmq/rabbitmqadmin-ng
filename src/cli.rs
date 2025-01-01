@@ -146,7 +146,25 @@ pub fn parser() -> Command {
             Arg::new("tls-ca-cert-file")
                 .long("tls-ca-cert-file")
                 .required(false)
-                .help("TLS CA certificate PEM file path")
+                .help("Local path to a CA certificate file in the PEM format")
+                .value_parser(clap::value_parser!(PathBuf)),
+        )
+        // --tls-cert-file
+        .arg(
+            Arg::new("tls-cert-file")
+                .long("tls-cert-file")
+                .required(false)
+                .requires("tls-key-file")
+                .help("Local path to a client certificate file in the PEM format")
+                .value_parser(clap::value_parser!(PathBuf)),
+        )
+        // --tls-key-file
+        .arg(
+            Arg::new("tls-key-file")
+                .long("tls-key-file")
+                .required(false)
+                .requires("tls-cert-file")
+                .help("Local path to a client private key file in the PEM format")
                 .value_parser(clap::value_parser!(PathBuf)),
         )
         // --quiet
@@ -159,6 +177,7 @@ pub fn parser() -> Command {
                 .value_parser(clap::value_parser!(bool))
                 .action(ArgAction::SetTrue),
         )
+        // --non-interactive
         .arg(
             Arg::new("non_interactive")
                 .long("non-interactive")
