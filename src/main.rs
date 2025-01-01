@@ -78,13 +78,12 @@ fn main() {
 
     match build_http_client(&cli, &common_settings) {
         Ok(httpc) => {
+            // SharedSettings considers not just one but multiple ways to obtain
+            // the value if it wasn't passed on the command line, so these are
+            // safe to unwrap()
             let username = common_settings.username.clone().unwrap();
             let password = common_settings.password.clone().unwrap();
-            let client = ClientBuilder::new()
-                .with_endpoint(endpoint.as_str())
-                .with_basic_auth_credentials(username.as_str(), password.as_str())
-                .with_client(httpc)
-                .build();
+            let client = build_rabbitmq_http_api_client(httpc, &endpoint, &username, &password);
 
             if let Some((verb, group_args)) = cli.subcommand() {
                 if let Some((kind, command_args)) = group_args.subcommand() {
@@ -113,6 +112,19 @@ fn main() {
             process::exit(code.into())
         }
     }
+}
+
+fn build_rabbitmq_http_api_client<'a>(
+    httpc: HTTPClient,
+    endpoint: &'a str,
+    username: &'a str,
+    password: &'a str,
+) -> APIClient<'a> {
+    ClientBuilder::new()
+        .with_endpoint(endpoint)
+        .with_basic_auth_credentials(username, password)
+        .with_client(httpc)
+        .build()
 }
 
 fn build_http_client(
