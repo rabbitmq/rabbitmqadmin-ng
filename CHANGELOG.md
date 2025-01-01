@@ -1,8 +1,32 @@
 # rabbitmqadmin-ng Change Log
 
-## v0.18.0 (in development)
+## v0.19.0 (in development)
 
-No (documented) changes yet.
+No (documented) changes yet
+
+
+## v0.18.0 (Jan 1, 2024)
+
+### Enhancements
+
+ * Client identity support: `--tls-cert-file` and `--tls-key-file` are the (re-introduced)
+   options that allow the user to pass in a public certificate (key) and private key pair
+   for x.509 [peer verification](https://www.rabbitmq.com/docs/ssl#peer-verification):
+
+   ```shell
+   rabbitmqadmin --use-tls --host 'target.domain' --port 15671 \
+                 --tls-ca-cert-file '/path/to/ca_certificate.pem' \
+                 --tls-cert-file '/path/to/client_certificate.pem' \
+                 --tls-key-file '/path/to/client_key.pem' \
+                 list connections
+   ```
+
+ * Initial cross-platform support for loading of [trusted CA certificates](https://www.rabbitmq.com/docs/ssl#peer-verification-trusted-certificates)
+   from system locations.
+
+   This behavior is enabled automatically. The certificates in a PEM file passed in
+   via `--tls-ca-cert-file` are merged with the list of CA certificates discovered in
+   the platform-specific stores
 
 
 ## v0.17.0 (Dec 31, 2024)

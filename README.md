@@ -4,7 +4,10 @@
 that target the [HTTP API](https://www.rabbitmq.com/docs/management#http-api).
 
 If you are migrating from the original `rabbitqadmin`, please see [Breaking or Potentially Breaking Changes](#breaking-or-potentially-breaking-changes)
-to learn about a few breaking change in the interface.
+to learn about a the breaking changes in the command line interface.
+
+The general "shape and feel" of the interface is still very similar to `rabbitmqadmin` v1.
+
 
 ## Getting Started
 
@@ -386,6 +389,9 @@ rabbitmqadmin --config $HOME/.configuration/rabbitmqadmin.conf --node staging sh
 This version of `rabbitmqadmin` has a few ideas in mind:
 
 * This is a major version bump. Therefore, reasonable breaking changes are OK. `rabbitmqadmin` hasn't seen a revision in fourteen years
+* Some features in `rabbitmqadmin` v1 arguably should never have been built-ins,
+  external tools for data processing and [modern shells](https://www.nushell.sh/) can manipulate tabular data
+  better than `rabbitmqadmin` ever would
 * `rabbitmqadmin` should be standalone binary. There are very few reasons not to build and distribute it that way
 * Standalone project, not an obscure feature: `rabbitmqadmin` should be a standalone tool, not a relatively unknown "feature" of
   the RabbitMQ management plugin, and should be developed as such, not tied completely to the development
@@ -397,6 +403,18 @@ This version of `rabbitmqadmin` has a few ideas in mind:
 
 
 ## Breaking or Potentially Breaking Changes
+
+### Some Non-Essential Features Were Dropped
+
+`rabbitmqadmin` v2 does not support
+
+ * Sorting of results. Instead, use `--non-interactive` and parse the spaces-separated
+   output. Many modern tools for working with data parse it into a table, sort the data set,
+   filter the results, and son. In fact, these features for data processing are ready available [in some shells](https://www.nushell.sh/)
+ * Column selection. This feature may be reintroduced
+ * JSON output for arbitrary commands (with the exception of `definitions` commands).
+   Use the HTTP API directly if you need to work with JSON
+ * CSV output for arbitrary commands. This format may be reintroduced
 
 ### --snake-case for Command Options
 
