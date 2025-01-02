@@ -32,6 +32,8 @@ No (documented) changes yet
 
    GitHub issue: [#42](https://github.com/rabbitmq/rabbitmqadmin-ng/issues/42)
 
+ * `rabbitmqadmin show memory_breakdown` is a new command that outputs [a breakdown of target node's memory footprint](https://www.rabbitmq.com/docs/memory-use#breakdown)
+
 
 ## v0.17.0 (Dec 31, 2024)
 
