@@ -27,7 +27,7 @@ jobs:
             os: macos-latest
             target_rustflags: ''
           # Windoze, x86-64
-          - target: x86_64-pc-windows-gnu
+          - target: x86_64-pc-windows-msvc
             os: windows-latest
             target_rustflags: ''
           # Linux, x86-64
@@ -125,7 +125,7 @@ jobs:
     - name: Fetch Windows archive
       uses: actions/download-artifact@v4
       with:
-        name: "rabbitmqadmin-${{ vars.NEXT_RELESE_VERSION }}-x86_64-pc-windows-gnu.exe"
+        name: "rabbitmqadmin-${{ vars.NEXT_RELESE_VERSION }}-x86_64-pc-windows-msvc.exe"
         path: ./artifacts
     - name: Publish rabbitmqadmin release archive
       uses: softprops/action-gh-release@v2
