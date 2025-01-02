@@ -5,7 +5,7 @@
 No (documented) changes yet
 
 
-## v0.18.0 (in development)
+## v0.18.0 (Jan 1, 2024)
 
 ### Enhancements
 
