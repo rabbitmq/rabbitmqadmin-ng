@@ -1,4 +1,3 @@
-use crate::errors::CommandRunError;
 // Copyright (C) 2023-2025 RabbitMQ Core Team (teamrabbitmq@gmail.com)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,11 +12,12 @@ use crate::errors::CommandRunError;
 // See the License for the specific language governing permissions and
 // limitations under the License.
 use crate::config::SharedSettings;
+use crate::errors::CommandRunError;
 use crate::tables;
 use clap::ArgMatches;
 use rabbitmq_http_client::blocking_api::{HttpClientError, Result as ClientResult};
 use rabbitmq_http_client::error::Error as ClientError;
-use rabbitmq_http_client::responses::Overview;
+use rabbitmq_http_client::responses::{NodeMemoryBreakdown, Overview};
 use reqwest::StatusCode;
 use std::fmt;
 use sysexits::ExitCode;
@@ -125,6 +125,20 @@ impl ResultHandler {
             Ok(output) => {
                 self.exit_code = Some(ExitCode::Ok);
                 println!("{}", output)
+            }
+            Err(error) => self.report_command_run_error(&error),
+        }
+    }
+
+    pub fn memory_breakdown_result(&mut self, result: ClientResult<NodeMemoryBreakdown>) {
+        match result {
+            Ok(output) => {
+                self.exit_code = Some(ExitCode::Ok);
+
+                let mut table = tables::memory_breakdown(output);
+                self.table_styler.apply(&mut table);
+
+                println!("{}", table);
             }
             Err(error) => self.report_command_run_error(&error),
         }

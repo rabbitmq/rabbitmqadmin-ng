@@ -21,7 +21,23 @@ use assert_cmd::assert::Assert;
 use assert_cmd::prelude::*;
 use std::process::Command;
 
+use rabbitmq_http_client::blocking_api::Client as GenericAPIClient;
+
+type APIClient<'a> = GenericAPIClient<&'a str, &'a str, &'a str>;
+
 type CommandRunResult = Result<(), Box<dyn std::error::Error>>;
+
+pub const ENDPOINT: &str = "http://localhost:15672/api";
+pub const USERNAME: &str = "guest";
+pub const PASSWORD: &str = "guest";
+
+pub fn endpoint() -> String {
+    ENDPOINT.to_owned()
+}
+
+pub fn api_client() -> APIClient<'static> {
+    APIClient::new(ENDPOINT, USERNAME, PASSWORD)
+}
 
 pub fn await_metric_emission(ms: u64) {
     std::thread::sleep(Duration::from_millis(ms));

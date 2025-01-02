@@ -28,13 +28,22 @@ use rabbitmq_http_client::requests::EnforcedLimitParams;
 use crate::constants::DEFAULT_QUEUE_TYPE;
 use rabbitmq_http_client::commons::BindingDestinationType;
 use rabbitmq_http_client::commons::QueueType;
-use rabbitmq_http_client::responses::{FeatureFlagList, Overview};
 use rabbitmq_http_client::{password_hashing, requests, responses};
 
 type APIClient<'a> = Client<&'a str, &'a str, &'a str>;
 
-pub fn show_overview(client: APIClient) -> ClientResult<Overview> {
+pub fn show_overview(client: APIClient) -> ClientResult<responses::Overview> {
     client.overview()
+}
+
+pub fn show_memory_breakdown(
+    client: APIClient,
+    command_args: &ArgMatches,
+) -> ClientResult<responses::NodeMemoryBreakdown> {
+    let node = command_args.get_one::<String>("node").unwrap();
+    client
+        .get_node_memory_footprint(node)
+        .map(|footprint| footprint.breakdown)
 }
 
 pub fn list_nodes(client: APIClient) -> ClientResult<Vec<responses::ClusterNode>> {
@@ -122,7 +131,7 @@ pub fn list_parameters(
     }
 }
 
-pub fn list_feature_flags(client: APIClient) -> ClientResult<FeatureFlagList> {
+pub fn list_feature_flags(client: APIClient) -> ClientResult<responses::FeatureFlagList> {
     client.list_feature_flags()
 }
 

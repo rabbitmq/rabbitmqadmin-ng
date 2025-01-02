@@ -754,14 +754,26 @@ fn declare_subcommands() -> [Command; 11] {
     ]
 }
 
-fn show_subcommands() -> [Command; 3] {
-    [
-        Command::new("overview")
-            .about("displays a essential information about target node and its cluster"),
-        Command::new("churn").about("displays object churn metrics"),
-        Command::new("endpoint")
-            .about("for troubleshooting: displays the computed HTTP API endpoint URI"),
-    ]
+fn show_subcommands() -> [Command; 4] {
+    let overview_cmd = Command::new("overview")
+        .about("displays a essential information about target node and its cluster");
+    let churn_cmd = Command::new("churn").about("displays object churn metrics");
+    let endpoint_cmd = Command::new("endpoint")
+        .about("for troubleshooting: displays the computed HTTP API endpoint URI");
+    let memory_breakdown_cmd = Command::new("memory_breakdown")
+        .about("use it to understand what consumes memory on the target node")
+        .arg(
+            Arg::new("node")
+                .long("node")
+                .help("target node, must be a cluster member")
+                .required(true),
+        )
+        .after_long_help(color_print::cformat!(
+            "<bold>Doc guide:</bold>: {}",
+            MEMORY_FOOTPRINT_GUIDE_URL
+        ));
+
+    [overview_cmd, churn_cmd, endpoint_cmd, memory_breakdown_cmd]
 }
 
 fn delete_subcommands() -> [Command; 11] {

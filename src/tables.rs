@@ -13,7 +13,8 @@
 // limitations under the License.
 use rabbitmq_http_client::blocking_api::HttpClientError;
 use rabbitmq_http_client::responses::{
-    ClusterAlarmCheckDetails, HealthCheckFailureDetails, Overview, QuorumCriticalityCheckDetails,
+    ClusterAlarmCheckDetails, HealthCheckFailureDetails, NodeMemoryBreakdown, Overview,
+    QuorumCriticalityCheckDetails,
 };
 use reqwest::StatusCode;
 use tabled::settings::Panel;
@@ -27,9 +28,9 @@ struct OverviewRow<'a> {
 }
 
 #[derive(Debug, Tabled)]
-struct RowOfTwoStrings<'a> {
+struct RowOfTwoStrings<'a, T: ?Sized + std::fmt::Display> {
     key: &'a str,
-    value: &'a str,
+    value: &'a T,
 }
 
 pub fn overview(ov: Overview) -> Table {
@@ -334,5 +335,140 @@ pub fn health_check_failure(
         }
     };
 
+    tb.build()
+}
+
+pub(crate) fn memory_breakdown(breakdown: NodeMemoryBreakdown) -> Table {
+    // There is no easy way to transpose an existing table in Tabled, so…
+    let atom_table_val = breakdown.atom_table;
+    let allocated_but_unused_val = breakdown.allocated_but_unused;
+    let binary_heap_val = breakdown.binary_heap;
+    let classic_queue_procs_val = breakdown.classic_queue_procs;
+    let code_val = breakdown.code;
+    let connection_channels_val = breakdown.connection_channels;
+    let connection_readers_val = breakdown.connection_readers;
+    let connection_writers_val = breakdown.connection_writers;
+    let connection_other_val = breakdown.connection_other;
+    let management_db_val = breakdown.management_db;
+    let message_indices_val = breakdown.message_indices;
+    let metadata_store_val = breakdown.metadata_store;
+    let metadata_store_ets_tables_val = breakdown.metadata_store_ets_tables;
+    let metrics_val = breakdown.metrics;
+    let mnesia_val = breakdown.mnesia;
+    let other_ets_tables_val = breakdown.other_ets_tables;
+    let other_system_val = breakdown.other_system;
+    let other_procs_val = breakdown.other_procs;
+    let quorum_queue_procs_val = breakdown.quorum_queue_procs;
+    let quorum_queue_ets_tables_val = breakdown.quorum_queue_ets_tables;
+    let plugins_val = breakdown.plugins;
+    let reserved_but_unallocated_val = breakdown.reserved_but_unallocated;
+    let stream_queue_procs_val = breakdown.stream_queue_procs;
+    let stream_queue_replica_reader_procs_val = breakdown.stream_queue_replica_reader_procs;
+    let stream_queue_coordinator_procs_val = breakdown.stream_queue_coordinator_procs;
+    let mut data: Vec<RowOfTwoStrings<u64>> = vec![
+        RowOfTwoStrings {
+            key: "Atom table",
+            value: &atom_table_val,
+        },
+        RowOfTwoStrings {
+            key: "Allocated but unused",
+            value: &allocated_but_unused_val,
+        },
+        RowOfTwoStrings {
+            key: "Binary heap",
+            value: &binary_heap_val,
+        },
+        RowOfTwoStrings {
+            key: "Classic queue processes",
+            value: &classic_queue_procs_val,
+        },
+        RowOfTwoStrings {
+            key: "Code ",
+            value: &code_val,
+        },
+        RowOfTwoStrings {
+            key: "AMQP 0-9-1 channels",
+            value: &connection_channels_val,
+        },
+        RowOfTwoStrings {
+            key: "Client connections: reader processes",
+            value: &connection_readers_val,
+        },
+        RowOfTwoStrings {
+            key: "Client connections: writer processes",
+            value: &connection_writers_val,
+        },
+        RowOfTwoStrings {
+            key: "Client connections: others processes",
+            value: &connection_other_val,
+        },
+        RowOfTwoStrings {
+            key: "Management stats database",
+            value: &management_db_val,
+        },
+        RowOfTwoStrings {
+            key: "Message store indices",
+            value: &message_indices_val,
+        },
+        RowOfTwoStrings {
+            key: "Metadata store",
+            value: &metadata_store_val,
+        },
+        RowOfTwoStrings {
+            key: "Metadata store ETS tables",
+            value: &metadata_store_ets_tables_val,
+        },
+        RowOfTwoStrings {
+            key: "Metrics data",
+            value: &metrics_val,
+        },
+        RowOfTwoStrings {
+            key: "Mnesia",
+            value: &mnesia_val,
+        },
+        RowOfTwoStrings {
+            key: "Other (ETS tables)",
+            value: &other_ets_tables_val,
+        },
+        RowOfTwoStrings {
+            key: "Other (used by the runtime)",
+            value: &other_system_val,
+        },
+        RowOfTwoStrings {
+            key: "Other processes",
+            value: &other_procs_val,
+        },
+        RowOfTwoStrings {
+            key: "Quorum queue replica processes",
+            value: &quorum_queue_procs_val,
+        },
+        RowOfTwoStrings {
+            key: "Quorum queue ETS tables",
+            value: &quorum_queue_ets_tables_val,
+        },
+        RowOfTwoStrings {
+            key: "Plugins and their data",
+            value: &plugins_val,
+        },
+        RowOfTwoStrings {
+            key: "Reserved by the kernel but unallocated",
+            value: &reserved_but_unallocated_val,
+        },
+        RowOfTwoStrings {
+            key: "Stream replica processes",
+            value: &stream_queue_procs_val,
+        },
+        RowOfTwoStrings {
+            key: "Stream replica reader processes",
+            value: &stream_queue_replica_reader_procs_val,
+        },
+        RowOfTwoStrings {
+            key: "Stream coordinator processes",
+            value: &stream_queue_coordinator_procs_val,
+        },
+    ];
+    // Note: this is descending ordering
+    data.sort_by(|a, b| b.value.cmp(a.value));
+    let tb = Table::builder(data);
     tb.build()
 }

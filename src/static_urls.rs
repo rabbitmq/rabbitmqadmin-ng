@@ -40,6 +40,7 @@ pub(crate) const DEPRECATED_FEATURE_GUIDE_URL: &str =
 pub(crate) const ACCESS_CONTROL_GUIDE_URL: &str = "https://rabbitmq.com/docs/access-control";
 pub(crate) const HTTP_API_ACCESS_PERMISSIONS_GUIDE_URL: &str =
     "https://rabbitmq.com/docs/management#permissions";
+pub(crate) const MEMORY_FOOTPRINT_GUIDE_URL: &str = "https://www.rabbitmq.com/docs/memory-use";
 pub(crate) const DEFINITION_GUIDE_URL: &str = "https://rabbitmq.com/docs/definitions";
 pub(crate) const CONSUMER_GUIDE_URL: &str = "https://rabbitmq.com/docs/consumers";
 pub(crate) const POLLING_CONSUMER_GUIDE_URL: &str = "https://rabbitmq.com/docs/consumers#polling";

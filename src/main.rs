@@ -253,6 +253,10 @@ fn dispatch_subcommand(
             println!("Using endpoint: {}", endpoint);
             res_handler.no_output_on_success(Ok(()))
         }
+        ("show", "memory_breakdown") => {
+            let result = commands::show_memory_breakdown(client, command_args);
+            res_handler.memory_breakdown_result(result)
+        }
 
         ("list", "nodes") => {
             let result = commands::list_nodes(client);
