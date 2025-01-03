@@ -20,7 +20,7 @@ use crate::test_helpers::*;
 fn test_memory_breakdown_succeeds() -> Result<(), Box<dyn std::error::Error>> {
     let rc = api_client();
     let nodes = rc.list_nodes()?;
-    let first = nodes.get(0).unwrap();
+    let first = nodes.first().unwrap();
 
     run_succeeds(["show", "memory_breakdown", "--node", first.name.as_str()]).stdout(
         predicates::str::contains("Allocated but unused")
