@@ -365,7 +365,19 @@ pub(crate) fn memory_breakdown(breakdown: NodeMemoryBreakdown) -> Table {
     let stream_queue_procs_val = breakdown.stream_queue_procs;
     let stream_queue_replica_reader_procs_val = breakdown.stream_queue_replica_reader_procs;
     let stream_queue_coordinator_procs_val = breakdown.stream_queue_coordinator_procs;
+
+    let total_per_rss_val = breakdown.total.rss;
+    let total_allocated_val = breakdown.total.allocated;
+
     let mut data: Vec<RowOfTwoStrings<u64>> = vec![
+        RowOfTwoStrings {
+            key: "Total (RSS)",
+            value: &total_per_rss_val,
+        },
+        RowOfTwoStrings {
+            key: "Total (allocated by the runtime)",
+            value: &total_allocated_val,
+        },
         RowOfTwoStrings {
             key: "Atom table",
             value: &atom_table_val,
