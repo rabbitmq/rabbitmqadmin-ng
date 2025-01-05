@@ -81,9 +81,8 @@ No (documented) changes yet.
    └────────────────────────────────────────┴────────────┘
   ```
 
-  Note that there are two reasonable way to compute memory footprint of a node. RabbitMQ uses both and takes the greater value
-  for 100% when computing the relative share in percent for each category. Other factors that can affect the precision of relative
-  values reported  are [runtime allocator](https://www.rabbitmq.com/docs/memory-use#preallocated-memory) and the [kernel page cache](https://www.rabbitmq.com/docs/memory-use#page-cache).
+  Note that there are [two different supported strategies](https://www.rabbitmq.com/docs/memory-use#strategies) for computing memory footprint of a node.  RabbitMQ uses both and takes the greater value for 100% when computing the relative
+  share in percent for each category. Other factors that can affect the precision of percentage values reported  are [runtime allocator](https://www.rabbitmq.com/docs/memory-use#preallocated-memory) behavior nuances and the [kernel page cache](https://www.rabbitmq.com/docs/memory-use#page-cache).
    
 
 
