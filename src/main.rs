@@ -253,9 +253,13 @@ fn dispatch_subcommand(
             println!("Using endpoint: {}", endpoint);
             res_handler.no_output_on_success(Ok(()))
         }
-        ("show", "memory_breakdown") => {
+        ("show", "memory_breakdown_in_bytes") => {
             let result = commands::show_memory_breakdown(client, command_args);
-            res_handler.memory_breakdown_result(result)
+            res_handler.memory_breakdown_in_bytes_result(result)
+        }
+        ("show", "memory_breakdown_in_percent") => {
+            let result = commands::show_memory_breakdown(client, command_args);
+            res_handler.memory_breakdown_in_percent_result(result)
         }
 
         ("list", "nodes") => {

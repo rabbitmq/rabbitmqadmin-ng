@@ -28,9 +28,20 @@ struct OverviewRow<'a> {
 }
 
 #[derive(Debug, Tabled)]
-struct RowOfTwoStrings<'a, T: ?Sized + std::fmt::Display> {
+struct RowOfTwo<'a, T>
+where
+    T: ?Sized + std::fmt::Display,
+{
     key: &'a str,
     value: &'a T,
+}
+
+#[derive(Debug, Tabled)]
+struct MemoryBreakdownRow<'a> {
+    key: &'a str,
+    #[tabled(skip)]
+    comparable: f64,
+    percentage: &'a str,
 }
 
 pub fn overview(ov: Overview) -> Table {
@@ -124,15 +135,15 @@ pub fn failure_details(error: &HttpClientError) -> Table {
             let path_s = path.clone();
             let status_code_s = format!("{}", status_code);
             let mut data = vec![
-                RowOfTwoStrings {
+                RowOfTwo {
                     key: "result",
                     value: "request failed",
                 },
-                RowOfTwoStrings {
+                RowOfTwo {
                     key: "status_code",
                     value: status_code_s.as_str(),
                 },
-                RowOfTwoStrings {
+                RowOfTwo {
                     key: "path",
                     value: path_s.as_str(),
                 },
@@ -146,7 +157,7 @@ pub fn failure_details(error: &HttpClientError) -> Table {
                     details.reason.clone()
                 }
             };
-            data.push(RowOfTwoStrings {
+            data.push(RowOfTwo {
                 key: "reason",
                 value: reason.as_str(),
             });
@@ -157,11 +168,11 @@ pub fn failure_details(error: &HttpClientError) -> Table {
         HttpClientError::NotFound => {
             let status_code_s = format!("{}", StatusCode::NOT_FOUND);
             let data = vec![
-                RowOfTwoStrings {
+                RowOfTwo {
                     key: "result",
                     value: "request failed",
                 },
-                RowOfTwoStrings {
+                RowOfTwo {
                     key: "status_code",
                     value: status_code_s.as_str(),
                 },
@@ -172,15 +183,15 @@ pub fn failure_details(error: &HttpClientError) -> Table {
         }
         HttpClientError::MultipleMatchingBindings => {
             let data = vec![
-                RowOfTwoStrings {
+                RowOfTwo {
                     key: "result",
                     value: "request failed",
                 },
-                RowOfTwoStrings {
+                RowOfTwo {
                     key: "status_code",
                     value: StatusCode::CONFLICT.as_str(),
                 },
-                RowOfTwoStrings {
+                RowOfTwo {
                     key: "reason",
                     value: "multiple bindings found between the source and destination, please specify a --routing-key of the target binding"
                 }
@@ -192,11 +203,11 @@ pub fn failure_details(error: &HttpClientError) -> Table {
         HttpClientError::InvalidHeaderValue { .. } => {
             let reason = "invalid HTTP request header value";
             let data = vec![
-                RowOfTwoStrings {
+                RowOfTwo {
                     key: "result",
                     value: "request failed",
                 },
-                RowOfTwoStrings {
+                RowOfTwo {
                     key: "reason",
                     value: reason,
                 },
@@ -211,11 +222,11 @@ pub fn failure_details(error: &HttpClientError) -> Table {
         } => {
             let reason = format!("HTTP API request failed: {}", error);
             let data = vec![
-                RowOfTwoStrings {
+                RowOfTwo {
                     key: "result",
                     value: "request failed",
                 },
-                RowOfTwoStrings {
+                RowOfTwo {
                     key: "reason",
                     value: reason.as_str(),
                 },
@@ -226,11 +237,11 @@ pub fn failure_details(error: &HttpClientError) -> Table {
         }
         HttpClientError::Other => {
             let data = vec![
-                RowOfTwoStrings {
+                RowOfTwo {
                     key: "result",
                     value: "request failed",
                 },
-                RowOfTwoStrings {
+                RowOfTwo {
                     key: "reason",
                     value: "(not available)",
                 },
@@ -252,19 +263,19 @@ fn generic_failed_request_details(
     let body_s = body.clone().unwrap_or("N/A".to_string());
 
     let data = vec![
-        RowOfTwoStrings {
+        RowOfTwo {
             key: "result",
             value: "request failed",
         },
-        RowOfTwoStrings {
+        RowOfTwo {
             key: "status_code",
             value: status_code_s.as_str(),
         },
-        RowOfTwoStrings {
+        RowOfTwo {
             key: "url",
             value: url_s.as_str(),
         },
-        RowOfTwoStrings {
+        RowOfTwo {
             key: "body",
             value: body_s.as_str(),
         },
@@ -288,19 +299,19 @@ pub fn health_check_failure(
     let code_str = format!("{}", status_code);
 
     let vec = vec![
-        RowOfTwoStrings {
+        RowOfTwo {
             key: "result",
             value: "health check failed",
         },
-        RowOfTwoStrings {
+        RowOfTwo {
             key: "path",
             value: path,
         },
-        RowOfTwoStrings {
+        RowOfTwo {
             key: "status_code",
             value: code_str.as_str(),
         },
-        RowOfTwoStrings {
+        RowOfTwo {
             key: "reason",
             value: reason.as_str(),
         },
@@ -338,7 +349,7 @@ pub fn health_check_failure(
     tb.build()
 }
 
-pub(crate) fn memory_breakdown(breakdown: NodeMemoryBreakdown) -> Table {
+pub(crate) fn memory_breakdown_in_bytes(breakdown: NodeMemoryBreakdown) -> Table {
     // There is no easy way to transpose an existing table in Tabled, so…
     let atom_table_val = breakdown.atom_table;
     let allocated_but_unused_val = breakdown.allocated_but_unused;
@@ -369,118 +380,312 @@ pub(crate) fn memory_breakdown(breakdown: NodeMemoryBreakdown) -> Table {
     let total_per_rss_val = breakdown.total.rss;
     let total_allocated_val = breakdown.total.allocated;
 
-    let mut data: Vec<RowOfTwoStrings<u64>> = vec![
-        RowOfTwoStrings {
+    let mut data: Vec<RowOfTwo<u64>> = vec![
+        RowOfTwo {
             key: "Total (RSS)",
             value: &total_per_rss_val,
         },
-        RowOfTwoStrings {
+        RowOfTwo {
             key: "Total (allocated by the runtime)",
             value: &total_allocated_val,
         },
-        RowOfTwoStrings {
+        RowOfTwo {
             key: "Atom table",
             value: &atom_table_val,
         },
-        RowOfTwoStrings {
+        RowOfTwo {
             key: "Allocated but unused",
             value: &allocated_but_unused_val,
         },
-        RowOfTwoStrings {
+        RowOfTwo {
             key: "Binary heap",
             value: &binary_heap_val,
         },
-        RowOfTwoStrings {
+        RowOfTwo {
             key: "Classic queue processes",
             value: &classic_queue_procs_val,
         },
-        RowOfTwoStrings {
+        RowOfTwo {
             key: "Code ",
             value: &code_val,
         },
-        RowOfTwoStrings {
+        RowOfTwo {
             key: "AMQP 0-9-1 channels",
             value: &connection_channels_val,
         },
-        RowOfTwoStrings {
+        RowOfTwo {
             key: "Client connections: reader processes",
             value: &connection_readers_val,
         },
-        RowOfTwoStrings {
+        RowOfTwo {
             key: "Client connections: writer processes",
             value: &connection_writers_val,
         },
-        RowOfTwoStrings {
+        RowOfTwo {
             key: "Client connections: others processes",
             value: &connection_other_val,
         },
-        RowOfTwoStrings {
+        RowOfTwo {
             key: "Management stats database",
             value: &management_db_val,
         },
-        RowOfTwoStrings {
+        RowOfTwo {
             key: "Message store indices",
             value: &message_indices_val,
         },
-        RowOfTwoStrings {
+        RowOfTwo {
             key: "Metadata store",
             value: &metadata_store_val,
         },
-        RowOfTwoStrings {
+        RowOfTwo {
             key: "Metadata store ETS tables",
             value: &metadata_store_ets_tables_val,
         },
-        RowOfTwoStrings {
+        RowOfTwo {
             key: "Metrics data",
             value: &metrics_val,
         },
-        RowOfTwoStrings {
+        RowOfTwo {
             key: "Mnesia",
             value: &mnesia_val,
         },
-        RowOfTwoStrings {
+        RowOfTwo {
             key: "Other (ETS tables)",
             value: &other_ets_tables_val,
         },
-        RowOfTwoStrings {
+        RowOfTwo {
             key: "Other (used by the runtime)",
             value: &other_system_val,
         },
-        RowOfTwoStrings {
+        RowOfTwo {
             key: "Other processes",
             value: &other_procs_val,
         },
-        RowOfTwoStrings {
+        RowOfTwo {
             key: "Quorum queue replica processes",
             value: &quorum_queue_procs_val,
         },
-        RowOfTwoStrings {
+        RowOfTwo {
             key: "Quorum queue ETS tables",
             value: &quorum_queue_ets_tables_val,
         },
-        RowOfTwoStrings {
+        RowOfTwo {
             key: "Plugins and their data",
             value: &plugins_val,
         },
-        RowOfTwoStrings {
+        RowOfTwo {
             key: "Reserved by the kernel but unallocated",
             value: &reserved_but_unallocated_val,
         },
-        RowOfTwoStrings {
+        RowOfTwo {
             key: "Stream replica processes",
             value: &stream_queue_procs_val,
         },
-        RowOfTwoStrings {
+        RowOfTwo {
             key: "Stream replica reader processes",
             value: &stream_queue_replica_reader_procs_val,
         },
-        RowOfTwoStrings {
+        RowOfTwo {
             key: "Stream coordinator processes",
             value: &stream_queue_coordinator_procs_val,
         },
     ];
     // Note: this is descending ordering
     data.sort_by(|a, b| b.value.cmp(a.value));
+    let tb = Table::builder(data);
+    tb.build()
+}
+
+pub(crate) fn memory_breakdown_in_percent(mut breakdown: NodeMemoryBreakdown) -> Table {
+    // There is no easy way to transpose an existing table in Tabled, so…
+    let atom_table_val = breakdown.atom_table_percentage();
+    let atom_table_val_s = breakdown.atom_table_percentage_as_text();
+    let allocated_but_unused_val = breakdown.allocated_but_unused_percentage();
+    let allocated_but_unused_val_s = breakdown.allocated_but_unused_percentage_as_text();
+    let binary_heap_val = breakdown.binary_heap_percentage();
+    let binary_heap_val_s = breakdown.binary_heap_percentage_as_text();
+    let classic_queue_procs_val = breakdown.classic_queue_procs_percentage();
+    let classic_queue_procs_val_s = breakdown.classic_queue_procs_percentage_as_text();
+    let code_val = breakdown.code_percentage();
+    let code_val_s = breakdown.code_percentage_as_text();
+    let connection_channels_val = breakdown.connection_channels_percentage();
+    let connection_channels_val_s = breakdown.connection_channels_percentage_as_text();
+    let connection_readers_val = breakdown.connection_readers_percentage();
+    let connection_readers_val_s = breakdown.connection_readers_percentage_as_text();
+    let connection_writers_val = breakdown.connection_writers_percentage();
+    let connection_writers_val_s = breakdown.connection_writers_percentage_as_text();
+    let connection_other_val = breakdown.connection_other_percentage();
+    let connection_other_val_s = breakdown.connection_other_percentage_as_text();
+    let management_db_val = breakdown.management_db_percentage();
+    let management_db_val_s = breakdown.management_db_percentage_as_text();
+    let message_indices_val = breakdown.message_indices_percentage();
+    let message_indices_val_s = breakdown.message_indices_percentage_as_text();
+    let metadata_store_val = breakdown.metadata_store_percentage();
+    let metadata_store_val_s = breakdown.metadata_store_percentage_as_text();
+    let metadata_store_ets_tables_val = breakdown.metadata_store_ets_tables_percentage();
+    let metadata_store_ets_tables_val_s = breakdown.metadata_store_ets_tables_percentage_as_text();
+    let metrics_val = breakdown.metrics_percentage();
+    let metrics_val_s = breakdown.metrics_percentage_as_text();
+    let mnesia_val = breakdown.mnesia_percentage();
+    let mnesia_val_s = breakdown.mnesia_percentage_as_text();
+    let other_ets_tables_val = breakdown.other_ets_tables_percentage();
+    let other_ets_tables_val_s = breakdown.other_ets_tables_percentage_as_text();
+    let other_system_val = breakdown.other_system_percentage();
+    let other_system_val_s = breakdown.other_system_percentage_as_text();
+    let other_procs_val = breakdown.other_procs_percentage();
+    let other_procs_val_s = breakdown.other_procs_percentage_as_text();
+    let quorum_queue_procs_val = breakdown.quorum_queue_procs_percentage();
+    let quorum_queue_procs_val_s = breakdown.quorum_queue_procs_percentage_as_text();
+    let quorum_queue_ets_tables_val = breakdown.quorum_queue_ets_tables_percentage();
+    let quorum_queue_ets_tables_val_s = breakdown.quorum_queue_ets_tables_percentage_as_text();
+    let plugins_val = breakdown.plugins_percentage();
+    let plugins_val_s = breakdown.plugins_percentage_as_text();
+    let reserved_but_unallocated_val = breakdown.reserved_but_unallocated_percentage();
+    let reserved_but_unallocated_val_s = breakdown.reserved_but_unallocated_percentage_as_text();
+    let stream_queue_procs_val = breakdown.stream_queue_procs_percentage();
+    let stream_queue_procs_val_s = breakdown.stream_queue_procs_percentage_as_text();
+    let stream_queue_replica_reader_procs_val =
+        breakdown.stream_queue_replica_reader_procs_percentage();
+    let stream_queue_replica_reader_procs_val_s =
+        breakdown.stream_queue_replica_reader_procs_percentage_as_text();
+    let stream_queue_coordinator_procs_val = breakdown.stream_queue_coordinator_procs_percentage();
+    let stream_queue_coordinator_procs_val_s =
+        breakdown.stream_queue_coordinator_procs_percentage_as_text();
+
+    let mut data: Vec<MemoryBreakdownRow> = vec![
+        MemoryBreakdownRow {
+            key: "total",
+            comparable: 100.0,
+            percentage: "100%",
+        },
+        MemoryBreakdownRow {
+            key: "Atom table",
+            comparable: atom_table_val,
+            percentage: &atom_table_val_s,
+        },
+        MemoryBreakdownRow {
+            key: "Allocated but unused",
+            comparable: allocated_but_unused_val,
+            percentage: &allocated_but_unused_val_s,
+        },
+        MemoryBreakdownRow {
+            key: "Binary heap",
+            comparable: binary_heap_val,
+            percentage: &binary_heap_val_s,
+        },
+        MemoryBreakdownRow {
+            key: "Classic queue processes",
+            comparable: classic_queue_procs_val,
+            percentage: &classic_queue_procs_val_s,
+        },
+        MemoryBreakdownRow {
+            key: "Code ",
+            comparable: code_val,
+            percentage: &code_val_s,
+        },
+        MemoryBreakdownRow {
+            key: "AMQP 0-9-1 channels",
+            comparable: connection_channels_val,
+            percentage: &connection_channels_val_s,
+        },
+        MemoryBreakdownRow {
+            key: "Client connections: reader processes",
+            comparable: connection_readers_val,
+            percentage: &connection_readers_val_s,
+        },
+        MemoryBreakdownRow {
+            key: "Client connections: writer processes",
+            comparable: connection_writers_val,
+            percentage: &connection_writers_val_s,
+        },
+        MemoryBreakdownRow {
+            key: "Client connections: others processes",
+            comparable: connection_other_val,
+            percentage: &connection_other_val_s,
+        },
+        MemoryBreakdownRow {
+            key: "Management stats database",
+            comparable: management_db_val,
+            percentage: &management_db_val_s,
+        },
+        MemoryBreakdownRow {
+            key: "Message store indices",
+            comparable: message_indices_val,
+            percentage: &message_indices_val_s,
+        },
+        MemoryBreakdownRow {
+            key: "Metadata store",
+            comparable: metadata_store_val,
+            percentage: &metadata_store_val_s,
+        },
+        MemoryBreakdownRow {
+            key: "Metadata store ETS tables",
+            comparable: metadata_store_ets_tables_val,
+            percentage: &metadata_store_ets_tables_val_s,
+        },
+        MemoryBreakdownRow {
+            key: "Metrics data",
+            comparable: metrics_val,
+            percentage: &metrics_val_s,
+        },
+        MemoryBreakdownRow {
+            key: "Mnesia",
+            comparable: mnesia_val,
+            percentage: &mnesia_val_s,
+        },
+        MemoryBreakdownRow {
+            key: "Other (ETS tables)",
+            comparable: other_ets_tables_val,
+            percentage: &other_ets_tables_val_s,
+        },
+        MemoryBreakdownRow {
+            key: "Other (used by the runtime)",
+            comparable: other_system_val,
+            percentage: &other_system_val_s,
+        },
+        MemoryBreakdownRow {
+            key: "Other processes",
+            comparable: other_procs_val,
+            percentage: &other_procs_val_s,
+        },
+        MemoryBreakdownRow {
+            key: "Quorum queue replica processes",
+            comparable: quorum_queue_procs_val,
+            percentage: &quorum_queue_procs_val_s,
+        },
+        MemoryBreakdownRow {
+            key: "Quorum queue ETS tables",
+            comparable: quorum_queue_ets_tables_val,
+            percentage: &quorum_queue_ets_tables_val_s,
+        },
+        MemoryBreakdownRow {
+            key: "Plugins and their data",
+            comparable: plugins_val,
+            percentage: &plugins_val_s,
+        },
+        MemoryBreakdownRow {
+            key: "Reserved by the kernel but unallocated",
+            comparable: reserved_but_unallocated_val,
+            percentage: &reserved_but_unallocated_val_s,
+        },
+        MemoryBreakdownRow {
+            key: "Stream replica processes",
+            comparable: stream_queue_procs_val,
+            percentage: &stream_queue_procs_val_s,
+        },
+        MemoryBreakdownRow {
+            key: "Stream replica reader processes",
+            comparable: stream_queue_replica_reader_procs_val,
+            percentage: &stream_queue_replica_reader_procs_val_s,
+        },
+        MemoryBreakdownRow {
+            key: "Stream coordinator processes",
+            comparable: stream_queue_coordinator_procs_val,
+            percentage: &stream_queue_coordinator_procs_val_s,
+        },
+    ];
+    // Note: this is descending ordering
+    data.sort_by(|a, b| b.comparable.total_cmp(&a.comparable));
     let tb = Table::builder(data);
     tb.build()
 }

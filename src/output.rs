@@ -130,12 +130,29 @@ impl ResultHandler {
         }
     }
 
-    pub fn memory_breakdown_result(&mut self, result: ClientResult<NodeMemoryBreakdown>) {
+    pub fn memory_breakdown_in_bytes_result(&mut self, result: ClientResult<NodeMemoryBreakdown>) {
         match result {
             Ok(output) => {
                 self.exit_code = Some(ExitCode::Ok);
 
-                let mut table = tables::memory_breakdown(output);
+                let mut table = tables::memory_breakdown_in_bytes(output);
+                self.table_styler.apply(&mut table);
+
+                println!("{}", table);
+            }
+            Err(error) => self.report_command_run_error(&error),
+        }
+    }
+
+    pub fn memory_breakdown_in_percent_result(
+        &mut self,
+        result: ClientResult<NodeMemoryBreakdown>,
+    ) {
+        match result {
+            Ok(output) => {
+                self.exit_code = Some(ExitCode::Ok);
+
+                let mut table = tables::memory_breakdown_in_percent(output);
                 self.table_styler.apply(&mut table);
 
                 println!("{}", table);
