@@ -18,7 +18,7 @@ No (documented) changes yet.
 
    ```shell
    # displays a breakdown in percent
-   rabbitmqadmin show memory_breakdown_in_percent --node 'rabbit@sunnyside'
+   rabbitmqadmin show memory_breakdown_in_percent --node 'rabbit@hostname'
    ```
    
    Example output of `show memory_breakdown_in_percent`:
