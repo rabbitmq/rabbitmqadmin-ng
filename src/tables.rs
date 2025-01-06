@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 use rabbitmq_http_client::blocking_api::HttpClientError;
+use rabbitmq_http_client::formatting::*;
 use rabbitmq_http_client::responses::{
     ClusterAlarmCheckDetails, HealthCheckFailureDetails, NodeMemoryBreakdown, Overview,
     QuorumCriticalityCheckDetails,
 };
-use rabbitmq_http_client::formatting::*;
 use reqwest::StatusCode;
 use tabled::settings::Panel;
 use tabled::{Table, Tabled};
@@ -74,7 +74,7 @@ pub fn overview(ov: Overview) -> Table {
         OverviewRow {
             key: "Node tags",
             value: display_tag_map_option(&ov.node_tags),
-        }
+        },
     ];
     let tb = Table::builder(data);
     let mut t = tb.build();
