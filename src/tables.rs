@@ -131,7 +131,7 @@ pub fn overview(ov: Overview) -> Table {
                 .to_string(),
         },
         OverviewRow {
-            key: "Unroutable messages: return-to-publisher rate (global)",
+            key: "Unroutable messages: returned-to-publisher rate (global)",
             value: ov
                 .message_stats
                 .unroutable_returned_message_details
