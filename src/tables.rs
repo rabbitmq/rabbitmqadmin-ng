@@ -16,6 +16,7 @@ use rabbitmq_http_client::responses::{
     ClusterAlarmCheckDetails, HealthCheckFailureDetails, NodeMemoryBreakdown, Overview,
     QuorumCriticalityCheckDetails,
 };
+use rabbitmq_http_client::formatting::*;
 use reqwest::StatusCode;
 use tabled::settings::Panel;
 use tabled::{Table, Tabled};
@@ -66,8 +67,15 @@ pub fn overview(ov: Overview) -> Table {
             key: "Erlang details",
             value: ov.erlang_full_version,
         },
+        OverviewRow {
+            key: "Cluster tags",
+            value: display_tag_map_option(&ov.cluster_tags),
+        },
+        OverviewRow {
+            key: "Node tags",
+            value: display_tag_map_option(&ov.node_tags),
+        }
     ];
-    // TODO: if any tags are non-empty, add them to the table
     let tb = Table::builder(data);
     let mut t = tb.build();
     t.with(Panel::header("Overview"));
