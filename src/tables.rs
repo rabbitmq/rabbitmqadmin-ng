@@ -68,6 +68,85 @@ pub fn overview(ov: Overview) -> Table {
             value: ov.erlang_full_version,
         },
         OverviewRow {
+            key: "Connections (total)",
+            value: ov.object_totals.connections.to_string(),
+        },
+        OverviewRow {
+            key: "AMQP 0-9-1 channels (total)",
+            value: ov.object_totals.channels.to_string(),
+        },
+        OverviewRow {
+            key: "Queues and streams (total)",
+            value: ov.object_totals.queues.to_string(),
+        },
+        OverviewRow {
+            key: "Consumers (total)",
+            value: ov.object_totals.consumers.to_string(),
+        },
+        OverviewRow {
+            key: "Messages (total)",
+            value: ov.queue_totals.messages.to_string(),
+        },
+        OverviewRow {
+            key: "Messages ready for delivery (total)",
+            value: ov.queue_totals.messages_ready_for_delivery.to_string(),
+        },
+        OverviewRow {
+            key: "Messages delivered but unacknowledged by consumers (total)",
+            value: ov
+                .queue_totals
+                .messages_delivered_but_unacknowledged_by_consumers
+                .to_string(),
+        },
+        OverviewRow {
+            key: "Publishing (ingress) rate (global)",
+            value: ov.message_stats.publishing_details.rate.to_string(),
+        },
+        OverviewRow {
+            key: "Publishing confirm rate (global)",
+            value: ov
+                .message_stats
+                .publisher_confirmation_details
+                .rate
+                .to_string(),
+        },
+        OverviewRow {
+            key: "Consumer delivery (egress) rate (global)",
+            value: ov.message_stats.delivery_details.rate.to_string(),
+        },
+        OverviewRow {
+            key: "Consumer delivery in automatic acknowledgement mode rate (global)",
+            value: ov
+                .message_stats
+                .delivery_with_automatic_acknowledgement_details
+                .rate
+                .to_string(),
+        },
+        OverviewRow {
+            key: "Consumer acknowledgement rate (global)",
+            value: ov
+                .message_stats
+                .consumer_acknowledgement_details
+                .rate
+                .to_string(),
+        },
+        OverviewRow {
+            key: "Unroutable messages: return-to-publisher rate (global)",
+            value: ov
+                .message_stats
+                .unroutable_returned_message_details
+                .rate
+                .to_string(),
+        },
+        OverviewRow {
+            key: "Unroutable messages: dropped rate (global)",
+            value: ov
+                .message_stats
+                .unroutable_dropped_message_details
+                .rate
+                .to_string(),
+        },
+        OverviewRow {
             key: "Cluster tags",
             value: display_tag_map_option(&ov.cluster_tags),
         },
