@@ -30,10 +30,13 @@ mod errors;
 mod output;
 mod static_urls;
 mod tables;
+mod tanzu_cli;
+mod tanzu_commands;
 
 use crate::config::SharedSettings;
 use crate::constants::{
     DEFAULT_CONFIG_FILE_PATH, DEFAULT_HTTPS_PORT, DEFAULT_NODE_ALIAS, DEFAULT_VHOST,
+    TANZU_COMMAND_PREFIX,
 };
 use crate::output::*;
 use rabbitmq_http_client::blocking_api::{Client as GenericAPIClient, ClientBuilder};
@@ -87,23 +90,47 @@ fn main() {
             let password = common_settings.password.clone().unwrap();
             let client = build_rabbitmq_http_api_client(httpc, &endpoint, &username, &password);
 
-            if let Some((verb, group_args)) = cli.subcommand() {
-                if let Some((kind, command_args)) = group_args.subcommand() {
-                    let pair = (verb, kind);
+            if let Some((first_level, first_level_args)) = cli.subcommand() {
+                if let Some((second_level, second_level_args)) = first_level_args.subcommand() {
+                    // this is a Tanzu RabbitMQ-specific command, these are grouped under "tanzu"
+                    if first_level == TANZU_COMMAND_PREFIX {
+                        if let Some((third_level, third_level_args)) =
+                            second_level_args.subcommand()
+                        {
+                            let pair = (second_level, third_level);
 
-                    let vhost = virtual_host(&common_settings, command_args);
+                            // let vhost = virtual_host(&common_settings, second_level_args);
 
-                    let mut res_handler = ResultHandler::new(&common_settings, command_args);
-                    let exit_code = dispatch_subcommand(
-                        pair,
-                        command_args,
-                        client,
-                        common_settings.endpoint(),
-                        vhost,
-                        &mut res_handler,
-                    );
+                            let mut res_handler =
+                                ResultHandler::new(&common_settings, second_level_args);
+                            let exit_code = dispatch_tanzu_subcommand(
+                                pair,
+                                third_level_args,
+                                client,
+                                &mut res_handler,
+                            );
 
-                    process::exit(exit_code.into())
+                            process::exit(exit_code.into())
+                        }
+                    } else {
+                        // this is a common (OSS and Tanzu) command
+                        let pair = (first_level, second_level);
+
+                        let vhost = virtual_host(&common_settings, second_level_args);
+
+                        let mut res_handler =
+                            ResultHandler::new(&common_settings, second_level_args);
+                        let exit_code = dispatch_common_subcommand(
+                            pair,
+                            second_level_args,
+                            client,
+                            common_settings.endpoint(),
+                            vhost,
+                            &mut res_handler,
+                        );
+
+                        process::exit(exit_code.into())
+                    }
                 }
             }
         }
@@ -232,9 +259,9 @@ fn load_private_key(filename: &str) -> Result<PrivateKeyDer<'static>, CommandRun
     })
 }
 
-fn dispatch_subcommand(
+fn dispatch_common_subcommand(
     pair: (&str, &str),
-    command_args: &ArgMatches,
+    second_level_args: &ArgMatches,
     client: APIClient<'_>,
     endpoint: String,
     vhost: String,
@@ -254,11 +281,11 @@ fn dispatch_subcommand(
             res_handler.no_output_on_success(Ok(()))
         }
         ("show", "memory_breakdown_in_bytes") => {
-            let result = commands::show_memory_breakdown(client, command_args);
+            let result = commands::show_memory_breakdown(client, second_level_args);
             res_handler.memory_breakdown_in_bytes_result(result)
         }
         ("show", "memory_breakdown_in_percent") => {
-            let result = commands::show_memory_breakdown(client, command_args);
+            let result = commands::show_memory_breakdown(client, second_level_args);
             res_handler.memory_breakdown_in_percent_result(result)
         }
 
@@ -275,7 +302,7 @@ fn dispatch_subcommand(
             res_handler.tabular_result(result)
         }
         ("list", "user_limits") => {
-            let result = commands::list_user_limits(client, command_args);
+            let result = commands::list_user_limits(client, second_level_args);
             res_handler.tabular_result(result)
         }
         ("list", "users") => {
@@ -315,7 +342,7 @@ fn dispatch_subcommand(
             res_handler.tabular_result(result)
         }
         ("list", "parameters") => {
-            let result = commands::list_parameters(client, &vhost, command_args);
+            let result = commands::list_parameters(client, &vhost, second_level_args);
             res_handler.tabular_result(result)
         }
         ("list", "exchanges") => {
@@ -335,95 +362,95 @@ fn dispatch_subcommand(
             res_handler.tabular_result(result.map(|val| val.0))
         }
         ("declare", "vhost") => {
-            let result = commands::declare_vhost(client, command_args);
+            let result = commands::declare_vhost(client, second_level_args);
             res_handler.no_output_on_success(result);
         }
         ("declare", "exchange") => {
-            let result = commands::declare_exchange(client, &vhost, command_args);
+            let result = commands::declare_exchange(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);
         }
         ("declare", "user") => {
-            let result = commands::declare_user(client, command_args);
+            let result = commands::declare_user(client, second_level_args);
             res_handler.no_output_on_success(result);
         }
         ("declare", "permissions") => {
-            let result = commands::declare_permissions(client, &vhost, command_args);
+            let result = commands::declare_permissions(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);
         }
         ("delete", "permissions") => {
-            let result = commands::delete_permissions(client, &vhost, command_args);
+            let result = commands::delete_permissions(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);
         }
         ("declare", "queue") => {
-            let result = commands::declare_queue(client, &vhost, command_args);
+            let result = commands::declare_queue(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);
         }
         ("declare", "binding") => {
-            let result = commands::declare_binding(client, &vhost, command_args);
+            let result = commands::declare_binding(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);
         }
         ("declare", "policy") => {
-            let result = commands::declare_policy(client, &vhost, command_args);
+            let result = commands::declare_policy(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);
         }
         ("declare", "operator_policy") => {
-            let result = commands::declare_operator_policy(client, &vhost, command_args);
+            let result = commands::declare_operator_policy(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);
         }
         ("declare", "vhost_limit") => {
-            let result = commands::declare_vhost_limit(client, &vhost, command_args);
+            let result = commands::declare_vhost_limit(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);
         }
         ("declare", "user_limit") => {
-            let result = commands::declare_user_limit(client, command_args);
+            let result = commands::declare_user_limit(client, second_level_args);
             res_handler.no_output_on_success(result);
         }
         ("declare", "parameter") => {
-            let result = commands::declare_parameter(client, &vhost, command_args);
+            let result = commands::declare_parameter(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);
         }
         ("delete", "vhost") => {
-            let result = commands::delete_vhost(client, command_args);
+            let result = commands::delete_vhost(client, second_level_args);
             res_handler.delete_operation_result(result);
         }
         ("delete", "user") => {
-            let result = commands::delete_user(client, command_args);
+            let result = commands::delete_user(client, second_level_args);
             res_handler.delete_operation_result(result);
         }
         ("delete", "exchange") => {
-            let result = commands::delete_exchange(client, &vhost, command_args);
+            let result = commands::delete_exchange(client, &vhost, second_level_args);
             res_handler.delete_operation_result(result);
         }
         ("delete", "queue") => {
-            let result = commands::delete_queue(client, &vhost, command_args);
+            let result = commands::delete_queue(client, &vhost, second_level_args);
             res_handler.delete_operation_result(result);
         }
         ("delete", "binding") => {
-            let result = commands::delete_binding(client, &vhost, command_args);
+            let result = commands::delete_binding(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);
         }
         ("delete", "policy") => {
-            let result = commands::delete_policy(client, &vhost, command_args);
+            let result = commands::delete_policy(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);
         }
         ("delete", "operator_policy") => {
-            let result = commands::delete_operator_policy(client, &vhost, command_args);
+            let result = commands::delete_operator_policy(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);
         }
         ("delete", "vhost_limit") => {
-            let result = commands::delete_vhost_limit(client, &vhost, command_args);
+            let result = commands::delete_vhost_limit(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);
         }
         ("delete", "user_limit") => {
-            let result = commands::delete_user_limit(client, command_args);
+            let result = commands::delete_user_limit(client, second_level_args);
             res_handler.no_output_on_success(result);
         }
         ("delete", "parameter") => {
-            let result = commands::delete_parameter(client, &vhost, command_args);
+            let result = commands::delete_parameter(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);
         }
         ("purge", "queue") => {
-            let result = commands::purge_queue(client, &vhost, command_args);
+            let result = commands::purge_queue(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);
         }
         ("health_check", "local_alarms") => {
@@ -439,11 +466,11 @@ fn dispatch_subcommand(
             res_handler.health_check_result(result);
         }
         ("health_check", "port_listener") => {
-            let result = commands::health_check_port_listener(client, command_args);
+            let result = commands::health_check_port_listener(client, second_level_args);
             res_handler.health_check_result(result);
         }
         ("health_check", "protocol_listener") => {
-            let result = commands::health_check_protocol_listener(client, command_args);
+            let result = commands::health_check_protocol_listener(client, second_level_args);
             res_handler.health_check_result(result);
         }
         ("rebalance", "queues") => {
@@ -451,23 +478,23 @@ fn dispatch_subcommand(
             res_handler.no_output_on_success(result);
         }
         ("close", "connection") => {
-            let result = commands::close_connection(client, command_args);
+            let result = commands::close_connection(client, second_level_args);
             res_handler.no_output_on_success(result);
         }
         ("definitions", "export") => {
-            let result = commands::export_definitions(client, command_args);
+            let result = commands::export_definitions(client, second_level_args);
             res_handler.no_output_on_success(result);
         }
         ("definitions", "import") => {
-            let result = commands::import_definitions(client, command_args);
+            let result = commands::import_definitions(client, second_level_args);
             res_handler.no_output_on_success(result);
         }
         ("export", "definitions") => {
-            let result = commands::export_definitions(client, command_args);
+            let result = commands::export_definitions(client, second_level_args);
             res_handler.no_output_on_success(result);
         }
         ("import", "definitions") => {
-            let result = commands::import_definitions(client, command_args);
+            let result = commands::import_definitions(client, second_level_args);
             res_handler.no_output_on_success(result);
         }
         ("feature_flags", "list") => {
@@ -475,7 +502,7 @@ fn dispatch_subcommand(
             res_handler.tabular_result(result.map(|val| val.0))
         }
         ("feature_flags", "enable") => {
-            let result = commands::enable_feature_flag(client, command_args);
+            let result = commands::enable_feature_flag(client, second_level_args);
             res_handler.no_output_on_success(result);
         }
         ("feature_flags", "enable_all") => {
@@ -491,12 +518,35 @@ fn dispatch_subcommand(
             res_handler.tabular_result(result.map(|val| val.0))
         }
         ("publish", "message") => {
-            let result = commands::publish_message(client, &vhost, command_args);
+            let result = commands::publish_message(client, &vhost, second_level_args);
             res_handler.single_value_result(result)
         }
         ("get", "messages") => {
-            let result = commands::get_messages(client, &vhost, command_args);
+            let result = commands::get_messages(client, &vhost, second_level_args);
             res_handler.tabular_result(result)
+        }
+        _ => {
+            let error = CommandRunError::UnknownCommandTarget {
+                command: pair.0.into(),
+                subcommand: pair.1.into(),
+            };
+            res_handler.report_pre_command_run_error(&error);
+        }
+    }
+
+    res_handler.exit_code.unwrap_or(ExitCode::Usage)
+}
+
+fn dispatch_tanzu_subcommand(
+    pair: (&str, &str),
+    third_level_args: &ArgMatches,
+    client: APIClient<'_>,
+    res_handler: &mut ResultHandler,
+) -> ExitCode {
+    match &pair {
+        ("sds", "status") => {
+            let result = tanzu_commands::sds_status(client, third_level_args);
+            res_handler.schema_definition_sync_status_result(result)
         }
         _ => {
             let error = CommandRunError::UnknownCommandTarget {

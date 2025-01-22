@@ -15,6 +15,7 @@ use std::path::PathBuf;
 
 use super::constants::*;
 use super::static_urls::*;
+use super::tanzu_cli::tanzu_subcommands;
 use clap::{Arg, ArgAction, Command};
 use rabbitmq_http_client::commons::{
     BindingDestinationType, ExchangeType, QueueType, SupportedProtocol,
@@ -290,6 +291,11 @@ pub fn parser() -> Command {
                 .after_long_help(color_print::cformat!("<bold>Doc guide</bold>: {}", POLLING_CONSUMER_GUIDE_URL))
                 .subcommand_value_name("message")
                 .subcommands(get_subcommands()),
+            Command::new("tanzu")
+                .about("Tanzu RabbitMQ-specific commands")
+                // TODO: documentation link
+                .subcommand_value_name("subcommand")
+                .subcommands(tanzu_subcommands()),
         ])
 }
 

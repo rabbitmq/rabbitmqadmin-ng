@@ -15,7 +15,7 @@ use rabbitmq_http_client::blocking_api::HttpClientError;
 use rabbitmq_http_client::formatting::*;
 use rabbitmq_http_client::responses::{
     ClusterAlarmCheckDetails, HealthCheckFailureDetails, NodeMemoryBreakdown, Overview,
-    QuorumCriticalityCheckDetails,
+    QuorumCriticalityCheckDetails, SchemaDefinitionSyncStatus,
 };
 use reqwest::StatusCode;
 use tabled::settings::Panel;
@@ -100,51 +100,38 @@ pub fn overview(ov: Overview) -> Table {
         },
         OverviewRow {
             key: "Publishing (ingress) rate (global)",
-            value: ov.message_stats.publishing_details.rate.to_string(),
+            value: display_option_details_rate(&ov.message_stats.publishing_details),
         },
         OverviewRow {
             key: "Publishing confirm rate (global)",
-            value: ov
-                .message_stats
-                .publisher_confirmation_details
-                .rate
-                .to_string(),
+            value: display_option_details_rate(&ov.message_stats.publisher_confirmation_details),
         },
         OverviewRow {
             key: "Consumer delivery (egress) rate (global)",
-            value: ov.message_stats.delivery_details.rate.to_string(),
+            value: display_option_details_rate(&ov.message_stats.delivery_details),
         },
         OverviewRow {
             key: "Consumer delivery in automatic acknowledgement mode rate (global)",
-            value: ov
-                .message_stats
-                .delivery_with_automatic_acknowledgement_details
-                .rate
-                .to_string(),
+            value: display_option_details_rate(
+                &ov.message_stats
+                    .delivery_with_automatic_acknowledgement_details,
+            ),
         },
         OverviewRow {
             key: "Consumer acknowledgement rate (global)",
-            value: ov
-                .message_stats
-                .consumer_acknowledgement_details
-                .rate
-                .to_string(),
+            value: display_option_details_rate(&ov.message_stats.consumer_acknowledgement_details),
         },
         OverviewRow {
             key: "Unroutable messages: returned-to-publisher rate (global)",
-            value: ov
-                .message_stats
-                .unroutable_returned_message_details
-                .rate
-                .to_string(),
+            value: display_option_details_rate(
+                &ov.message_stats.unroutable_returned_message_details,
+            ),
         },
         OverviewRow {
             key: "Unroutable messages: dropped rate (global)",
-            value: ov
-                .message_stats
-                .unroutable_dropped_message_details
-                .rate
-                .to_string(),
+            value: display_option_details_rate(
+                &ov.message_stats.unroutable_dropped_message_details,
+            ),
         },
         OverviewRow {
             key: "Cluster tags",
@@ -197,6 +184,38 @@ pub fn churn_overview(ov: Overview) -> Table {
     t.with(Panel::header(
         "Entity (connections, queues, etc) churn over the most recent sampling period",
     ));
+    t
+}
+
+pub fn schema_definition_sync_status(status: SchemaDefinitionSyncStatus) -> Table {
+    let operating_mode_s = &status.operating_mode.into();
+    let state_s = &status.state.into();
+    let upstream_endpoints_s = &status.upstream_endpoints.into();
+    let data = vec![
+        RowOfTwo {
+            key: "node",
+            value: &status.node,
+        },
+        RowOfTwo {
+            key: "operating mode",
+            value: operating_mode_s,
+        },
+        RowOfTwo {
+            key: "state",
+            value: state_s,
+        },
+        RowOfTwo {
+            key: "upstream endpoints",
+            value: upstream_endpoints_s,
+        },
+        RowOfTwo {
+            key: "upstream username",
+            value: &status.upstream_username,
+        },
+    ];
+    let tb = Table::builder(data);
+    let mut t = tb.build();
+    t.with(Panel::header("Schema Definition Sync Status"));
     t
 }
 

@@ -17,7 +17,7 @@ use crate::tables;
 use clap::ArgMatches;
 use rabbitmq_http_client::blocking_api::{HttpClientError, Result as ClientResult};
 use rabbitmq_http_client::error::Error as ClientError;
-use rabbitmq_http_client::responses::{NodeMemoryBreakdown, Overview};
+use rabbitmq_http_client::responses::{NodeMemoryBreakdown, Overview, SchemaDefinitionSyncStatus};
 use reqwest::StatusCode;
 use std::fmt;
 use sysexits::ExitCode;
@@ -153,6 +153,23 @@ impl ResultHandler {
                 self.exit_code = Some(ExitCode::Ok);
 
                 let mut table = tables::memory_breakdown_in_percent(output);
+                self.table_styler.apply(&mut table);
+
+                println!("{}", table);
+            }
+            Err(error) => self.report_command_run_error(&error),
+        }
+    }
+
+    pub fn schema_definition_sync_status_result(
+        &mut self,
+        result: ClientResult<SchemaDefinitionSyncStatus>,
+    ) {
+        match result {
+            Ok(output) => {
+                self.exit_code = Some(ExitCode::Ok);
+
+                let mut table = tables::schema_definition_sync_status(output);
                 self.table_styler.apply(&mut table);
 
                 println!("{}", table);

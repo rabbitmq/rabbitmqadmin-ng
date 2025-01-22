@@ -32,3 +32,5 @@ pub const DEFAULT_NODE_ALIAS: &str = "default";
 // Default local path to rabbitmqadmin.conf
 pub const DEFAULT_CONFIG_FILE_PATH: &str = "~/.rabbitmqadmin.conf";
 pub const DEFAULT_CONFIG_SECTION_NAME: &str = "default";
+
+pub const TANZU_COMMAND_PREFIX: &str = "tanzu";
