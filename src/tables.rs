@@ -191,7 +191,7 @@ pub fn schema_definition_sync_status(status: SchemaDefinitionSyncStatus) -> Tabl
     let operating_mode_s = &status.operating_mode.into();
     let state_s = &status.state.into();
     let upstream_endpoints_s = &status.upstream_endpoints.into();
-    let data = vec![
+    let mut data = vec![
         RowOfTwo {
             key: "node",
             value: &status.node,
@@ -213,6 +213,37 @@ pub fn schema_definition_sync_status(status: SchemaDefinitionSyncStatus) -> Tabl
             value: &status.upstream_username,
         },
     ];
+
+    let last_connection_time_s: String;
+    if let Some(stamp) = &status.last_connection_completion_timestamp {
+        last_connection_time_s = stamp.clone().to_string().clone();
+        let row = RowOfTwo {
+            key: "last connection time time",
+            value: &last_connection_time_s,
+        };
+        data.push(row)
+    }
+
+    let last_sync_request_s: String;
+    if let Some(stamp) = &status.last_sync_request_timestamp {
+        last_sync_request_s = stamp.clone().to_string().clone();
+        let row = RowOfTwo {
+            key: "last sync request time",
+            value: &last_sync_request_s,
+        };
+        data.push(row)
+    }
+
+    let sync_duration_s: String;
+    if let Some(stamp) = &status.last_sync_duration {
+        sync_duration_s = stamp.clone().to_string().clone();
+        let row = RowOfTwo {
+            key: "last sync duration (in ms)",
+            value: &sync_duration_s,
+        };
+        data.push(row)
+    }
+
     let tb = Table::builder(data);
     let mut t = tb.build();
     t.with(Panel::header("Schema Definition Sync Status"));
