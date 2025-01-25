@@ -548,6 +548,14 @@ fn dispatch_tanzu_subcommand(
             let result = tanzu_commands::sds_status(client, third_level_args);
             res_handler.schema_definition_sync_status_result(result)
         }
+        ("sds", "enable") => {
+            let result = tanzu_commands::sds_enable(client, third_level_args);
+            res_handler.no_output_on_success(result)
+        }
+        ("sds", "disable") => {
+            let result = tanzu_commands::sds_disable(client, third_level_args);
+            res_handler.no_output_on_success(result)
+        }
         _ => {
             let error = CommandRunError::UnknownCommandTarget {
                 command: pair.0.into(),

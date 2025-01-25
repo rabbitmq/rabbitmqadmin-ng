@@ -26,3 +26,13 @@ pub fn sds_status(
     let node = command_args.get_one::<String>("node");
     client.schema_definition_sync_status(node.map(|s| s.as_str()))
 }
+
+pub fn sds_enable(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
+    let node = command_args.get_one::<String>("node").unwrap();
+    client.enable_schema_definition_sync(node)
+}
+
+pub fn sds_disable(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
+    let node = command_args.get_one::<String>("node").unwrap();
+    client.disable_schema_definition_sync(node)
+}

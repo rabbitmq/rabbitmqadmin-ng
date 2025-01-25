@@ -32,12 +32,20 @@ fn sds_group() -> Command {
         .subcommands(sds_subcommands())
 }
 
-fn sds_subcommands() -> [Command; 1] {
+fn sds_subcommands() -> [Command; 3] {
     let status_cmd = Command::new("status")
-        .long_about("Reports Schema Definition Sync (SDS) status on the target node")
+        .long_about("Reports Schema Definition Sync (SDS) status on the given node")
         .arg(Arg::new("node").short('n').long("node").required(false));
 
-    [status_cmd]
+    let disable_cmd = Command::new("disable")
+        .long_about("Stops Schema Definition Sync (SDS) on the given node")
+        .arg(Arg::new("node").short('n').long("node").required(true));
+
+    let enable_cmd = Command::new("enable")
+        .long_about("Resumes Schema Definition Sync (SDS) on the given node")
+        .arg(Arg::new("node").short('n').long("node").required(true));
+
+    [status_cmd, disable_cmd, enable_cmd]
 }
 
 fn wsr_subcommands() -> [Command; 1] {
