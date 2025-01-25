@@ -33,11 +33,15 @@ jobs:
         run: cargo fmt --all --check
 
   build:
-    name: Build and test
-    runs-on: ubuntu-24.04
     strategy:
       matrix:
-        rust-version: [ stable ]
+        rust-version:
+          - stable
+          - beta
+        runner:
+          - "ubuntu-24.04"
+          - "ubuntu-24.04-arm"
+    runs-on: ${{ matrix.runner }}
 
     services:
       rabbitmq:
