@@ -17,12 +17,14 @@ use crate::tables;
 use clap::ArgMatches;
 use rabbitmq_http_client::blocking_api::{HttpClientError, Result as ClientResult};
 use rabbitmq_http_client::error::Error as ClientError;
-use rabbitmq_http_client::responses::{NodeMemoryBreakdown, Overview, SchemaDefinitionSyncStatus};
+use rabbitmq_http_client::responses::{
+    NodeMemoryBreakdown, Overview, SchemaDefinitionSyncStatus, WarmStandbyReplicationStatus,
+};
 use reqwest::StatusCode;
 use std::fmt;
 use sysexits::ExitCode;
 use tabled::settings::object::Rows;
-use tabled::settings::{Remove, Style};
+use tabled::settings::{Panel, Remove, Style};
 use tabled::{Table, Tabled};
 
 #[derive(Copy, Clone)]
@@ -131,6 +133,7 @@ impl ResultHandler {
     }
 
     pub fn memory_breakdown_in_bytes_result(&mut self, result: ClientResult<NodeMemoryBreakdown>) {
+        dbg!(&result);
         match result {
             Ok(output) => {
                 self.exit_code = Some(ExitCode::Ok);
@@ -170,6 +173,25 @@ impl ResultHandler {
                 self.exit_code = Some(ExitCode::Ok);
 
                 let mut table = tables::schema_definition_sync_status(output);
+                self.table_styler.apply(&mut table);
+
+                println!("{}", table);
+            }
+            Err(error) => self.report_command_run_error(&error),
+        }
+    }
+
+    pub fn warm_standby_replication_status_result(
+        &mut self,
+        result: ClientResult<WarmStandbyReplicationStatus>,
+    ) {
+        match result {
+            Ok(data) => {
+                self.exit_code = Some(ExitCode::Ok);
+
+                let tb = Table::builder(data.virtual_hosts);
+                let mut table = tb.build();
+                table.with(Panel::header("Warm Standby Replication Status"));
                 self.table_styler.apply(&mut table);
 
                 println!("{}", table);

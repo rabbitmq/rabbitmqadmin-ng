@@ -556,6 +556,10 @@ fn dispatch_tanzu_subcommand(
             let result = tanzu_commands::sds_disable(client, third_level_args);
             res_handler.no_output_on_success(result)
         }
+        ("wsr", "status") => {
+            let result = tanzu_commands::wsr_status(client);
+            res_handler.warm_standby_replication_status_result(result)
+        }
         _ => {
             let error = CommandRunError::UnknownCommandTarget {
                 command: pair.0.into(),

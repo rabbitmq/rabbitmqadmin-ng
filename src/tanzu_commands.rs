@@ -17,7 +17,7 @@ use crate::APIClient;
 use clap::ArgMatches;
 
 use rabbitmq_http_client::blocking_api::Result as ClientResult;
-use rabbitmq_http_client::responses::SchemaDefinitionSyncStatus;
+use rabbitmq_http_client::responses::{SchemaDefinitionSyncStatus, WarmStandbyReplicationStatus};
 
 pub fn sds_status(
     client: APIClient,
@@ -35,4 +35,8 @@ pub fn sds_enable(client: APIClient, command_args: &ArgMatches) -> ClientResult<
 pub fn sds_disable(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
     let node = command_args.get_one::<String>("node").unwrap();
     client.disable_schema_definition_sync(node)
+}
+
+pub fn wsr_status(client: APIClient) -> ClientResult<WarmStandbyReplicationStatus> {
+    client.warm_standby_replication_status()
 }
