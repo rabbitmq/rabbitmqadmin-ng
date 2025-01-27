@@ -47,11 +47,10 @@ if $os in ['fedora', 'fedora-latest'] {
   print "Building on Fedora..."
   if $target == 'aarch64-unknown-linux-gnu' {
     sudo dnf install -y gcc-aarch64-linux-gnu
-    $env.CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER = 'aarch64-linux-gnu-gcc'
     build-with-cargo
   } else if $target == 'armv7-unknown-linux-gnueabihf' {
     sudo dnf install pkg-config gcc-arm-linux-gnueabihf -y
-    $env.CARGO_TARGET_ARMV7_UNKNOWN_LINUX_GNUEABIHF_LINKER = 'arm-linux-gnueabihf-gcc'
+    # $env.CARGO_TARGET_ARMV7_UNKNOWN_LINUX_GNUEABIHF_LINKER = 'arm-linux-gnueabihf-gcc'
     build-with-cargo
   }
 }
@@ -84,5 +83,5 @@ ls $release_dir | print
 echo $'artifact=($artifact_filename)' | save --append $env.GITHUB_OUTPUT
 
 def 'build-with-cargo' [] {
-  cargo rustc -q --bin $binary --target $target --release
+  cargo rustc --bin $binary --target $target --release
 }
