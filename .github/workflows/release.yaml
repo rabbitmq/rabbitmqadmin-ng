@@ -87,7 +87,7 @@ jobs:
           TARGET_RUSTFLAGS: ${{ matrix.target_rustflags }}
           SRC: ${{ github.workspace }}
       - name: Store x86-64 Linux build artifact
-        id: upload-linux-artifact
+        id: upload-amd64-linux-artifact
         if: ${{ matrix.os == 'ubuntu-24.04' }}
         uses: actions/upload-artifact@v4
         with:
@@ -105,7 +105,7 @@ jobs:
           TARGET_RUSTFLAGS: ${{ matrix.target_rustflags }}
           SRC: ${{ github.workspace }}
       - name: Store aarch64 Linux build artifact
-        id: upload-linux-artifact
+        id: upload-aarch64-linux-artifact
         if: ${{ matrix.os == 'ubuntu-24.04-arm' }}
         uses: actions/upload-artifact@v4
         with:
