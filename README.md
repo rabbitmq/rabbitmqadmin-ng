@@ -74,6 +74,7 @@ Commands:
   deprecated_features  operations on deprecated features
   publish              publishes (inefficiently) message(s) to a queue or a stream. Only suitable for development and test environments.
   get                  fetches message(s) from a queue or stream via polling. Only suitable for development and test environments.
+  tanzu                Tanzu RabbitMQ-specific commands
   help                 Print this message or the help of the given subcommand(s)
 ```
 
