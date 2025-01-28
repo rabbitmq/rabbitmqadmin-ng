@@ -1,8 +1,29 @@
 # rabbitmqadmin-ng Change Log
 
-## v0.20.0 (in development)
+## v0.21.0 (in development)
 
 No (documented) changes yet.
+
+
+## v0.20.0 (Jan 28, 2025)
+
+### Enhancements
+
+ * Initial support for Tanzu RabbitMQ Schema Definition Sync (SDS).
+
+   ```
+   rabbitmqadmin help tanzu sds
+
+   rabbitmqadmin tanzu sds status
+   ```
+
+ * Initial support for Tanzu RabbitMQ Warm Standby Replication (WSR).
+
+   ```
+   rabbitmqadmin help tanzu wsr
+
+   rabbitmqadmin tanzu wsr status
+   ```
 
 
 ## v0.19.0 (Jan 5, 2025)
