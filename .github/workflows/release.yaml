@@ -32,7 +32,11 @@ jobs:
             target_rustflags: ''
           # Linux, x86-64
           - target: x86_64-unknown-linux-gnu
-            os: ubuntu-latest
+            os: ubuntu-24.04
+            target_rustflags: ''
+          # Linux, aarch64
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-24.04-arm
             target_rustflags: ''
 
     permissions:
@@ -72,18 +76,37 @@ jobs:
           name: "rabbitmqadmin-${{ vars.NEXT_RELESE_VERSION }}-${{ matrix.target }}"
           path: "${{ github.workspace }}/target/${{ matrix.target }}/release/rabbitmqadmin-${{ vars.NEXT_RELESE_VERSION }}-${{ matrix.target }}"
           retention-days: 2
-      - name: Build an rabbitmqadmin release archive on Linux
-        id: release-build-linux
-        if: ${{ matrix.os == 'ubuntu-latest' }}
+
+      - name: Build an rabbitmqadmin release archive on x86-64 Linux
+        id: release-build-amd64-linux
+        if: ${{ matrix.os == 'ubuntu-24.04' }}
         run: nu ./scripts/release-linux.nu
         env:
           OS: ${{ matrix.os }}
           TARGET: ${{ matrix.target }}
           TARGET_RUSTFLAGS: ${{ matrix.target_rustflags }}
           SRC: ${{ github.workspace }}
-      - name: Store Linux build artifact
+      - name: Store x86-64 Linux build artifact
         id: upload-linux-artifact
-        if: ${{ matrix.os == 'ubuntu-latest' }}
+        if: ${{ matrix.os == 'ubuntu-24.04' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: "rabbitmqadmin-${{ vars.NEXT_RELESE_VERSION }}-${{ matrix.target }}"
+          path: "${{ github.workspace }}/target/${{ matrix.target }}/release/rabbitmqadmin-${{ vars.NEXT_RELESE_VERSION }}-${{ matrix.target }}"
+          retention-days: 2
+
+      - name: Build an rabbitmqadmin release archive on aarch64 Linux
+        id: release-build-aarch64-linux
+        if: ${{ matrix.os == 'ubuntu-24.04-arm' }}
+        run: nu ./scripts/release-linux.nu
+        env:
+          OS: ${{ matrix.os }}
+          TARGET: ${{ matrix.target }}
+          TARGET_RUSTFLAGS: ${{ matrix.target_rustflags }}
+          SRC: ${{ github.workspace }}
+      - name: Store aarch64 Linux build artifact
+        id: upload-linux-artifact
+        if: ${{ matrix.os == 'ubuntu-24.04-arm' }}
         uses: actions/upload-artifact@v4
         with:
           name: "rabbitmqadmin-${{ vars.NEXT_RELESE_VERSION }}-${{ matrix.target }}"
