@@ -107,10 +107,9 @@ of tagging on `--help` at the end of command name:
 
 ```shell
 rabbitmqadmin declare help queue
-# => creates or declares things
-# =>
-# => Usage: rabbitmqadmin declare [object]
-# => ...
+# => declares a queue or a stream
+# => 
+# => Usage: rabbitmqadmin declare queue [OPTIONS] --name <name>
 ```
 
 More specific examples are covered in the Examples section below.
