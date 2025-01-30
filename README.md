@@ -296,7 +296,13 @@ rabbitmqadmin --vhost "events" declare queue --name "target.stream.name" --type 
 ```
 
 ```shell
-rabbitmqadmin --vhost "events" declare queue --name "target.classic.queue.name" --type "classic" --durable false --auto-delete true
+rabbitmqadmin --vhost "events" declare queue --name "target.classic.queue.name" --type "classic" --durable true --auto-delete false
+```
+
+### Purge a queue
+
+```
+rabbitmqadmin --vhost "events" purge queue --name "target.queue.name"
 ```
 
 ### Delete a queue
