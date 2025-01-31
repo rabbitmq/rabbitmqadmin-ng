@@ -2,7 +2,10 @@
 
 ## v0.21.0 (in development)
 
-No (documented) changes yet.
+### Bug Fixes
+
+ * `list connections` now correctly handles RabbitMQ Stream Protocol
+   connections that do not have the `channel_max` metric set 
 
 
 ## v0.20.0 (Jan 28, 2025)
