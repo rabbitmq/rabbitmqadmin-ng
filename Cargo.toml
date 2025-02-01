@@ -1,6 +1,6 @@
 [package]
 name = "rabbitmqadmin"
-version = "0.21.0"
+version = "0.22.0"
 edition = "2021"
 
 description = "rabbitmqadmin v2 is a major revision of rabbitmqadmin, one of the RabbitMQ CLI tools that target the HTTP API"
