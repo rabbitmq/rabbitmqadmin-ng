@@ -566,7 +566,7 @@ fn declare_subcommands() -> [Command; 12] {
                 Arg::new("expiration")
                     .long("expiration")
                     .help("stream expiration, e.g. 12h for 12 hours, 7D for 7 days, or 1M for 1 month")
-                    .required(false)
+                    .required(true)
                     .value_parser(clap::value_parser!(String)),
             )
             .arg(

@@ -61,7 +61,7 @@ fn list_streams() -> Result<(), Box<dyn std::error::Error>> {
 
     // list streams in vhost 1
     run_succeeds(["-V", vh1, "list", "queues"])
-        .stdout(predicate::str::contains(s1).and(predicate::str::contains("new_stream2").not()));
+        .stdout(predicate::str::contains(s1).and(predicate::str::contains("random_stream").not()));
 
     // delete the stream in vhost 1
     run_succeeds(["-V", vh1, "delete", "stream", "--name", s1]);
