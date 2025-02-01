@@ -25,6 +25,7 @@ pub(crate) const GITHUB_REPOSITORY_URL: &str = "https://github.com/rabbitmq/rabb
 pub(crate) const CONNECTION_GUIDE_URL: &str = "https://rabbitmq.com/docs/connections";
 pub(crate) const CHANNEL_GUIDE_URL: &str = "https://rabbitmq.com/docs/channels";
 pub(crate) const QUEUE_GUIDE_URL: &str = "https://rabbitmq.com/docs/queues";
+pub(crate) const STREAM_GUIDE_URL: &str = "https://rabbitmq.com/docs/streams";
 pub(crate) const QUORUM_QUEUE_GUIDE_URL: &str = "https://rabbitmq.com/docs/quorum-queues";
 pub(crate) const QUORUM_QUEUE_FAILURE_HANDLING_GUIDE_URL: &str =
     "https://rabbitmq.com/docs/quorum-queues#leader-election";

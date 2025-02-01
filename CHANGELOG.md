@@ -7,6 +7,24 @@
  * `list connections` now correctly handles RabbitMQ Stream Protocol
    connections that do not have the `channel_max` metric set 
 
+### Enhancements
+
+ * `declare stream` is a new command that accepts stream-specific
+   arguments:
+
+   ```shell
+   rabbitmqadmin --vhost "vh1" declare stream --name "streams.1" --expiration "8h" \
+                                              --arguments '{"x-initial-cluster-size": 3}'
+   ```
+
+  * `delete stream` is an alias for `delete queue` that makes more sense for
+    environments where [streams](https://www.rabbitmq.com/docs/streams)
+    are used more often than queues:
+
+    ```shell
+    rabbitmqadmin --vhost "vh1" delete stream --name "streams.1"
+    ```
+
 
 ## v0.20.0 (Jan 28, 2025)
 

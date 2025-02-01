@@ -231,9 +231,9 @@ checksum = "325918d6fe32f23b19878fe4b34794ae41fc19ddbe53b10571a4874d44ffd39b"
 
 [[package]]
 name = "cc"
-version = "1.2.10"
+version = "1.2.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "13208fcbb66eaeffe09b99fffbe1af420f00a7b35aa99ad683dfc1aa76145229"
+checksum = "e4730490333d58093109dc02c23174c3f4d490998c3fed3cc8e82d57afedb9cf"
 dependencies = [
  "jobserver",
  "libc",
@@ -1444,7 +1444,7 @@ dependencies = [
 [[package]]
 name = "rabbitmq_http_client"
 version = "0.18.0"
-source = "git+https://github.com/michaelklishin/rabbitmq-http-api-rs#e98e3e493da405593b37977e91166801c3e08bc5"
+source = "git+https://github.com/michaelklishin/rabbitmq-http-api-rs#ab504507c419207019177c6a2103d75946263bfc"
 dependencies = [
  "backtrace",
  "percent-encoding",

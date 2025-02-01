@@ -385,6 +385,10 @@ fn dispatch_common_subcommand(
             let result = commands::declare_queue(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);
         }
+        ("declare", "stream") => {
+            let result = commands::declare_stream(client, &vhost, second_level_args);
+            res_handler.no_output_on_success(result);
+        }
         ("declare", "binding") => {
             let result = commands::declare_binding(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);
@@ -423,6 +427,10 @@ fn dispatch_common_subcommand(
         }
         ("delete", "queue") => {
             let result = commands::delete_queue(client, &vhost, second_level_args);
+            res_handler.delete_operation_result(result);
+        }
+        ("delete", "stream") => {
+            let result = commands::delete_stream(client, &vhost, second_level_args);
             res_handler.delete_operation_result(result);
         }
         ("delete", "binding") => {

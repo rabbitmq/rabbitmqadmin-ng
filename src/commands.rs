@@ -428,6 +428,35 @@ pub fn declare_queue(
     client.declare_queue(vhost, &params)
 }
 
+pub fn declare_stream(
+    client: APIClient,
+    vhost: &str,
+    command_args: &ArgMatches,
+) -> ClientResult<()> {
+    let name = command_args.get_one::<String>("name").unwrap();
+    let expiration = command_args.get_one::<String>("expiration").unwrap();
+    let max_length_bytes = command_args.get_one::<u64>("max_length_bytes").cloned();
+    let max_segment_length_bytes = command_args
+        .get_one::<u64>("max_segment_length_bytes")
+        .cloned();
+    let arguments = command_args.get_one::<String>("arguments").unwrap();
+    let parsed_args =
+        serde_json::from_str::<requests::XArguments>(arguments).unwrap_or_else(|err| {
+            eprintln!("`{}` is not a valid JSON: {}", arguments, err);
+            process::exit(1);
+        });
+
+    let params = requests::StreamParams {
+        name,
+        expiration,
+        max_length_bytes,
+        max_segment_length_bytes,
+        arguments: parsed_args,
+    };
+
+    client.declare_stream(vhost, &params)
+}
+
 pub fn declare_policy(
     client: APIClient,
     vhost: &str,
@@ -518,6 +547,14 @@ pub fn delete_queue(client: APIClient, vhost: &str, command_args: &ArgMatches) -
         .cloned()
         .unwrap_or(false);
     client.delete_queue(vhost, name, idempotently)
+}
+
+pub fn delete_stream(
+    client: APIClient,
+    vhost: &str,
+    command_args: &ArgMatches,
+) -> ClientResult<()> {
+    delete_queue(client, vhost, command_args)
 }
 
 pub fn delete_binding(

@@ -341,7 +341,7 @@ fn list_subcommands() -> [Command; 18] {
             )),
         Command::new("queues")
             .arg(vhost_arg.clone())
-            .long_about("Lists queues")
+            .long_about("Lists queues and streams")
             .after_long_help(color_print::cformat!(
                 "<bold>Doc guide</bold>: {}",
                 QUEUE_GUIDE_URL
@@ -427,7 +427,7 @@ fn list_subcommands() -> [Command; 18] {
     ]
 }
 
-fn declare_subcommands() -> [Command; 11] {
+fn declare_subcommands() -> [Command; 12] {
     // duplicate this very common global argument so that
     // it can be passed as the end of argument list
     let vhost_arg = Arg::new("vhost")
@@ -548,6 +548,40 @@ fn declare_subcommands() -> [Command; 11] {
                     .help("should it be deleted when the last consumer disconnects")
                     .required(false)
                     .value_parser(clap::value_parser!(bool)),
+            )
+            .arg(
+                Arg::new("arguments")
+                    .long("arguments")
+                    .help("additional exchange arguments")
+                    .required(false)
+                    .default_value("{}")
+                    .value_parser(clap::value_parser!(String)),
+            ),
+        Command::new("stream")
+            .about("declares a stream")
+            .after_long_help(color_print::cformat!("<bold>Doc guide:</bold>: {}", STREAM_GUIDE_URL))
+            .arg(vhost_arg.clone())
+            .arg(Arg::new("name").long("name").required(true).help("name"))
+            .arg(
+                Arg::new("expiration")
+                    .long("expiration")
+                    .help("stream expiration, e.g. 12h for 12 hours, 7D for 7 days, or 1M for 1 month")
+                    .required(false)
+                    .value_parser(clap::value_parser!(String)),
+            )
+            .arg(
+                Arg::new("max_length_bytes")
+                    .long("max-length-bytes")
+                    .help("maximum stream length in bytes")
+                    .required(false)
+                    .value_parser(clap::value_parser!(u64)),
+            )
+            .arg(
+                Arg::new("max_segment_length_bytes")
+                    .long("stream-max-segment-size-bytes")
+                    .help("maximum stream segment file length in bytes")
+                    .required(false)
+                    .value_parser(clap::value_parser!(u64)),
             )
             .arg(
                 Arg::new("arguments")
@@ -801,7 +835,7 @@ fn show_subcommands() -> [Command; 5] {
     ]
 }
 
-fn delete_subcommands() -> [Command; 11] {
+fn delete_subcommands() -> [Command; 12] {
     // duplicate this very common global argument so that
     // it can be passed as the end of argument list
     let vhost_arg = Arg::new("vhost")
@@ -854,6 +888,16 @@ fn delete_subcommands() -> [Command; 11] {
                 Arg::new("name")
                     .long("name")
                     .help("queue name")
+                    .required(true),
+            )
+            .arg(idempotently_arg.clone()),
+        Command::new("stream")
+            .about("deletes a stream")
+            .arg(vhost_arg.clone())
+            .arg(
+                Arg::new("name")
+                    .long("name")
+                    .help("stream name")
                     .required(true),
             )
             .arg(idempotently_arg.clone()),
