@@ -27,7 +27,13 @@ cargo install rabbitmqadmin
 
 ### Documentation
 
-For usage documentation, see [Usage](#usage).
+For usage documentation, see the [dedicated RabbitMQ doc guide](https://www.rabbitmq.com/docs/management-cli) and/or [Usage](#usage) below.
+
+
+## Getting Help
+
+Please use GitHub Discussions in this repository and [RabbitMQ community Discord server](https://rabbitmq.com/discord/).
+
 
 ## Project Maturity
 
@@ -606,11 +612,6 @@ port = 15671
 username = "user-efe1f4d763f6"
 password = "(redacted)"
 ```
-
-
-## Getting Help
-
-Please use GitHub Discussions in this repository and [RabbitMQ community Discord server](https://rabbitmq.com/discord/).
 
 
 ## License
