@@ -32,20 +32,32 @@ fn sds_group() -> Command {
         .subcommands(sds_subcommands())
 }
 
-fn sds_subcommands() -> [Command; 3] {
-    let status_cmd = Command::new("status")
+fn sds_subcommands() -> [Command; 5] {
+    let status_cmd = Command::new("status_on_node")
         .long_about("Reports Schema Definition Sync (SDS) status on the given node")
         .arg(Arg::new("node").short('n').long("node").required(false));
 
-    let disable_cmd = Command::new("disable")
+    let disable_on_node_cmd = Command::new("disable_on_node")
         .long_about("Stops Schema Definition Sync (SDS) on the given node")
         .arg(Arg::new("node").short('n').long("node").required(true));
 
-    let enable_cmd = Command::new("enable")
+    let enable_on_node_cmd = Command::new("enable_on_node")
         .long_about("Resumes Schema Definition Sync (SDS) on the given node")
         .arg(Arg::new("node").short('n').long("node").required(true));
 
-    [status_cmd, disable_cmd, enable_cmd]
+    let disable_cmd = Command::new("disable_cluster_wide")
+        .long_about("Stops Schema Definition Sync (SDS) on all cluster nodes");
+
+    let enable_cmd = Command::new("enable_cluster_wide")
+        .long_about("Resumes Schema Definition Sync (SDS) on all cluster nodes");
+
+    [
+        status_cmd,
+        disable_on_node_cmd,
+        disable_cmd,
+        enable_on_node_cmd,
+        enable_cmd,
+    ]
 }
 
 fn wsr_subcommands() -> [Command; 1] {

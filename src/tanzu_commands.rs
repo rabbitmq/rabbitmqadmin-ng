@@ -19,7 +19,7 @@ use clap::ArgMatches;
 use rabbitmq_http_client::blocking_api::Result as ClientResult;
 use rabbitmq_http_client::responses::{SchemaDefinitionSyncStatus, WarmStandbyReplicationStatus};
 
-pub fn sds_status(
+pub fn sds_status_on_node(
     client: APIClient,
     command_args: &ArgMatches,
 ) -> ClientResult<SchemaDefinitionSyncStatus> {
@@ -27,14 +27,22 @@ pub fn sds_status(
     client.schema_definition_sync_status(node.map(|s| s.as_str()))
 }
 
-pub fn sds_enable(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
-    let node = command_args.get_one::<String>("node").unwrap();
-    client.enable_schema_definition_sync(node)
+pub fn sds_enable_cluster_wide(client: APIClient) -> ClientResult<()> {
+    client.enable_schema_definition_sync()
 }
 
-pub fn sds_disable(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
+pub fn sds_disable_cluster_wide(client: APIClient) -> ClientResult<()> {
+    client.disable_schema_definition_sync()
+}
+
+pub fn sds_enable_on_node(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
     let node = command_args.get_one::<String>("node").unwrap();
-    client.disable_schema_definition_sync(node)
+    client.enable_schema_definition_sync_on_node(node)
+}
+
+pub fn sds_disable_on_node(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
+    let node = command_args.get_one::<String>("node").unwrap();
+    client.disable_schema_definition_sync_on_node(node)
 }
 
 pub fn wsr_status(client: APIClient) -> ClientResult<WarmStandbyReplicationStatus> {

@@ -552,16 +552,24 @@ fn dispatch_tanzu_subcommand(
     res_handler: &mut ResultHandler,
 ) -> ExitCode {
     match &pair {
-        ("sds", "status") => {
-            let result = tanzu_commands::sds_status(client, third_level_args);
+        ("sds", "status_on_node") => {
+            let result = tanzu_commands::sds_status_on_node(client, third_level_args);
             res_handler.schema_definition_sync_status_result(result)
         }
-        ("sds", "enable") => {
-            let result = tanzu_commands::sds_enable(client, third_level_args);
+        ("sds", "enable_cluster_wide") => {
+            let result = tanzu_commands::sds_enable_cluster_wide(client);
             res_handler.no_output_on_success(result)
         }
-        ("sds", "disable") => {
-            let result = tanzu_commands::sds_disable(client, third_level_args);
+        ("sds", "disable_cluster_wide") => {
+            let result = tanzu_commands::sds_disable_cluster_wide(client);
+            res_handler.no_output_on_success(result)
+        }
+        ("sds", "enable_on_node") => {
+            let result = tanzu_commands::sds_enable_on_node(client, third_level_args);
+            res_handler.no_output_on_success(result)
+        }
+        ("sds", "disable_on_node") => {
+            let result = tanzu_commands::sds_disable_on_node(client, third_level_args);
             res_handler.no_output_on_success(result)
         }
         ("wsr", "status") => {

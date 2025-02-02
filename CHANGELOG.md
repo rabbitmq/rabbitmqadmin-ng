@@ -1,8 +1,35 @@
 # rabbitmqadmin-ng Change Log
 
-## v0.22.0 (in development)
+## v0.23.0 (in development
 
-No (documented) changes yet
+No (documented) changes yet.
+
+
+## v0.22.0 (Feb 1, 2025)
+
+### Naming
+
+* `tanzu sds enable` was renamed to `tanzu sds enable_on_node`.
+
+  This breaking change only applies to a command specific to
+  Tanzu RabbitMQ 4.1, a series currently in development.
+
+* `tanzu sds disable` was renamed to `tanzu sds disable_on_node`.
+
+  This breaking change only applies to a command specific to
+  Tanzu RabbitMQ 4.1, a series currently in development.
+
+### Enhancements
+
+* `tanzu sds enable_cluster_wide` is a new command that disables SDS on all cluster nodes.
+
+  This command is specific to Tanzu RabbitMQ 4.1, a series currently in development.
+
+* `tanzu sds disable_cluster_wide` is a new command that disables SDS on all cluster nodes.
+
+  This command is specific to Tanzu RabbitMQ 4.1, a series currently in development.
+
+
 
 ## v0.21.0 (Feb 1, 2025)
 
