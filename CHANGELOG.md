@@ -6,7 +6,13 @@
 
  * New general option `--table-style`, can be used to change output table styling.
 
-   For example, an equivalent of `--non-interactive` in terms of styling is
+   By default, the following style is used:
+
+   ```shell
+   rabbitmqadmin --table-style=modern show overview
+   ```
+
+   An equivalent of `--non-interactive` in terms of styling is
 
    ```shell
    rabbitmqadmin --table-style=borderless show overview
