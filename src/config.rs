@@ -172,7 +172,7 @@ impl SharedSettings {
             .get_one::<TableStyle>("table_style")
             .cloned()
             .or(Some(TableStyle::default()))
-            .unwrap_or(TableStyle::default());
+            .unwrap_or_default();
 
         Self {
             tls: should_use_tls,
@@ -235,7 +235,7 @@ impl SharedSettings {
             .get_one::<TableStyle>("table_style")
             .cloned()
             .or(Some(TableStyle::default()))
-            .unwrap_or(TableStyle::default());
+            .unwrap_or_default();
 
         Self {
             tls: should_use_tls,
@@ -305,7 +305,7 @@ impl SharedSettings {
             .get_one::<TableStyle>("table_style")
             .cloned()
             .or(Some(TableStyle::default()))
-            .unwrap_or(TableStyle::default());
+            .unwrap_or_default();
 
         Self {
             tls: should_use_tls,
@@ -367,7 +367,7 @@ impl SharedSettings {
             .get_one::<TableStyle>("table_style")
             .cloned()
             .or(Some(TableStyle::default()))
-            .unwrap_or(TableStyle::default());
+            .unwrap_or_default();
 
         Self {
             tls: should_use_tls,

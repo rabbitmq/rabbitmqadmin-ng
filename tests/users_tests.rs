@@ -37,3 +37,26 @@ fn test_list_users() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
+
+#[test]
+fn test_list_users_with_table_styles() -> Result<(), Box<dyn std::error::Error>> {
+    let username = "new_user";
+    let password = "pa$$w0rd";
+    run_succeeds([
+        "declare",
+        "user",
+        "--name",
+        username,
+        "--password",
+        password,
+    ]);
+
+    run_succeeds(["--table-style", "markdown", "list", "users"])
+        .stdout(predicate::str::contains(username));
+    run_succeeds(["delete", "user", "--name", username]);
+
+    run_succeeds(["--table-style", "borderless", "list", "users"])
+        .stdout(predicate::str::contains(username).not());
+
+    Ok(())
+}
