@@ -1,8 +1,34 @@
 # rabbitmqadmin-ng Change Log
 
-## v0.23.0 (in development
+## v0.23.0 (in development)
 
-No (documented) changes yet.
+### Enhancements
+
+ * New general option `--table-style`, can be used to change output table styling.
+
+   For example, an equivalent of `--non-interactive` in terms of styling is
+
+   ```shell
+   rabbitmqadmin --table-style=borderless show overview
+   ```
+
+   More available styles:
+
+   ```shell
+   rabbitmqadmin --table-style=ascii show overview
+   ```
+
+   ```shell
+   rabbitmqadmin --table-style=psql show overview
+   ```
+
+   ```shell
+   rabbitmqadmin --table-style=markdown show overview
+   ```
+
+   ```shell
+   rabbitmqadmin --table-style=dots show overview
+   ```
 
 
 ## v0.22.0 (Feb 1, 2025)

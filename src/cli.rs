@@ -16,6 +16,7 @@ use std::path::PathBuf;
 use super::constants::*;
 use super::static_urls::*;
 use super::tanzu_cli::tanzu_subcommands;
+use crate::output::TableStyle;
 use clap::{Arg, ArgAction, Command};
 use rabbitmq_http_client::commons::{
     BindingDestinationType, ExchangeType, QueueType, SupportedProtocol,
@@ -186,9 +187,19 @@ pub fn parser() -> Command {
             Arg::new("non_interactive")
                 .long("non-interactive")
                 .help("pass when invoking from scripts")
+                .conflicts_with("table_style")
                 .required(false)
                 .value_parser(clap::value_parser!(bool))
                 .action(ArgAction::SetTrue),
+        )
+        // --table-style
+        .arg(
+            Arg::new("table_style")
+                .long("table-style")
+                .help("style preset to apply to output tables: modern, borderless, ascii, dots, psql, markdown, sharp")
+                .conflicts_with("non_interactive")
+                .required(false)
+                .value_parser(clap::value_parser!(TableStyle))
         )
         .subcommand_required(true)
         .subcommand_value_name("command")

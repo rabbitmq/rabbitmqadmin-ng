@@ -21,59 +21,148 @@ use rabbitmq_http_client::responses::{
     NodeMemoryBreakdown, Overview, SchemaDefinitionSyncStatus, WarmStandbyReplicationStatus,
 };
 use reqwest::StatusCode;
+use serde::{Deserialize, Serialize};
 use std::fmt;
 use sysexits::ExitCode;
 use tabled::settings::object::Rows;
 use tabled::settings::{Panel, Remove, Style};
 use tabled::{Table, Tabled};
 
-#[derive(Copy, Clone)]
-pub struct TableStyler {
-    non_interactive: bool,
+#[derive(Default, Serialize, Deserialize, Debug, PartialEq, Eq, Clone, Copy)]
+pub enum TableStyle {
+    #[default]
+    Modern,
+    Borderless,
+    Markdown,
+    Sharp,
+    Ascii,
+    Psql,
+    Dots,
 }
 
-impl TableStyler {
-    pub fn new(args: &SharedSettings) -> Self {
-        let non_interactive = args.non_interactive;
-
-        Self { non_interactive }
-    }
-
-    pub fn apply(self, table: &mut Table) {
-        if self.non_interactive {
-            table.with(Style::empty());
-            table.with(Remove::row(Rows::first()));
-        } else {
-            table.with(Style::modern());
+impl From<&str> for TableStyle {
+    fn from(s: &str) -> Self {
+        match s {
+            "modern" => TableStyle::Modern,
+            "borderless" => TableStyle::Borderless,
+            "ascii" => TableStyle::Ascii,
+            "markdown" => TableStyle::Markdown,
+            "sharp" => TableStyle::Sharp,
+            "psql" => TableStyle::Psql,
+            "dots" => TableStyle::Dots,
+            _ => TableStyle::default(),
         }
     }
 }
 
+impl From<String> for TableStyle {
+    fn from(value: String) -> Self {
+        TableStyle::from(value.as_str())
+    }
+}
+
+#[derive(Copy, Clone)]
+pub struct TableStyler {
+    pub style: TableStyle,
+}
+
+impl TableStyler {
+    pub fn new(args: &SharedSettings) -> Self {
+        if args.non_interactive {
+            return Self {
+                style: TableStyle::Borderless,
+            };
+        };
+
+        Self {
+            style: args.table_style.unwrap_or_default(),
+        }
+    }
+
+    pub fn apply(self, table: &mut Table) {
+        match self.style {
+            TableStyle::Modern => {
+                self.apply_modern(table);
+            }
+            TableStyle::Borderless => {
+                self.apply_borderless(table);
+            }
+            TableStyle::Markdown => {
+                self.apply_markdown(table);
+            }
+            TableStyle::Sharp => {
+                self.apply_sharp(table);
+            }
+            TableStyle::Ascii => {
+                self.apply_ascii(table);
+            }
+            TableStyle::Psql => {
+                self.apply_psql(table);
+            }
+            TableStyle::Dots => {
+                self.apply_dots(table);
+            }
+        }
+    }
+
+    fn apply_modern(self, table: &mut Table) -> &Table {
+        table.with(Style::modern())
+    }
+
+    fn apply_borderless(self, table: &mut Table) -> &Table {
+        table.with(Style::empty());
+        table.with(Remove::row(Rows::first()))
+    }
+
+    fn apply_markdown(self, table: &mut Table) -> &Table {
+        table.with(Style::markdown())
+    }
+
+    fn apply_sharp(self, table: &mut Table) -> &Table {
+        table.with(Style::sharp())
+    }
+
+    fn apply_psql(self, table: &mut Table) -> &Table {
+        table.with(Style::psql())
+    }
+
+    fn apply_dots(self, table: &mut Table) -> &Table {
+        table.with(Style::dots())
+    }
+
+    fn apply_ascii(self, table: &mut Table) -> &Table {
+        table.with(Style::ascii())
+    }
+}
+
 #[allow(dead_code)]
-pub struct ResultHandler {
+pub struct ResultHandler<'a> {
+    cli_args: &'a SharedSettings,
+    table_styler: TableStyler,
     pub non_interactive: bool,
     pub quiet: bool,
     pub idempotently: bool,
     pub exit_code: Option<ExitCode>,
-    table_styler: TableStyler,
 }
 
-impl ResultHandler {
-    pub fn new(common_args: &SharedSettings, command_args: &ArgMatches) -> Self {
+impl<'a> ResultHandler<'a> {
+    pub fn new(common_args: &'a SharedSettings, command_args: &ArgMatches) -> Self {
         let non_interactive = common_args.non_interactive;
         let quiet = common_args.quiet;
         let idempotently = match command_args.try_get_one::<bool>("idempotently") {
             Ok(val) => val.cloned().unwrap_or(false),
             Err(_) => false,
         };
-        let table_formatter = TableStyler::new(common_args);
+
+        let table_styler = TableStyler::new(common_args);
 
         Self {
+            cli_args: common_args,
+            table_styler,
             quiet,
             non_interactive,
             idempotently,
             exit_code: None,
-            table_styler: table_formatter,
         }
     }
 

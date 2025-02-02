@@ -16,6 +16,7 @@ use crate::constants::{
     DEFAULT_PASSWORD, DEFAULT_PATH_PREFIX, DEFAULT_SCHEME, DEFAULT_USERNAME, DEFAULT_VHOST,
     HTTPS_SCHEME,
 };
+use crate::output::TableStyle;
 use clap::ArgMatches;
 use serde::Deserialize;
 use std::collections::HashMap;
@@ -70,6 +71,9 @@ pub struct SharedSettings {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub virtual_host: Option<String>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub table_style: Option<TableStyle>,
 }
 
 impl SharedSettings {
@@ -164,6 +168,11 @@ impl SharedSettings {
             .cloned()
             .or(config_file_defaults.virtual_host.clone())
             .unwrap_or(DEFAULT_VHOST.to_owned());
+        let table_style = cli_args
+            .get_one::<TableStyle>("table_style")
+            .cloned()
+            .or(Some(TableStyle::default()))
+            .unwrap_or(TableStyle::default());
 
         Self {
             tls: should_use_tls,
@@ -177,6 +186,7 @@ impl SharedSettings {
             username: Some(username.to_string()),
             password: Some(password.to_string()),
             virtual_host: Some(vhost),
+            table_style: Some(table_style),
         }
     }
 
@@ -221,6 +231,11 @@ impl SharedSettings {
             .get_one::<String>("vhost")
             .cloned()
             .unwrap_or(DEFAULT_VHOST.to_owned());
+        let table_style = cli_args
+            .get_one::<TableStyle>("table_style")
+            .cloned()
+            .or(Some(TableStyle::default()))
+            .unwrap_or(TableStyle::default());
 
         Self {
             tls: should_use_tls,
@@ -234,6 +249,7 @@ impl SharedSettings {
             username: Some(username.to_string()),
             password: Some(password.to_string()),
             virtual_host: Some(vhost),
+            table_style: Some(table_style),
         }
     }
 
@@ -285,6 +301,11 @@ impl SharedSettings {
             .cloned()
             .or(config_file_defaults.virtual_host.clone())
             .unwrap_or(DEFAULT_VHOST.to_owned());
+        let table_style = cli_args
+            .get_one::<TableStyle>("table_style")
+            .cloned()
+            .or(Some(TableStyle::default()))
+            .unwrap_or(TableStyle::default());
 
         Self {
             tls: should_use_tls,
@@ -298,6 +319,7 @@ impl SharedSettings {
             username: Some(username),
             password: Some(password),
             virtual_host: Some(vhost),
+            table_style: Some(table_style),
         }
     }
 
@@ -341,6 +363,11 @@ impl SharedSettings {
             .get_one::<String>("vhost")
             .cloned()
             .unwrap_or(DEFAULT_VHOST.to_owned());
+        let table_style = cli_args
+            .get_one::<TableStyle>("table_style")
+            .cloned()
+            .or(Some(TableStyle::default()))
+            .unwrap_or(TableStyle::default());
 
         Self {
             tls: should_use_tls,
@@ -354,6 +381,7 @@ impl SharedSettings {
             username: Some(username),
             password: Some(password),
             virtual_host: Some(vhost),
+            table_style: Some(table_style),
         }
     }
 
