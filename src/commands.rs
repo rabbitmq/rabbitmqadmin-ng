@@ -80,6 +80,14 @@ pub fn list_connections(client: APIClient) -> ClientResult<Vec<responses::Connec
     client.list_connections()
 }
 
+pub fn list_user_connections(
+    client: APIClient,
+    command_args: &ArgMatches,
+) -> ClientResult<Vec<responses::UserConnection>> {
+    let username = command_args.get_one::<String>("username").cloned().unwrap();
+    client.list_user_connections(&username)
+}
+
 pub fn list_channels(client: APIClient) -> ClientResult<Vec<responses::Channel>> {
     client.list_channels()
 }

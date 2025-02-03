@@ -310,7 +310,7 @@ pub fn parser() -> Command {
         ])
 }
 
-fn list_subcommands() -> [Command; 18] {
+fn list_subcommands() -> [Command; 19] {
     // duplicate this very common global argument so that
     // it can be passed as the end of argument list
     let vhost_arg = Arg::new("vhost")
@@ -339,6 +339,20 @@ fn list_subcommands() -> [Command; 18] {
         Command::new("connections")
             .arg(vhost_arg.clone())
             .long_about("Lists client connections")
+            .after_long_help(color_print::cformat!(
+                "<bold>Doc guide</bold>: {}",
+                CONNECTION_GUIDE_URL
+            )),
+        Command::new("user_connections")
+            .arg(vhost_arg.clone())
+            .arg(
+                Arg::new("username")
+                    .short('u')
+                    .long("username")
+                    .required(true)
+                    .help("Name of the user whose connections to list"),
+            )
+            .long_about("Lists client connections that authenticated with a specific username")
             .after_long_help(color_print::cformat!(
                 "<bold>Doc guide</bold>: {}",
                 CONNECTION_GUIDE_URL

@@ -313,6 +313,10 @@ fn dispatch_common_subcommand(
             let result = commands::list_connections(client);
             res_handler.tabular_result(result)
         }
+        ("list", "user_connections") => {
+            let result = commands::list_user_connections(client, second_level_args);
+            res_handler.tabular_result(result)
+        }
         ("list", "channels") => {
             let result = commands::list_channels(client);
             res_handler.tabular_result(result)

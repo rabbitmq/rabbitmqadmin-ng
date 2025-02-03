@@ -4,6 +4,14 @@
 
 ### Enhancements
 
+ * `list user_connections` is a new command that lists connections of a specific user:
+
+   ```
+   rabbitmqadmin --vhost="/" list user_connections --username "monitoring.1"
+
+   rabbitmqadmin --vhost="production" list user_connections --username "web.45cf7dc28"
+   ```
+
  * New general option `--table-style`, can be used to change output table styling.
 
    By default, the following style is used:
