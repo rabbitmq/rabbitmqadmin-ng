@@ -1109,15 +1109,25 @@ fn rebalance_subcommands() -> [Command; 1] {
     [Command::new("queues").about("rebalances queue leaders")]
 }
 
-fn close_subcommands() -> [Command; 1] {
-    [Command::new("connection")
+fn close_subcommands() -> [Command; 2] {
+    let close_connection = Command::new("connection")
         .about("closes a client connection")
         .arg(
             Arg::new("name")
                 .long("name")
                 .help("connection name (identifying string)")
                 .required(true),
-        )]
+        );
+    let close_user_connections = Command::new("user_connections")
+        .about("closes all connections that authenticated with a specific username")
+        .arg(
+            Arg::new("username")
+                .short('u')
+                .long("username")
+                .help("Name of the user whose connections to close")
+                .required(true),
+        );
+    [close_connection, close_user_connections]
 }
 
 fn definitions_subcommands() -> [Command; 2] {

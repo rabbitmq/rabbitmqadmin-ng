@@ -1,6 +1,8 @@
 # rabbitmqadmin-ng Change Log
 
-## v0.23.0 (in development)
+## v0.24.0 (in development)
+
+## v0.23.0 (Feb 2, 2025)
 
 ### Enhancements
 
@@ -11,6 +13,14 @@
 
    rabbitmqadmin --vhost="production" list user_connections --username "web.45cf7dc28"
    ```
+
+* `close user_connections` is a new command that closes connections of a specific user:
+
+  ```
+  rabbitmqadmin --vhost="/" close user_connections --username "monitoring.2"
+
+  rabbitmqadmin --vhost="production" close user_connections --username "web.94ee67772"
+  ```
 
  * New general option `--table-style`, can be used to change output table styling.
 

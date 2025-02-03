@@ -493,6 +493,10 @@ fn dispatch_common_subcommand(
             let result = commands::close_connection(client, second_level_args);
             res_handler.no_output_on_success(result);
         }
+        ("close", "user_connections") => {
+            let result = commands::close_user_connections(client, second_level_args);
+            res_handler.no_output_on_success(result);
+        }
         ("definitions", "export") => {
             let result = commands::export_definitions(client, second_level_args);
             res_handler.no_output_on_success(result);

@@ -1,6 +1,6 @@
 [package]
 name = "rabbitmqadmin"
-version = "0.22.0"
+version = "0.23.0"
 edition = "2021"
 
 description = "rabbitmqadmin v2 is a major revision of rabbitmqadmin, one of the RabbitMQ CLI tools that target the HTTP API"
@@ -17,7 +17,7 @@ reqwest = { version = "0.12.12", features = [
     "__rustls",
     "rustls-tls-native-roots"
 ]}
-rabbitmq_http_client = { version = "0.19.0", features = [
+rabbitmq_http_client = { version = "0.20.0", features = [
     "core",
     "blocking",
     "tabled"

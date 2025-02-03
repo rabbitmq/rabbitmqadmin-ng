@@ -672,6 +672,12 @@ pub fn close_connection(client: APIClient, command_args: &ArgMatches) -> ClientR
     client.close_connection(name, Some("closed via rabbitmqadmin v2"))
 }
 
+pub fn close_user_connections(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
+    // the flag is required
+    let username = command_args.get_one::<String>("username").unwrap();
+    client.close_user_connections(username, Some("closed via rabbitmqadmin v2"))
+}
+
 pub fn rebalance_queues(client: APIClient) -> ClientResult<()> {
     client.rebalance_queue_leaders()
 }
