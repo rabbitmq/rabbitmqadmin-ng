@@ -41,13 +41,6 @@ This version of `rabbitmqadmin` should be considered reasonably mature to be use
 
 Before migrating, please see [Breaking or Potentially Breaking Changes](#breaking-or-potentially-breaking-changes) to learn about a few breaking change in the interface.
 
-### Known Limitations
-
-The following `rabbitmqadmin` v1 features are not currently implemented:
-
-* [Configuration file support](https://github.com/rabbitmq/rabbitmqadmin-ng/issues/28)
-* Support for TLS client (x.509, HTTPS) [certificate and private key](https://github.com/rabbitmq/rabbitmqadmin-ng/issues/26)
-
 
 ## Usage
 
