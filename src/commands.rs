@@ -682,8 +682,34 @@ pub fn rebalance_queues(client: APIClient) -> ClientResult<()> {
     client.rebalance_queue_leaders()
 }
 
-pub fn export_definitions(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
-    match client.export_definitions() {
+pub fn export_cluster_wide_definitions(
+    client: APIClient,
+    command_args: &ArgMatches,
+) -> ClientResult<()> {
+    match client.export_cluster_wide_definitions() {
+        Ok(definitions) => {
+            let path = command_args.get_one::<String>("file").unwrap();
+            match path.as_str() {
+                "-" => {
+                    println!("{}", &definitions);
+                    Ok(())
+                }
+                file => {
+                    _ = fs::write(file, &definitions);
+                    Ok(())
+                }
+            }
+        }
+        Err(err) => Err(err),
+    }
+}
+
+pub fn export_vhost_definitions(
+    client: APIClient,
+    vhost: &str,
+    command_args: &ArgMatches,
+) -> ClientResult<()> {
+    match client.export_vhost_definitions(vhost) {
         Ok(definitions) => {
             let path = command_args.get_one::<String>("file").unwrap();
             match path.as_str() {

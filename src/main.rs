@@ -498,15 +498,20 @@ fn dispatch_common_subcommand(
             res_handler.no_output_on_success(result);
         }
         ("definitions", "export") => {
-            let result = commands::export_definitions(client, second_level_args);
+            let result = commands::export_cluster_wide_definitions(client, second_level_args);
             res_handler.no_output_on_success(result);
         }
+        ("definitions", "export_from_vhost") => {
+            let result = commands::export_vhost_definitions(client, &vhost, second_level_args);
+            res_handler.no_output_on_success(result);
+        }
+
         ("definitions", "import") => {
             let result = commands::import_definitions(client, second_level_args);
             res_handler.no_output_on_success(result);
         }
         ("export", "definitions") => {
-            let result = commands::export_definitions(client, second_level_args);
+            let result = commands::export_cluster_wide_definitions(client, second_level_args);
             res_handler.no_output_on_success(result);
         }
         ("import", "definitions") => {

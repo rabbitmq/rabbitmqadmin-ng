@@ -15,11 +15,33 @@
 use predicates::prelude::*;
 
 mod test_helpers;
+use crate::test_helpers::delete_vhost;
 use test_helpers::run_succeeds;
 
 #[test]
-fn test_export_definitions() -> Result<(), Box<dyn std::error::Error>> {
+fn test_export_cluster_wide_definitions() -> Result<(), Box<dyn std::error::Error>> {
     run_succeeds(["definitions", "export"]).stdout(predicate::str::contains("guest"));
+
+    Ok(())
+}
+
+#[test]
+fn test_export_vhost_definitions() -> Result<(), Box<dyn std::error::Error>> {
+    let vh = "test_export_vhost_definitions.1";
+    delete_vhost(vh).expect("failed to delete a virtual host");
+    run_succeeds(["declare", "vhost", "--name", vh]);
+
+    let q = "qq.test_export_vhost_definitions.1";
+    run_succeeds([
+        "-V", vh, "declare", "queue", "--name", q, "--type", "quorum",
+    ]);
+
+    run_succeeds(["--vhost", vh, "definitions", "export_from_vhost"])
+        .stdout(predicate::str::contains(q));
+    run_succeeds(["--vhost", "/", "definitions", "export_from_vhost"])
+        .stdout(predicate::str::contains(q).not());
+
+    delete_vhost(vh).expect("failed to delete a virtual host");
 
     Ok(())
 }

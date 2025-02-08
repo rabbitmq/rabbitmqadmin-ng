@@ -2,6 +2,12 @@
 
 ## v0.24.0 (in development)
 
+### Enhancements
+
+ * `definitions export_from_vhost` is a new command that exports definitions from a single virtual host
+   instead of the entire cluster
+
+
 ## v0.23.0 (Feb 2, 2025)
 
 ### Enhancements

@@ -253,7 +253,7 @@ pub fn parser() -> Command {
                 .subcommand_value_name("queues")
                 .subcommands(rebalance_subcommands()),
             Command::new("definitions")
-                .about("operations on definitions")
+                .about("operations on definitions (everything except for messages: virtual hosts, queues, streams, exchanges, bindings, users, etc)")
                 .after_long_help(color_print::cformat!(
                     "<bold>Doc guide</bold>: {}",
                     DEFINITION_GUIDE_URL
@@ -1130,33 +1130,67 @@ fn close_subcommands() -> [Command; 2] {
     [close_connection, close_user_connections]
 }
 
-fn definitions_subcommands() -> [Command; 2] {
+fn definitions_subcommands() -> [Command; 4] {
     let export_cmd = Command::new("export")
-        .about("export cluster-wide definitions (everything except for messages: virtual hosts, queues, streams, exchanges, bindings, users, etc)")
+        .about("export cluster-wide definitions")
         .after_long_help(color_print::cformat!(
-            "<bold>Doc guide</bold>: {}", DEFINITION_GUIDE_URL
+            "<bold>Doc guide</bold>: {}",
+            DEFINITION_GUIDE_URL
         ))
         .arg(
             Arg::new("file")
                 .long("file")
-                .help("output path or '-' for standard output")
+                .help("output file path or '-' for standard output")
+                .required(false)
+                .default_value("-"),
+        );
+
+    let export_from_vhost_cmd = Command::new("export_from_vhost")
+        .about("export definitions of a specific virtual host")
+        .after_long_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            DEFINITION_GUIDE_URL
+        ))
+        .arg(
+            Arg::new("file")
+                .long("file")
+                .help("output file path or '-' for standard output")
                 .required(false)
                 .default_value("-"),
         );
 
     let import_cmd = Command::new("import")
-        .about("import definitions (everything except for messages: virtual hosts, queues, streams, exchanges, bindings, users, etc")
+        .about("import cluster-wide definitions (of multiple virtual hosts)")
         .after_long_help(color_print::cformat!(
-            "<bold>Doc guide</bold>: {}", DEFINITION_GUIDE_URL
+            "<bold>Doc guide</bold>: {}",
+            DEFINITION_GUIDE_URL
         ))
         .arg(
             Arg::new("file")
                 .long("file")
-                .help("JSON file with definitions")
+                .help("JSON file with cluster-wide definitions")
                 .required(true),
         );
 
-    [export_cmd, import_cmd]
+    let import_into_vhost_cmd = Command::new("import_into_vhost")
+        .about("import a virtual host-specific definitions file into a virtual host")
+        .after_long_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            DEFINITION_GUIDE_URL
+        ))
+        .arg(
+            Arg::new("file")
+                .long("file")
+                .help("JSON file with virtual host-specific definitions")
+                .required(true),
+        );
+
+    [
+        export_cmd,
+        export_from_vhost_cmd,
+        import_cmd,
+        import_into_vhost_cmd,
+    ]
 }
 
 fn export_subcommands() -> [Command; 1] {
