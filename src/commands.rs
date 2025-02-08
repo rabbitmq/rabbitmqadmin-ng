@@ -745,6 +745,28 @@ pub fn import_definitions(client: APIClient, command_args: &ArgMatches) -> Clien
     }
 }
 
+pub fn import_vhost_definitions(
+    client: APIClient,
+    vhost: &str,
+    command_args: &ArgMatches,
+) -> ClientResult<()> {
+    let file = command_args.get_one::<String>("file").unwrap();
+    let definitions = fs::read_to_string(file);
+    match definitions {
+        Ok(defs) => {
+            let defs_json = serde_json::from_str(defs.as_str()).unwrap_or_else(|err| {
+                eprintln!("`{}` is not a valid JSON file: {}", file, err);
+                process::exit(1)
+            });
+            client.import_vhost_definitions(vhost, defs_json)
+        }
+        Err(err) => {
+            eprintln!("`{}` could not be read: {}", file, err);
+            process::exit(1)
+        }
+    }
+}
+
 pub fn publish_message(
     client: APIClient,
     vhost: &str,

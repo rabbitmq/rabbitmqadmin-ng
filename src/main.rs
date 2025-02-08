@@ -505,9 +505,12 @@ fn dispatch_common_subcommand(
             let result = commands::export_vhost_definitions(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);
         }
-
         ("definitions", "import") => {
             let result = commands::import_definitions(client, second_level_args);
+            res_handler.no_output_on_success(result);
+        }
+        ("definitions", "import_into_vhost") => {
+            let result = commands::import_vhost_definitions(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);
         }
         ("export", "definitions") => {

@@ -1,0 +1,67 @@
+{
+  "rabbit_version": "4.0.5",
+  "rabbitmq_version": "4.0.5",
+  "product_name": "RabbitMQ",
+  "product_version": "4.0.5",
+  "rabbitmq_definition_format": "single_virtual_host",
+  "original_vhost_name": "vh3",
+  "explanation": "Definitions of virtual host 'vh3'",
+  "metadata": {
+    "description": "",
+    "tags": [],
+    "default_queue_type": "classic"
+  },
+  "description": "",
+  "default_queue_type": "classic",
+  "limits": {
+    "max-connections": 9999
+  },
+  "parameters": [
+    {
+      "value": {
+        "max-connections": 9999
+      },
+      "component": "vhost-limits",
+      "name": "limits"
+    }
+  ],
+  "policies": [
+    {
+      "name": "cq.length.limit",
+      "pattern": "^cq",
+      "apply-to": "classic_queues",
+      "definition": {
+        "max-length": 9999
+      },
+      "priority": 0
+    }
+  ],
+  "queues": [
+    {
+      "name": "stream.1",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-queue-type": "stream"
+      }
+    },
+    {
+      "name": "qq.1",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-queue-type": "quorum"
+      }
+    },
+    {
+      "name": "cq.1",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-queue-type": "classic"
+      }
+    }
+  ],
+  "exchanges": [],
+  "bindings": []
+}

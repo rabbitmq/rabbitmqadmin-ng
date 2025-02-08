@@ -1,11 +1,19 @@
 # rabbitmqadmin-ng Change Log
 
-## v0.24.0 (in development)
+## v0.25.0 (in development)
+
+No (documented) changes yet.
+
+
+## v0.24.0 (Feb 8, 2025)
 
 ### Enhancements
 
  * `definitions export_from_vhost` is a new command that exports definitions from a single virtual host
-   instead of the entire cluster
+   (as opposed to definitions for the entire cluster)
+
+ * `definitions import_into_vhost` is a new command that imports virtual host-specific definitions
+   (as opposed to definitions for the entire cluster)
 
 
 ## v0.23.0 (Feb 2, 2025)

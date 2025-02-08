@@ -13,15 +13,38 @@
 // limitations under the License.
 
 mod test_helpers;
+use crate::test_helpers::delete_vhost;
 use test_helpers::run_succeeds;
+
 #[test]
-fn test_import_definitions() -> Result<(), Box<dyn std::error::Error>> {
+fn test_import_cluster_definitions() -> Result<(), Box<dyn std::error::Error>> {
     run_succeeds([
         "definitions",
         "import",
         "--file",
-        "tests/fixtures/definitions/definitions1.json",
+        "tests/fixtures/definitions/cluster.definitions.1.json",
     ]);
+
+    Ok(())
+}
+
+#[test]
+fn test_import_vhost_definitions() -> Result<(), Box<dyn std::error::Error>> {
+    let vh = "test_import_vhost_definitions.1";
+
+    delete_vhost(vh).expect("failed to delete a virtual host");
+    run_succeeds(["declare", "vhost", "--name", vh]);
+
+    run_succeeds([
+        "--vhost",
+        vh,
+        "definitions",
+        "import_into_vhost",
+        "--file",
+        "tests/fixtures/definitions/vhost.definitions.1.json",
+    ]);
+
+    run_succeeds(["delete", "vhost", "--name", vh, "--idempotently"]);
 
     Ok(())
 }
