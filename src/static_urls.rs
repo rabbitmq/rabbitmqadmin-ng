@@ -56,3 +56,4 @@ pub(crate) const OPERATOR_POLICY_GUIDE_URL: &str =
     "https://www.rabbitmq.com/docs/parameters#operator-policies";
 pub(crate) const USER_LIMIT_GUIDE_URL: &str = "https://rabbitmq.com/docs/user-limits";
 pub(crate) const PASSWORD_GUIDE_URL: &str = "https://rabbitmq.com/docs/passwords";
+pub(crate) const SHOVEL_GUIDE_URL: &str = "https://rabbitmq.com/docs/shovel";

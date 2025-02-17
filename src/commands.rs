@@ -143,6 +143,10 @@ pub fn list_feature_flags(client: APIClient) -> ClientResult<responses::FeatureF
     client.list_feature_flags()
 }
 
+pub fn list_shovels(client: APIClient) -> ClientResult<Vec<responses::Shovel>> {
+    client.list_shovels()
+}
+
 pub fn enable_feature_flag(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
     let name = command_args.get_one::<String>("name").cloned().unwrap();
     client.enable_feature_flag(&name)

@@ -541,6 +541,10 @@ fn dispatch_common_subcommand(
             let result = commands::list_deprecated_features_in_use(client);
             res_handler.tabular_result(result.map(|val| val.0))
         }
+        ("shovels", "list") => {
+            let result = commands::list_shovels(client);
+            res_handler.tabular_result(result)
+        }
         ("publish", "message") => {
             let result = commands::publish_message(client, &vhost, second_level_args);
             res_handler.single_value_result(result)

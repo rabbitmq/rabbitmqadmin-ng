@@ -302,6 +302,10 @@ pub fn parser() -> Command {
                 .after_long_help(color_print::cformat!("<bold>Doc guide</bold>: {}", POLLING_CONSUMER_GUIDE_URL))
                 .subcommand_value_name("message")
                 .subcommands(get_subcommands()),
+            Command::new("shovels")
+                .about("Operations on shovels")
+                .subcommand_value_name("shovels")
+                .subcommands(shovel_subcommands()),
             Command::new("tanzu")
                 .about("Tanzu RabbitMQ-specific commands")
                 // TODO: documentation link
@@ -1339,4 +1343,16 @@ pub fn get_subcommands() -> [Command; 1] {
                 .default_value("ack_requeue_false")
                 .help("Accepted values are: ack_requeue_false, reject_requeue_false, ack_requeue_true, reject_requeue_true"),
         )]
+}
+
+
+pub fn shovel_subcommands() -> [Command; 1] {
+    let list_cmd = Command::new("list")
+        .long_about("Lists shovels")
+        .after_long_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            SHOVEL_GUIDE_URL
+        ));
+
+    [list_cmd]
 }
