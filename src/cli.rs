@@ -1345,7 +1345,6 @@ pub fn get_subcommands() -> [Command; 1] {
         )]
 }
 
-
 pub fn shovel_subcommands() -> [Command; 1] {
     let list_cmd = Command::new("list")
         .long_about("Lists shovels")
