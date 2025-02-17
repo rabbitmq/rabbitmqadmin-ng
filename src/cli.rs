@@ -1346,12 +1346,12 @@ pub fn get_subcommands() -> [Command; 1] {
 }
 
 pub fn shovel_subcommands() -> [Command; 1] {
-    let list_cmd = Command::new("list")
-        .long_about("Lists shovels")
+    let list_all_cmd = Command::new("list_all")
+        .long_about("Lists shovels in all virtual hosts")
         .after_long_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             SHOVEL_GUIDE_URL
         ));
 
-    [list_cmd]
+    [list_all_cmd]
 }

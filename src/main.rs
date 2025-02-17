@@ -541,7 +541,7 @@ fn dispatch_common_subcommand(
             let result = commands::list_deprecated_features_in_use(client);
             res_handler.tabular_result(result.map(|val| val.0))
         }
-        ("shovels", "list") => {
+        ("shovels", "list_all") => {
             let result = commands::list_shovels(client);
             res_handler.tabular_result(result)
         }
