@@ -304,6 +304,7 @@ pub fn parser() -> Command {
                 .subcommands(get_subcommands()),
             Command::new("shovels")
                 .about("Operations on shovels")
+                .after_long_help(color_print::cformat!("<bold>Doc guide</bold>: {}", SHOVEL_GUIDE_URL))
                 .subcommand_value_name("shovels")
                 .subcommands(shovel_subcommands()),
             Command::new("tanzu")
