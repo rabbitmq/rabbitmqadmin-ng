@@ -81,7 +81,8 @@ fn main() {
     };
     let endpoint = common_settings.endpoint();
 
-    match build_http_client(&cli, &common_settings) {
+    let httpc_result = build_http_client(&cli, &common_settings);
+    match httpc_result {
         Ok(httpc) => {
             // SharedSettings considers not just one but multiple ways to obtain
             // the value if it wasn't passed on the command line, so these are
