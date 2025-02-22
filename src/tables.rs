@@ -330,8 +330,8 @@ pub fn failure_details(error: &HttpClientError) -> Table {
                 },
                 RowOfTwo {
                     key: "reason",
-                    value: "multiple bindings found between the source and destination, please specify a --routing-key of the target binding"
-                }
+                    value: "multiple bindings found between the source and destination, please specify a --routing-key of the target binding",
+                },
             ];
 
             let tb = Table::builder(data);

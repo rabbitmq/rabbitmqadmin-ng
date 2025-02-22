@@ -15,8 +15,8 @@
 use rabbitmq_http_client::error::Error as ApiClientError;
 use rabbitmq_http_client::{blocking_api::HttpClientError, responses::HealthCheckFailureDetails};
 use reqwest::{
-    header::{HeaderMap, InvalidHeaderValue},
     StatusCode,
+    header::{HeaderMap, InvalidHeaderValue},
 };
 use url::Url;
 
@@ -24,19 +24,25 @@ use url::Url;
 pub enum CommandRunError {
     #[error("Asked to run an unknown command '{command} {subcommand}")]
     UnknownCommandTarget { command: String, subcommand: String },
-    #[error("Local TLS certificate file at {local_path} does not exist, cannot be read or passed as a PEM file: {cause}")]
+    #[error(
+        "Local TLS certificate file at {local_path} does not exist, cannot be read or passed as a PEM file: {cause}"
+    )]
     CertificateFileCouldNotBeLoaded1 {
         local_path: String,
         cause: reqwest::Error,
     },
-    #[error("Local TLS certificate file at {local_path} does not exist, cannot be read or passed as a PEM file: {cause}")]
+    #[error(
+        "Local TLS certificate file at {local_path} does not exist, cannot be read or passed as a PEM file: {cause}"
+    )]
     CertificateFileCouldNotBeLoaded2 {
         local_path: String,
         cause: rustls::pki_types::pem::Error,
     },
     #[error("Run into an I/O error when loading a file: {0}")]
     IoError(std::io::Error),
-    #[error("Local TLS certificate file at {local_path} does not exist, cannot be read or passed as a PEM file: {cause}")]
+    #[error(
+        "Local TLS certificate file at {local_path} does not exist, cannot be read or passed as a PEM file: {cause}"
+    )]
     CertificateStoreRejectedCertificate {
         local_path: String,
         cause: rustls::Error,
