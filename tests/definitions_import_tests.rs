@@ -18,12 +18,17 @@ use test_helpers::run_succeeds;
 
 #[test]
 fn test_import_cluster_definitions() -> Result<(), Box<dyn std::error::Error>> {
+    let q = "queue_from_definitions";
+    run_succeeds(["delete", "queue", "--name", q, "--idempotently"]);
+
     run_succeeds([
         "definitions",
         "import",
         "--file",
         "tests/fixtures/definitions/cluster.definitions.1.json",
     ]);
+
+    run_succeeds(["delete", "queue", "--name", q, "--idempotently"]);
 
     Ok(())
 }

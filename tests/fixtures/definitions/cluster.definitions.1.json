@@ -42,7 +42,10 @@
       "auto_delete": false,
       "durable": true,
       "name": "queue_from_definitions",
-      "vhost": "/"
+      "vhost": "/",
+      "arguments": {
+        "expires": 5000
+      }
     }
   ],
   "exchanges": [],
