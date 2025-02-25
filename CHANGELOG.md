@@ -4,7 +4,22 @@
 
 ### Enhnacements
 
- * `shovels declare` is a new command that can declare 
+ * `shovels declare_amqp091` is a new command that declares a dynamic Shovel that will use
+   AMQP 0-9-1 for both source and destination:
+
+   ```shell
+   rabbitmqadmin --vhost "shovels" shovels declare_amqp091 \
+                 --name "shovel-2" \
+                 --source-uri amqp://localhost:5672 \
+                 --destination-uri amqp://localhost:5672 \
+                 --source-queue "src.q" --destination-exchange "amq.fanout"
+   ```
+
+ * `shovels delete` is a new command that deletes a dynamic shovel:
+
+   ```shell
+   rabbitmqadmin --vhost "shovels" shovels delete --name "shovel-2"
+   ```
 
 
 ## v0.24.0 (Feb 8, 2025)
