@@ -31,12 +31,22 @@ pub const ENDPOINT: &str = "http://localhost:15672/api";
 pub const USERNAME: &str = "guest";
 pub const PASSWORD: &str = "guest";
 
+pub const AMQP_ENDPOINT: &str = "amqp://localhost:5672";
+
 pub fn endpoint() -> String {
     ENDPOINT.to_owned()
 }
 
 pub fn api_client() -> APIClient<'static> {
     APIClient::new(ENDPOINT, USERNAME, PASSWORD)
+}
+
+pub fn amqp_endpoint() -> String {
+    AMQP_ENDPOINT.to_owned()
+}
+
+pub fn amqp_endpoint_with_vhost(name: &str) -> String {
+    format!("{0}/{1}", AMQP_ENDPOINT, name).to_owned()
 }
 
 pub fn await_metric_emission(ms: u64) {

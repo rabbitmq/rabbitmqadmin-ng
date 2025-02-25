@@ -2,7 +2,9 @@
 
 ## v0.25.0 (in development)
 
-No (documented) changes yet.
+### Enhnacements
+
+ * `shovels declare` is a new command that can declare 
 
 
 ## v0.24.0 (Feb 8, 2025)

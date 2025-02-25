@@ -17,9 +17,9 @@ use super::constants::*;
 use super::static_urls::*;
 use super::tanzu_cli::tanzu_subcommands;
 use crate::output::TableStyle;
-use clap::{Arg, ArgAction, Command};
+use clap::{Arg, ArgAction, ArgGroup, Command, value_parser};
 use rabbitmq_http_client::commons::{
-    BindingDestinationType, ExchangeType, QueueType, SupportedProtocol,
+    BindingDestinationType, ExchangeType, QueueType, ShovelAcknowledgementMode, SupportedProtocol,
 };
 
 pub fn parser() -> Command {
@@ -316,15 +316,6 @@ pub fn parser() -> Command {
 }
 
 fn list_subcommands() -> [Command; 19] {
-    // duplicate this very common global argument so that
-    // it can be passed as the end of argument list
-    let vhost_arg = Arg::new("vhost")
-        .short('V')
-        .long("vhost")
-        .help("target virtual host")
-        .required(false)
-        .default_value(DEFAULT_VHOST);
-
     [
         Command::new("nodes").long_about("Lists cluster members"),
         Command::new("users").long_about("Lists users in the internal database"),
@@ -335,21 +326,18 @@ fn list_subcommands() -> [Command; 19] {
                 VIRTUAL_HOST_GUIDE_URL
             )),
         Command::new("permissions")
-            .arg(vhost_arg.clone())
             .long_about("Lists user permissions")
             .after_long_help(color_print::cformat!(
                 "<bold>Doc guide</bold>: {}",
                 ACCESS_CONTROL_GUIDE_URL
             )),
         Command::new("connections")
-            .arg(vhost_arg.clone())
             .long_about("Lists client connections")
             .after_long_help(color_print::cformat!(
                 "<bold>Doc guide</bold>: {}",
                 CONNECTION_GUIDE_URL
             )),
         Command::new("user_connections")
-            .arg(vhost_arg.clone())
             .arg(
                 Arg::new("username")
                     .short('u')
@@ -363,34 +351,26 @@ fn list_subcommands() -> [Command; 19] {
                 CONNECTION_GUIDE_URL
             )),
         Command::new("channels")
-            .arg(vhost_arg.clone())
             .long_about("Lists AMQP 0-9-1 channels")
             .after_long_help(color_print::cformat!(
                 "<bold>Doc guide</bold>: {}",
                 CHANNEL_GUIDE_URL
             )),
         Command::new("queues")
-            .arg(vhost_arg.clone())
             .long_about("Lists queues and streams")
             .after_long_help(color_print::cformat!(
                 "<bold>Doc guide</bold>: {}",
                 QUEUE_GUIDE_URL
             )),
-        Command::new("exchanges")
-            .arg(vhost_arg.clone())
-            .long_about("Lists exchanges"),
-        Command::new("bindings")
-            .arg(vhost_arg.clone())
-            .long_about("Lists bindings"),
+        Command::new("exchanges").long_about("Lists exchanges"),
+        Command::new("bindings").long_about("Lists bindings"),
         Command::new("consumers")
-            .arg(vhost_arg.clone())
             .long_about("Lists consumers")
             .after_long_help(color_print::cformat!(
                 "<bold>Doc guide</bold>: {}",
                 CONSUMER_GUIDE_URL
             )),
         Command::new("parameters")
-            .arg(vhost_arg.clone())
             .arg(
                 Arg::new("component")
                     .long("component")
@@ -403,28 +383,24 @@ fn list_subcommands() -> [Command; 19] {
                 RUNTIME_PARAMETER_GUIDE_URL
             )),
         Command::new("policies")
-            .arg(vhost_arg.clone())
             .long_about("Lists policies")
             .after_long_help(color_print::cformat!(
                 "<bold>Doc guide</bold>: {}",
                 POLICY_GUIDE_URL
             )),
         Command::new("operator_policies")
-            .arg(vhost_arg.clone())
             .long_about("Lists operator policies")
             .after_long_help(color_print::cformat!(
                 "<bold>Doc guide</bold>: {}",
                 OPERATOR_POLICY_GUIDE_URL
             )),
         Command::new("vhost_limits")
-            .arg(vhost_arg.clone())
             .long_about("Lists virtual host (resource) limits")
             .after_long_help(color_print::cformat!(
                 "<bold>Doc guide</bold>: {}",
                 VIRTUAL_HOST_GUIDE_URL
             )),
         Command::new("user_limits")
-            .arg(vhost_arg.clone())
             .arg(
                 Arg::new("user")
                     .long("user")
@@ -458,15 +434,6 @@ fn list_subcommands() -> [Command; 19] {
 }
 
 fn declare_subcommands() -> [Command; 12] {
-    // duplicate this very common global argument so that
-    // it can be passed as the end of argument list
-    let vhost_arg = Arg::new("vhost")
-        .short('V')
-        .long("vhost")
-        .help("target virtual host")
-        .required(false)
-        .default_value(DEFAULT_VHOST);
-
     [
         Command::new("user")
             .about("creates a user")
@@ -528,7 +495,6 @@ fn declare_subcommands() -> [Command; 12] {
         Command::new("permissions")
             .about("grants permissions to a user")
             .after_long_help(color_print::cformat!("<bold>Doc guide:</bold>: {}", ACCESS_CONTROL_GUIDE_URL))
-            .arg(vhost_arg.clone())
             .arg(
                 Arg::new("user")
                     .long("user")
@@ -556,7 +522,6 @@ fn declare_subcommands() -> [Command; 12] {
         Command::new("queue")
             .about("declares a queue or a stream")
             .after_long_help(color_print::cformat!("<bold>Doc guide:</bold>: {}", QUEUE_GUIDE_URL))
-            .arg(vhost_arg.clone())
             .arg(Arg::new("name").long("name").required(true).help("name"))
             .arg(
                 Arg::new("type")
@@ -590,7 +555,6 @@ fn declare_subcommands() -> [Command; 12] {
         Command::new("stream")
             .about("declares a stream")
             .after_long_help(color_print::cformat!("<bold>Doc guide:</bold>: {}", STREAM_GUIDE_URL))
-            .arg(vhost_arg.clone())
             .arg(Arg::new("name").long("name").required(true).help("name"))
             .arg(
                 Arg::new("expiration")
@@ -623,7 +587,6 @@ fn declare_subcommands() -> [Command; 12] {
             ),
         Command::new("exchange")
             .about("declares an exchange")
-            .arg(vhost_arg.clone())
             .arg(
                 Arg::new("name")
                     .long("name")
@@ -661,7 +624,6 @@ fn declare_subcommands() -> [Command; 12] {
             ),
         Command::new("binding")
             .about("creates a binding between a source exchange and a destination (a queue or an exchange)")
-            .arg(vhost_arg.clone())
             .arg(
                 Arg::new("source")
                     .long("source")
@@ -698,7 +660,6 @@ fn declare_subcommands() -> [Command; 12] {
         Command::new("parameter").
             about("sets a runtime parameter")
             .after_long_help(color_print::cformat!("<bold>Doc guide:</bold>: {}", RUNTIME_PARAMETER_GUIDE_URL))
-            .arg(vhost_arg.clone())
             .arg(
                 Arg::new("name")
                     .long("name")
@@ -717,7 +678,6 @@ fn declare_subcommands() -> [Command; 12] {
         Command::new("policy")
             .about("creates or updates a policy")
             .after_long_help(color_print::cformat!("<bold>Doc guide:</bold>: {}", POLICY_GUIDE_URL))
-            .arg(vhost_arg.clone())
             .arg(
                 Arg::new("name")
                     .long("name")
@@ -752,7 +712,6 @@ fn declare_subcommands() -> [Command; 12] {
         Command::new("operator_policy")
             .about("creates or updates an operator policy")
             .after_long_help(color_print::cformat!("<bold>Doc guide:</bold>: {}", OPERATOR_POLICY_GUIDE_URL))
-            .arg(vhost_arg.clone())
             .arg(
                 Arg::new("name")
                     .long("name")
@@ -787,7 +746,6 @@ fn declare_subcommands() -> [Command; 12] {
         Command::new("vhost_limit")
             .about("set a vhost limit")
             .after_long_help(color_print::cformat!("<bold>Doc guide:</bold>: {}", VIRTUAL_HOST_LIMIT_GUIDE_URL))
-            .arg(vhost_arg.clone())
             .arg(
                 Arg::new("name")
                     .long("name")
@@ -865,16 +823,7 @@ fn show_subcommands() -> [Command; 5] {
     ]
 }
 
-fn delete_subcommands() -> [Command; 12] {
-    // duplicate this very common global argument so that
-    // it can be passed as the end of argument list
-    let vhost_arg = Arg::new("vhost")
-        .short('V')
-        .long("vhost")
-        .help("target virtual host")
-        .required(false)
-        .default_value(DEFAULT_VHOST);
-
+fn delete_subcommands() -> [Command; 13] {
     let idempotently_arg = Arg::new("idempotently")
         .long("idempotently")
         .value_parser(clap::value_parser!(bool))
@@ -903,7 +852,6 @@ fn delete_subcommands() -> [Command; 12] {
             .arg(idempotently_arg.clone()),
         Command::new("permissions")
             .about("revokes user permissions to a given vhost")
-            .arg(vhost_arg.clone())
             .arg(
                 Arg::new("user")
                     .long("user")
@@ -913,7 +861,6 @@ fn delete_subcommands() -> [Command; 12] {
             .arg(idempotently_arg.clone()),
         Command::new("queue")
             .about("deletes a queue")
-            .arg(vhost_arg.clone())
             .arg(
                 Arg::new("name")
                     .long("name")
@@ -923,7 +870,6 @@ fn delete_subcommands() -> [Command; 12] {
             .arg(idempotently_arg.clone()),
         Command::new("stream")
             .about("deletes a stream")
-            .arg(vhost_arg.clone())
             .arg(
                 Arg::new("name")
                     .long("name")
@@ -933,7 +879,6 @@ fn delete_subcommands() -> [Command; 12] {
             .arg(idempotently_arg.clone()),
         Command::new("exchange")
             .about("deletes an exchange")
-            .arg(vhost_arg.clone())
             .arg(
                 Arg::new("name")
                     .long("name")
@@ -943,7 +888,6 @@ fn delete_subcommands() -> [Command; 12] {
             .arg(idempotently_arg.clone()),
         Command::new("binding")
             .about("deletes a binding")
-            .arg(vhost_arg.clone())
             .arg(
                 Arg::new("source")
                     .long("source")
@@ -978,7 +922,6 @@ fn delete_subcommands() -> [Command; 12] {
             ),
         Command::new("parameter")
             .about("clears a runtime parameter")
-            .arg(vhost_arg.clone())
             .arg(
                 Arg::new("name")
                     .long("name")
@@ -991,18 +934,14 @@ fn delete_subcommands() -> [Command; 12] {
                     .help("component (eg. federation-upstream)")
                     .required(true),
             ),
-        Command::new("policy")
-            .about("deletes a policy")
-            .arg(vhost_arg.clone())
-            .arg(
-                Arg::new("name")
-                    .long("name")
-                    .help("policy name")
-                    .required(true),
-            ),
+        Command::new("policy").about("deletes a policy").arg(
+            Arg::new("name")
+                .long("name")
+                .help("policy name")
+                .required(true),
+        ),
         Command::new("operator_policy")
             .about("deletes an operator policy")
-            .arg(vhost_arg.clone())
             .arg(
                 Arg::new("name")
                     .long("name")
@@ -1011,7 +950,6 @@ fn delete_subcommands() -> [Command; 12] {
             ),
         Command::new("vhost_limit")
             .about("delete a vhost limit")
-            .arg(vhost_arg.clone())
             .arg(
                 Arg::new("name")
                     .long("name")
@@ -1030,6 +968,15 @@ fn delete_subcommands() -> [Command; 12] {
                 Arg::new("name")
                     .long("name")
                     .help("limit name (eg. max-connections, max-queues)")
+                    .required(true),
+            ),
+        Command::new("shovel")
+            .about("delete a shovel")
+            .arg(idempotently_arg.clone())
+            .arg(
+                Arg::new("name")
+                    .long("name")
+                    .help("shovel name")
                     .required(true),
             ),
     ]
@@ -1346,7 +1293,7 @@ pub fn get_subcommands() -> [Command; 1] {
         )]
 }
 
-pub fn shovel_subcommands() -> [Command; 1] {
+pub fn shovel_subcommands() -> [Command; 3] {
     let list_all_cmd = Command::new("list_all")
         .long_about("Lists shovels in all virtual hosts")
         .after_long_help(color_print::cformat!(
@@ -1354,5 +1301,96 @@ pub fn shovel_subcommands() -> [Command; 1] {
             SHOVEL_GUIDE_URL
         ));
 
-    [list_all_cmd]
+    let declare_cmd = Command::new("declare_amqp091")
+        .long_about(
+            "Declares a dynamic shovel that uses AMQP 0-9-1 for both source and destination",
+        )
+        .after_long_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            SHOVEL_GUIDE_URL
+        ))
+        .arg(Arg::new("name").short('n').long("name").required(true))
+        .arg(Arg::new("source_uri").long("source-uri").required(true))
+        .arg(
+            Arg::new("destination_uri")
+                .long("destination-uri")
+                .required(true),
+        )
+        .arg(
+            Arg::new("ack_mode")
+                .long("ack-mode")
+                .help("One of: on-confirm, on-publish, no-ack")
+                .default_value("on-confirm")
+                .value_parser(clap::value_parser!(ShovelAcknowledgementMode)),
+        )
+        .arg(
+            Arg::new("source_queue")
+                .long("source-queue")
+                .conflicts_with("source_exchange"),
+        )
+        .arg(
+            Arg::new("source_exchange")
+                .long("source-exchange")
+                .conflicts_with("source_queue"),
+        )
+        .arg(
+            Arg::new("source_exchange_key")
+                .long("source-exchange-routing-key")
+                .conflicts_with("source_queue")
+                .requires("source_exchange"),
+        )
+        .group(
+            ArgGroup::new("source")
+                .args(["source_queue", "source_exchange"])
+                .required(true),
+        )
+        .arg(
+            Arg::new("destination_queue")
+                .long("destination-queue")
+                .conflicts_with("destination_exchange"),
+        )
+        .arg(
+            Arg::new("destination_exchange")
+                .long("destination-exchange")
+                .conflicts_with("destination_queue"),
+        )
+        .arg(
+            Arg::new("destination_exchange_key")
+                .long("destination-exchange-routing-key")
+                .conflicts_with("destination_queue"),
+        )
+        .arg(
+            Arg::new("reconnect_delay")
+                .long("reconnect-delay")
+                .default_value("5")
+                .value_parser(value_parser!(u16)),
+        )
+        .group(
+            ArgGroup::new("destination")
+                .args(["destination_queue", "destination_exchange"])
+                .required(true),
+        )
+        .arg(
+            Arg::new("publish_properties")
+                .long("publish-properties")
+                .help("A JSON object with message properties for the Shovel to set")
+                .required(false)
+                .default_value("{}")
+                .value_parser(clap::value_parser!(String)),
+        );
+
+    let delete_cmd = Command::new("delete")
+        .long_about("Deletes a dynamic shovel")
+        .after_long_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            SHOVEL_GUIDE_URL
+        ))
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("shovel name (identifier)")
+                .required(true),
+        );
+
+    [list_all_cmd, declare_cmd, delete_cmd]
 }

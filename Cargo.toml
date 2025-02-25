@@ -17,21 +17,21 @@ reqwest = { version = "0.12.12", features = [
     "__rustls",
     "rustls-tls-native-roots"
 ]}
-rabbitmq_http_client = { git = "https://github.com/michaelklishin/rabbitmq-http-api-rs.git", features = [
+rabbitmq_http_client = { version = "0.23.0", features = [
     "core",
     "blocking",
     "tabled"
 ]}
 serde = { version = "1.0", features = ["derive", "std"] }
 serde_json = "1"
-tabled = "0.17"
+tabled = "0.18"
 toml = "0.8"
 color-print = "0.3"
 thiserror = "2"
 shellexpand = "3.0"
 
-log = "0.4.22"
-rustls = { version = "0.23.20", features = ["aws_lc_rs"] }
+log = "0.4"
+rustls = { version = "0.23", features = ["aws_lc_rs"] }
 # fern = "0.7"
 # humantime = "2.1.0"
 # backtrace = "0.3"

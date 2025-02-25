@@ -71,6 +71,8 @@ pub enum CommandRunError {
     NotFound,
     #[error("{message}")]
     ConflictingOptions { message: String },
+    #[error("{message}")]
+    MissingOptions { message: String },
     #[error("This request produces an invalid HTTP header value")]
     InvalidHeaderValue { error: InvalidHeaderValue },
     #[error("encountered an error when performing an HTTP request")]

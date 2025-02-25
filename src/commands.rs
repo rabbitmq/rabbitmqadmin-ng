@@ -14,16 +14,18 @@
 #![allow(clippy::result_large_err)]
 
 use clap::ArgMatches;
-use rabbitmq_http_client::commons;
-use rabbitmq_http_client::commons::UserLimitTarget;
-use rabbitmq_http_client::commons::VirtualHostLimitTarget;
-use rabbitmq_http_client::commons::{ExchangeType, SupportedProtocol};
-use std::fs;
-use std::process;
-
 use rabbitmq_http_client::blocking_api::Client;
 use rabbitmq_http_client::blocking_api::Result as ClientResult;
-use rabbitmq_http_client::requests::EnforcedLimitParams;
+use rabbitmq_http_client::commons;
+use rabbitmq_http_client::commons::VirtualHostLimitTarget;
+use rabbitmq_http_client::commons::{ExchangeType, SupportedProtocol};
+use rabbitmq_http_client::commons::{ShovelAcknowledgementMode, UserLimitTarget};
+use rabbitmq_http_client::requests::{
+    Amqp091ShovelDestinationParams, Amqp091ShovelParams, Amqp091ShovelSourceParams,
+    EnforcedLimitParams,
+};
+use std::fs;
+use std::process;
 
 use crate::constants::DEFAULT_QUEUE_TYPE;
 use rabbitmq_http_client::commons::BindingDestinationType;
@@ -145,6 +147,93 @@ pub fn list_feature_flags(client: APIClient) -> ClientResult<responses::FeatureF
 
 pub fn list_shovels(client: APIClient) -> ClientResult<Vec<responses::Shovel>> {
     client.list_shovels()
+}
+
+pub fn declare_amqp091_shovel(
+    client: APIClient,
+    vhost: &str,
+    command_args: &ArgMatches,
+) -> ClientResult<()> {
+    let name = command_args.get_one::<String>("name").cloned().unwrap();
+    let source_uri = command_args
+        .get_one::<String>("source_uri")
+        .cloned()
+        .unwrap();
+    let destination_uri = command_args
+        .get_one::<String>("destination_uri")
+        .cloned()
+        .unwrap();
+
+    let ack_mode = command_args
+        .get_one::<ShovelAcknowledgementMode>("ack_mode")
+        .cloned()
+        .unwrap();
+    let reconnect_delay = command_args
+        .get_one::<u16>("reconnect_delay")
+        .cloned()
+        .or(Some(5));
+
+    let source_queue_opt = command_args.get_one::<String>("source_queue").cloned();
+    let source_exchange_opt = command_args.get_one::<String>("source_exchange").cloned();
+    let source_exchange_routing_key_opt = command_args
+        .get_one::<String>("source_exchange_key")
+        .map(|s| s.as_str());
+
+    let destination_queue_opt = command_args.get_one::<String>("destination_queue").cloned();
+    let destination_exchange_opt = command_args
+        .get_one::<String>("destination_exchange")
+        .cloned();
+    let destination_exchange_routing_key_opt = command_args
+        .get_one::<String>("destination_exchange_key")
+        .map(|s| s.as_str());
+
+    let source_queue: String;
+    let source_exchange: String;
+    let source_params = if source_queue_opt.is_some() {
+        source_queue = source_queue_opt.unwrap();
+        Amqp091ShovelSourceParams::queue_source(&source_uri, &source_queue)
+    } else {
+        source_exchange = source_exchange_opt.unwrap();
+        Amqp091ShovelSourceParams::exchange_source(
+            &source_uri,
+            &source_exchange,
+            source_exchange_routing_key_opt,
+        )
+    };
+
+    let destination_queue: String;
+    let destination_exchange: String;
+    let destination_params = if destination_queue_opt.is_some() {
+        destination_queue = destination_exchange_opt.unwrap();
+        Amqp091ShovelDestinationParams::queue_destination(&destination_uri, &destination_queue)
+    } else {
+        destination_exchange = destination_exchange_opt.unwrap();
+        Amqp091ShovelDestinationParams::exchange_destination(
+            &destination_uri,
+            &destination_exchange,
+            destination_exchange_routing_key_opt,
+        )
+    };
+
+    let params = Amqp091ShovelParams {
+        name: &name,
+        vhost,
+        acknowledgement_mode: ack_mode,
+        reconnect_delay,
+        source: source_params,
+        destination: destination_params,
+    };
+    client.declare_amqp091_shovel(params)
+}
+
+pub fn delete_shovel(
+    client: APIClient,
+    vhost: &str,
+    command_args: &ArgMatches,
+) -> ClientResult<()> {
+    let name = command_args.get_one::<String>("name").cloned().unwrap();
+
+    client.delete_shovel(vhost, &name, true)
 }
 
 pub fn enable_feature_flag(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
@@ -542,9 +631,9 @@ pub fn declare_parameter(
         });
 
     let params = requests::RuntimeParameterDefinition {
-        vhost: vhost.to_string(),
-        name: name.to_owned(),
-        component: component.to_owned(),
+        vhost,
+        name,
+        component,
         value: parsed_value,
     };
 

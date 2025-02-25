@@ -450,6 +450,10 @@ fn dispatch_common_subcommand(
             let result = commands::delete_operator_policy(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);
         }
+        ("delete", "shovel") => {
+            let result = commands::delete_shovel(client, &vhost, second_level_args);
+            res_handler.no_output_on_success(result);
+        }
         ("delete", "vhost_limit") => {
             let result = commands::delete_vhost_limit(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);
@@ -545,6 +549,43 @@ fn dispatch_common_subcommand(
         ("shovels", "list_all") => {
             let result = commands::list_shovels(client);
             res_handler.tabular_result(result)
+        }
+        ("shovels", "declare_amqp091") => {
+            let source_queue = second_level_args.get_one::<String>("source_queue").cloned();
+            let source_exchange = second_level_args
+                .get_one::<String>("source_exchange")
+                .cloned();
+
+            let destination_queue = second_level_args
+                .get_one::<String>("destination_queue")
+                .cloned();
+            let destination_exchange = second_level_args
+                .get_one::<String>("destination_exchange")
+                .cloned();
+
+            if source_queue.is_none() && source_exchange.is_none() {
+                let err = CommandRunError::MissingOptions {
+                    message: "either --source-queue or --source-exchange must be provided"
+                        .to_string(),
+                };
+
+                res_handler.report_pre_command_run_error(&err)
+            } else if destination_queue.is_none() && destination_exchange.is_none() {
+                let err = CommandRunError::MissingOptions {
+                    message:
+                        "either --destination-queue or --destination-exchange must be provided"
+                            .to_string(),
+                };
+
+                res_handler.report_pre_command_run_error(&err)
+            } else {
+                let result = commands::declare_amqp091_shovel(client, &vhost, second_level_args);
+                res_handler.no_output_on_success(result);
+            }
+        }
+        ("shovels", "delete") => {
+            let result = commands::delete_shovel(client, &vhost, second_level_args);
+            res_handler.no_output_on_success(result);
         }
         ("publish", "message") => {
             let result = commands::publish_message(client, &vhost, second_level_args);
