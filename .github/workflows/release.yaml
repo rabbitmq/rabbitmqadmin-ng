@@ -79,7 +79,7 @@ jobs:
 
       - name: Build an rabbitmqadmin release archive on x86-64 Linux
         id: release-build-amd64-linux
-        if: ${{ matrix.os == 'ubuntu-24.04' }}
+        if: ${{ contains(['ubuntu-24.04', 'ubuntu-22.04'], matrix.os) }}
         run: nu ./scripts/release-linux.nu
         env:
           OS: ${{ matrix.os }}
@@ -88,7 +88,7 @@ jobs:
           SRC: ${{ github.workspace }}
       - name: Store x86-64 Linux build artifact
         id: upload-amd64-linux-artifact
-        if: ${{ matrix.os == 'ubuntu-24.04' }}
+        if: ${{ contains(['ubuntu-24.04', 'ubuntu-22.04'], matrix.os) }}
         uses: actions/upload-artifact@v4
         with:
           name: "rabbitmqadmin-${{ vars.NEXT_RELESE_VERSION }}-${{ matrix.target }}"
