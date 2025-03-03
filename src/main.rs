@@ -583,6 +583,10 @@ fn dispatch_common_subcommand(
                 res_handler.no_output_on_success(result);
             }
         }
+        ("shovels", "declare_amqp10") => {
+            let result = commands::declare_amqp10_shovel(client, &vhost, second_level_args);
+            res_handler.no_output_on_success(result);
+        }
         ("shovels", "delete") => {
             let result = commands::delete_shovel(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);

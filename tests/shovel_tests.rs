@@ -124,9 +124,9 @@ fn test_shovel_declaration_with_overlapping_destination_types()
 }
 
 #[test]
-fn test_shovel_declaration_and_deletion() -> Result<(), Box<dyn std::error::Error>> {
+fn test_amqp091_shovel_declaration_and_deletion() -> Result<(), Box<dyn std::error::Error>> {
     let vh = "rust.shovels.2";
-    let name = "shovels.test_shovel_declaration_and_deletion";
+    let name = "shovels.test_amqp091_shovel_declaration_and_deletion";
 
     let amqp_endpoint = amqp_endpoint_with_vhost(vh);
     let src_q = "rust.shovels.src.q";
@@ -151,7 +151,48 @@ fn test_shovel_declaration_and_deletion() -> Result<(), Box<dyn std::error::Erro
     ]);
 
     run_succeeds(["-V", vh, "shovels", "delete", "--name", &name]);
+    run_succeeds(["-V", vh, "shovels", "delete", "--name", &name]);
 
+    delete_vhost(vh).expect("failed to delete a virtual host");
+
+    Ok(())
+}
+
+#[test]
+fn test_amqp10_shovel_declaration_and_deletion() -> Result<(), Box<dyn std::error::Error>> {
+    let vh = "rust.shovels.3";
+    let name = "shovels.test_amqp10_shovel_declaration_and_deletion";
+
+    let amqp_endpoint = amqp_endpoint_with_vhost(vh);
+    let src_q = "rust.shovels.src.q";
+    let dest_q = "rust.shovels.dest.q";
+
+    run_succeeds(["declare", "vhost", "--name", vh]);
+    run_succeeds([
+        "--vhost", vh, "declare", "queue", "--name", src_q, "--type", "quorum",
+    ]);
+    run_succeeds([
+        "--vhost", vh, "declare", "queue", "--name", dest_q, "--type", "quorum",
+    ]);
+
+    run_succeeds([
+        "-V",
+        vh,
+        "shovels",
+        "declare_amqp10",
+        "--name",
+        &name,
+        "--source-uri",
+        &amqp_endpoint,
+        "--destination-uri",
+        &amqp_endpoint,
+        "--source-address",
+        format!("/queue/{}", src_q).as_str(),
+        "--destination-address",
+        format!("/queue/{}", dest_q).as_str(),
+    ]);
+
+    run_succeeds(["-V", vh, "shovels", "delete", "--name", &name]);
     run_succeeds(["-V", vh, "shovels", "delete", "--name", &name]);
 
     delete_vhost(vh).expect("failed to delete a virtual host");

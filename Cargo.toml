@@ -9,7 +9,7 @@ license = "MIT OR Apache-2.0"
 [dependencies]
 clap = { version = "4.5", features = ["derive", "help", "color", "cargo"] }
 url = "2"
-sysexits = "0.8.5"
+sysexits = "0.9"
 reqwest = { version = "0.12.12", features = [
     "blocking",
     "json",
@@ -17,7 +17,7 @@ reqwest = { version = "0.12.12", features = [
     "__rustls",
     "rustls-tls-native-roots"
 ]}
-rabbitmq_http_client = { version = "0.23.0", features = [
+rabbitmq_http_client = { version = "0.24.0", features = [
     "core",
     "blocking",
     "tabled"

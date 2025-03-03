@@ -1,8 +1,24 @@
 # rabbitmqadmin-ng Change Log
 
-## v0.25.0 (in development)
+## v0.26.0 (in development)
 
-### Enhnacements
+No changes yet.
+
+
+## v0.25.0 (Mar 2, 2025)
+
+### Enhancements
+
+* `shovels declare_amqp10` is a new command that declares a dynamic Shovel that will use
+  AMQP 1.0 for both source and destination:
+
+  ```shell
+  rabbitmqadmin --vhost "shovels" shovels declare_amqp10 \
+                --name "shovel-2" \
+                --source-uri amqp://localhost:5672 \
+                --destination-uri amqp://localhost:5672 \
+                --source-adress "/queue/src.q" --destination-address "/queue/dest.q"
+  ```
 
  * `shovels declare_amqp091` is a new command that declares a dynamic Shovel that will use
    AMQP 0-9-1 for both source and destination:

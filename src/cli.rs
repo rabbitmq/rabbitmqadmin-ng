@@ -1293,7 +1293,7 @@ pub fn get_subcommands() -> [Command; 1] {
         )]
 }
 
-pub fn shovel_subcommands() -> [Command; 3] {
+pub fn shovel_subcommands() -> [Command; 4] {
     let list_all_cmd = Command::new("list_all")
         .long_about("Lists shovels in all virtual hosts")
         .after_long_help(color_print::cformat!(
@@ -1301,7 +1301,7 @@ pub fn shovel_subcommands() -> [Command; 3] {
             SHOVEL_GUIDE_URL
         ));
 
-    let declare_cmd = Command::new("declare_amqp091")
+    let declare_091_cmd = Command::new("declare_amqp091")
         .long_about(
             "Declares a dynamic shovel that uses AMQP 0-9-1 for both source and destination",
         )
@@ -1360,6 +1360,20 @@ pub fn shovel_subcommands() -> [Command; 3] {
                 .conflicts_with("destination_queue"),
         )
         .arg(
+            Arg::new("predeclared_source")
+                .long("predeclared-source")
+                .help("The source topology will be pre-declared (should not be declared by the shovel)")
+                .value_parser(clap::value_parser!(bool))
+                .action(ArgAction::SetTrue)
+        )
+        .arg(
+            Arg::new("predeclared_destination")
+                .long("predeclared-destination")
+                .help("The destination topology will be pre-declared (should not be declared by the shovel)")
+                .value_parser(clap::value_parser!(bool))
+                .action(ArgAction::SetTrue)
+        )
+        .arg(
             Arg::new("reconnect_delay")
                 .long("reconnect-delay")
                 .default_value("5")
@@ -1379,6 +1393,35 @@ pub fn shovel_subcommands() -> [Command; 3] {
                 .value_parser(clap::value_parser!(String)),
         );
 
+    let declare_10_cmd = Command::new("declare_amqp10")
+        .long_about("Declares a dynamic shovel that uses AMQP 1.0 for both source and destination")
+        .after_long_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            SHOVEL_GUIDE_URL
+        ))
+        .arg(Arg::new("name").short('n').long("name").required(true))
+        .arg(Arg::new("source_uri").long("source-uri").required(true))
+        .arg(
+            Arg::new("destination_uri")
+                .long("destination-uri")
+                .required(true),
+        )
+        .arg(
+            Arg::new("ack_mode")
+                .long("ack-mode")
+                .help("One of: on-confirm, on-publish, no-ack")
+                .default_value("on-confirm")
+                .value_parser(clap::value_parser!(ShovelAcknowledgementMode)),
+        )
+        .arg(Arg::new("source_address").long("source-address"))
+        .arg(Arg::new("destination_address").long("destination-address"))
+        .arg(
+            Arg::new("reconnect_delay")
+                .long("reconnect-delay")
+                .default_value("5")
+                .value_parser(value_parser!(u16)),
+        );
+
     let delete_cmd = Command::new("delete")
         .long_about("Deletes a dynamic shovel")
         .after_long_help(color_print::cformat!(
@@ -1392,5 +1435,5 @@ pub fn shovel_subcommands() -> [Command; 3] {
                 .required(true),
         );
 
-    [list_all_cmd, declare_cmd, delete_cmd]
+    [list_all_cmd, declare_091_cmd, declare_10_cmd, delete_cmd]
 }

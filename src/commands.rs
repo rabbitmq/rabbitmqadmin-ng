@@ -21,6 +21,7 @@ use rabbitmq_http_client::commons::VirtualHostLimitTarget;
 use rabbitmq_http_client::commons::{ExchangeType, SupportedProtocol};
 use rabbitmq_http_client::commons::{ShovelAcknowledgementMode, UserLimitTarget};
 use rabbitmq_http_client::requests::{
+    Amqp10ShovelDestinationParams, Amqp10ShovelParams, Amqp10ShovelSourceParams,
     Amqp091ShovelDestinationParams, Amqp091ShovelParams, Amqp091ShovelSourceParams,
     EnforcedLimitParams,
 };
@@ -149,6 +150,61 @@ pub fn list_shovels(client: APIClient) -> ClientResult<Vec<responses::Shovel>> {
     client.list_shovels()
 }
 
+pub fn declare_amqp10_shovel(
+    client: APIClient,
+    vhost: &str,
+    command_args: &ArgMatches,
+) -> ClientResult<()> {
+    let name = command_args.get_one::<String>("name").cloned().unwrap();
+    let source_uri = command_args
+        .get_one::<String>("source_uri")
+        .cloned()
+        .unwrap();
+    let destination_uri = command_args
+        .get_one::<String>("destination_uri")
+        .cloned()
+        .unwrap();
+
+    let source_address = command_args
+        .get_one::<String>("source_address")
+        .cloned()
+        .unwrap();
+    let destination_address = command_args
+        .get_one::<String>("destination_address")
+        .cloned()
+        .unwrap();
+
+    let ack_mode = command_args
+        .get_one::<ShovelAcknowledgementMode>("ack_mode")
+        .cloned()
+        .unwrap();
+    let reconnect_delay = command_args
+        .get_one::<u16>("reconnect_delay")
+        .cloned()
+        .or(Some(5));
+
+    let source_params = Amqp10ShovelSourceParams {
+        source_address: &source_address,
+        source_uri: &source_uri,
+    };
+
+    let destination_params = Amqp10ShovelDestinationParams {
+        destination_address: &destination_address,
+        destination_uri: &destination_uri,
+    };
+
+    let params = Amqp10ShovelParams {
+        name: &name,
+        vhost,
+        source: source_params,
+        destination: destination_params,
+        acknowledgement_mode: ack_mode,
+        reconnect_delay,
+    };
+
+    client.declare_amqp10_shovel(params)
+}
+
 pub fn declare_amqp091_shovel(
     client: APIClient,
     vhost: &str,
@@ -173,12 +229,20 @@ pub fn declare_amqp091_shovel(
         .cloned()
         .or(Some(5));
 
+    let predeclared_source = command_args
+        .get_one::<bool>("predeclared_source")
+        .cloned()
+        .unwrap_or(false);
     let source_queue_opt = command_args.get_one::<String>("source_queue").cloned();
     let source_exchange_opt = command_args.get_one::<String>("source_exchange").cloned();
     let source_exchange_routing_key_opt = command_args
         .get_one::<String>("source_exchange_key")
         .map(|s| s.as_str());
 
+    let predeclared_destination = command_args
+        .get_one::<bool>("predeclared_destination")
+        .cloned()
+        .unwrap_or(false);
     let destination_queue_opt = command_args.get_one::<String>("destination_queue").cloned();
     let destination_exchange_opt = command_args
         .get_one::<String>("destination_exchange")
@@ -191,28 +255,55 @@ pub fn declare_amqp091_shovel(
     let source_exchange: String;
     let source_params = if source_queue_opt.is_some() {
         source_queue = source_queue_opt.unwrap();
-        Amqp091ShovelSourceParams::queue_source(&source_uri, &source_queue)
+        if predeclared_source {
+            Amqp091ShovelSourceParams::predeclared_queue_source(&source_uri, &source_queue)
+        } else {
+            Amqp091ShovelSourceParams::queue_source(&source_uri, &source_queue)
+        }
     } else {
         source_exchange = source_exchange_opt.unwrap();
-        Amqp091ShovelSourceParams::exchange_source(
-            &source_uri,
-            &source_exchange,
-            source_exchange_routing_key_opt,
-        )
+        if predeclared_source {
+            Amqp091ShovelSourceParams::predeclared_exchange_source(
+                &source_uri,
+                &source_exchange,
+                source_exchange_routing_key_opt,
+            )
+        } else {
+            Amqp091ShovelSourceParams::exchange_source(
+                &source_uri,
+                &source_exchange,
+                source_exchange_routing_key_opt,
+            )
+        }
     };
 
     let destination_queue: String;
     let destination_exchange: String;
     let destination_params = if destination_queue_opt.is_some() {
         destination_queue = destination_exchange_opt.unwrap();
-        Amqp091ShovelDestinationParams::queue_destination(&destination_uri, &destination_queue)
+        if predeclared_destination {
+            Amqp091ShovelDestinationParams::predeclared_queue_destination(
+                &destination_uri,
+                &destination_queue,
+            )
+        } else {
+            Amqp091ShovelDestinationParams::queue_destination(&destination_uri, &destination_queue)
+        }
     } else {
         destination_exchange = destination_exchange_opt.unwrap();
-        Amqp091ShovelDestinationParams::exchange_destination(
-            &destination_uri,
-            &destination_exchange,
-            destination_exchange_routing_key_opt,
-        )
+        if predeclared_destination {
+            Amqp091ShovelDestinationParams::predeclared_exchange_destination(
+                &destination_uri,
+                &destination_exchange,
+                destination_exchange_routing_key_opt,
+            )
+        } else {
+            Amqp091ShovelDestinationParams::exchange_destination(
+                &destination_uri,
+                &destination_exchange,
+                destination_exchange_routing_key_opt,
+            )
+        }
     };
 
     let params = Amqp091ShovelParams {

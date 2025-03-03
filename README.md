@@ -66,13 +66,14 @@ Commands:
   health_check         runs health checks
   close                closes connections
   rebalance            rebalances queue leaders
-  definitions          operations on definitions
+  definitions          operations on definitions (everything except for messages: virtual hosts, queues, streams, exchanges, bindings, users, etc)
   export               see 'definitions export'
   import               see 'definitions import'
   feature_flags        operations on feature flags
   deprecated_features  operations on deprecated features
   publish              publishes (inefficiently) message(s) to a queue or a stream. Only suitable for development and test environments.
   get                  fetches message(s) from a queue or stream via polling. Only suitable for development and test environments.
+  shovels              Operations on shovels
   tanzu                Tanzu RabbitMQ-specific commands
   help                 Print this message or the help of the given subcommand(s)
 ```
