@@ -17,7 +17,7 @@ No changes yet.
                 --name "shovel-2" \
                 --source-uri amqp://localhost:5672 \
                 --destination-uri amqp://localhost:5672 \
-                --source-adress "/queue/src.q" --destination-address "/queue/dest.q"
+                --source-address "/queue/src.q" --destination-address "/queue/dest.q"
   ```
 
  * `shovels declare_amqp091` is a new command that declares a dynamic Shovel that will use
