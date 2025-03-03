@@ -9,7 +9,10 @@ No changes yet.
 
 ### Enhancements
 
-* `shovels declare_amqp10` is a new command that declares a dynamic Shovel that will use
+ * Binary packages for 8x86-64 Linux are now produced on an older `glibc` version, `2.35`,
+   for compatibility with Debian Bookworm and Ubuntu 22.04
+
+ * `shovels declare_amqp10` is a new command that declares a dynamic Shovel that will use
   AMQP 1.0 for both source and destination:
 
   ```shell
