@@ -1396,7 +1396,7 @@ dependencies = [
  "rustc-hash 2.1.1",
  "rustls",
  "socket2",
- "thiserror 2.0.11",
+ "thiserror 2.0.12",
  "tokio",
  "tracing",
 ]
@@ -1415,7 +1415,7 @@ dependencies = [
  "rustls",
  "rustls-pki-types",
  "slab",
- "thiserror 2.0.11",
+ "thiserror 2.0.12",
  "tinyvec",
  "tracing",
  "web-time",
@@ -1446,21 +1446,21 @@ dependencies = [
 
 [[package]]
 name = "rabbitmq_http_client"
-version = "0.24.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8a116efb0da5f1d22c9fe61e64c53b528c1e06f7ef261d2c79f8506db2c6d3e3"
+version = "0.25.0"
+source = "git+https://github.com/michaelklishin/rabbitmq-http-api-rs.git#25038a8e6951df7ac4d7af8c0b3d866101af4167"
 dependencies = [
  "backtrace",
  "percent-encoding",
  "rand 0.9.0",
  "rbase64",
+ "regex",
  "reqwest",
  "ring",
  "serde",
  "serde-aux",
  "serde_json",
  "tabled",
- "thiserror 2.0.11",
+ "thiserror 2.0.12",
  "time",
  "tokio",
 ]
@@ -1482,7 +1482,7 @@ dependencies = [
  "shellexpand",
  "sysexits",
  "tabled",
- "thiserror 2.0.11",
+ "thiserror 2.0.12",
  "toml",
  "url",
 ]
@@ -2073,11 +2073,11 @@ dependencies = [
 
 [[package]]
 name = "thiserror"
-version = "2.0.11"
+version = "2.0.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d452f284b73e6d76dd36758a0c8684b1d5be31f92b89d07fd5822175732206fc"
+checksum = "567b8a2dae586314f7be2a752ec7474332959c6460e02bde30d702a66d488708"
 dependencies = [
- "thiserror-impl 2.0.11",
+ "thiserror-impl 2.0.12",
 ]
 
 [[package]]
@@ -2093,9 +2093,9 @@ dependencies = [
 
 [[package]]
 name = "thiserror-impl"
-version = "2.0.11"
+version = "2.0.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "26afc1baea8a989337eeb52b6e72a039780ce45c3edfcc9c5b9d112feeb173c2"
+checksum = "7f7cf42b4507d8ea322120659672cf1b9dbb93f8f2d4ecfd6e51350ff5b17a1d"
 dependencies = [
  "proc-macro2",
  "quote",

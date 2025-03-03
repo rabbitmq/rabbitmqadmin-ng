@@ -17,8 +17,8 @@ use clap::ArgMatches;
 use rabbitmq_http_client::blocking_api::Client;
 use rabbitmq_http_client::blocking_api::Result as ClientResult;
 use rabbitmq_http_client::commons;
-use rabbitmq_http_client::commons::VirtualHostLimitTarget;
 use rabbitmq_http_client::commons::{ExchangeType, SupportedProtocol};
+use rabbitmq_http_client::commons::{PolicyTarget, VirtualHostLimitTarget};
 use rabbitmq_http_client::commons::{ShovelAcknowledgementMode, UserLimitTarget};
 use rabbitmq_http_client::requests::{
     Amqp10ShovelDestinationParams, Amqp10ShovelParams, Amqp10ShovelSourceParams,
@@ -101,6 +101,41 @@ pub fn list_consumers(client: APIClient) -> ClientResult<Vec<responses::Consumer
 
 pub fn list_policies(client: APIClient) -> ClientResult<Vec<responses::Policy>> {
     client.list_policies()
+}
+
+pub fn list_policies_in(client: APIClient, vhost: &str) -> ClientResult<Vec<responses::Policy>> {
+    client.list_policies_in(vhost)
+}
+
+pub fn list_policies_in_and_applying_to(
+    client: APIClient,
+    vhost: &str,
+    apply_to: PolicyTarget,
+) -> ClientResult<Vec<responses::Policy>> {
+    let policies = client.list_policies_in(vhost)?;
+    let filtered = policies
+        .iter()
+        .filter(|&pol| apply_to.does_apply_to(pol.apply_to.clone()))
+        .cloned()
+        .collect();
+
+    Ok(filtered)
+}
+
+pub fn list_matching_policies_in(
+    client: APIClient,
+    vhost: &str,
+    name: &str,
+    typ: PolicyTarget,
+) -> ClientResult<Vec<responses::Policy>> {
+    let candidates = list_policies_in_and_applying_to(client, vhost, typ.clone())?;
+    let matching = candidates
+        .iter()
+        .filter(|&pol| pol.does_match(name, typ.clone()))
+        .cloned()
+        .collect();
+
+    Ok(matching)
 }
 
 pub fn list_operator_policies(client: APIClient) -> ClientResult<Vec<responses::Policy>> {

@@ -56,7 +56,7 @@ pub fn parser() -> Command {
             Arg::new("config_file_path")
                 .short('c')
                 .long("config")
-                .value_parser(clap::value_parser!(PathBuf))
+                .value_parser(value_parser!(PathBuf))
                 .default_value(DEFAULT_CONFIG_FILE_PATH),
         )
         // --node
@@ -84,7 +84,7 @@ pub fn parser() -> Command {
                 .long("port")
                 .help("HTTP API port to use when connecting")
                 .required(false)
-                .value_parser(clap::value_parser!(u16))
+                .value_parser(value_parser!(u16))
                 .default_value(DEFAULT_PORT_STR),
         )
         // --base-uri
@@ -134,7 +134,7 @@ pub fn parser() -> Command {
                 .long("insecure")
                 .required(false)
                 .help("disables TLS peer (certificate chain) verification")
-                .value_parser(clap::value_parser!(bool))
+                .value_parser(value_parser!(bool))
                 .action(ArgAction::SetTrue),
         )
         // --tls
@@ -142,7 +142,7 @@ pub fn parser() -> Command {
             Arg::new("tls")
                 .long("use-tls")
                 .help("use TLS (HTTPS) for HTTP API requests ")
-                .value_parser(clap::value_parser!(bool))
+                .value_parser(value_parser!(bool))
                 .action(ArgAction::SetTrue)
                 .requires("tls-ca-cert-file"),
         )
@@ -153,7 +153,7 @@ pub fn parser() -> Command {
                 .required(false)
                 .requires("tls")
                 .help("Local path to a CA certificate file in the PEM format")
-                .value_parser(clap::value_parser!(PathBuf)),
+                .value_parser(value_parser!(PathBuf)),
         )
         // --tls-cert-file
         .arg(
@@ -162,7 +162,7 @@ pub fn parser() -> Command {
                 .required(false)
                 .requires("tls-key-file")
                 .help("Local path to a client certificate file in the PEM format")
-                .value_parser(clap::value_parser!(PathBuf)),
+                .value_parser(value_parser!(PathBuf)),
         )
         // --tls-key-file
         .arg(
@@ -171,7 +171,7 @@ pub fn parser() -> Command {
                 .required(false)
                 .requires("tls-cert-file")
                 .help("Local path to a client private key file in the PEM format")
-                .value_parser(clap::value_parser!(PathBuf)),
+                .value_parser(value_parser!(PathBuf)),
         )
         // --quiet
         .arg(
@@ -180,7 +180,7 @@ pub fn parser() -> Command {
                 .long("quiet")
                 .help("produce less output")
                 .required(false)
-                .value_parser(clap::value_parser!(bool))
+                .value_parser(value_parser!(bool))
                 .action(ArgAction::SetTrue),
         )
         // --non-interactive
@@ -190,7 +190,7 @@ pub fn parser() -> Command {
                 .help("pass when invoking from scripts")
                 .conflicts_with("table_style")
                 .required(false)
-                .value_parser(clap::value_parser!(bool))
+                .value_parser(value_parser!(bool))
                 .action(ArgAction::SetTrue),
         )
         // --table-style
@@ -200,7 +200,7 @@ pub fn parser() -> Command {
                 .help("style preset to apply to output tables: modern, borderless, ascii, dots, psql, markdown, sharp")
                 .conflicts_with("non_interactive")
                 .required(false)
-                .value_parser(clap::value_parser!(TableStyle))
+                .value_parser(value_parser!(TableStyle))
         )
         .subcommand_required(true)
         .subcommand_value_name("command")
@@ -532,7 +532,7 @@ fn declare_subcommands() -> [Command; 12] {
                 Arg::new("type")
                     .long("type")
                     .help("queue type")
-                    .value_parser(clap::value_parser!(QueueType))
+                    .value_parser(value_parser!(QueueType))
                     .required(false),
             )
             .arg(
@@ -540,14 +540,14 @@ fn declare_subcommands() -> [Command; 12] {
                     .long("durable")
                     .help("should it persist after a restart")
                     .required(false)
-                    .value_parser(clap::value_parser!(bool)),
+                    .value_parser(value_parser!(bool)),
             )
             .arg(
                 Arg::new("auto_delete")
                     .long("auto-delete")
                     .help("should it be deleted when the last consumer disconnects")
                     .required(false)
-                    .value_parser(clap::value_parser!(bool)),
+                    .value_parser(value_parser!(bool)),
             )
             .arg(
                 Arg::new("arguments")
@@ -555,7 +555,7 @@ fn declare_subcommands() -> [Command; 12] {
                     .help("additional exchange arguments")
                     .required(false)
                     .default_value("{}")
-                    .value_parser(clap::value_parser!(String)),
+                    .value_parser(value_parser!(String)),
             ),
         Command::new("stream")
             .about("declares a stream")
@@ -566,21 +566,21 @@ fn declare_subcommands() -> [Command; 12] {
                     .long("expiration")
                     .help("stream expiration, e.g. 12h for 12 hours, 7D for 7 days, or 1M for 1 month")
                     .required(true)
-                    .value_parser(clap::value_parser!(String)),
+                    .value_parser(value_parser!(String)),
             )
             .arg(
                 Arg::new("max_length_bytes")
                     .long("max-length-bytes")
                     .help("maximum stream length in bytes")
                     .required(false)
-                    .value_parser(clap::value_parser!(u64)),
+                    .value_parser(value_parser!(u64)),
             )
             .arg(
                 Arg::new("max_segment_length_bytes")
                     .long("stream-max-segment-size-bytes")
                     .help("maximum stream segment file length in bytes")
                     .required(false)
-                    .value_parser(clap::value_parser!(u64)),
+                    .value_parser(value_parser!(u64)),
             )
             .arg(
                 Arg::new("arguments")
@@ -588,7 +588,7 @@ fn declare_subcommands() -> [Command; 12] {
                     .help("additional exchange arguments")
                     .required(false)
                     .default_value("{}")
-                    .value_parser(clap::value_parser!(String)),
+                    .value_parser(value_parser!(String)),
             ),
         Command::new("exchange")
             .about("declares an exchange")
@@ -602,7 +602,7 @@ fn declare_subcommands() -> [Command; 12] {
                 Arg::new("type")
                     .long("type")
                     .help("exchange type")
-                    .value_parser(clap::value_parser!(ExchangeType))
+                    .value_parser(value_parser!(ExchangeType))
                     .required(false),
             )
             .arg(
@@ -610,14 +610,14 @@ fn declare_subcommands() -> [Command; 12] {
                     .long("durable")
                     .help("should it persist after a restart")
                     .required(false)
-                    .value_parser(clap::value_parser!(bool)),
+                    .value_parser(value_parser!(bool)),
             )
             .arg(
                 Arg::new("auto_delete")
                     .long("auto-delete")
                     .help("should it be deleted when the last queue is unbound")
                     .required(false)
-                    .value_parser(clap::value_parser!(bool)),
+                    .value_parser(value_parser!(bool)),
             )
             .arg(
                 Arg::new("arguments")
@@ -625,7 +625,7 @@ fn declare_subcommands() -> [Command; 12] {
                     .help("additional exchange arguments")
                     .required(false)
                     .default_value("{}")
-                    .value_parser(clap::value_parser!(String)),
+                    .value_parser(value_parser!(String)),
             ),
         Command::new("binding")
             .about("creates a binding between a source exchange and a destination (a queue or an exchange)")
@@ -640,7 +640,7 @@ fn declare_subcommands() -> [Command; 12] {
                     .long("destination-type")
                     .help("destination type: exchange or queue")
                     .required(true)
-                    .value_parser(clap::value_parser!(BindingDestinationType)),
+                    .value_parser(value_parser!(BindingDestinationType)),
             )
             .arg(
                 Arg::new("destination")
@@ -660,7 +660,7 @@ fn declare_subcommands() -> [Command; 12] {
                     .help("additional arguments")
                     .required(false)
                     .default_value("{}")
-                    .value_parser(clap::value_parser!(String)),
+                    .value_parser(value_parser!(String)),
             ),
         Command::new("parameter").
             about("sets a runtime parameter")
@@ -699,7 +699,7 @@ fn declare_subcommands() -> [Command; 12] {
                 Arg::new("apply_to")
                     .long("apply-to")
                     .help("entities to apply to (queues, classic_queues, quorum_queues, streams, exchanges, all)")
-                    .value_parser(clap::value_parser!(PolicyTarget))
+                    .value_parser(value_parser!(PolicyTarget))
                     .required(true),
             )
             .arg(
@@ -832,7 +832,7 @@ fn show_subcommands() -> [Command; 5] {
 fn delete_subcommands() -> [Command; 13] {
     let idempotently_arg = Arg::new("idempotently")
         .long("idempotently")
-        .value_parser(clap::value_parser!(bool))
+        .value_parser(value_parser!(bool))
         .action(ArgAction::SetTrue)
         .help("do not consider 404 Not Found API responses to be errors")
         .required(false);
@@ -924,7 +924,7 @@ fn delete_subcommands() -> [Command; 13] {
                     .help("additional arguments")
                     .required(false)
                     .default_value("{}")
-                    .value_parser(clap::value_parser!(String)),
+                    .value_parser(value_parser!(String)),
             ),
         Command::new("parameter")
             .about("clears a runtime parameter")
@@ -999,7 +999,7 @@ fn purge_subcommands() -> [Command; 1] {
         )]
 }
 
-fn policies_subcommands() -> [Command; 3] {
+fn policies_subcommands() -> [Command; 5] {
     let declare_cmd = Command::new("declare")
         .about("creates or updates a policy")
         .after_long_help(color_print::cformat!("<bold>Doc guide:</bold>: {}", POLICY_GUIDE_URL))
@@ -1019,7 +1019,7 @@ fn policies_subcommands() -> [Command; 3] {
             Arg::new("apply_to")
                 .long("apply-to")
                 .help("entities to apply to (queues, classic_queues, quorum_queues, streams, exchanges, all)")
-                .value_parser(clap::value_parser!(PolicyTarget))
+                .value_parser(value_parser!(PolicyTarget))
                 .required(true),
         )
         .arg(
@@ -1050,7 +1050,36 @@ fn policies_subcommands() -> [Command; 3] {
             .required(true),
     );
 
-    [declare_cmd, list_cmd, delete_cmd]
+    let list_in_cmd = Command::new("list_in")
+        .about("lists policies in a specific virtual host")
+        .arg(
+            Arg::new("apply_to")
+                .long("apply-to")
+                .value_parser(value_parser!(PolicyTarget)),
+        );
+
+    let list_matching_cmd = Command::new("list_matching_object")
+        .about("lists policies that match an object (queue, stream, exchange) name")
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("name to verify")
+                .required(true),
+        )
+        .arg(
+            Arg::new("type")
+                .long("type")
+                .value_parser(value_parser!(PolicyTarget))
+                .required(true),
+        );
+
+    [
+        declare_cmd,
+        list_cmd,
+        delete_cmd,
+        list_in_cmd,
+        list_matching_cmd,
+    ]
 }
 
 fn health_check_subcommands() -> [Command; 6] {
@@ -1085,7 +1114,7 @@ fn health_check_subcommands() -> [Command; 6] {
         .arg(
             Arg::new("port")
                 .long("port")
-                .value_parser(clap::value_parser!(u16)),
+                .value_parser(value_parser!(u16)),
         )
         .after_long_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
@@ -1099,7 +1128,7 @@ fn health_check_subcommands() -> [Command; 6] {
         .arg(
             Arg::new("protocol")
                 .long("protocol")
-                .value_parser(clap::value_parser!(SupportedProtocol))
+                .value_parser(value_parser!(SupportedProtocol))
                 .long_help("An alias for one of the protocols that RabbitMQ supports, with or without TLS: 'amqp', 'amqp/ssl', 'stream', 'stream/ssl', 'mqtt', 'mqtt/ssl', 'stomp', 'stomp/ssl', 'http/web-mqtt', 'https/web-mqtt', 'http/web-stomp', 'https/web-stomp', 'http/prometheus', 'https/prometheus', 'http', 'https'"),
         )
         .after_long_help(color_print::cformat!(
@@ -1381,7 +1410,7 @@ pub fn shovel_subcommands() -> [Command; 4] {
                 .long("ack-mode")
                 .help("One of: on-confirm, on-publish, no-ack")
                 .default_value("on-confirm")
-                .value_parser(clap::value_parser!(ShovelAcknowledgementMode)),
+                .value_parser(value_parser!(ShovelAcknowledgementMode)),
         )
         .arg(
             Arg::new("source_queue")
@@ -1423,14 +1452,14 @@ pub fn shovel_subcommands() -> [Command; 4] {
             Arg::new("predeclared_source")
                 .long("predeclared-source")
                 .help("The source topology will be pre-declared (should not be declared by the shovel)")
-                .value_parser(clap::value_parser!(bool))
+                .value_parser(value_parser!(bool))
                 .action(ArgAction::SetTrue)
         )
         .arg(
             Arg::new("predeclared_destination")
                 .long("predeclared-destination")
                 .help("The destination topology will be pre-declared (should not be declared by the shovel)")
-                .value_parser(clap::value_parser!(bool))
+                .value_parser(value_parser!(bool))
                 .action(ArgAction::SetTrue)
         )
         .arg(
@@ -1450,7 +1479,7 @@ pub fn shovel_subcommands() -> [Command; 4] {
                 .help("A JSON object with message properties for the Shovel to set")
                 .required(false)
                 .default_value("{}")
-                .value_parser(clap::value_parser!(String)),
+                .value_parser(value_parser!(String)),
         );
 
     let declare_10_cmd = Command::new("declare_amqp10")
@@ -1471,7 +1500,7 @@ pub fn shovel_subcommands() -> [Command; 4] {
                 .long("ack-mode")
                 .help("One of: on-confirm, on-publish, no-ack")
                 .default_value("on-confirm")
-                .value_parser(clap::value_parser!(ShovelAcknowledgementMode)),
+                .value_parser(value_parser!(ShovelAcknowledgementMode)),
         )
         .arg(Arg::new("source_address").long("source-address"))
         .arg(Arg::new("destination_address").long("destination-address"))

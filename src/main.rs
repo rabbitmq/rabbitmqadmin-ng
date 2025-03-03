@@ -40,6 +40,7 @@ use crate::constants::{
 };
 use crate::output::*;
 use rabbitmq_http_client::blocking_api::{Client as GenericAPIClient, ClientBuilder};
+use rabbitmq_http_client::commons::PolicyTarget;
 use reqwest::blocking::Client as HTTPClient;
 use rustls::crypto::CryptoProvider;
 use rustls::pki_types::{CertificateDer, PrivateKeyDer};
@@ -481,6 +482,28 @@ fn dispatch_common_subcommand(
         ("policies", "delete") => {
             let result = commands::delete_policy(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);
+        }
+        ("policies", "list_in") => {
+            let typ_opt = second_level_args
+                .get_one::<PolicyTarget>("apply_to")
+                .cloned();
+            let result = match typ_opt {
+                None => commands::list_policies_in(client, &vhost),
+                Some(typ) => commands::list_policies_in_and_applying_to(client, &vhost, typ),
+            };
+            res_handler.tabular_result(result)
+        }
+        ("policies", "list_matching_object") => {
+            let name = second_level_args
+                .get_one::<String>("name")
+                .cloned()
+                .unwrap();
+            let typ = second_level_args
+                .get_one::<PolicyTarget>("type")
+                .cloned()
+                .unwrap();
+            let result = commands::list_matching_policies_in(client, &vhost, &name, typ);
+            res_handler.tabular_result(result)
         }
         ("health_check", "local_alarms") => {
             let result = commands::health_check_local_alarms(client);

@@ -98,3 +98,102 @@ fn test_policies_declare_list_and_delete() -> Result<(), Box<dyn std::error::Err
 
     Ok(())
 }
+
+#[test]
+fn test_policies_in() -> Result<(), Box<dyn std::error::Error>> {
+    let vh = "rabbitmqadmin.vh.policies.1";
+    run_succeeds(["delete", "vhost", "--name", vh, "--idempotently"]);
+    run_succeeds(["declare", "vhost", "--name", vh]);
+
+    let policy_name = "test_policies_in";
+    run_succeeds([
+        "--vhost",
+        vh,
+        "policies",
+        "declare",
+        "--name",
+        policy_name,
+        "--pattern",
+        "foo-.*",
+        "--apply-to",
+        "queues",
+        "--priority",
+        "98",
+        "--definition",
+        "{\"max-length\": 20}",
+    ]);
+
+    run_succeeds(["--vhost", vh, "policies", "list_in"])
+        .stdout(predicate::str::contains(policy_name).and(predicate::str::contains("98")));
+    run_succeeds(["--vhost", "/", "policies", "list_in"])
+        .stdout(predicate::str::contains(policy_name).not());
+    run_succeeds(["--vhost", vh, "policies", "delete", "--name", policy_name]);
+    run_succeeds(["--vhost", vh, "policies", "list_in"])
+        .stdout(predicate::str::contains(policy_name).not());
+
+    run_succeeds(["delete", "vhost", "--name", vh]);
+
+    Ok(())
+}
+
+#[test]
+fn test_policies_in_with_entity_type() -> Result<(), Box<dyn std::error::Error>> {
+    let vh = "rabbitmqadmin.vh.policies.2";
+    run_succeeds(["delete", "vhost", "--name", vh, "--idempotently"]);
+    run_succeeds(["declare", "vhost", "--name", vh]);
+
+    let policy_name = "test_policies_in_with_entity_type";
+    run_succeeds([
+        "--vhost",
+        vh,
+        "policies",
+        "declare",
+        "--name",
+        policy_name,
+        "--pattern",
+        "foo-.*",
+        "--apply-to",
+        "queues",
+        "--priority",
+        "98",
+        "--definition",
+        "{\"max-length\": 20}",
+    ]);
+
+    run_succeeds(["--vhost", vh, "policies", "list_in", "--apply-to", "queues"])
+        .stdout(predicate::str::contains(policy_name).and(predicate::str::contains("98")));
+    run_succeeds([
+        "--vhost",
+        vh,
+        "policies",
+        "list_in",
+        "--apply-to",
+        "exchanges",
+    ])
+    .stdout(predicate::str::contains(policy_name).not());
+    run_succeeds([
+        "--vhost",
+        vh,
+        "policies",
+        "list_in",
+        "--apply-to",
+        "streams",
+    ])
+    .stdout(predicate::str::contains(policy_name).not());
+    run_succeeds([
+        "--vhost",
+        "/",
+        "policies",
+        "list_in",
+        "--apply-to",
+        "queues",
+    ])
+    .stdout(predicate::str::contains(policy_name).not());
+    run_succeeds(["--vhost", vh, "policies", "delete", "--name", policy_name]);
+    run_succeeds(["--vhost", vh, "policies", "list_in"])
+        .stdout(predicate::str::contains(policy_name).not());
+
+    run_succeeds(["delete", "vhost", "--name", vh]);
+
+    Ok(())
+}
