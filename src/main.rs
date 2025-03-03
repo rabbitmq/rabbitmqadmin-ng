@@ -470,6 +470,18 @@ fn dispatch_common_subcommand(
             let result = commands::purge_queue(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);
         }
+        ("policies", "declare") => {
+            let result = commands::declare_policy(client, &vhost, second_level_args);
+            res_handler.no_output_on_success(result);
+        }
+        ("policies", "list") => {
+            let result = commands::list_policies(client);
+            res_handler.tabular_result(result)
+        }
+        ("policies", "delete") => {
+            let result = commands::delete_policy(client, &vhost, second_level_args);
+            res_handler.no_output_on_success(result);
+        }
         ("health_check", "local_alarms") => {
             let result = commands::health_check_local_alarms(client);
             res_handler.health_check_result(result);

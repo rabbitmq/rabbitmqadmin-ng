@@ -19,7 +19,8 @@ use super::tanzu_cli::tanzu_subcommands;
 use crate::output::TableStyle;
 use clap::{Arg, ArgAction, ArgGroup, Command, value_parser};
 use rabbitmq_http_client::commons::{
-    BindingDestinationType, ExchangeType, QueueType, ShovelAcknowledgementMode, SupportedProtocol,
+    BindingDestinationType, ExchangeType, PolicyTarget, QueueType, ShovelAcknowledgementMode,
+    SupportedProtocol,
 };
 
 pub fn parser() -> Command {
@@ -228,6 +229,10 @@ pub fn parser() -> Command {
                 .about("purges queues")
                 .subcommand_value_name("queue")
                 .subcommands(purge_subcommands()),
+            Command::new("policies")
+                .about("operations on policies")
+                .subcommand_value_name("policy")
+                .subcommands(policies_subcommands()),
             Command::new("health_check")
                 .about("runs health checks")
                 .subcommand_value_name("check")
@@ -597,7 +602,7 @@ fn declare_subcommands() -> [Command; 12] {
                 Arg::new("type")
                     .long("type")
                     .help("exchange type")
-                .value_parser(clap::value_parser!(ExchangeType))
+                    .value_parser(clap::value_parser!(ExchangeType))
                     .required(false),
             )
             .arg(
@@ -666,10 +671,10 @@ fn declare_subcommands() -> [Command; 12] {
                     .help("parameter's name")
                     .required(true)
             ).arg(
-                Arg::new("component")
-                    .long("component")
-                    .help("component (eg. federation)")
-                    .required(true))
+            Arg::new("component")
+                .long("component")
+                .help("component (eg. federation)")
+                .required(true))
             .arg(
                 Arg::new("value")
                     .long("value")
@@ -687,13 +692,14 @@ fn declare_subcommands() -> [Command; 12] {
             .arg(
                 Arg::new("pattern")
                     .long("pattern")
-                    .help("queue/exchange name pattern")
+                    .help("the pattern that is used to match entity (queue, stream, exchange) names")
                     .required(true),
             )
             .arg(
                 Arg::new("apply_to")
                     .long("apply-to")
                     .help("entities to apply to (queues, classic_queues, quorum_queues, streams, exchanges, all)")
+                    .value_parser(clap::value_parser!(PolicyTarget))
                     .required(true),
             )
             .arg(
@@ -993,6 +999,60 @@ fn purge_subcommands() -> [Command; 1] {
         )]
 }
 
+fn policies_subcommands() -> [Command; 3] {
+    let declare_cmd = Command::new("declare")
+        .about("creates or updates a policy")
+        .after_long_help(color_print::cformat!("<bold>Doc guide:</bold>: {}", POLICY_GUIDE_URL))
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("policy name")
+                .required(true),
+        )
+        .arg(
+            Arg::new("pattern")
+                .long("pattern")
+                .help("the pattern that is used to match entity (queue, stream, exchange) names")
+                .required(true),
+        )
+        .arg(
+            Arg::new("apply_to")
+                .long("apply-to")
+                .help("entities to apply to (queues, classic_queues, quorum_queues, streams, exchanges, all)")
+                .value_parser(clap::value_parser!(PolicyTarget))
+                .required(true),
+        )
+        .arg(
+            Arg::new("priority")
+                .long("priority")
+                .help("policy priority (only the policy with the highest priority is effective)")
+                .required(false)
+                .default_value("0"),
+        )
+        .arg(
+            Arg::new("definition")
+                .long("definition")
+                .help("policy definition")
+                .required(true),
+        );
+
+    let list_cmd = Command::new("list")
+        .long_about("lists policies")
+        .after_long_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            POLICY_GUIDE_URL
+        ));
+
+    let delete_cmd = Command::new("delete").about("deletes a policy").arg(
+        Arg::new("name")
+            .long("name")
+            .help("policy name")
+            .required(true),
+    );
+
+    [declare_cmd, list_cmd, delete_cmd]
+}
+
 fn health_check_subcommands() -> [Command; 6] {
     let node_is_quorum_critical_after_help = color_print::cformat!(
         r#"
@@ -1178,14 +1238,14 @@ fn import_subcommands() -> [Command; 1] {
 
 pub fn feature_flags_subcommands() -> [Command; 3] {
     let list_cmd = Command::new("list")
-        .long_about("Lists feature flags and their cluster state")
+        .long_about("lists feature flags and their cluster state")
         .after_long_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             FEATURE_FLAG_GUIDE_URL
         ));
 
     let enable_cmd = Command::new("enable")
-        .long_about("Enables a feature flag")
+        .long_about("enables a feature flag")
         .after_long_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             FEATURE_FLAG_GUIDE_URL
@@ -1198,7 +1258,7 @@ pub fn feature_flags_subcommands() -> [Command; 3] {
         );
 
     let enable_all_cmd = Command::new("enable_all")
-        .long_about("Enables all stable feature flags")
+        .long_about("enables all stable feature flags")
         .after_long_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             FEATURE_FLAG_GUIDE_URL
@@ -1209,14 +1269,14 @@ pub fn feature_flags_subcommands() -> [Command; 3] {
 
 pub fn deprecated_features_subcommands() -> [Command; 2] {
     let list_cmd = Command::new("list")
-        .long_about("Lists deprecated features")
+        .long_about("lists deprecated features")
         .after_long_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             DEPRECATED_FEATURE_GUIDE_URL
         ));
 
     let list_in_use_cmd = Command::new("list_used")
-        .long_about("Lists the deprecated features that are found to be in use in the cluster")
+        .long_about("lists the deprecated features that are found to be in use in the cluster")
         .after_long_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             DEPRECATED_FEATURE_GUIDE_URL

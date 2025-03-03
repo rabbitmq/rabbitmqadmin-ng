@@ -2,7 +2,24 @@
 
 ## v0.26.0 (in development)
 
-No changes yet.
+### Enhancements
+
+ * `policies` is a new command group for policy operations:
+
+   ```shell
+   rabbitmqadmin help policies
+
+   # an equivalent of 'declare policy'
+   rabbitmqadmin policies declare --name "policy-name" --pattern '^matching\..+' --apply-to "quorum_queues" \
+                                  --priority 10 \
+                                  --definition '{"max-length": 10000}'
+
+   # an equivalent of 'list policies'
+   rabbitmqadmin policies list
+
+   # an equivalent of 'delete policy'
+   rabbitmqadmin policies delete --name "policy-name"
+   ```
 
 
 ## v0.25.0 (Mar 2, 2025)
