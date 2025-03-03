@@ -20,6 +20,28 @@
    # an equivalent of 'delete policy'
    rabbitmqadmin policies delete --name "policy-name"
    ```
+ * `policies list_in` is a new command that lists policies in a specific virtual host:
+
+   ```shell
+   rabbitmqadmin --vhost "a.vhost" policies list_in
+   ```
+
+   ```shell
+   rabbitmqadmin --vhost "streams.vhost" policies list_in --apply-to "streams"
+   ```
+
+ * `policies list_matching_object` is a new command that lists all policies that 
+   would match an object (a queue, a stream, an exchange)
+   with a given name:
+
+   ```shell
+   rabbitmqadmin --vhost "a.vhost" policies list_matching_object --name 'audit.events' --type queues
+   ```
+
+### Bug Fixes
+
+ * `declare policy`'s `--apply-to` argument value was ignored 
+
 
 
 ## v0.25.0 (Mar 2, 2025)

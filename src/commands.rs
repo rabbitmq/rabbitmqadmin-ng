@@ -691,7 +691,10 @@ pub fn declare_policy(
 ) -> ClientResult<()> {
     let name = command_args.get_one::<String>("name").unwrap();
     let pattern = command_args.get_one::<String>("pattern").unwrap();
-    let apply_to = command_args.get_one::<String>("pattern").unwrap();
+    let apply_to = command_args
+        .get_one::<PolicyTarget>("apply_to")
+        .cloned()
+        .unwrap();
     let priority = command_args.get_one::<String>("priority").unwrap();
     let definition = command_args.get_one::<String>("definition").unwrap();
 
@@ -705,7 +708,7 @@ pub fn declare_policy(
         vhost,
         name,
         pattern,
-        apply_to: commons::PolicyTarget::from(apply_to.as_str()),
+        apply_to: apply_to.clone(),
         priority: priority.parse::<i32>().unwrap(),
         definition: parsed_definition,
     };
@@ -720,7 +723,10 @@ pub fn declare_operator_policy(
 ) -> ClientResult<()> {
     let name = command_args.get_one::<String>("name").unwrap();
     let pattern = command_args.get_one::<String>("pattern").unwrap();
-    let apply_to = command_args.get_one::<String>("pattern").unwrap();
+    let apply_to = command_args
+        .get_one::<PolicyTarget>("apply_to")
+        .cloned()
+        .unwrap();
     let priority = command_args.get_one::<String>("priority").unwrap();
     let definition = command_args.get_one::<String>("definition").unwrap();
 
@@ -734,7 +740,7 @@ pub fn declare_operator_policy(
         vhost,
         name,
         pattern,
-        apply_to: commons::PolicyTarget::from(apply_to.as_str()),
+        apply_to: apply_to.clone(),
         priority: priority.parse::<i32>().unwrap(),
         definition: parsed_definition,
     };

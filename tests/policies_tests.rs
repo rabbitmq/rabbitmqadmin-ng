@@ -197,3 +197,146 @@ fn test_policies_in_with_entity_type() -> Result<(), Box<dyn std::error::Error>>
 
     Ok(())
 }
+
+#[test]
+fn test_policies_matching_objects() -> Result<(), Box<dyn std::error::Error>> {
+    let vh1 = "rabbitmqadmin.vh.policies.11";
+    let vh2 = "rabbitmqadmin.vh.policies.12";
+    let vh3 = "rabbitmqadmin.vh.policies.13";
+
+    run_succeeds(["delete", "vhost", "--name", vh1, "--idempotently"]);
+    run_succeeds(["declare", "vhost", "--name", vh1]);
+    run_succeeds(["delete", "vhost", "--name", vh2, "--idempotently"]);
+    run_succeeds(["declare", "vhost", "--name", vh2]);
+    run_succeeds(["delete", "vhost", "--name", vh3, "--idempotently"]);
+    run_succeeds(["declare", "vhost", "--name", vh3]);
+
+    let policy1 = "rabbitmqadmin.policies.11";
+    run_succeeds([
+        "--vhost",
+        vh1,
+        "policies",
+        "declare",
+        "--name",
+        policy1,
+        "--pattern",
+        "^q-.*",
+        "--apply-to",
+        "queues",
+        "--priority",
+        "47",
+        "--definition",
+        "{\"max-length\": 20}",
+    ]);
+
+    let policy2 = "rabbitmqadmin.policies.12";
+    run_succeeds([
+        "--vhost",
+        vh2,
+        "policies",
+        "declare",
+        "--name",
+        policy2,
+        "--pattern",
+        "^x-.*",
+        "--apply-to",
+        "exchanges",
+        "--priority",
+        "17",
+        "--definition",
+        "{\"alternate-exchange\": \"amq.fanout\"}",
+    ]);
+
+    let policy3 = "rabbitmqadmin.policies.13";
+    run_succeeds([
+        "--vhost",
+        vh3,
+        "policies",
+        "declare",
+        "--name",
+        policy3,
+        "--pattern",
+        "^s-.*",
+        "--apply-to",
+        "streams",
+        "--priority",
+        "15",
+        "--definition",
+        "{\"max-age\": \"1D\"}",
+    ]);
+
+    run_succeeds([
+        "--vhost",
+        vh1,
+        "policies",
+        "list_matching_object",
+        "--name",
+        "q-abc",
+        "--type",
+        "queues",
+    ])
+    .stdout(predicate::str::contains(policy1).and(predicate::str::contains("20")));
+    run_succeeds([
+        "--vhost",
+        vh1,
+        "policies",
+        "list_matching_object",
+        "--name",
+        "q-abc",
+        "--type",
+        "exchanges",
+    ])
+    .stdout(predicate::str::contains(policy1).not());
+
+    run_succeeds([
+        "--vhost",
+        vh2,
+        "policies",
+        "list_matching_object",
+        "--name",
+        "x-abc",
+        "--type",
+        "exchanges",
+    ])
+    .stdout(predicate::str::contains(policy2));
+    run_succeeds([
+        "--vhost",
+        vh2,
+        "policies",
+        "list_matching_object",
+        "--name",
+        "x-abc",
+        "--type",
+        "streams",
+    ])
+    .stdout(predicate::str::contains(policy2).not());
+
+    run_succeeds([
+        "--vhost",
+        vh3,
+        "policies",
+        "list_matching_object",
+        "--name",
+        "s-abc",
+        "--type",
+        "streams",
+    ])
+    .stdout(predicate::str::contains(policy3).and(predicate::str::contains("1D")));
+    run_succeeds([
+        "--vhost",
+        vh3,
+        "policies",
+        "list_matching_object",
+        "--name",
+        "s-abc",
+        "--type",
+        "exchanges",
+    ])
+    .stdout(predicate::str::contains(policy3).not());
+
+    run_succeeds(["delete", "vhost", "--name", vh1, "--idempotently"]);
+    run_succeeds(["delete", "vhost", "--name", vh2, "--idempotently"]);
+    run_succeeds(["delete", "vhost", "--name", vh3, "--idempotently"]);
+
+    Ok(())
+}

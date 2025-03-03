@@ -734,6 +734,7 @@ fn declare_subcommands() -> [Command; 12] {
                 Arg::new("apply_to")
                     .long("apply-to")
                     .help("entities to apply to (queues, classic_queues, quorum_queues, streams, exchanges, all)")
+                    .value_parser(value_parser!(PolicyTarget))
                     .required(true),
             )
             .arg(
@@ -1070,7 +1071,8 @@ fn policies_subcommands() -> [Command; 5] {
             Arg::new("type")
                 .long("type")
                 .value_parser(value_parser!(PolicyTarget))
-                .required(true),
+                .required(true)
+                .help("target type, one of 'queues', 'streams', 'exchanges'"),
         );
 
     [

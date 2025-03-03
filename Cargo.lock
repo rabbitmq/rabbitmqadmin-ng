@@ -1447,7 +1447,7 @@ dependencies = [
 [[package]]
 name = "rabbitmq_http_client"
 version = "0.25.0"
-source = "git+https://github.com/michaelklishin/rabbitmq-http-api-rs.git#25038a8e6951df7ac4d7af8c0b3d866101af4167"
+source = "git+https://github.com/michaelklishin/rabbitmq-http-api-rs.git#a30d2cfea62da9e1db93402c4bc6355cc9a39a21"
 dependencies = [
  "backtrace",
  "percent-encoding",
@@ -2145,9 +2145,9 @@ dependencies = [
 
 [[package]]
 name = "tinyvec"
-version = "1.8.1"
+version = "1.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "022db8904dfa342efe721985167e9fcd16c29b226db4397ed752a761cfce81e8"
+checksum = "09b3661f17e86524eccd4371ab0429194e0d7c008abb45f7a7495b1719463c71"
 dependencies = [
  "tinyvec_macros",
 ]
