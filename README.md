@@ -4,7 +4,7 @@
 that target the [HTTP API](https://www.rabbitmq.com/docs/management#http-api).
 
 If you are migrating from the original `rabbitqadmin`, please see [Breaking or Potentially Breaking Changes](#breaking-or-potentially-breaking-changes)
-to learn about a the breaking changes in the command line interface.
+to learn about the breaking changes in the command line interface.
 
 The general "shape and feel" of the interface is still very similar to `rabbitmqadmin` v1.
 
@@ -63,6 +63,7 @@ Commands:
   declare              creates or declares things
   delete               deletes objects
   purge                purges queues
+  policies             operations on policies
   health_check         runs health checks
   close                closes connections
   rebalance            rebalances queue leaders
@@ -76,6 +77,7 @@ Commands:
   shovels              Operations on shovels
   tanzu                Tanzu RabbitMQ-specific commands
   help                 Print this message or the help of the given subcommand(s)
+
 ```
 
 To explore commands in a specific group, use
