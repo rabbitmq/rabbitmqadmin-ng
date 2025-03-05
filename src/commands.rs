@@ -131,7 +131,7 @@ pub fn list_matching_policies_in(
     let candidates = list_policies_in_and_applying_to(client, vhost, typ.clone())?;
     let matching = candidates
         .iter()
-        .filter(|&pol| pol.does_match(name, typ.clone()))
+        .filter(|&pol| pol.does_match_name(vhost, name, typ.clone()))
         .cloned()
         .collect();
 
