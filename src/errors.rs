@@ -73,6 +73,8 @@ pub enum CommandRunError {
     ConflictingOptions { message: String },
     #[error("{message}")]
     MissingOptions { message: String },
+    #[error("Unsupported argument value for property (field) {property}")]
+    UnsupportedArgumentValue { property: String },
     #[error("This request produces an invalid HTTP header value")]
     InvalidHeaderValue { error: InvalidHeaderValue },
     #[error("encountered an error when performing an HTTP request")]
@@ -90,6 +92,9 @@ impl From<std::io::Error> for CommandRunError {
 impl From<HttpClientError> for CommandRunError {
     fn from(value: HttpClientError) -> Self {
         match value {
+            ApiClientError::UnsupportedArgumentValue { property } => {
+                Self::UnsupportedArgumentValue { property }
+            }
             ApiClientError::ClientErrorResponse { status_code, url, body, headers, .. } => {
                 Self::ClientError { status_code, url, body, headers }
             },

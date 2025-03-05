@@ -533,7 +533,8 @@ fn declare_subcommands() -> [Command; 12] {
                     .long("type")
                     .help("queue type")
                     .value_parser(value_parser!(QueueType))
-                    .required(false),
+                    .required(false)
+                    .default_value("classic"),
             )
             .arg(
                 Arg::new("durable")

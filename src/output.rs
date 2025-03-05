@@ -381,6 +381,7 @@ impl<'a> ResultHandler<'a> {
 // We cannot implement From<T> for two types in other crates, so…
 pub(crate) fn client_error_to_exit_code(error: &HttpClientError) -> ExitCode {
     match error {
+        ClientError::UnsupportedArgumentValue { .. } => ExitCode::DataErr,
         ClientError::ClientErrorResponse { .. } => ExitCode::DataErr,
         ClientError::ServerErrorResponse { .. } => ExitCode::Unavailable,
         ClientError::HealthCheckFailed { .. } => ExitCode::Unavailable,
