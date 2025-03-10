@@ -25,8 +25,12 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 use sysexits::ExitCode;
 use tabled::settings::object::Rows;
+
 use tabled::settings::{Panel, Remove, Style};
-use tabled::{Table, Tabled};
+use tabled::{
+    Table, Tabled,
+    settings::{Format, Modify, object::Segment},
+};
 
 #[derive(Default, Serialize, Deserialize, Debug, PartialEq, Eq, Clone, Copy)]
 pub enum TableStyle {
@@ -111,7 +115,9 @@ impl TableStyler {
 
     fn apply_borderless(self, table: &mut Table) -> &Table {
         table.with(Style::empty());
-        table.with(Remove::row(Rows::first()))
+        table.with(tabled::settings::Padding::new(0, 1, 0, 0));
+        table.with(Remove::row(Rows::first()));
+        table.with(Modify::new(Segment::all()).with(Format::content(|s| s.replace("\n", ","))))
     }
 
     fn apply_markdown(self, table: &mut Table) -> &Table {
