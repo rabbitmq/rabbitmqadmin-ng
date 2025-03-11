@@ -17,7 +17,7 @@ use super::constants::*;
 use super::static_urls::*;
 use super::tanzu_cli::tanzu_subcommands;
 use crate::output::TableStyle;
-use clap::{Arg, ArgAction, ArgGroup, Command, value_parser};
+use clap::{value_parser, Arg, ArgAction, ArgGroup, Command};
 use rabbitmq_http_client::commons::{
     BindingDestinationType, ExchangeType, PolicyTarget, QueueType, ShovelAcknowledgementMode,
     SupportedProtocol,
@@ -1187,6 +1187,20 @@ fn definitions_subcommands() -> [Command; 4] {
                 .help("output file path or '-' for standard output")
                 .required(false)
                 .default_value("-"),
+        )
+        .arg(
+            Arg::new("transformations")
+                .long("transformations")
+                .short('t')
+                .long_help(r#"
+Comma-separated names of the transformations to apply to the definitions.
+
+Supported names: strip_cmq_policies"
+                "#)
+                .num_args(1..)
+                .value_delimiter(',')
+                .action(ArgAction::Append)
+                .required(false),
         );
 
     let export_from_vhost_cmd = Command::new("export_from_vhost")
