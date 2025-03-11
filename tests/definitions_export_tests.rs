@@ -47,31 +47,48 @@ fn test_export_vhost_definitions() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn test_export_cluster_wide_definitions_with_transformations_case1() -> Result<(), Box<dyn std::error::Error>> {
+fn test_export_cluster_wide_definitions_with_transformations_case1()
+-> Result<(), Box<dyn std::error::Error>> {
     let vh = "test_export_cluster_definitions.transformations.1";
     delete_vhost(vh).expect("failed to delete a virtual host");
     run_succeeds(["declare", "vhost", "--name", vh]);
 
     let p1 = "test_export_cluster_definitions.1";
     run_succeeds([
-        "--vhost", vh,
-        "declare", "policy",
-        "--name", p1,
-        "--pattern", "^matching\\..+", "--apply-to", "classic_queues", "--priority", "10",
-        "--definition", "{\"max-length\": 10}"]);
+        "--vhost",
+        vh,
+        "declare",
+        "policy",
+        "--name",
+        p1,
+        "--pattern",
+        "^matching\\..+",
+        "--apply-to",
+        "classic_queues",
+        "--priority",
+        "10",
+        "--definition",
+        "{\"max-length\": 10}",
+    ]);
 
     let q = "qq.test_export_cluster_definitions.1";
     run_succeeds([
         "-V", vh, "declare", "queue", "--name", q, "--type", "quorum",
     ]);
 
-    run_succeeds(["--vhost", vh, "definitions", "export"])
-        .stdout(predicate::str::contains(p1));
+    run_succeeds(["--vhost", vh, "definitions", "export"]).stdout(predicate::str::contains(p1));
     // These two cannot be tested on 4.x: empty definitions will be rejected
     // by validation and CMQ keys are no longer recognized as known/valid.
     // But at least we can test the code path this way.
-    run_succeeds(["--vhost", vh, "definitions", "export", "--transformations", "strip_cmq_keys_from_policies,drop_empty_policies"])
-        .stdout(predicate::str::contains(p1));
+    run_succeeds([
+        "--vhost",
+        vh,
+        "definitions",
+        "export",
+        "--transformations",
+        "strip_cmq_keys_from_policies,drop_empty_policies",
+    ])
+    .stdout(predicate::str::contains(p1));
 
     delete_vhost(vh).expect("failed to delete a virtual host");
 

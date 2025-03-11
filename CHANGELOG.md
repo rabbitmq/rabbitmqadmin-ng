@@ -1,8 +1,31 @@
 # rabbitmqadmin-ng Change Log
 
-## v0.27.0 (in development)
+## v0.28.0 (in development)
 
 No changes yet.
+
+
+## v0.27.0 (Mar 10, 2025)
+
+### Enhancements
+
+ * `definitions export` now supports a new flag, `--transformations`, a comma-separated list of
+   supported operations to apply to the definitions.
+
+   ```shell
+   rabbitmqadmin definitions export --transformations strip_cmq_keys_from_policies,drop_empty_policies
+   ```
+
+   The command above applies two transformations named `strip_cmq_keys_from_policies` and `drop_empty_policies`
+   that will strip all classic queue mirroring-related policy keys that RabbitMQ 3.13 nodes supported,
+   then removes policies that did not have any other keys (ended up having an empty definition).
+
+ * When `--non-interactive` mode is used, newlines in table cells are now replaced with comma-separated lists
+
+### Bug Fixes
+
+ * 'declare queue's `--type` flag value that the tool does not recognize are now passed as is to
+   the HTTP API
 
 
 ## v0.26.0 (Mar 3, 2025)
