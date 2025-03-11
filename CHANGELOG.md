@@ -9,7 +9,7 @@ No changes yet.
 
 ### Enhancements
 
- * `definitions export` now supports a new flag, `--transformations`, a comma-separated list of
+ * `definitions export` now supports a new option, `--transformations`, a comma-separated list of
    supported operations to apply to the definitions.
 
    ```shell
