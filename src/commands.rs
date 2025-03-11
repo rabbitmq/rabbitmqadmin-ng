@@ -21,8 +21,8 @@ use rabbitmq_http_client::commons::{ExchangeType, SupportedProtocol};
 use rabbitmq_http_client::commons::{PolicyTarget, VirtualHostLimitTarget};
 use rabbitmq_http_client::commons::{ShovelAcknowledgementMode, UserLimitTarget};
 use rabbitmq_http_client::requests::{
-    Amqp091ShovelDestinationParams, Amqp091ShovelParams, Amqp091ShovelSourceParams,
     Amqp10ShovelDestinationParams, Amqp10ShovelParams, Amqp10ShovelSourceParams,
+    Amqp091ShovelDestinationParams, Amqp091ShovelParams, Amqp091ShovelSourceParams,
     EnforcedLimitParams,
 };
 use std::fs;
@@ -918,7 +918,7 @@ pub fn export_cluster_wide_definitions(
     } else {
         let transformations = transformations
             .into_iter()
-            .map(|t| String::from(t))
+            .map(String::from)
             .collect::<Vec<_>>();
         export_and_transform_cluster_wide_definitions(client, command_args, transformations)
     }
