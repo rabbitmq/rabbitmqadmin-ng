@@ -18,7 +18,7 @@ No changes yet.
 
    The command above applies two transformations named `strip_cmq_keys_from_policies` and `drop_empty_policies`
    that will strip all classic queue mirroring-related policy keys that RabbitMQ 3.13 nodes supported,
-   then removes policies that did not have any other keys (ended up having an empty definition).
+   then removes the policies that did not have any keys left (ended up having an empty definition).
 
  * When `--non-interactive` mode is used, newlines in table cells are now replaced with comma-separated lists
 
