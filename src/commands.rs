@@ -30,6 +30,7 @@ use std::process;
 
 use rabbitmq_http_client::commons::BindingDestinationType;
 use rabbitmq_http_client::commons::QueueType;
+use rabbitmq_http_client::transformers::TransformationChain;
 use rabbitmq_http_client::{password_hashing, requests, responses};
 
 type APIClient<'a> = Client<&'a str, &'a str, &'a str>;
@@ -905,6 +906,52 @@ pub fn rebalance_queues(client: APIClient) -> ClientResult<()> {
 }
 
 pub fn export_cluster_wide_definitions(
+    client: APIClient,
+    command_args: &ArgMatches,
+) -> ClientResult<()> {
+    let transformations = command_args
+        .get_many::<String>("transformations")
+        .unwrap_or_default();
+
+    if transformations.len() == 0 {
+        export_cluster_wide_definitions_without_transformations(client, command_args)
+    } else {
+        let transformations = transformations
+            .into_iter()
+            .map(String::from)
+            .collect::<Vec<_>>();
+        export_and_transform_cluster_wide_definitions(client, command_args, transformations)
+    }
+}
+
+fn export_and_transform_cluster_wide_definitions(
+    client: APIClient,
+    command_args: &ArgMatches,
+    transformations: Vec<String>,
+) -> ClientResult<()> {
+    match client.export_cluster_wide_definitions_as_data() {
+        Ok(mut defs0) => {
+            let chain = TransformationChain::from(transformations);
+            let defs1 = chain.apply(&mut defs0);
+            let json = serde_json::to_string_pretty(&defs1).unwrap();
+
+            let path = command_args.get_one::<String>("file").unwrap();
+            match path.as_str() {
+                "-" => {
+                    println!("{}", &json);
+                    Ok(())
+                }
+                file => {
+                    _ = fs::write(file, &json);
+                    Ok(())
+                }
+            }
+        }
+        Err(err) => Err(err),
+    }
+}
+
+fn export_cluster_wide_definitions_without_transformations(
     client: APIClient,
     command_args: &ArgMatches,
 ) -> ClientResult<()> {

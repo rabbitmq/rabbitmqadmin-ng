@@ -1187,6 +1187,22 @@ fn definitions_subcommands() -> [Command; 4] {
                 .help("output file path or '-' for standard output")
                 .required(false)
                 .default_value("-"),
+        )
+        .arg(
+            Arg::new("transformations")
+                .long("transformations")
+                .short('t')
+                .long_help(
+                    r#"
+Comma-separated names of the transformations to apply to the definitions.
+
+Supported names: strip_cmq_policies"
+                "#,
+                )
+                .num_args(1..)
+                .value_delimiter(',')
+                .action(ArgAction::Append)
+                .required(false),
         );
 
     let export_from_vhost_cmd = Command::new("export_from_vhost")
