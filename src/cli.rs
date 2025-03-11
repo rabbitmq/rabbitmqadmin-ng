@@ -1198,10 +1198,10 @@ A comma-separated list of names of the definition transformations to apply.
 
 Supported transformations:
 
- * strip_cmq_policies
+ * strip_cmq_keys_from_policies
  * drop_empty_policies
 
-Example use: --transformations strip_cmq_policies,drop_empty_policies
+Example use: --transformations strip_cmq_keys_from_policies,drop_empty_policies
                 "#,
                 )
                 .num_args(1..)
@@ -1259,7 +1259,7 @@ Example use: --transformations strip_cmq_policies,drop_empty_policies
 }
 
 fn export_subcommands() -> [Command; 1] {
-    [Command::new("definitions")
+    let definitions = Command::new("definitions")
         .about("prefer 'definitions export'")
         .after_long_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
@@ -1271,7 +1271,28 @@ fn export_subcommands() -> [Command; 1] {
                 .help("output path")
                 .required(false)
                 .default_value("-"),
-        )]
+        ).arg(
+        Arg::new("transformations")
+            .long("transformations")
+            .short('t')
+            .long_help(
+                r#"
+A comma-separated list of names of the definition transformations to apply.
+
+Supported transformations:
+
+ * strip_cmq_keys_from_policies
+ * drop_empty_policies
+
+Example use: --transformations strip_cmq_keys_from_policies,drop_empty_policies
+                "#,
+            )
+            .num_args(1..)
+            .value_delimiter(',')
+            .action(ArgAction::Append)
+            .required(false),
+    );
+    [definitions]
 }
 
 fn import_subcommands() -> [Command; 1] {
