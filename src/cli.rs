@@ -1194,9 +1194,14 @@ fn definitions_subcommands() -> [Command; 4] {
                 .short('t')
                 .long_help(
                     r#"
-Comma-separated names of the transformations to apply to the definitions.
+A comma-separated list of names of the definition transformations to apply.
 
-Supported names: strip_cmq_policies"
+Supported transformations:
+
+ * strip_cmq_policies
+ * drop_empty_policies
+
+Example use: --transformations strip_cmq_policies,drop_empty_policies
                 "#,
                 )
                 .num_args(1..)
