@@ -1447,7 +1447,8 @@ dependencies = [
 [[package]]
 name = "rabbitmq_http_client"
 version = "0.27.0"
-source = "git+https://github.com/michaelklishin/rabbitmq-http-api-rs.git#40feb47becafb69ba8e4507a4bdc4e7aa003765e"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "46a7715ec89df923d0bc4f94358bfdd93e9ff714d3b006f284f5be6711e23db4"
 dependencies = [
  "backtrace",
  "percent-encoding",
@@ -1467,7 +1468,7 @@ dependencies = [
 
 [[package]]
 name = "rabbitmqadmin"
-version = "0.27.0"
+version = "0.27.1"
 dependencies = [
  "assert_cmd",
  "clap",
