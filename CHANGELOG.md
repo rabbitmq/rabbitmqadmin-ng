@@ -24,7 +24,7 @@ No changes yet.
 
 ### Bug Fixes
 
- * 'declare queue's `--type` flag value that the tool does not recognize are now passed as is to
+ * 'declare queue's `--type` option values that the tool does not recognize are now passed as is to
    the HTTP API
 
 
