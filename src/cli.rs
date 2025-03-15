@@ -1200,8 +1200,16 @@ Supported transformations:
 
  * strip_cmq_keys_from_policies
  * drop_empty_policies
+ * exclude_users
+ * exclude_permissions
+ * exclude_runtime_parameters
+ * exclude_policies
 
-Example use: --transformations strip_cmq_keys_from_policies,drop_empty_policies
+Examples:
+
+ * --transformations strip_cmq_keys_from_policies,drop_empty_policies
+ * --transformations exclude_users,exclude_permissions
+ * --transformations exclude_runtime_parameters,exclude_policies
                 "#,
                 )
                 .num_args(1..)
