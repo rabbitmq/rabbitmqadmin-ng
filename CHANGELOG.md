@@ -2,8 +2,12 @@
 
 ## v0.28.0 (in development)
 
-No changes yet.
+### Enhancements
 
+ * New definitions export `--transformations` value, `exclude_users`, removes users from the result
+ * New definitions export `--transformations` value, `exclude_permissions`, removes all permissions
+ * New definitions export `--transformations` value, `exclude_runtime_parameters`, removes all runtime parameters
+ * New definitions export `--transformations` value, `exclude_policies`, removes all policies
 
 ## v0.27.0 (Mar 10, 2025)
 
@@ -58,7 +62,7 @@ No changes yet.
    rabbitmqadmin --vhost "streams.vhost" policies list_in --apply-to "streams"
    ```
 
- * `policies list_matching_object` is a new command that lists all policies that 
+ * `policies list_matching_object` is a new command that lists all policies that
    would match an object (a queue, a stream, an exchange)
    with a given name:
 
@@ -68,7 +72,7 @@ No changes yet.
 
 ### Bug Fixes
 
- * `declare policy`'s `--apply-to` argument value was ignored 
+ * `declare policy`'s `--apply-to` argument value was ignored
 
 
 
@@ -203,7 +207,7 @@ No changes yet.
 ### Bug Fixes
 
  * `list connections` now correctly handles RabbitMQ Stream Protocol
-   connections that do not have the `channel_max` metric set 
+   connections that do not have the `channel_max` metric set
 
 ### Enhancements
 
@@ -323,7 +327,7 @@ No changes yet.
 
   Note that there are [two different supported strategies](https://www.rabbitmq.com/docs/memory-use#strategies) for computing memory footprint of a node.  RabbitMQ uses both and takes the greater value for 100% when computing the relative
   share in percent for each category. Other factors that can affect the precision of percentage values reported  are [runtime allocator](https://www.rabbitmq.com/docs/memory-use#preallocated-memory) behavior nuances and the [kernel page cache](https://www.rabbitmq.com/docs/memory-use#page-cache).
-   
+
 
 
 ## v0.18.0 (Jan 1, 2025)
@@ -379,7 +383,7 @@ No changes yet.
 
  * `rabbitmqadmin feature_flags list` (also available as `rabbitmqadmin list feature_flags`) is a new command
     that lists [feature flags](https://www.rabbitmq.com/docs/feature-flags) and their cluster state.
- 
+
     GitHub issue: [#38](https://github.com/rabbitmq/rabbitmqadmin-ng/issues/38)
 
 * `rabbitmqadmin feature_flags enable --name {feature flag}` and `rabbitmqadmin feature_flags enable_all` are new commands
@@ -411,8 +415,8 @@ No changes yet.
    A failed HTTP API request now prints the request URL (this does NOT include the credentials),
    and the response body, making it easier to identify the problem without consulting [RabbitMQ node logs](https://www.rabbitmq.com/docs/management#http-logging).
 
- * CLI interface `help` message polishing. 
-   
+ * CLI interface `help` message polishing.
+
    More commands now provide links to the relevant documentation guides,
    use (a reasonable amount of) coloring and recommend against features such as that are
    [polling message consumption]((https://www.rabbitmq.com/docs/consumers#polling)) that were never designed or intended to be used in production
@@ -436,7 +440,7 @@ No changes yet.
 
    GitHub issues: [#33](https://github.com/rabbitmq/rabbitmqadmin-ng/issues/33), [#34](https://github.com/rabbitmq/rabbitmqadmin-ng/issues/34).
 
- * `health_check help` now includes a link to the respective RabbitMQ documentation guide. 
+ * `health_check help` now includes a link to the respective RabbitMQ documentation guide.
 
 ### Bug Fixes
 
@@ -470,7 +474,7 @@ No changes yet.
 
  * Implement support for configuration files. Instead of `.ini` files used by
    `rabbitmqadmin` v1, this version uses [TOML](https://toml.io/en/).
-   
+
    GitHub issue: [#28](https://github.com/rabbitmq/rabbitmqadmin-ng/issues/28)
 
  * Implement `show overview`
