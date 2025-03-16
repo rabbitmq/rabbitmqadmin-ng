@@ -4,10 +4,16 @@
 
 ### Enhancements
 
+ * New definitions export `--transformations` value, `obfuscate_usernames`, changes usernames to dummy values
+   (e.g. so that definitions could be shared safely with external teams)
  * New definitions export `--transformations` value, `exclude_users`, removes users from the result
+   (also for safe sharing)
  * New definitions export `--transformations` value, `exclude_permissions`, removes all permissions
+   (also for safe sharing)
  * New definitions export `--transformations` value, `exclude_runtime_parameters`, removes all runtime parameters
  * New definitions export `--transformations` value, `exclude_policies`, removes all policies
+ * New definitions export `--transformations` value, `no_op`, applies no transformation
+
 
 ## v0.27.0 (Mar 10, 2025)
 
