@@ -252,6 +252,22 @@ pub fn schema_definition_sync_status(status: SchemaDefinitionSyncStatus) -> Tabl
 
 pub fn failure_details(error: &HttpClientError) -> Table {
     match error {
+        HttpClientError::MissingProperty { argument } => {
+            let message = format!("Missing value for property (field) {}", argument);
+            let data = vec![
+                RowOfTwo {
+                    key: "result",
+                    value: "request was not executed",
+                },
+                RowOfTwo {
+                    key: "message",
+                    value: &message,
+                },
+            ];
+
+            let tb = Table::builder(data);
+            tb.build()
+        }
         HttpClientError::UnsupportedArgumentValue { property } => {
             let message = format!(
                 "Unsupported argument value for property (field) {}",

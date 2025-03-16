@@ -73,6 +73,8 @@ pub enum CommandRunError {
     ConflictingOptions { message: String },
     #[error("{message}")]
     MissingOptions { message: String },
+    #[error("Missing argument value for property (field) {property}")]
+    MissingArgumentValue { property: String },
     #[error("Unsupported argument value for property (field) {property}")]
     UnsupportedArgumentValue { property: String },
     #[error("This request produces an invalid HTTP header value")]
@@ -93,26 +95,29 @@ impl From<HttpClientError> for CommandRunError {
     fn from(value: HttpClientError) -> Self {
         match value {
             ApiClientError::UnsupportedArgumentValue { property } => {
-                Self::UnsupportedArgumentValue { property }
-            }
+                        Self::UnsupportedArgumentValue { property }
+                    }
             ApiClientError::ClientErrorResponse { status_code, url, body, headers, .. } => {
-                Self::ClientError { status_code, url, body, headers }
-            },
+                        Self::ClientError { status_code, url, body, headers }
+                    },
             ApiClientError::ServerErrorResponse { status_code, url, body, headers, .. } => {
-                Self::ServerError { status_code, url, body, headers }
-            },
+                        Self::ServerError { status_code, url, body, headers }
+                    },
             ApiClientError::HealthCheckFailed { path, details, status_code } => {
-                Self::HealthCheckFailed { health_check_path: path, details, status_code }
-            },
+                        Self::HealthCheckFailed { health_check_path: path, details, status_code }
+                    },
             ApiClientError::NotFound => Self::NotFound,
             ApiClientError::MultipleMatchingBindings => Self::ConflictingOptions {
-                message: "multiple bindings match, cannot determine which binding to delete without explicitly provided binding properties".to_owned()
-            },
+                        message: "multiple bindings match, cannot determine which binding to delete without explicitly provided binding properties".to_owned()
+                    },
             ApiClientError::InvalidHeaderValue { error } => {
-                Self::InvalidHeaderValue { error }
-            },
+                        Self::InvalidHeaderValue { error }
+                    },
             ApiClientError::RequestError { error, .. } => Self::RequestError { error },
             ApiClientError::Other => Self::Other,
+            ApiClientError::MissingProperty { argument } => {
+                Self::MissingArgumentValue { property: argument }
+            },
         }
     }
 }

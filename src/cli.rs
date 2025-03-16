@@ -19,8 +19,8 @@ use super::tanzu_cli::tanzu_subcommands;
 use crate::output::TableStyle;
 use clap::{Arg, ArgAction, ArgGroup, Command, value_parser};
 use rabbitmq_http_client::commons::{
-    BindingDestinationType, ExchangeType, PolicyTarget, QueueType, ShovelAcknowledgementMode,
-    SupportedProtocol,
+    BindingDestinationType, ExchangeType, MessageTransferAcknowledgementMode, PolicyTarget,
+    QueueType, SupportedProtocol,
 };
 
 pub fn parser() -> Command {
@@ -1468,7 +1468,7 @@ pub fn shovel_subcommands() -> [Command; 4] {
                 .long("ack-mode")
                 .help("One of: on-confirm, on-publish, no-ack")
                 .default_value("on-confirm")
-                .value_parser(value_parser!(ShovelAcknowledgementMode)),
+                .value_parser(value_parser!(MessageTransferAcknowledgementMode)),
         )
         .arg(
             Arg::new("source_queue")
@@ -1558,7 +1558,7 @@ pub fn shovel_subcommands() -> [Command; 4] {
                 .long("ack-mode")
                 .help("One of: on-confirm, on-publish, no-ack")
                 .default_value("on-confirm")
-                .value_parser(value_parser!(ShovelAcknowledgementMode)),
+                .value_parser(value_parser!(MessageTransferAcknowledgementMode)),
         )
         .arg(Arg::new("source_address").long("source-address"))
         .arg(Arg::new("destination_address").long("destination-address"))

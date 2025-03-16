@@ -18,8 +18,8 @@ use rabbitmq_http_client::blocking_api::Client;
 use rabbitmq_http_client::blocking_api::Result as ClientResult;
 use rabbitmq_http_client::commons;
 use rabbitmq_http_client::commons::{ExchangeType, SupportedProtocol};
+use rabbitmq_http_client::commons::{MessageTransferAcknowledgementMode, UserLimitTarget};
 use rabbitmq_http_client::commons::{PolicyTarget, VirtualHostLimitTarget};
-use rabbitmq_http_client::commons::{ShovelAcknowledgementMode, UserLimitTarget};
 use rabbitmq_http_client::requests::{
     Amqp10ShovelDestinationParams, Amqp10ShovelParams, Amqp10ShovelSourceParams,
     Amqp091ShovelDestinationParams, Amqp091ShovelParams, Amqp091ShovelSourceParams,
@@ -210,7 +210,7 @@ pub fn declare_amqp10_shovel(
         .unwrap();
 
     let ack_mode = command_args
-        .get_one::<ShovelAcknowledgementMode>("ack_mode")
+        .get_one::<MessageTransferAcknowledgementMode>("ack_mode")
         .cloned()
         .unwrap();
     let reconnect_delay = command_args
@@ -256,7 +256,7 @@ pub fn declare_amqp091_shovel(
         .unwrap();
 
     let ack_mode = command_args
-        .get_one::<ShovelAcknowledgementMode>("ack_mode")
+        .get_one::<MessageTransferAcknowledgementMode>("ack_mode")
         .cloned()
         .unwrap();
     let reconnect_delay = command_args
