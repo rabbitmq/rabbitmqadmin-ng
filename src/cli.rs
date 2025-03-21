@@ -17,11 +17,12 @@ use super::constants::*;
 use super::static_urls::*;
 use super::tanzu_cli::tanzu_subcommands;
 use crate::output::TableStyle;
-use clap::{Arg, ArgAction, ArgGroup, Command, value_parser};
+use clap::{value_parser, Arg, ArgAction, ArgGroup, Command};
 use rabbitmq_http_client::commons::{
     BindingDestinationType, ExchangeType, MessageTransferAcknowledgementMode, PolicyTarget,
     QueueType, SupportedProtocol,
 };
+use rabbitmq_http_client::requests::FederationResourceCleanupMode;
 
 pub fn parser() -> Command {
     let after_help = color_print::cformat!(
@@ -205,39 +206,39 @@ pub fn parser() -> Command {
         .subcommand_required(true)
         .subcommand_value_name("command")
         .subcommands([
-            Command::new("show")
-                .about("overview")
-                .after_long_help(color_print::cformat!(
+                         Command::new("show")
+                             .about("overview")
+                             .after_long_help(color_print::cformat!(
                     "<bold>Doc guide</bold>: {}",
                     MONITORING_GUIDE_URL
                 ))
-                .subcommand_value_name("summary")
-                .subcommands(show_subcommands()),
-            Command::new("list")
-                .about("lists objects by type")
-                .subcommand_value_name("objects")
-                .subcommands(list_subcommands()),
-            Command::new("declare")
-                .about("creates or declares things")
-                .subcommand_value_name("object")
-                .subcommands(declare_subcommands()),
-            Command::new("delete")
-                .about("deletes objects")
-                .subcommand_value_name("object")
-                .subcommands(delete_subcommands()),
-            Command::new("purge")
-                .about("purges queues")
-                .subcommand_value_name("queue")
-                .subcommands(purge_subcommands()),
-            Command::new("policies")
-                .about("operations on policies")
-                .subcommand_value_name("policy")
-                .subcommands(policies_subcommands()),
-            Command::new("health_check")
-                .about("runs health checks")
-                .subcommand_value_name("check")
-                .subcommands(health_check_subcommands())
-                .after_long_help(color_print::cformat!(
+                             .subcommand_value_name("summary")
+                             .subcommands(show_subcommands()),
+                         Command::new("list")
+                             .about("lists objects by type")
+                             .subcommand_value_name("objects")
+                             .subcommands(list_subcommands()),
+                         Command::new("declare")
+                             .about("creates or declares things")
+                             .subcommand_value_name("object")
+                             .subcommands(declare_subcommands()),
+                         Command::new("delete")
+                             .about("deletes objects")
+                             .subcommand_value_name("object")
+                             .subcommands(delete_subcommands()),
+                         Command::new("purge")
+                             .about("purges queues")
+                             .subcommand_value_name("queue")
+                             .subcommands(purge_subcommands()),
+                         Command::new("policies")
+                             .about("operations on policies")
+                             .subcommand_value_name("policy")
+                             .subcommands(policies_subcommands()),
+                         Command::new("health_check")
+                             .about("runs health checks")
+                             .subcommand_value_name("check")
+                             .subcommands(health_check_subcommands())
+                             .after_long_help(color_print::cformat!(
                     r#"<bold>Doc guides</bold>:
 
  * {}
@@ -245,79 +246,94 @@ pub fn parser() -> Command {
                     HEALTH_CHECK_GUIDE_URL,
                     DEPRECATED_FEATURE_GUIDE_URL
                 )),
-            Command::new("close")
-                .about("closes connections")
-                .subcommand_value_name("connection")
-                .subcommands(close_subcommands()),
-            Command::new("rebalance")
-                .about("rebalances queue leaders")
-                .after_long_help(color_print::cformat!(
+                         Command::new("close")
+                             .about("closes connections")
+                             .subcommand_value_name("connection")
+                             .subcommands(close_subcommands()),
+                         Command::new("rebalance")
+                             .about("rebalances queue leaders")
+                             .after_long_help(color_print::cformat!(
                     "<bold>Doc guide</bold>: {}",
                     QUORUM_QUEUE_GUIDE_URL
                 ))
-                .subcommand_value_name("queues")
-                .subcommands(rebalance_subcommands()),
-            Command::new("definitions")
-                .about("operations on definitions (everything except for messages: virtual hosts, queues, streams, exchanges, bindings, users, etc)")
-                .after_long_help(color_print::cformat!(
+                             .subcommand_value_name("queues")
+                             .subcommands(rebalance_subcommands()),
+                         Command::new("definitions")
+                             .about("operations on definitions (everything except for messages: virtual hosts, queues, streams, exchanges, bindings, users, etc)")
+                             .after_long_help(color_print::cformat!(
                     "<bold>Doc guide</bold>: {}",
                     DEFINITION_GUIDE_URL
                 ))
-                .subcommand_value_name("export")
-                .subcommands(definitions_subcommands()),
-            Command::new("export")
-                .about("see 'definitions export'")
-                .after_long_help(color_print::cformat!(
+                             .subcommand_value_name("export")
+                             .subcommands(definitions_subcommands()),
+                         Command::new("export")
+                             .about("see 'definitions export'")
+                             .after_long_help(color_print::cformat!(
                     "<bold>Doc guide</bold>: {}",
                     DEFINITION_GUIDE_URL
                 ))
-                .subcommand_value_name("definitions")
-                .subcommands(export_subcommands()),
-            Command::new("import")
-                .about("see 'definitions import'")
-                .after_long_help(color_print::cformat!(
+                             .subcommand_value_name("definitions")
+                             .subcommands(export_subcommands()),
+                         Command::new("import")
+                             .about("see 'definitions import'")
+                             .after_long_help(color_print::cformat!(
                     "<bold>Doc guide</bold>: {}",
                     DEFINITION_GUIDE_URL
                 ))
-                .subcommand_value_name("definitions")
-                .subcommands(import_subcommands()),
-            Command::new("feature_flags")
-                .about("operations on feature flags")
-                .after_long_help(color_print::cformat!(
+                             .subcommand_value_name("definitions")
+                             .subcommands(import_subcommands()),
+                         Command::new("feature_flags")
+                             .about("operations on feature flags")
+                             .after_long_help(color_print::cformat!(
                     "<bold>Doc guide</bold>: {}",
                     FEATURE_FLAG_GUIDE_URL
                 ))
-                .subcommand_value_name("feature flag")
-                .subcommands(feature_flags_subcommands()),
-            Command::new("deprecated_features")
-                .about("operations on deprecated features")
-                .after_long_help(color_print::cformat!(
+                             .subcommand_value_name("feature flag")
+                             .subcommands(feature_flags_subcommands()),
+                         Command::new("deprecated_features")
+                             .about("operations on deprecated features")
+                             .after_long_help(color_print::cformat!(
                     "<bold>Doc guide</bold>: {}",
                     DEPRECATED_FEATURE_GUIDE_URL
                 ))
-                .subcommand_value_name("deprecated feature")
-                .subcommands(deprecated_features_subcommands()),
-            Command::new("publish")
-                .about(color_print::cstr!("publishes (<red>inefficiently</red>) message(s) to a queue or a stream. <bold><red>Only suitable for development and test environments</red></bold>."))
-                .after_long_help(color_print::cformat!("<bold>Doc guide</bold>: {}", PUBLISHER_GUIDE_URL))
-                .subcommand_value_name("message")
-                .subcommands(publish_subcommands()),
-            Command::new("get")
-                .about(color_print::cstr!("fetches message(s) from a queue or stream via <bold><red>polling</red></bold>. <bold><red>Only suitable for development and test environments</red></bold>."))
-                .after_long_help(color_print::cformat!("<bold>Doc guide</bold>: {}", POLLING_CONSUMER_GUIDE_URL))
-                .subcommand_value_name("message")
-                .subcommands(get_subcommands()),
-            Command::new("shovels")
-                .about("Operations on shovels")
-                .after_long_help(color_print::cformat!("<bold>Doc guide</bold>: {}", SHOVEL_GUIDE_URL))
-                .subcommand_value_name("shovels")
-                .subcommands(shovel_subcommands()),
-            Command::new("tanzu")
-                .about("Tanzu RabbitMQ-specific commands")
-                // TODO: documentation link
-                .subcommand_value_name("subcommand")
-                .subcommands(tanzu_subcommands()),
-        ])
+                             .subcommand_value_name("deprecated feature")
+                             .subcommands(deprecated_features_subcommands()),
+                         Command::new("publish")
+                             .about(color_print::cstr!("publishes (<red>inefficiently</red>) message(s) to a queue or a stream. <bold><red>Only suitable for development and test environments</red></bold>."))
+                             .after_long_help(color_print::cformat!("<bold>Doc guide</bold>: {}", PUBLISHER_GUIDE_URL))
+                             .subcommand_value_name("message")
+                             .subcommands(publish_subcommands()),
+                         Command::new("get")
+                             .about(color_print::cstr!("fetches message(s) from a queue or stream via <bold><red>polling</red></bold>. <bold><red>Only suitable for development and test environments</red></bold>."))
+                             .after_long_help(color_print::cformat!("<bold>Doc guide</bold>: {}", POLLING_CONSUMER_GUIDE_URL))
+                             .subcommand_value_name("message")
+                             .subcommands(get_subcommands()),
+                         Command::new("shovels")
+                             .about("Operations on shovels")
+                             .after_long_help(color_print::cformat!("<bold>Doc guide</bold>: {}", SHOVEL_GUIDE_URL))
+                             .subcommand_value_name("shovels")
+                             .subcommands(shovel_subcommands()),
+                         Command::new("federation")
+                             .about("Operations on federation upstreams and links")
+                             .after_long_help(color_print::cformat!(
+                    r#"<bold>Doc guides</bold>:
+
+ * {}
+ * {}
+ * {}
+ * {}"#,
+                    FEDERATION_GUIDE_URL,
+                    FEDERATED_EXCHANGES_GUIDE_URL,
+                    FEDERATED_QUEUES_GUIDE_URL,
+                    FEDERATION_REFERENCE_URL
+                ))
+                             .subcommands(federation_subcommands()),
+                     Command::new("tanzu")
+                         .about("Tanzu RabbitMQ-specific commands")
+                         // TODO: documentation link
+                         .subcommand_value_name("subcommand")
+                         .subcommands(tanzu_subcommands()),
+                     ])
 }
 
 fn list_subcommands() -> [Command; 19] {
@@ -1583,4 +1599,291 @@ pub fn shovel_subcommands() -> [Command; 4] {
         );
 
     [list_all_cmd, declare_091_cmd, declare_10_cmd, delete_cmd]
+}
+
+fn federation_subcommands() -> [Command; 5] {
+    let list_all_upstreams = Command::new("list_all_upstreams")
+        .long_about("Lists federation upstreams in all virtual hosts")
+        .after_long_help(color_print::cformat!(
+            r#"<bold>Doc guides</bold>:
+
+ * {}
+ * {}
+ * {}"#,
+            FEDERATION_GUIDE_URL,
+            FEDERATED_EXCHANGES_GUIDE_URL,
+            FEDERATED_QUEUES_GUIDE_URL
+        ));
+
+    let declare_upstream = Command::new("declare_upstream")
+        .long_about("Declares a federation upstream")
+        .after_long_help(color_print::cformat!(
+                    r#"<bold>Doc guides</bold>:
+
+ * {}
+ * {}
+ * {}
+ * {}"#,
+                    FEDERATION_GUIDE_URL,
+                    FEDERATED_EXCHANGES_GUIDE_URL,
+                    FEDERATED_QUEUES_GUIDE_URL,
+                    FEDERATION_REFERENCE_URL
+                ))
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("upstream name (identifier)")
+                .required(true),
+        )
+        .arg(
+            Arg::new("uri")
+                .long("uri")
+                .help("the URI to use to connect to this upstream")
+                .required(true),
+        )
+        .arg(
+            Arg::new("reconnect_delay")
+                .long("reconnect-delay")
+                .default_value("5")
+                .help("Reconnection delay in seconds")
+        )
+        .arg(
+            Arg::new("trust_user_id")
+                .long("trust-user-id")
+                .default_value("true")
+                .help("If set to true, federation will pass through any validated user-id from the upstream, even though it cannot validate it")
+        )
+        .arg(
+            Arg::new("prefetch_count")
+                .long("prefetch-count")
+                .default_value("1000")
+                .help("The prefetch value to use with internal consumers")
+                .value_parser(value_parser!(u16))
+        )
+        .arg(
+            Arg::new("ack_mode")
+                .long("ack-mode")
+                .value_parser(value_parser!(MessageTransferAcknowledgementMode))
+                .help("Accepted values are: on-confirm, on-publish, no-ack")
+                .default_value("on-confirm"),
+        )
+        .arg(
+            Arg::new("queue")
+                .long("queue_name")
+                .help("queue federation: the queue name to use on the upstream. Defaults to the federated queue name")
+                .conflicts_with("exchange")
+        )
+        .arg(
+            Arg::new("consumer_tag")
+                .long("consumer_tag")
+                .help("Custom consumer tag to use for the internal federation consumer")
+                .conflicts_with("exchange")
+        )
+        .arg(
+            Arg::new("exchange")
+                .long("exchange_name")
+                .help("exchange federation: the exchange name to use on the upstream. Defaults to the federated exchange name")
+        )
+        .arg(
+            Arg::new("queue_type")
+                .long("queue-type")
+                .help("exchange federation: the type of the internal queue to use")
+                .default_value(DEFAULT_QUEUE_TYPE)
+                .help(color_print::cformat!("default queue type, one of: <bold>classic</bold>, <bright-blue>quorum</bright-blue>, <bright-magenta>stream</bright-magenta>"))
+        )
+        .arg(
+            Arg::new("max_hops")
+                .long("max_hops")
+                .default_value("1")
+                .value_parser(value_parser!(u8))
+                .conflicts_with("queue")
+        )
+        .arg(
+            Arg::new("resource_cleanup_mode")
+                .long("resource-cleanup-mode")
+                .default_value("default")
+                .value_parser(value_parser!(FederationResourceCleanupMode))
+                .conflicts_with("queue")
+        )
+        .arg(
+            Arg::new("ttl")
+                .long("ttl")
+                .long_help("exchange federation: the TTL to apply to the internal queue")
+                .value_parser(value_parser!(u32))
+        )
+        .arg(
+            Arg::new("message_ttl")
+                .long("message_ttl")
+                .long_help("exchange federation: the message TTL to use with the internal queue")
+                .value_parser(value_parser!(u32))
+        );
+
+    let declare_upstream_for_queue_federation = Command::new("declare_upstream_for_queues")
+        .long_about("Declares a federation upstream")
+        .after_long_help(color_print::cformat!(
+                    r#"<bold>Doc guides</bold>:
+
+ * {}
+ * {}
+ * {}"#,
+                    FEDERATION_GUIDE_URL,
+                    FEDERATED_QUEUES_GUIDE_URL,
+                    FEDERATION_REFERENCE_URL
+                ))
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("upstream name (identifier)")
+                .required(true),
+        )
+        .arg(
+            Arg::new("uri")
+                .long("uri")
+                .help("the URI to use to connect to this upstream")
+                .required(true),
+        )
+        .arg(
+            Arg::new("reconnect_delay")
+                .long("reconnect-delay")
+                .default_value("5")
+                .help("Reconnection delay in seconds")
+        )
+        .arg(
+            Arg::new("trust_user_id")
+                .long("trust-user-id")
+                .default_value("true")
+                .help("If set to true, federation will pass through any validated user-id from the upstream, even though it cannot validate it")
+        )
+        .arg(
+            Arg::new("prefetch_count")
+            .long("prefetch-count")
+            .default_value("1000")
+                .help("The prefetch value to use with internal consumers")
+                .value_parser(value_parser!(u16))
+        )
+        .arg(
+            Arg::new("ack_mode")
+                .long("ack-mode")
+                .value_parser(value_parser!(MessageTransferAcknowledgementMode))
+                .help("Accepted values are: on-confirm, on-publish, no-ack")
+                .default_value("on-confirm"),
+        )
+        .arg(
+            Arg::new("queue")
+                .long("queue_name")
+                .help("queue federation: the queue name to use on the upstream. Defaults to the federated queue name")
+        )
+        .arg(
+            Arg::new("consumer_tag")
+                .long("consumer_tag")
+                .help("Custom consumer tag to use for the internal federation consumer")
+        );
+
+    let declare_upstream_for_exchange_federation = Command::new("declare_upstream_for_exchanges")
+        .long_about("Declares an upstream that will be used only for exchange federation")
+        .after_long_help(color_print::cformat!(
+                    r#"<bold>Doc guides</bold>:
+
+ * {}
+ * {}
+ * {}"#,
+                    FEDERATION_GUIDE_URL,
+                    FEDERATED_EXCHANGES_GUIDE_URL,
+                    FEDERATION_REFERENCE_URL
+                ))
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("upstream name (identifier)")
+                .required(true),
+        )
+        .arg(
+            Arg::new("uri")
+                .long("uri")
+                .help("the URI to use to connect to this upstream")
+                .required(true),
+        )
+        .arg(
+            Arg::new("reconnect_delay")
+                .long("reconnect-delay")
+                .default_value("5")
+                .help("Reconnection delay in seconds")
+        )
+        .arg(
+            Arg::new("trust_user_id")
+                .long("trust-user-id")
+                .default_value("true")
+                .help("If set to true, federation will pass through any validated user-id from the upstream, even though it cannot validate it")
+        )
+        .arg(
+            Arg::new("prefetch_count")
+                .long("prefetch-count")
+                .default_value("1000")
+                .help("The prefetch value to use with internal consumers")
+                .value_parser(value_parser!(u16))
+        )
+        .arg(
+            Arg::new("ack_mode")
+                .long("ack-mode")
+                .value_parser(value_parser!(MessageTransferAcknowledgementMode))
+                .help("Accepted values are: on-confirm, on-publish, no-ack")
+                .default_value("on-confirm"),
+        )
+        .arg(
+            Arg::new("exchange")
+                .long("exchange_name")
+                .help("exchange federation: the exchange name to use on the upstream. Defaults to the federated exchange name")
+        )
+        .arg(
+            Arg::new("queue_type")
+                .long("queue-type")
+                .help("exchange federation: the type of the internal queue to use")
+                .default_value(DEFAULT_QUEUE_TYPE)
+                .help(color_print::cformat!("default queue type, one of: <bold>classic</bold>, <bright-blue>quorum</bright-blue>, <bright-magenta>stream</bright-magenta>"))
+        )
+        .arg(
+            Arg::new("max_hops")
+                .long("max_hops")
+                .default_value("1")
+                .value_parser(value_parser!(u8))
+        )
+        .arg(
+            Arg::new("resource_cleanup_mode")
+                .long("resource-cleanup-mode")
+                .default_value("default")
+                .value_parser(value_parser!(FederationResourceCleanupMode))
+        )
+        .arg(
+            Arg::new("ttl")
+                .long("ttl")
+                .long_help("exchange federation: the TTL to apply to the internal queue")
+                .value_parser(value_parser!(u32))
+        )
+        .arg(
+            Arg::new("message_ttl")
+                .long("message_ttl")
+                .long_help("exchange federation: the message TTL to use with the internal queue")
+                .value_parser(value_parser!(u32))
+        );
+
+    let delete_upstream = Command::new("delete_upstream")
+        .long_about("Declares a federation upstream")
+        .after_long_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            FEDERATION_GUIDE_URL
+        ))
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("upstream name (identifier)")
+                .required(true),
+        );
+
+    [
+        list_all_upstreams,
+        declare_upstream,
+        declare_upstream_for_exchange_federation,
+        declare_upstream_for_queue_federation,
+        delete_upstream,
+    ]
 }

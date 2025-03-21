@@ -57,3 +57,7 @@ pub(crate) const OPERATOR_POLICY_GUIDE_URL: &str =
 pub(crate) const USER_LIMIT_GUIDE_URL: &str = "https://rabbitmq.com/docs/user-limits";
 pub(crate) const PASSWORD_GUIDE_URL: &str = "https://rabbitmq.com/docs/passwords";
 pub(crate) const SHOVEL_GUIDE_URL: &str = "https://rabbitmq.com/docs/shovel";
+pub(crate) const FEDERATION_GUIDE_URL: &str = "https://rabbitmq.com/docs/federation";
+pub(crate) const FEDERATED_QUEUES_GUIDE_URL: &str = "https://rabbitmq.com/docs/federated-queues";
+pub(crate) const FEDERATED_EXCHANGES_GUIDE_URL: &str = "https://rabbitmq.com/docs/federated-exchanges";
+pub(crate) const FEDERATION_REFERENCE_URL: &str = "https://rabbitmq.com/docs/federation-reference";
