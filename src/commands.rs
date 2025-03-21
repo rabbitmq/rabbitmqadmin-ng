@@ -20,11 +20,7 @@ use rabbitmq_http_client::commons;
 use rabbitmq_http_client::commons::{ExchangeType, SupportedProtocol};
 use rabbitmq_http_client::commons::{MessageTransferAcknowledgementMode, UserLimitTarget};
 use rabbitmq_http_client::commons::{PolicyTarget, VirtualHostLimitTarget};
-use rabbitmq_http_client::requests::{
-    Amqp10ShovelDestinationParams, Amqp10ShovelParams, Amqp10ShovelSourceParams,
-    Amqp091ShovelDestinationParams, Amqp091ShovelParams, Amqp091ShovelSourceParams,
-    EnforcedLimitParams,
-};
+use rabbitmq_http_client::requests::{Amqp10ShovelDestinationParams, Amqp10ShovelParams, Amqp10ShovelSourceParams, Amqp091ShovelDestinationParams, Amqp091ShovelParams, Amqp091ShovelSourceParams, EnforcedLimitParams, FEDERATION_UPSTREAM_COMPONENT};
 use std::fs;
 use std::process;
 
@@ -362,6 +358,23 @@ pub fn delete_shovel(
     client.delete_shovel(vhost, &name, true)
 }
 
+//
+// Federation
+//
+
+pub fn list_federation_upstreams(client: APIClient) -> ClientResult<Vec<responses::FederationUpstream>> {
+    client.list_federation_upstreams()
+}
+
+pub fn delete_federation_upstream(client: APIClient, vhost: &str, command_args: &ArgMatches,) -> ClientResult<()> {
+    let name = command_args.get_one::<String>("name").cloned().unwrap();
+    client.clear_runtime_parameter(FEDERATION_UPSTREAM_COMPONENT, vhost, &name)
+}
+
+//
+// Feature flags
+//
+
 pub fn enable_feature_flag(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
     let name = command_args.get_one::<String>("name").cloned().unwrap();
     client.enable_feature_flag(&name)
@@ -370,6 +383,10 @@ pub fn enable_feature_flag(client: APIClient, command_args: &ArgMatches) -> Clie
 pub fn enable_all_stable_feature_flags(client: APIClient) -> ClientResult<()> {
     client.enable_all_stable_feature_flags()
 }
+
+//
+// Deprecated features
+//
 
 pub fn list_deprecated_features(
     client: APIClient,
@@ -382,6 +399,10 @@ pub fn list_deprecated_features_in_use(
 ) -> ClientResult<responses::DeprecatedFeatureList> {
     client.list_deprecated_features_in_use()
 }
+
+//
+// Declaration of core resources
+//
 
 pub fn declare_vhost(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
     // the flag is required
