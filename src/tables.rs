@@ -389,7 +389,10 @@ pub fn failure_details(error: &HttpClientError) -> Table {
             tb.build()
         }
         HttpClientError::IncompatibleBody { error, .. } => {
-            let reason = format!("response body is not compatible with the requested data type: {}", error);
+            let reason = format!(
+                "response body is not compatible with the requested data type: {}",
+                error
+            );
             let data = vec![
                 RowOfTwo {
                     key: "result",

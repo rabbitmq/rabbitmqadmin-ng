@@ -17,7 +17,7 @@ use super::constants::*;
 use super::static_urls::*;
 use super::tanzu_cli::tanzu_subcommands;
 use crate::output::TableStyle;
-use clap::{value_parser, Arg, ArgAction, ArgGroup, Command};
+use clap::{Arg, ArgAction, ArgGroup, Command, value_parser};
 use rabbitmq_http_client::commons::{
     BindingDestinationType, ExchangeType, MessageTransferAcknowledgementMode, PolicyTarget,
     QueueType, SupportedProtocol,
@@ -1672,20 +1672,20 @@ fn federation_subcommands() -> [Command; 5] {
         )
         .arg(
             Arg::new("queue_name")
-                .long("queue_name")
+                .long("queue-name")
                 .help("queue federation: the queue name to use on the upstream. Defaults to the federated queue name")
                 .conflicts_with("exchange")
         )
         .arg(
             Arg::new("consumer_tag")
-                .long("consumer_tag")
+                .long("consumer-tag")
                 .help("Custom consumer tag to use for the internal federation consumer")
                 .conflicts_with("exchange")
                 .requires("queue_name")
         )
         .arg(
-            Arg::new("exchange")
-                .long("exchange_name")
+            Arg::new("exchange_name")
+                .long("exchange-name")
                 .help("exchange federation: the exchange name to use on the upstream. Defaults to the federated exchange name")
         )
         .arg(
@@ -1717,7 +1717,7 @@ fn federation_subcommands() -> [Command; 5] {
         )
         .arg(
             Arg::new("message_ttl")
-                .long("message_ttl")
+                .long("message-ttl")
                 .long_help("exchange federation: the message TTL to use with the internal queue")
                 .value_parser(value_parser!(u32))
         );
@@ -1750,18 +1750,21 @@ fn federation_subcommands() -> [Command; 5] {
             Arg::new("reconnect_delay")
                 .long("reconnect-delay")
                 .default_value("5")
+                .value_parser(value_parser!(u16))
                 .help("Reconnection delay in seconds")
         )
         .arg(
             Arg::new("trust_user_id")
                 .long("trust-user-id")
                 .default_value("true")
+                .value_parser(value_parser!(bool))
                 .help("If set to true, federation will pass through any validated user-id from the upstream, even though it cannot validate it")
         )
         .arg(
             Arg::new("prefetch_count")
-            .long("prefetch-count")
-            .default_value("1000")
+                .long("prefetch-count")
+                .default_value("1000")
+                .value_parser(value_parser!(u16))
                 .help("The prefetch value to use with internal consumers")
                 .value_parser(value_parser!(u16))
         )
@@ -1774,12 +1777,12 @@ fn federation_subcommands() -> [Command; 5] {
         )
         .arg(
             Arg::new("queue_name")
-                .long("queue_name")
+                .long("queue-name")
                 .help("queue federation: the queue name to use on the upstream. Defaults to the federated queue name")
         )
         .arg(
             Arg::new("consumer_tag")
-                .long("consumer_tag")
+                .long("consumer-tag")
                 .help("Custom consumer tag to use for the internal federation consumer")
                 .requires("queue_name")
         );
@@ -1812,18 +1815,21 @@ fn federation_subcommands() -> [Command; 5] {
             Arg::new("reconnect_delay")
                 .long("reconnect-delay")
                 .default_value("5")
+                .value_parser(value_parser!(u16))
                 .help("Reconnection delay in seconds")
         )
         .arg(
             Arg::new("trust_user_id")
                 .long("trust-user-id")
                 .default_value("true")
+                .value_parser(value_parser!(bool))
                 .help("If set to true, federation will pass through any validated user-id from the upstream, even though it cannot validate it")
         )
         .arg(
             Arg::new("prefetch_count")
                 .long("prefetch-count")
                 .default_value("1000")
+                .value_parser(value_parser!(u16))
                 .help("The prefetch value to use with internal consumers")
                 .value_parser(value_parser!(u16))
         )
@@ -1835,8 +1841,8 @@ fn federation_subcommands() -> [Command; 5] {
                 .default_value("on-confirm"),
         )
         .arg(
-            Arg::new("exchange")
-                .long("exchange_name")
+            Arg::new("exchange_name")
+                .long("exchange-name")
                 .help("exchange federation: the exchange name to use on the upstream. Defaults to the federated exchange name")
         )
         .arg(
@@ -1848,7 +1854,7 @@ fn federation_subcommands() -> [Command; 5] {
         )
         .arg(
             Arg::new("max_hops")
-                .long("max_hops")
+                .long("max-hops")
                 .default_value("1")
                 .value_parser(value_parser!(u8))
         )
@@ -1866,7 +1872,7 @@ fn federation_subcommands() -> [Command; 5] {
         )
         .arg(
             Arg::new("message_ttl")
-                .long("message_ttl")
+                .long("message-ttl")
                 .long_help("exchange federation: the message TTL to use with the internal queue")
                 .value_parser(value_parser!(u32))
         );

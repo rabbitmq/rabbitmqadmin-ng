@@ -629,15 +629,31 @@ fn dispatch_common_subcommand(
         ("federation", "list_all_upstreams") => {
             let result = commands::list_federation_upstreams(client);
             res_handler.tabular_result(result)
-        },
+        }
         ("federation", "declare_upstream") => {
             let result = commands::declare_federation_upstream(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);
-        },
+        }
+        ("federation", "declare_upstream_for_queues") => {
+            let result = commands::declare_federation_upstream_for_queue_federation(
+                client,
+                &vhost,
+                second_level_args,
+            );
+            res_handler.no_output_on_success(result);
+        }
+        ("federation", "declare_upstream_for_exchanges") => {
+            let result = commands::declare_federation_upstream_for_exchange_federation(
+                client,
+                &vhost,
+                second_level_args,
+            );
+            res_handler.no_output_on_success(result);
+        }
         ("federation", "delete_upstream") => {
             let result = commands::delete_federation_upstream(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);
-        },
+        }
         ("publish", "message") => {
             let result = commands::publish_message(client, &vhost, second_level_args);
             res_handler.single_value_result(result)
