@@ -433,6 +433,10 @@ pub fn declare_federation_upstream(
         .get_one::<FederationResourceCleanupMode>("resource_cleanup_mode")
         .cloned()
         .unwrap_or_default();
+    let bind_using_nowait = command_args
+        .get_one::<bool>("bind_nowait")
+        .cloned()
+        .unwrap_or_default();
     let ttl = command_args.get_one::<u32>("ttl").cloned();
     let message_ttl = command_args.get_one::<u32>("message_ttl").cloned();
     let efp = Some(ExchangeFederationParams {
@@ -453,7 +457,7 @@ pub fn declare_federation_upstream(
         trust_user_id,
         prefetch_count,
         ack_mode,
-        bind_using_nowait: false,
+        bind_using_nowait,
         queue_federation: qfp,
         exchange_federation: efp,
     };
@@ -497,6 +501,10 @@ pub fn declare_federation_upstream_for_exchange_federation(
         .get_one::<FederationResourceCleanupMode>("resource_cleanup_mode")
         .cloned()
         .unwrap_or_default();
+    let bind_using_nowait = command_args
+        .get_one::<bool>("bind_nowait")
+        .cloned()
+        .unwrap_or_default();
     let ttl = command_args.get_one::<u32>("ttl").cloned();
     let message_ttl = command_args.get_one::<u32>("message_ttl").cloned();
     let efp = Some(ExchangeFederationParams {
@@ -517,7 +525,7 @@ pub fn declare_federation_upstream_for_exchange_federation(
         trust_user_id,
         prefetch_count,
         ack_mode,
-        bind_using_nowait: false,
+        bind_using_nowait,
         queue_federation: None,
         exchange_federation: efp,
     };

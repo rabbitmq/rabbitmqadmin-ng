@@ -1674,13 +1674,11 @@ fn federation_subcommands() -> [Command; 5] {
             Arg::new("queue_name")
                 .long("queue-name")
                 .help("queue federation: the queue name to use on the upstream. Defaults to the federated queue name")
-                .conflicts_with("exchange")
         )
         .arg(
             Arg::new("consumer_tag")
                 .long("consumer-tag")
                 .help("Custom consumer tag to use for the internal federation consumer")
-                .conflicts_with("exchange")
                 .requires("queue_name")
         )
         .arg(
@@ -1700,14 +1698,18 @@ fn federation_subcommands() -> [Command; 5] {
                 .long("max_hops")
                 .default_value("1")
                 .value_parser(value_parser!(u8))
-                .conflicts_with("queue_name")
+        )
+        .arg(
+            Arg::new("bind_nowait")
+                .long("bind-using-nowait")
+                .default_value("false")
+                .value_parser(value_parser!(bool))
         )
         .arg(
             Arg::new("resource_cleanup_mode")
                 .long("resource-cleanup-mode")
                 .default_value("default")
                 .value_parser(value_parser!(FederationResourceCleanupMode))
-                .conflicts_with("queue_name")
         )
         .arg(
             Arg::new("ttl")
@@ -1863,6 +1865,12 @@ fn federation_subcommands() -> [Command; 5] {
                 .long("resource-cleanup-mode")
                 .default_value("default")
                 .value_parser(value_parser!(FederationResourceCleanupMode))
+        )
+        .arg(
+            Arg::new("bind_nowait")
+                .long("bind-using-nowait")
+                .default_value("false")
+                .value_parser(value_parser!(bool))
         )
         .arg(
             Arg::new("ttl")
