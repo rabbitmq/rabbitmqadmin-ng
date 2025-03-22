@@ -395,6 +395,7 @@ pub(crate) fn client_error_to_exit_code(error: &HttpClientError) -> ExitCode {
         ClientError::NotFound => ExitCode::DataErr,
         ClientError::MultipleMatchingBindings => ExitCode::DataErr,
         ClientError::InvalidHeaderValue { error: _ } => ExitCode::DataErr,
+        ClientError::IncompatibleBody { .. } => ExitCode::DataErr,
         ClientError::RequestError { .. } => ExitCode::IoErr,
         ClientError::Other => ExitCode::Usage,
     }
