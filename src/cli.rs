@@ -1645,18 +1645,21 @@ fn federation_subcommands() -> [Command; 5] {
             Arg::new("reconnect_delay")
                 .long("reconnect-delay")
                 .default_value("5")
+                .value_parser(value_parser!(u16))
                 .help("Reconnection delay in seconds")
         )
         .arg(
             Arg::new("trust_user_id")
                 .long("trust-user-id")
                 .default_value("true")
+                .value_parser(value_parser!(bool))
                 .help("If set to true, federation will pass through any validated user-id from the upstream, even though it cannot validate it")
         )
         .arg(
             Arg::new("prefetch_count")
                 .long("prefetch-count")
                 .default_value("1000")
+                .value_parser(value_parser!(u16))
                 .help("The prefetch value to use with internal consumers")
                 .value_parser(value_parser!(u16))
         )
@@ -1668,7 +1671,7 @@ fn federation_subcommands() -> [Command; 5] {
                 .default_value("on-confirm"),
         )
         .arg(
-            Arg::new("queue")
+            Arg::new("queue_name")
                 .long("queue_name")
                 .help("queue federation: the queue name to use on the upstream. Defaults to the federated queue name")
                 .conflicts_with("exchange")
@@ -1678,6 +1681,7 @@ fn federation_subcommands() -> [Command; 5] {
                 .long("consumer_tag")
                 .help("Custom consumer tag to use for the internal federation consumer")
                 .conflicts_with("exchange")
+                .requires("queue_name")
         )
         .arg(
             Arg::new("exchange")
@@ -1696,14 +1700,14 @@ fn federation_subcommands() -> [Command; 5] {
                 .long("max_hops")
                 .default_value("1")
                 .value_parser(value_parser!(u8))
-                .conflicts_with("queue")
+                .conflicts_with("queue_name")
         )
         .arg(
             Arg::new("resource_cleanup_mode")
                 .long("resource-cleanup-mode")
                 .default_value("default")
                 .value_parser(value_parser!(FederationResourceCleanupMode))
-                .conflicts_with("queue")
+                .conflicts_with("queue_name")
         )
         .arg(
             Arg::new("ttl")
@@ -1769,7 +1773,7 @@ fn federation_subcommands() -> [Command; 5] {
                 .default_value("on-confirm"),
         )
         .arg(
-            Arg::new("queue")
+            Arg::new("queue_name")
                 .long("queue_name")
                 .help("queue federation: the queue name to use on the upstream. Defaults to the federated queue name")
         )
@@ -1777,6 +1781,7 @@ fn federation_subcommands() -> [Command; 5] {
             Arg::new("consumer_tag")
                 .long("consumer_tag")
                 .help("Custom consumer tag to use for the internal federation consumer")
+                .requires("queue_name")
         );
 
     let declare_upstream_for_exchange_federation = Command::new("declare_upstream_for_exchanges")

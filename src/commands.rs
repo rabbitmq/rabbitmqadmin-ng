@@ -20,7 +20,12 @@ use rabbitmq_http_client::commons;
 use rabbitmq_http_client::commons::{ExchangeType, SupportedProtocol};
 use rabbitmq_http_client::commons::{MessageTransferAcknowledgementMode, UserLimitTarget};
 use rabbitmq_http_client::commons::{PolicyTarget, VirtualHostLimitTarget};
-use rabbitmq_http_client::requests::{Amqp10ShovelDestinationParams, Amqp10ShovelParams, Amqp10ShovelSourceParams, Amqp091ShovelDestinationParams, Amqp091ShovelParams, Amqp091ShovelSourceParams, EnforcedLimitParams, FEDERATION_UPSTREAM_COMPONENT};
+use rabbitmq_http_client::requests::{
+    Amqp091ShovelDestinationParams, Amqp091ShovelParams, Amqp091ShovelSourceParams,
+    Amqp10ShovelDestinationParams, Amqp10ShovelParams, Amqp10ShovelSourceParams,
+    EnforcedLimitParams, FederationUpstreamParams, QueueFederationParams,
+    RuntimeParameterDefinition, FEDERATION_UPSTREAM_COMPONENT,
+};
 use std::fs;
 use std::process;
 
@@ -362,11 +367,82 @@ pub fn delete_shovel(
 // Federation
 //
 
-pub fn list_federation_upstreams(client: APIClient) -> ClientResult<Vec<responses::FederationUpstream>> {
+pub fn list_federation_upstreams(
+    client: APIClient,
+) -> ClientResult<Vec<responses::FederationUpstream>> {
     client.list_federation_upstreams()
 }
 
-pub fn delete_federation_upstream(client: APIClient, vhost: &str, command_args: &ArgMatches,) -> ClientResult<()> {
+pub fn declare_federation_upstream(
+    client: APIClient,
+    vhost: &str,
+    command_args: &ArgMatches,
+) -> ClientResult<()> {
+    // common settings
+    let name = command_args.get_one::<String>("name").cloned().unwrap();
+    let uri = command_args.get_one::<String>("uri").cloned().unwrap();
+    let reconnect_delay = command_args
+        .get_one::<u16>("reconnect_delay")
+        .cloned()
+        .unwrap();
+    let trust_user_id = command_args
+        .get_one::<bool>("trust_user_id")
+        .cloned()
+        .unwrap();
+    let prefetch_count = command_args
+        .get_one::<u16>("prefetch_count")
+        .cloned()
+        .unwrap();
+    let ack_mode = command_args
+        .get_one::<MessageTransferAcknowledgementMode>("ack_mode")
+        .cloned()
+        .unwrap();
+
+    // optional queue federation settings
+    let queue_name = command_args.get_one::<String>("queue_name").cloned();
+    let consumer_tag = command_args.get_one::<String>("consumer_tag").cloned();
+    let qn: String;
+    let ct: String;
+    let qfp = match (queue_name, consumer_tag) {
+        (Some(queue_name), Some(consumer_tag)) => {
+            qn = queue_name.clone();
+            ct = consumer_tag.clone();
+            let qfp = QueueFederationParams::new_with_consumer_tag(&qn, &ct);
+            Some(qfp)
+        }
+        (Some(queue_name), None) => {
+            qn =  queue_name.clone();
+            let qfp = QueueFederationParams::new(&qn);
+            Some(qfp)
+        },
+        (None, Some(_)) => None,
+        (None, None) => None,
+    };
+
+    // optional exchange federation settings
+
+    // putting it all together
+    let upstream = FederationUpstreamParams {
+        name: &name,
+        vhost,
+        uri: &uri,
+        reconnect_delay,
+        trust_user_id,
+        prefetch_count,
+        ack_mode,
+        bind_using_nowait: false,
+        queue_federation: qfp,
+        exchange_federation: None,
+    };
+    let param = RuntimeParameterDefinition::from(upstream);
+    client.upsert_runtime_parameter(&param)
+}
+
+pub fn delete_federation_upstream(
+    client: APIClient,
+    vhost: &str,
+    command_args: &ArgMatches,
+) -> ClientResult<()> {
     let name = command_args.get_one::<String>("name").cloned().unwrap();
     client.clear_runtime_parameter(FEDERATION_UPSTREAM_COMPONENT, vhost, &name)
 }

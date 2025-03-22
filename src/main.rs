@@ -630,9 +630,10 @@ fn dispatch_common_subcommand(
             let result = commands::list_federation_upstreams(client);
             res_handler.tabular_result(result)
         },
-        // ("federation", "declare_upstream") => {
-        //
-        // },
+        ("federation", "declare_upstream") => {
+            let result = commands::declare_federation_upstream(client, &vhost, second_level_args);
+            res_handler.no_output_on_success(result);
+        },
         ("federation", "delete_upstream") => {
             let result = commands::delete_federation_upstream(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);
