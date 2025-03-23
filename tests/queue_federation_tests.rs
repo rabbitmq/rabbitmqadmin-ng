@@ -20,7 +20,7 @@ use test_helpers::{run_fails, run_succeeds};
 
 #[test]
 fn test_federation_upstream_declaration_for_queue_federation_case0()
-    -> Result<(), Box<dyn std::error::Error>> {
+-> Result<(), Box<dyn std::error::Error>> {
     let vh = "rust.federation.0";
     let name = "up.for_queue_federation";
 
@@ -96,7 +96,7 @@ fn test_federation_upstream_declaration_for_queue_federation_case1()
 
 #[test]
 fn test_federation_upstream_declaration_for_queue_federation_case2()
-    -> Result<(), Box<dyn std::error::Error>> {
+-> Result<(), Box<dyn std::error::Error>> {
     let vh = "rust.federation.2";
     let name = "up.for_queue_federation";
 
@@ -120,7 +120,7 @@ fn test_federation_upstream_declaration_for_queue_federation_case2()
         "--uri",
         &upstream.uri,
         "--ack-mode",
-        "on-publish"
+        "on-publish",
     ]);
 
     delete_vhost(vh).expect("failed to delete a virtual host");
@@ -130,7 +130,7 @@ fn test_federation_upstream_declaration_for_queue_federation_case2()
 
 #[test]
 fn test_federation_upstream_declaration_for_queue_federation_case3()
-    -> Result<(), Box<dyn std::error::Error>> {
+-> Result<(), Box<dyn std::error::Error>> {
     let vh = "rust.federation.3";
     let name = "up.for_queue_federation";
 
@@ -152,7 +152,8 @@ fn test_federation_upstream_declaration_for_queue_federation_case3()
         "declare_upstream_for_queues",
         "--name",
         &upstream.name,
-    ]).stderr(predicate::str::contains(
+    ])
+    .stderr(predicate::str::contains(
         "required arguments were not provided",
     ));
 
@@ -163,7 +164,7 @@ fn test_federation_upstream_declaration_for_queue_federation_case3()
 
 #[test]
 fn test_federation_upstream_declaration_for_queue_federation_case4()
-    -> Result<(), Box<dyn std::error::Error>> {
+-> Result<(), Box<dyn std::error::Error>> {
     let vh = "rust.federation.4";
     let name = "up.for_queue_federation";
 
@@ -186,8 +187,9 @@ fn test_federation_upstream_declaration_for_queue_federation_case4()
         "--uri",
         &upstream.uri,
         "--ack-mode",
-        "on-publish"
-    ]).stderr(predicate::str::contains(
+        "on-publish",
+    ])
+    .stderr(predicate::str::contains(
         "required arguments were not provided",
     ));
 
@@ -197,8 +199,8 @@ fn test_federation_upstream_declaration_for_queue_federation_case4()
 }
 
 #[test]
-fn test_federation_list_all_upstreams()
-    -> Result<(), Box<dyn std::error::Error>> {
+fn test_federation_list_all_upstreams_with_queue_federation()
+-> Result<(), Box<dyn std::error::Error>> {
     let vh = "rust.federation.5";
     let name = "up.for_queue_federation/5";
 
@@ -228,20 +230,11 @@ fn test_federation_list_all_upstreams()
         &qfp.consumer_tag.unwrap(),
     ]);
 
-    run_succeeds([
-        "-V",
-        vh,
-        "federation",
-        "list_all_upstreams",
-    ]).stdout(predicate::str::contains(
-        name,
-    )).stdout(predicate::str::contains(
-        endpoint1.clone(),
-    )).stdout(predicate::str::contains(
-        q,
-    )).stdout(predicate::str::contains(
-        ctag,
-    ));
+    run_succeeds(["-V", vh, "federation", "list_all_upstreams"])
+        .stdout(predicate::str::contains(name))
+        .stdout(predicate::str::contains(endpoint1.clone()))
+        .stdout(predicate::str::contains(q))
+        .stdout(predicate::str::contains(ctag));
 
     delete_vhost(vh).expect("failed to delete a virtual host");
 
@@ -250,7 +243,7 @@ fn test_federation_list_all_upstreams()
 
 #[test]
 fn test_federation_delete_an_upstream_with_queue_federation_settings()
-    -> Result<(), Box<dyn std::error::Error>> {
+-> Result<(), Box<dyn std::error::Error>> {
     let vh = "rust.federation.6";
     let name = "up.for_queue_federation.6";
 
@@ -280,14 +273,9 @@ fn test_federation_delete_an_upstream_with_queue_federation_settings()
         &qfp.consumer_tag.unwrap(),
     ]);
 
-    run_succeeds([
-        "federation",
-        "list_all_upstreams",
-    ]).stdout(predicate::str::contains(
-        name,
-    )).stdout(predicate::str::contains(
-        endpoint1.clone(),
-    ));
+    run_succeeds(["federation", "list_all_upstreams"])
+        .stdout(predicate::str::contains(name))
+        .stdout(predicate::str::contains(endpoint1.clone()));
 
     run_succeeds([
         "-V",
@@ -298,14 +286,9 @@ fn test_federation_delete_an_upstream_with_queue_federation_settings()
         &upstream.name,
     ]);
 
-    run_succeeds([
-        "federation",
-        "list_all_upstreams",
-    ]).stdout(predicate::str::contains(
-        name,
-    ).not()).stdout(predicate::str::contains(
-        endpoint1.clone(),
-    ).not());
+    run_succeeds(["federation", "list_all_upstreams"])
+        .stdout(predicate::str::contains(name).not())
+        .stdout(predicate::str::contains(endpoint1.clone()).not());
 
     delete_vhost(vh).expect("failed to delete a virtual host");
 
