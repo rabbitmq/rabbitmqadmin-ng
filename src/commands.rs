@@ -23,7 +23,9 @@ use rabbitmq_http_client::commons::{PolicyTarget, VirtualHostLimitTarget};
 use rabbitmq_http_client::requests::{
     Amqp10ShovelDestinationParams, Amqp10ShovelParams, Amqp10ShovelSourceParams,
     Amqp091ShovelDestinationParams, Amqp091ShovelParams, Amqp091ShovelSourceParams,
-    EnforcedLimitParams,
+    EnforcedLimitParams, ExchangeFederationParams, FEDERATION_UPSTREAM_COMPONENT,
+    FederationResourceCleanupMode, FederationUpstreamParams, QueueFederationParams,
+    RuntimeParameterDefinition,
 };
 use std::fs;
 use std::process;
@@ -362,6 +364,248 @@ pub fn delete_shovel(
     client.delete_shovel(vhost, &name, true)
 }
 
+//
+// Federation
+//
+
+pub fn list_federation_upstreams(
+    client: APIClient,
+) -> ClientResult<Vec<responses::FederationUpstream>> {
+    client.list_federation_upstreams()
+}
+
+pub fn declare_federation_upstream(
+    client: APIClient,
+    vhost: &str,
+    command_args: &ArgMatches,
+) -> ClientResult<()> {
+    // common settings
+    let name = command_args.get_one::<String>("name").cloned().unwrap();
+    let uri = command_args.get_one::<String>("uri").cloned().unwrap();
+    let reconnect_delay = command_args
+        .get_one::<u16>("reconnect_delay")
+        .cloned()
+        .unwrap();
+    let trust_user_id = command_args
+        .get_one::<bool>("trust_user_id")
+        .cloned()
+        .unwrap();
+    let prefetch_count = command_args
+        .get_one::<u16>("prefetch_count")
+        .cloned()
+        .unwrap();
+    let ack_mode = command_args
+        .get_one::<MessageTransferAcknowledgementMode>("ack_mode")
+        .cloned()
+        .unwrap();
+
+    // optional queue federation settings
+    let queue_name = command_args.get_one::<String>("queue_name").cloned();
+    let consumer_tag = command_args.get_one::<String>("consumer_tag").cloned();
+    let qn: String;
+    let ct: String;
+    let qfp = match (queue_name, consumer_tag) {
+        (Some(queue_name), Some(consumer_tag)) => {
+            qn = queue_name.clone();
+            ct = consumer_tag.clone();
+            let qfp = QueueFederationParams::new_with_consumer_tag(&qn, &ct);
+            Some(qfp)
+        }
+        (Some(queue_name), None) => {
+            qn = queue_name.clone();
+            let qfp = QueueFederationParams::new(&qn);
+            Some(qfp)
+        }
+        (None, Some(_)) => None,
+        (None, None) => None,
+    };
+
+    // optional exchange federation settings
+    let exchange_name = command_args
+        .get_one::<String>("exchange_name")
+        .map(|s| s.as_str());
+    let queue_type = command_args
+        .get_one::<String>("queue_type")
+        .map(|s| Into::<QueueType>::into(s.as_str()))
+        .unwrap_or_default();
+    let max_hops = command_args.get_one::<u8>("max_hops").copied();
+    let resource_cleanup_mode = command_args
+        .get_one::<FederationResourceCleanupMode>("resource_cleanup_mode")
+        .cloned()
+        .unwrap_or_default();
+    let bind_using_nowait = command_args
+        .get_one::<bool>("bind_nowait")
+        .cloned()
+        .unwrap_or_default();
+    let ttl = command_args.get_one::<u32>("ttl").cloned();
+    let message_ttl = command_args.get_one::<u32>("message_ttl").cloned();
+    let efp = Some(ExchangeFederationParams {
+        exchange: exchange_name,
+        max_hops,
+        queue_type,
+        ttl,
+        message_ttl,
+        resource_cleanup_mode,
+    });
+
+    // putting it all together
+    let upstream = FederationUpstreamParams {
+        name: &name,
+        vhost,
+        uri: &uri,
+        reconnect_delay,
+        trust_user_id,
+        prefetch_count,
+        ack_mode,
+        bind_using_nowait,
+        queue_federation: qfp,
+        exchange_federation: efp,
+    };
+    let param = RuntimeParameterDefinition::from(upstream);
+    client.upsert_runtime_parameter(&param)
+}
+
+pub fn declare_federation_upstream_for_exchange_federation(
+    client: APIClient,
+    vhost: &str,
+    command_args: &ArgMatches,
+) -> ClientResult<()> {
+    let name = command_args.get_one::<String>("name").cloned().unwrap();
+    let uri = command_args.get_one::<String>("uri").cloned().unwrap();
+    let reconnect_delay = command_args
+        .get_one::<u16>("reconnect_delay")
+        .cloned()
+        .unwrap();
+    let trust_user_id = command_args
+        .get_one::<bool>("trust_user_id")
+        .cloned()
+        .unwrap();
+    let prefetch_count = command_args
+        .get_one::<u16>("prefetch_count")
+        .cloned()
+        .unwrap();
+    let ack_mode = command_args
+        .get_one::<MessageTransferAcknowledgementMode>("ack_mode")
+        .cloned()
+        .unwrap();
+
+    let exchange_name = command_args
+        .get_one::<String>("exchange_name")
+        .map(|s| s.as_str());
+    let queue_type = command_args
+        .get_one::<String>("queue_type")
+        .map(|s| Into::<QueueType>::into(s.as_str()))
+        .unwrap_or_default();
+    let max_hops = command_args.get_one::<u8>("max_hops").copied();
+    let resource_cleanup_mode = command_args
+        .get_one::<FederationResourceCleanupMode>("resource_cleanup_mode")
+        .cloned()
+        .unwrap_or_default();
+    let bind_using_nowait = command_args
+        .get_one::<bool>("bind_nowait")
+        .cloned()
+        .unwrap_or_default();
+    let ttl = command_args.get_one::<u32>("ttl").cloned();
+    let message_ttl = command_args.get_one::<u32>("message_ttl").cloned();
+    let efp = Some(ExchangeFederationParams {
+        exchange: exchange_name,
+        max_hops,
+        queue_type,
+        ttl,
+        message_ttl,
+        resource_cleanup_mode,
+    });
+
+    // putting it all together
+    let upstream = FederationUpstreamParams {
+        name: &name,
+        vhost,
+        uri: &uri,
+        reconnect_delay,
+        trust_user_id,
+        prefetch_count,
+        ack_mode,
+        bind_using_nowait,
+        queue_federation: None,
+        exchange_federation: efp,
+    };
+    let param = RuntimeParameterDefinition::from(upstream);
+    client.upsert_runtime_parameter(&param)
+}
+
+pub fn declare_federation_upstream_for_queue_federation(
+    client: APIClient,
+    vhost: &str,
+    command_args: &ArgMatches,
+) -> ClientResult<()> {
+    let name = command_args.get_one::<String>("name").cloned().unwrap();
+    let uri = command_args.get_one::<String>("uri").cloned().unwrap();
+    let reconnect_delay = command_args
+        .get_one::<u16>("reconnect_delay")
+        .cloned()
+        .unwrap();
+    let trust_user_id = command_args
+        .get_one::<bool>("trust_user_id")
+        .cloned()
+        .unwrap();
+    let prefetch_count = command_args
+        .get_one::<u16>("prefetch_count")
+        .cloned()
+        .unwrap();
+    let ack_mode = command_args
+        .get_one::<MessageTransferAcknowledgementMode>("ack_mode")
+        .cloned()
+        .unwrap();
+
+    let queue_name = command_args.get_one::<String>("queue_name").cloned();
+    let consumer_tag = command_args.get_one::<String>("consumer_tag").cloned();
+    let qn: String;
+    let ct: String;
+    let qfp = match (queue_name, consumer_tag) {
+        (Some(queue_name), Some(consumer_tag)) => {
+            qn = queue_name.clone();
+            ct = consumer_tag.clone();
+            let qfp = QueueFederationParams::new_with_consumer_tag(&qn, &ct);
+            Some(qfp)
+        }
+        (Some(queue_name), None) => {
+            qn = queue_name.clone();
+            let qfp = QueueFederationParams::new(&qn);
+            Some(qfp)
+        }
+        (None, Some(_)) => None,
+        (None, None) => None,
+    };
+
+    let upstream = FederationUpstreamParams {
+        name: &name,
+        vhost,
+        uri: &uri,
+        reconnect_delay,
+        trust_user_id,
+        prefetch_count,
+        ack_mode,
+        bind_using_nowait: false,
+        queue_federation: qfp,
+        exchange_federation: None,
+    };
+    let param = RuntimeParameterDefinition::from(upstream);
+    client.upsert_runtime_parameter(&param)
+}
+
+pub fn delete_federation_upstream(
+    client: APIClient,
+    vhost: &str,
+    command_args: &ArgMatches,
+) -> ClientResult<()> {
+    let name = command_args.get_one::<String>("name").cloned().unwrap();
+    client.clear_runtime_parameter(FEDERATION_UPSTREAM_COMPONENT, vhost, &name)
+}
+
+//
+// Feature flags
+//
+
 pub fn enable_feature_flag(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
     let name = command_args.get_one::<String>("name").cloned().unwrap();
     client.enable_feature_flag(&name)
@@ -370,6 +614,10 @@ pub fn enable_feature_flag(client: APIClient, command_args: &ArgMatches) -> Clie
 pub fn enable_all_stable_feature_flags(client: APIClient) -> ClientResult<()> {
     client.enable_all_stable_feature_flags()
 }
+
+//
+// Deprecated features
+//
 
 pub fn list_deprecated_features(
     client: APIClient,
@@ -382,6 +630,10 @@ pub fn list_deprecated_features_in_use(
 ) -> ClientResult<responses::DeprecatedFeatureList> {
     client.list_deprecated_features_in_use()
 }
+
+//
+// Declaration of core resources
+//
 
 pub fn declare_vhost(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
     // the flag is required

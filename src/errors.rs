@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use rabbitmq_http_client::error::Error as ApiClientError;
+use rabbitmq_http_client::error::{ConversionError, Error as ApiClientError};
 use rabbitmq_http_client::{blocking_api::HttpClientError, responses::HealthCheckFailureDetails};
 use reqwest::{
     StatusCode,
@@ -79,6 +79,8 @@ pub enum CommandRunError {
     UnsupportedArgumentValue { property: String },
     #[error("This request produces an invalid HTTP header value")]
     InvalidHeaderValue { error: InvalidHeaderValue },
+    #[error("Response is incompatible with the target data type")]
+    IncompatibleBody { error: ConversionError },
     #[error("encountered an error when performing an HTTP request")]
     RequestError { error: reqwest::Error },
     #[error("an unspecified error")]
@@ -117,6 +119,9 @@ impl From<HttpClientError> for CommandRunError {
             ApiClientError::Other => Self::Other,
             ApiClientError::MissingProperty { argument } => {
                 Self::MissingArgumentValue { property: argument }
+            },
+            ApiClientError::IncompatibleBody {  error, .. } => {
+                Self::IncompatibleBody { error }
             },
         }
     }
