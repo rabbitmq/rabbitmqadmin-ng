@@ -49,6 +49,10 @@ pub fn amqp_endpoint_with_vhost(name: &str) -> String {
     format!("{0}/{1}", AMQP_ENDPOINT, name).to_owned()
 }
 
+pub fn await_ms(ms: u64) {
+    std::thread::sleep(Duration::from_millis(ms));
+}
+
 pub fn await_metric_emission(ms: u64) {
     std::thread::sleep(Duration::from_millis(ms));
 }
