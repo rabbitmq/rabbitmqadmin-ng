@@ -1203,10 +1203,22 @@ fn definitions_subcommands() -> [Command; 4] {
         ))
         .arg(
             Arg::new("file")
+                .group("output")
                 .long("file")
-                .help("output file path or '-' for standard output")
+                .help("output file path")
                 .required(false)
-                .default_value("-"),
+                .default_value("-")
+                .conflicts_with("stdout"),
+        )
+        .arg(
+            Arg::new("stdout")
+                .group("output")
+                .long("stdout")
+                .help("print result to the standard output stream")
+                .required(false)
+                .num_args(0)
+                .action(ArgAction::SetTrue)
+                .conflicts_with("file"),
         )
         .arg(
             Arg::new("transformations")
@@ -1250,10 +1262,22 @@ Examples:
         ))
         .arg(
             Arg::new("file")
+                .group("output")
                 .long("file")
-                .help("output file path or '-' for standard output")
+                .help("output file path")
                 .required(false)
-                .default_value("-"),
+                .default_value("-")
+                .conflicts_with("stdout"),
+        )
+        .arg(
+            Arg::new("stdout")
+                .group("output")
+                .long("stdout")
+                .help("print result to the standard output stream")
+                .required(false)
+                .num_args(0)
+                .action(ArgAction::SetTrue)
+                .conflicts_with("file"),
         );
 
     let import_cmd = Command::new("import")
@@ -1264,9 +1288,21 @@ Examples:
         ))
         .arg(
             Arg::new("file")
+                .group("input")
                 .long("file")
-                .help("JSON file with cluster-wide definitions")
-                .required(true),
+                .help("cluster-wide definitions JSON file path; mutually exclusive with --stdin")
+                .required(true)
+                .conflicts_with("stdin"),
+        )
+        .arg(
+            Arg::new("stdin")
+                .group("input")
+                .long("stdin")
+                .help("read input JSON from the standard input stream, mutually exclusive with --file")
+                .required(false)
+                .num_args(0)
+                .action(ArgAction::SetTrue)
+                .conflicts_with("file"),
         );
 
     let import_into_vhost_cmd = Command::new("import_into_vhost")
@@ -1277,9 +1313,21 @@ Examples:
         ))
         .arg(
             Arg::new("file")
+                .group("input")
                 .long("file")
-                .help("JSON file with virtual host-specific definitions")
-                .required(true),
+                .help("cluster-wide definitions JSON file path; mutually exclusive with --stdin")
+                .required(true)
+                .conflicts_with("stdin"),
+        )
+        .arg(
+            Arg::new("stdin")
+                .group("input")
+                .long("stdin")
+                .help("read input JSON from the standard input stream, mutually exclusive with --file")
+                .required(false)
+                .num_args(0)
+                .action(ArgAction::SetTrue)
+                .conflicts_with("file"),
         );
 
     [

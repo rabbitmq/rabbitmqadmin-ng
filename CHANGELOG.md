@@ -1,8 +1,50 @@
 # rabbitmqadmin-ng Change Log
 
-## v0.29.0 (in development)
+## v0.30.0 (in development)
 
-In (documented) changes yet.
+No (documented) changes yet.
+
+
+## v0.29.0 (Mar 23, 2025)
+
+### Breaking Changes
+
+ * `definitions export`'s special `--file` value of `-` for "standard input" is deprecated. Use `--stdout` instead:
+
+   ```shell
+   rabbitmqadmin definitions export --stdout > definitions.json
+   ```
+
+      ```shell
+   # exports 3.x-era definitions that might contain classic queue mirroring keys, transforms
+   # them to not use any CMQ policies, injects an explicit queue type into the matched queues,
+   # and drops all the policies that had nothing beyond the CMQ keys,
+   # then passes the result to the standard input of
+   # 'rabbitmqadmin definitions import --stdin'
+   rabbitmqadmin --node "source.node" definitions export --transformations strip_cmq_keys_from_policies,drop_empty_policies --stdout | rabbitmqadmin --node "destination.node" definitions import --stdin
+   ```
+
+### Enhancements
+
+ * 'definitions import` now supports reading definitions from the standard input instead of a file.
+   For that, pass `--stdin` instead of `--file "/path/to/definitions.json"`.
+
+   ```shell
+   rabbitmqadmin definitions import --stdin < definitions.json
+   ```
+
+   ```shell
+   cat definitions.json | rabbitmqadmin definitions import --stdin
+   ```
+
+   ```shell
+   # exports 3.x-era definitions that might contain classic queue mirroring keys, transforms
+   # them to not use any CMQ policies, injects an explicit queue type into the matched queues,
+   # and drops all the policies that had nothing beyond the CMQ keys,
+   # then passes the result to the standard input of
+   # 'rabbitmqadmin definitions import --stdin'
+   rabbitmqadmin --node "source.node" definitions export --transformations strip_cmq_keys_from_policies,drop_empty_policies --stdout | rabbitmqadmin --node "destination.node" definitions import --stdin
+   ```
 
 
 ## v0.28.0 (Mar 23, 2025)

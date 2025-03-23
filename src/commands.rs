@@ -1215,15 +1215,30 @@ fn export_cluster_wide_definitions_without_transformations(
 ) -> ClientResult<()> {
     match client.export_cluster_wide_definitions() {
         Ok(definitions) => {
-            let path = command_args.get_one::<String>("file").unwrap();
-            match path.as_str() {
-                "-" => {
+            let path = command_args.get_one::<String>("file").cloned();
+            let use_stdout = command_args.get_one::<bool>("stdout").copied();
+            match (path, use_stdout) {
+                (Some(_val), Some(true)) => {
                     println!("{}", &definitions);
                     Ok(())
                 }
-                file => {
-                    _ = fs::write(file, &definitions);
+                (Some(val), Some(false)) => match val.as_str() {
+                    "-" => {
+                        println!("{}", &definitions);
+                        Ok(())
+                    }
+                    _ => {
+                        _ = fs::write(val, &definitions);
+                        Ok(())
+                    }
+                },
+                (_, Some(true)) => {
+                    println!("{}", &definitions);
                     Ok(())
+                }
+                _ => {
+                    eprintln!("either --file or --stdout must be provided");
+                    process::exit(1)
                 }
             }
         }
@@ -1257,19 +1272,39 @@ pub fn export_vhost_definitions(
 pub fn import_definitions(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
     let path = command_args
         .get_one::<String>("file")
-        .map(|s| s.trim_ascii().trim_matches('\'').trim_matches('"'))
-        .unwrap();
-    let definitions = read_definitions(path);
+        .map(|s| s.trim_ascii().trim_matches('\'').trim_matches('"'));
+    let use_stdin = command_args.get_one::<bool>("stdin").copied();
+    let definitions = read_definitions(path, use_stdin);
     match definitions {
         Ok(defs) => {
             let defs_json = serde_json::from_str(defs.as_str()).unwrap_or_else(|err| {
-                eprintln!("`{}` is not a valid JSON file: {}", path, err);
+                match path {
+                    None => {
+                        eprintln!("could not parse the value read from the standard input: {}", err);
+                    }
+                    Some(val) => {
+                        eprintln!("`{}` does not exist, is not a readable file, or is not a valid JSON file: {}", val, err);
+                    }
+                }
                 process::exit(1)
             });
             client.import_definitions(defs_json)
         }
         Err(err) => {
-            eprintln!("`{}` could not be read: {}", path, err);
+            match path {
+                None => {
+                    eprintln!(
+                        "could not parse the value read from the standard input: {}",
+                        err
+                    );
+                }
+                Some(val) => {
+                    eprintln!(
+                        "`{}` does not exist, is not a readable file, or is not a valid JSON file: {}",
+                        val, err
+                    );
+                }
+            }
             process::exit(1)
         }
     }
@@ -1282,43 +1317,79 @@ pub fn import_vhost_definitions(
 ) -> ClientResult<()> {
     let path = command_args
         .get_one::<String>("file")
-        .map(|s| s.trim_ascii().trim_matches('\'').trim_matches('"'))
-        .unwrap();
-    let definitions = read_definitions(path);
+        .map(|s| s.trim_ascii().trim_matches('\'').trim_matches('"'));
+    let use_stdin = command_args.get_one::<bool>("stdin").copied();
+    let definitions = read_definitions(path, use_stdin);
     match definitions {
         Ok(defs) => {
             let defs_json = serde_json::from_str(defs.as_str()).unwrap_or_else(|err| {
-                eprintln!("`{}` is not a valid JSON file: {}", path, err);
+                match path {
+                    None => {
+                        eprintln!("could not parse the value read from the standard input: {}", err);
+                    }
+                    Some(val) => {
+                        eprintln!("`{}` does not exist, is not a readable file, or is not a valid JSON file: {}", val, err);
+                    }
+                }
                 process::exit(1)
             });
             client.import_vhost_definitions(vhost, defs_json)
         }
         Err(err) => {
-            eprintln!("`{}` could not be read: {}", path, err);
+            match path {
+                None => {
+                    eprintln!(
+                        "could not parse the value read from the standard input: {}",
+                        err
+                    );
+                }
+                Some(val) => {
+                    eprintln!(
+                        "`{}` does not exist, is not a readable file, or is not a valid JSON file: {}",
+                        val, err
+                    );
+                }
+            }
             process::exit(1)
         }
     }
 }
 
-fn read_definitions(path: &str) -> io::Result<String> {
-    match path {
-        "-" => {
+fn read_definitions(path: Option<&str>, use_stdin: Option<bool>) -> io::Result<String> {
+    match (path, use_stdin) {
+        (_, Some(true)) => {
             let mut buffer = String::new();
-            let stdin = io::stdin();
-            let lines = stdin.lines();
-            for ln in lines {
-                match ln {
-                    Ok(line) => buffer.push_str(&line),
-                    Err(err) => {
-                        eprintln!("Error reading from standard input: {}", err);
-                        process::exit(1);
-                    }
-                }
-            }
+            read_stdin_lines(&mut buffer);
 
             Ok(buffer)
         }
-        _ => fs::read_to_string(path),
+        (Some(val), _) => match val {
+            "-" => {
+                let mut buffer = String::new();
+                read_stdin_lines(&mut buffer);
+
+                Ok(buffer)
+            }
+            _ => fs::read_to_string(val),
+        },
+        _ => Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "either an input file path or --stdin must be specified",
+        )),
+    }
+}
+
+fn read_stdin_lines(buffer: &mut String) {
+    let stdin = io::stdin();
+    let lines = stdin.lines();
+    for ln in lines {
+        match ln {
+            Ok(line) => buffer.push_str(&line),
+            Err(err) => {
+                eprintln!("Error reading from standard input: {}", err);
+                process::exit(1);
+            }
+        }
     }
 }
 
