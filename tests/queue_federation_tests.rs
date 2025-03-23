@@ -96,7 +96,7 @@ fn test_federation_upstream_declaration_for_queue_federation_case1a()
 
 #[test]
 fn test_federation_upstream_declaration_for_queue_federation_case1b()
-    -> Result<(), Box<dyn std::error::Error>> {
+-> Result<(), Box<dyn std::error::Error>> {
     let vh = "rust.federation.1b";
     let name = "up.for_queue_federation.b";
 
@@ -128,7 +128,7 @@ fn test_federation_upstream_declaration_for_queue_federation_case1b()
         &qfp.consumer_tag.unwrap(),
         // exchange federation
         "--queue-type",
-        "quorum"
+        "quorum",
     ]);
 
     delete_vhost(vh).expect("failed to delete a virtual host");
