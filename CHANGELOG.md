@@ -19,7 +19,7 @@ In (documented) changes yet.
   federation. This command does not support any options related to exchange federation.
 
   ```shell
-  rabbitmqadmin federation --vhost "local.vhost" declare_upstream \
+  rabbitmqadmin federation --vhost "local.vhost" declare_upstream_for_queues \
              --name "dc.vancouver" \
              --uri "amqp://192.168.0.25/demote.vhost" \
              --ack-mode "on-confirm"
@@ -29,7 +29,7 @@ In (documented) changes yet.
   federation. This command does not support any options related to queue federation.
 
   ```shell
-  rabbitmqadmin federation --vhost "local.vhost" declare_upstream \
+  rabbitmqadmin federation --vhost "local.vhost" declare_upstream_for_exchanges \
              --name "dc.vancouver" \
              --uri "amqp://192.168.0.25/demote.vhost" \
              --ack-mode "on-confirm"
