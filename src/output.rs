@@ -228,7 +228,6 @@ impl<'a> ResultHandler<'a> {
     }
 
     pub fn memory_breakdown_in_bytes_result(&mut self, result: ClientResult<NodeMemoryBreakdown>) {
-        dbg!(&result);
         match result {
             Ok(output) => {
                 self.exit_code = Some(ExitCode::Ok);
