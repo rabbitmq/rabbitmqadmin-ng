@@ -56,14 +56,14 @@ fn test_federation_upstream_declaration_for_queue_federation_case0()
 }
 
 #[test]
-fn test_federation_upstream_declaration_for_queue_federation_case1()
+fn test_federation_upstream_declaration_for_queue_federation_case1a()
 -> Result<(), Box<dyn std::error::Error>> {
-    let vh = "rust.federation.1";
-    let name = "up.for_queue_federation";
+    let vh = "rust.federation.1a";
+    let name = "up.for_queue_federation.a";
 
     let amqp_endpoint = amqp_endpoint_with_vhost(vh);
-    let q = "federation.cq.1";
-    let ctag = "federation.custom-consumer-tag";
+    let q = "federation.cq.1a";
+    let ctag = "federation.custom-consumer-tag.a";
     let qfp = QueueFederationParams::new_with_consumer_tag(q, ctag);
     let endpoint1 = amqp_endpoint.clone();
     let upstream =
@@ -87,6 +87,48 @@ fn test_federation_upstream_declaration_for_queue_federation_case1()
         &q,
         "--consumer-tag",
         &qfp.consumer_tag.unwrap(),
+    ]);
+
+    delete_vhost(vh).expect("failed to delete a virtual host");
+
+    Ok(())
+}
+
+#[test]
+fn test_federation_upstream_declaration_for_queue_federation_case1b()
+    -> Result<(), Box<dyn std::error::Error>> {
+    let vh = "rust.federation.1b";
+    let name = "up.for_queue_federation.b";
+
+    let amqp_endpoint = amqp_endpoint_with_vhost(vh);
+    let q = "federation.cq.1b";
+    let ctag = "federation.custom-consumer-tag.b";
+    let qfp = QueueFederationParams::new_with_consumer_tag(q, ctag);
+    let endpoint1 = amqp_endpoint.clone();
+    let upstream =
+        FederationUpstreamParams::new_queue_federation_upstream(vh, name, &endpoint1, qfp);
+
+    run_succeeds(["declare", "vhost", "--name", vh]);
+    let qfp = upstream.queue_federation.unwrap();
+
+    run_succeeds([
+        "-V",
+        vh,
+        "federation",
+        "declare_upstream",
+        "--name",
+        &upstream.name,
+        "--uri",
+        &upstream.uri,
+        "--ack-mode",
+        "on-confirm",
+        "--queue-name",
+        &q,
+        "--consumer-tag",
+        &qfp.consumer_tag.unwrap(),
+        // exchange federation
+        "--queue-type",
+        "quorum"
     ]);
 
     delete_vhost(vh).expect("failed to delete a virtual host");

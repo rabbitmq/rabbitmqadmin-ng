@@ -425,8 +425,8 @@ pub fn declare_federation_upstream(
         .get_one::<String>("exchange_name")
         .map(|s| s.as_str());
     let queue_type = command_args
-        .get_one::<QueueType>("queue_type")
-        .cloned()
+        .get_one::<String>("queue_type")
+        .map(|s| Into::<QueueType>::into(s.as_str()))
         .unwrap_or_default();
     let max_hops = command_args.get_one::<u8>("max_hops").copied();
     let resource_cleanup_mode = command_args

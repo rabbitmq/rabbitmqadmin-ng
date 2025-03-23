@@ -51,13 +51,13 @@ fn test_federation_upstream_declaration_for_exchange_federation_case0()
 }
 
 #[test]
-fn test_federation_upstream_declaration_for_exchange_federation_case1()
+fn test_federation_upstream_declaration_for_exchange_federation_case1a()
 -> Result<(), Box<dyn std::error::Error>> {
-    let vh = "rust.federation.1";
-    let name = "up.for_exchange_federation.1";
+    let vh = "rust.federation.1a";
+    let name = "up.for_exchange_federation.1a";
 
     let amqp_endpoint = amqp_endpoint_with_vhost(vh);
-    let x = "federation.x.1";
+    let x = "federation.x.1a";
     let queue_type = QueueType::Quorum;
     let xfp = ExchangeFederationParams::new(queue_type);
     let endpoint1 = amqp_endpoint.clone();
@@ -80,6 +80,46 @@ fn test_federation_upstream_declaration_for_exchange_federation_case1()
         &x,
         "--queue-type",
         &xfp.queue_type.to_string(),
+    ]);
+
+    delete_vhost(vh).expect("failed to delete a virtual host");
+
+    Ok(())
+}
+
+#[test]
+fn test_federation_upstream_declaration_for_exchange_federation_case1b()
+    -> Result<(), Box<dyn std::error::Error>> {
+    let vh = "rust.federation.1b";
+    let name = "up.for_exchange_federation.1b";
+
+    let amqp_endpoint = amqp_endpoint_with_vhost(vh);
+    let x = "federation.x.1b";
+    let queue_type = QueueType::Quorum;
+    let xfp = ExchangeFederationParams::new(queue_type);
+    let endpoint1 = amqp_endpoint.clone();
+    let upstream =
+        FederationUpstreamParams::new_exchange_federation_upstream(vh, name, &endpoint1, xfp);
+
+    run_succeeds(["declare", "vhost", "--name", vh]);
+    let xfp = upstream.exchange_federation.unwrap();
+
+    run_succeeds([
+        "-V",
+        vh,
+        "federation",
+        "declare_upstream",
+        "--name",
+        &upstream.name,
+        "--uri",
+        &upstream.uri,
+        "--exchange-name",
+        &x,
+        "--queue-type",
+        &xfp.queue_type.to_string(),
+        // queue federation
+        "--queue-name",
+        "overridden.queue.name"
     ]);
 
     delete_vhost(vh).expect("failed to delete a virtual host");
