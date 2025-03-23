@@ -1616,7 +1616,7 @@ fn federation_subcommands() -> [Command; 5] {
         ));
 
     let declare_upstream = Command::new("declare_upstream")
-        .long_about("Declares a federation upstream")
+        .long_about("Declares a federation upstream to be used with both exchange and queue federation")
         .after_long_help(color_print::cformat!(
                     r#"<bold>Doc guides</bold>:
 
@@ -1725,7 +1725,7 @@ fn federation_subcommands() -> [Command; 5] {
         );
 
     let declare_upstream_for_queue_federation = Command::new("declare_upstream_for_queues")
-        .long_about("Declares a federation upstream")
+        .long_about("Declares an upstream that will be used only for queue federation")
         .after_long_help(color_print::cformat!(
                     r#"<bold>Doc guides</bold>:
 
