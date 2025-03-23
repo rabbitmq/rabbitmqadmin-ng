@@ -15,7 +15,7 @@ use predicates::prelude::*;
 use rabbitmq_http_client::requests::{FederationUpstreamParams, QueueFederationParams};
 
 mod test_helpers;
-use crate::test_helpers::{amqp_endpoint_with_vhost, delete_vhost};
+use crate::test_helpers::{amqp_endpoint_with_vhost, await_ms, delete_vhost};
 use test_helpers::{run_fails, run_succeeds};
 
 #[test]
@@ -333,6 +333,76 @@ fn test_federation_delete_an_upstream_with_queue_federation_settings()
         .stdout(predicate::str::contains(endpoint1.clone()).not());
 
     delete_vhost(vh).expect("failed to delete a virtual host");
+
+    Ok(())
+}
+
+#[test]
+fn test_federation_list_all_links_with_queue_federation_settings()
+-> Result<(), Box<dyn std::error::Error>> {
+    let vh1 = "rust.federation.links.a";
+    let vh2 = "rust.federation.links.b";
+    let name = "up.for_queue_federation.links.a";
+
+    let amqp_endpoint = amqp_endpoint_with_vhost(vh2);
+    let q = "federation.cq.a";
+    let ctag = "federation.custom-consumer-tag.b";
+    let qfp = QueueFederationParams::new_with_consumer_tag(q, ctag);
+    let endpoint1 = amqp_endpoint.clone();
+    let upstream =
+        FederationUpstreamParams::new_queue_federation_upstream(vh1, name, &endpoint1, qfp);
+
+    run_succeeds(["declare", "vhost", "--name", vh1]);
+    run_succeeds(["declare", "vhost", "--name", vh2]);
+    let qfp = upstream.queue_federation.unwrap();
+
+    run_succeeds([
+        "-V",
+        vh1,
+        "federation",
+        "declare_upstream",
+        "--name",
+        &upstream.name,
+        "--uri",
+        &upstream.uri,
+        "--ack-mode",
+        "on-confirm",
+        "--queue-name",
+        &q,
+        "--consumer-tag",
+        &qfp.consumer_tag.unwrap(),
+    ]);
+
+    run_succeeds([
+        "-V", vh1, "declare", "queue", "--name", &q, "--type", "classic",
+    ]);
+
+    run_succeeds([
+        "-V",
+        vh1,
+        "policies",
+        "declare",
+        "--name",
+        name,
+        "--pattern",
+        "^federation\\.",
+        "--applies-to",
+        "queues",
+        "--priority",
+        "98",
+        "--definition",
+        "{\"federation-upstream-set\": \"all\"}",
+    ]);
+
+    await_ms(1000);
+
+    run_succeeds(["federation", "list_all_links"])
+        .stdout(predicate::str::contains(name))
+        .stdout(predicate::str::contains(vh1))
+        .stdout(predicate::str::contains(ctag));
+
+    delete_vhost(vh1).expect("failed to delete a virtual host");
+    delete_vhost(vh2).expect("failed to delete a virtual host");
 
     Ok(())
 }

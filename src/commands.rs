@@ -374,6 +374,10 @@ pub fn list_federation_upstreams(
     client.list_federation_upstreams()
 }
 
+pub fn list_federation_links(client: APIClient) -> ClientResult<Vec<responses::FederationLink>> {
+    client.list_federation_links()
+}
+
 pub fn declare_federation_upstream(
     client: APIClient,
     vhost: &str,
