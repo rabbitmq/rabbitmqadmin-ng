@@ -28,6 +28,7 @@ use rabbitmq_http_client::requests::{
     RuntimeParameterDefinition,
 };
 use std::fs;
+use std::io;
 use std::process;
 
 use rabbitmq_http_client::commons::BindingDestinationType;
@@ -1254,18 +1255,21 @@ pub fn export_vhost_definitions(
 }
 
 pub fn import_definitions(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
-    let file = command_args.get_one::<String>("file").unwrap();
-    let definitions = fs::read_to_string(file);
+    let path = command_args
+        .get_one::<String>("file")
+        .map(|s| s.trim_ascii().trim_matches('\'').trim_matches('"'))
+        .unwrap();
+    let definitions = read_definitions(path);
     match definitions {
         Ok(defs) => {
             let defs_json = serde_json::from_str(defs.as_str()).unwrap_or_else(|err| {
-                eprintln!("`{}` is not a valid JSON file: {}", file, err);
+                eprintln!("`{}` is not a valid JSON file: {}", path, err);
                 process::exit(1)
             });
             client.import_definitions(defs_json)
         }
         Err(err) => {
-            eprintln!("`{}` could not be read: {}", file, err);
+            eprintln!("`{}` could not be read: {}", path, err);
             process::exit(1)
         }
     }
@@ -1276,20 +1280,45 @@ pub fn import_vhost_definitions(
     vhost: &str,
     command_args: &ArgMatches,
 ) -> ClientResult<()> {
-    let file = command_args.get_one::<String>("file").unwrap();
-    let definitions = fs::read_to_string(file);
+    let path = command_args
+        .get_one::<String>("file")
+        .map(|s| s.trim_ascii().trim_matches('\'').trim_matches('"'))
+        .unwrap();
+    let definitions = read_definitions(path);
     match definitions {
         Ok(defs) => {
             let defs_json = serde_json::from_str(defs.as_str()).unwrap_or_else(|err| {
-                eprintln!("`{}` is not a valid JSON file: {}", file, err);
+                eprintln!("`{}` is not a valid JSON file: {}", path, err);
                 process::exit(1)
             });
             client.import_vhost_definitions(vhost, defs_json)
         }
         Err(err) => {
-            eprintln!("`{}` could not be read: {}", file, err);
+            eprintln!("`{}` could not be read: {}", path, err);
             process::exit(1)
         }
+    }
+}
+
+fn read_definitions(path: &str) -> io::Result<String> {
+    match path {
+        "-" => {
+            let mut buffer = String::new();
+            let stdin = io::stdin();
+            let lines = stdin.lines();
+            for ln in lines {
+                match ln {
+                    Ok(line) => buffer.push_str(&line),
+                    Err(err) => {
+                        eprintln!("Error reading from standard input: {}", err);
+                        process::exit(1);
+                    }
+                }
+            }
+
+            Ok(buffer)
+        }
+        _ => fs::read_to_string(path),
     }
 }
 
