@@ -26,7 +26,7 @@ No (documented) changes yet.
 
 ### Enhancements
 
- * 'definitions import` now supports reading definitions from the standard input instead of a file.
+ * `definitions import` now supports reading definitions from the standard input instead of a file.
    For that, pass `--stdin` instead of `--file "/path/to/definitions.json"`.
 
    ```shell
