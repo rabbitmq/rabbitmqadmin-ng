@@ -75,9 +75,9 @@ Commands:
   publish              publishes (inefficiently) message(s) to a queue or a stream. Only suitable for development and test environments.
   get                  fetches message(s) from a queue or stream via polling. Only suitable for development and test environments.
   shovels              Operations on shovels
+  federation           Operations on federation upstreams and links
   tanzu                Tanzu RabbitMQ-specific commands
   help                 Print this message or the help of the given subcommand(s)
-
 ```
 
 To explore commands in a specific group, use

@@ -1,8 +1,68 @@
 # rabbitmqadmin-ng Change Log
 
-## v0.28.0 (in development)
+## v0.29.0 (in development)
+
+In (documented) changes yet.
+
+
+## v0.28.0 (Mar 23, 2025)
 
 ### Enhancements
+
+ * New command group: `federation`, see
+
+   ```shell
+   rabbitmqadmin federation help
+   ```
+
+* New command: `federation declare_upstream_for_queues` for declaring upstreams that will exclusively be used for queue
+  federation. This command does not support any options related to exchange federation.
+
+  ```shell
+  rabbitmqadmin federation --vhost "local.vhost" declare_upstream \
+             --name "dc.vancouver" \
+             --uri "amqp://192.168.0.25/demote.vhost" \
+             --ack-mode "on-confirm"
+  ```
+
+* New command: `federation declare_upstream_for_exchanges` for declaring upstreams that will exclusively be used exchange
+  federation. This command does not support any options related to queue federation.
+
+  ```shell
+  rabbitmqadmin federation --vhost "local.vhost" declare_upstream \
+             --name "dc.vancouver" \
+             --uri "amqp://192.168.0.25/demote.vhost" \
+             --ack-mode "on-confirm"
+  ```
+
+ * New command: `federation declare_upstream` for declaring upstreams that can be used for either queue or exchange
+   federation. This command supports the whole spectrum of federation upstream options, that is, both the settings
+   of queue and exchange federation.
+
+   ```shell
+   rabbitmqadmin  federation --vhost "local.vhost" declare_upstream \
+              --name "dc.canada.bc.vancouver" \
+              --uri "amqp://192.168.0.25/demote.vhost" \
+              --ack-mode "on-confirm"
+   ```
+
+ * New command: `federation list_all_upstreams` for listing all upstreams (that is, upstreams across all the virtual hosts in the cluster).
+
+   ```shell
+   rabbitmqadmin federation list_all_upstreams
+   ```
+
+ * New command: `federation list_all_links` for listing all links (that is, links across all the virtual hosts in the cluster).
+
+   ```shell
+   rabbitmqadmin federation list_all_links
+   ```
+
+ * New command: `federation delete_upstream`. As the name suggests, it deletes an upstream.
+
+   ```shell
+   rabbitmqadmin federation delete_upstream --name "dc.canada.bc.vancouver"
+   ```
 
  * New definitions export `--transformations` value, `obfuscate_usernames`, changes usernames to dummy values
    (e.g. so that definitions could be shared safely with external teams)
