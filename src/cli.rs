@@ -57,6 +57,7 @@ pub fn parser() -> Command {
             Arg::new("config_file_path")
                 .short('c')
                 .long("config")
+                .env("RABBITMQADMIN_CONFIG_FILE_PATH")
                 .value_parser(value_parser!(PathBuf))
                 .default_value(DEFAULT_CONFIG_FILE_PATH),
         )
@@ -67,6 +68,7 @@ pub fn parser() -> Command {
             Arg::new("node_alias")
                 .short('N')
                 .long("node")
+                .env("RABBITMQADMIN_NODE_ALIAS")
                 .required(false)
                 .default_value(DEFAULT_NODE_ALIAS),
         )
@@ -75,6 +77,7 @@ pub fn parser() -> Command {
             Arg::new("host")
                 .short('H')
                 .long("host")
+                .env("RABBITMQADMIN_TARGET_HOST")
                 .help("HTTP API hostname to use when connecting"),
         )
         .visible_alias("hostname")
@@ -83,6 +86,7 @@ pub fn parser() -> Command {
             Arg::new("port")
                 .short('P')
                 .long("port")
+                .env("RABBITMQADMIN_TARGET_PORT")
                 .help("HTTP API port to use when connecting")
                 .required(false)
                 .value_parser(value_parser!(u16))
@@ -93,6 +97,7 @@ pub fn parser() -> Command {
             Arg::new("base_uri")
                 .short('U')
                 .long("base-uri")
+                .env("RABBITMQADMIN_BASE_URI")
                 .help("base HTTP API endpoint URI")
                 .required(false)
                 .conflicts_with_all(["host", "port"]),
@@ -101,6 +106,7 @@ pub fn parser() -> Command {
         .arg(
             Arg::new("path_prefix")
                 .long("path-prefix")
+                .env("RABBITMQADMIN_API_PATH_PREFIX")
                 .help("use if target node uses a path prefix. Defaults to '/api'"),
         )
         // --vhost
@@ -108,6 +114,7 @@ pub fn parser() -> Command {
             Arg::new("vhost")
                 .short('V')
                 .long("vhost")
+                .env("RABBITMQADMIN_TARGET_VHOST")
                 .help("target virtual host. Defaults to '/'"),
         )
         // --username
@@ -115,6 +122,7 @@ pub fn parser() -> Command {
             Arg::new("username")
                 .short('u')
                 .long("username")
+                .env("RABBITMQADMIN_USERNAME")
                 .help(format!(
                     "this user must have the permissions for HTTP API access, see {}",
                     HTTP_API_ACCESS_PERMISSIONS_GUIDE_URL
@@ -125,6 +133,7 @@ pub fn parser() -> Command {
             Arg::new("password")
                 .short('p')
                 .long("password")
+                .env("RABBITMQADMIN_PASSWORD")
                 .requires("username")
                 .help("requires username to be specified via --username or in the config file"),
         )
@@ -143,6 +152,7 @@ pub fn parser() -> Command {
             Arg::new("tls")
                 .long("use-tls")
                 .help("use TLS (HTTPS) for HTTP API requests ")
+                .env("RABBITMQADMIN_USE_TLS")
                 .value_parser(value_parser!(bool))
                 .action(ArgAction::SetTrue)
                 .requires("tls-ca-cert-file"),
@@ -179,6 +189,7 @@ pub fn parser() -> Command {
             Arg::new("quiet")
                 .short('q')
                 .long("quiet")
+                .env("RABBITMQADMIN_QUIET_MODE")
                 .help("produce less output")
                 .required(false)
                 .value_parser(value_parser!(bool))
@@ -188,6 +199,7 @@ pub fn parser() -> Command {
         .arg(
             Arg::new("non_interactive")
                 .long("non-interactive")
+                .env("RABBITMQADMIN_NON_INTERACTIVE_MODE")
                 .help("pass when invoking from scripts")
                 .conflicts_with("table_style")
                 .required(false)
@@ -198,6 +210,7 @@ pub fn parser() -> Command {
         .arg(
             Arg::new("table_style")
                 .long("table-style")
+                .env("RABBITMQADMIN_TABLE_STYLE")
                 .help("style preset to apply to output tables: modern, borderless, ascii, dots, psql, markdown, sharp")
                 .conflicts_with("non_interactive")
                 .required(false)
