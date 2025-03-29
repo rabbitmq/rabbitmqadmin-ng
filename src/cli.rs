@@ -204,7 +204,6 @@ pub fn parser() -> Command {
                 .value_parser(value_parser!(TableStyle))
         )
         .subcommand_required(true)
-        .subcommand_value_name("command")
         .subcommands([
             Command::new("show")
                 .about("overview")
@@ -216,15 +215,12 @@ pub fn parser() -> Command {
                 .subcommands(show_subcommands()),
             Command::new("list")
                 .about("lists objects by type")
-                .subcommand_value_name("objects")
                 .subcommands(list_subcommands()),
             Command::new("declare")
-                .about("creates or declares things")
-                .subcommand_value_name("object")
+                .about("creates or declares objects")
                 .subcommands(declare_subcommands()),
             Command::new("delete")
                 .about("deletes objects")
-                .subcommand_value_name("object")
                 .subcommands(delete_subcommands()),
             Command::new("purge")
                 .about("purges queues")
