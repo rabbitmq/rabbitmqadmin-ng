@@ -9,6 +9,16 @@ to learn about the breaking changes in the command line interface.
 The general "shape and feel" of the interface is still very similar to `rabbitmqadmin` v1.
 
 
+## Supported RabbitMQ Series
+
+`rabbitmqadmin` v2 targets
+
+ * Open source RabbitMQ `4.x`
+ * Open source RabbitMQ `3.13.x` (specifically for the command groups and commands related to upgrades)
+ * Tanzu RabbitMQ `4.x`
+ * Tanzu RabbitMQ `3.13.x`
+
+
 ## Getting Started
 
 ### Installation
@@ -510,12 +520,48 @@ the original version of `rabbitmqadmin`. It can be overridden on the command lin
 rabbitmqadmin --config $HOME/.configuration/rabbitmqadmin.conf --node staging show churn
 ```
 
+## Intentionally Restricted Environment Variable Support
+
+Environment variables have a number of serious downsides compared to a `rabbitmqadmin.conf`
+and the regular `--long-options` on the command line:
+
+1. Non-existent support for value types and validation ("everything is a string")
+2. Subprocess inheritance restrictions that can be very time-consuming to debug
+3. Different syntax for setting them between the classic POSIX-era shells (such as `bash`, `zsh`) and modern ones (such as [`nushell`](https://www.nushell.sh/))
+
+For these reasons and others, `rabbitmqadmin` v2 intentionally uses the configuration file and the
+CLI options over the environment variables.
+
+`rabbitmqadmin` v2 does, however, supports a number of environment variables for a few
+global settings that cannot be configured any other way (besides a CLI option),
+or truly represent an environment characteristic, e.g. either the non-interactive mode
+should be enabled.
+
+These environment variables are as follows:
+
+| Environment variable                 | Type                                              | When used                             | Description                                                  |
+|--------------------------------------|---------------------------------------------------|---------------------------------------|--------------------------------------------------------------|
+| `RABBITMQADMIN_CONFIG_FILE_PATH`     | Local filesystem path                             | Pre-flight (before command execution) | Same meaning as the global `--confg-file` argument           |
+| `RABBITMQADMIN_NON_INTERACTIVE_MODE` | Boolean                                           | Command execution                     | Enables the non-interactive mode.<br><br>Same meaning as the global `--non-interactive` argument |
+| `RABBITMQADMIN_QUIET_MODE`<br>       | Boolean                                           | Command execution                     | Instructs the tool to produce less output.<br><br>Same meaning as the global `--quiet` argument |
+| `RABBITMQADMIN_NODE_ALIAS`           | String                                            | Command execution                     | Same meaning as the global `--node` argument                 |
+| `RABBITMQADMIN_TARGET_HOST`          | String                                            | Command execution                     | Same meaning as the global `--host` argument                 |
+| `RABBITMQADMIN_TARGET_PORT`          | Positive integer                                  | Command execution                     | Same meaning as the global `--port` argument                 |
+| `RABBITMQADMIN_API_PATH_PREFIX`      | String                                            | Command execution                     | Same meaning as the global `--path-prefix` argument          |
+| `RABBITMQADMIN_TARGET_VHOST`         | String                                            | Command execution                     | Same meaning as the global `--vhost` argument                |
+| `RABBITMQADMIN_BASE_URI`             | String                                            | Command execution                     | Same meaning as the global `--base-uri` argument             |
+| `RABBITMQADMIN_USE_TLS`              | Boolean                                           | Command execution                     | Same meaning as the global `--tls` argument                  |
+| `RABBITMQADMIN_USERNAME`             | String                                            | Command execution                     | Same meaning as the global `--username` argument             |
+| `RABBITMQADMIN_PASSWORD`             | String                                            | Command execution                     | Same meaning as the global `--password` argument             |
+| `RABBITMQADMIN_TABLE_STYLE`          | Enum, see `--table-style` in `rabbitmqadmin help` | Command execution                     | Same meaning as the global `--table-style` argument          |
+
+
 
 ## Project Goals Compared to `rabbitmqadmin` v1
 
 This version of `rabbitmqadmin` has a few ideas in mind:
 
-* This is a major version bump. Therefore, reasonable breaking changes are OK. `rabbitmqadmin` hasn't seen a revision in fourteen years
+* This is a major version bump. Therefore, reasonable breaking changes are OK. `rabbitmqadmin` hasn't seen a revision in fifteen years
 * Some features in `rabbitmqadmin` v1 arguably should never have been built-ins,
   external tools for data processing and [modern shells](https://www.nushell.sh/) can manipulate tabular data
   better than `rabbitmqadmin` ever would
