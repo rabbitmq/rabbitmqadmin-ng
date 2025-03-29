@@ -1,8 +1,41 @@
 # rabbitmqadmin-ng Change Log
 
-## v0.30.0 (in development)
+## v2.0.0 (in development)
 
-No (documented) changes yet.
+### Intentionally Restricted Environment Variable Support
+
+Environment variables have a number of serious downsides compared to a `rabbitmqadmin.conf`
+and the regular `--long-options` on the command line:
+
+1. Non-existent support for value types and validation ("everything is a string")
+2. Subprocess inheritance restrictions that can be very time-consuming to debug
+3. Different syntax for setting them between the classic POSIX-era shells (such as `bash`, `zsh`) and modern ones (such as [`nushell`](https://www.nushell.sh/))
+
+For these reasons and others, `rabbitmqadmin` v2 intentionally uses the configuration file and the
+CLI options over the environment variables.
+
+`rabbitmqadmin` v2 does, however, supports a number of environment variables for a few
+global settings that cannot be configured any other way (besides a CLI option),
+or truly represent an environment characteristic, e.g. either the non-interactive mode
+should be enabled.
+
+These environment variables are as follows:
+
+| Environment variable                 | Type                                              | When used                             | Description                                                  |
+|--------------------------------------|---------------------------------------------------|---------------------------------------|--------------------------------------------------------------|
+| `RABBITMQADMIN_CONFIG_FILE_PATH`     | Local filesystem path                             | Pre-flight (before command execution) | Same meaning as the global `--confg-file` argument           |
+| `RABBITMQADMIN_NON_INTERACTIVE_MODE` | Boolean                                           | Command execution                     | Enables the non-interactive mode.<br><br>Same meaning as the global `--non-interactive` argument |
+| `RABBITMQADMIN_QUIET_MODE`<br>       | Boolean                                           | Command execution                     | Instructs the tool to produce less output.<br><br>Same meaning as the global `--quiet` argument |
+| `RABBITMQADMIN_NODE_ALIAS`           | String                                            | Command execution                     | Same meaning as the global `--node` argument                 |
+| `RABBITMQADMIN_TARGET_HOST`          | String                                            | Command execution                     | Same meaning as the global `--host` argument                 |
+| `RABBITMQADMIN_TARGET_PORT`          | Positive integer                                  | Command execution                     | Same meaning as the global `--port` argument                 |
+| `RABBITMQADMIN_API_PATH_PREFIX`      | String                                            | Command execution                     | Same meaning as the global `--path-prefix` argument          |
+| `RABBITMQADMIN_TARGET_VHOST`         | String                                            | Command execution                     | Same meaning as the global `--vhost` argument                |
+| `RABBITMQADMIN_BASE_URI`             | String                                            | Command execution                     | Same meaning as the global `--base-uri` argument             |
+| `RABBITMQADMIN_USE_TLS`              | Boolean                                           | Command execution                     | Same meaning as the global `--tls` argument                  |
+| `RABBITMQADMIN_USERNAME`             | String                                            | Command execution                     | Same meaning as the global `--username` argument             |
+| `RABBITMQADMIN_PASSWORD`             | String                                            | Command execution                     | Same meaning as the global `--password` argument             |
+| `RABBITMQADMIN_TABLE_STYLE`          | Enum, see `--table-style` in `rabbitmqadmin help` | Command execution                     | Same meaning as the global `--table-style` argument          |
 
 
 ## v0.29.0 (Mar 23, 2025)
