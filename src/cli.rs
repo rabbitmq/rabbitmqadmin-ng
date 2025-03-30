@@ -80,6 +80,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
             Arg::new("host")
                 .short('H')
                 .long("host")
+                .alias("hostname")
                 .env("RABBITMQADMIN_TARGET_HOST")
                 .help("HTTP API hostname to use when connecting"),
         )
