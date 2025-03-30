@@ -2,7 +2,30 @@
 
 ## v2.0.0 (in development)
 
-### Intentionally Restricted Environment Variable Support
+### Enhancements
+
+#### Subcommand and Long Option Inference
+
+  If the `RABBITMQADMIN_NON_INTERACTIVE_MODE` is not set to `true`, this tool
+  now can infer subcommand and --long-option names.
+
+  This means that a subcommand can be referenced with its unique prefix,
+  that is,
+
+  * 'del queue' will be inferred as 'delete queue'
+  * 'del q --nam "a.queue"' will be inferred as 'delete queue --name "a.queue"'
+
+  To enable each feature, set the following environment variables to
+  'true':
+
+  * `RABBITMQADMIN_INFER_SUBCOMMANDS`
+  * `RABBITMQADMIN_INFER_LONG_OPTIONS`
+
+  This feature is only mean to be used interactively. For non-interactive
+  use, it can be potentially dangerous and therefore requires
+  an explicit opt-in from the user.
+
+#### Intentionally Restricted Environment Variable Support
 
 Environment variables have a number of serious downsides compared to a `rabbitmqadmin.conf`
 and the regular `--long-options` on the command line:

@@ -209,10 +209,10 @@ as a result:
 ```
  key
  Product name      RabbitMQ
- Product version   4.0.5
- RabbitMQ version  4.0.5
- Erlang version    26.2.5.6
- Erlang details    Erlang/OTP 26 [erts-14.2.5.5] [source] [64-bit] [smp:10:10] [ds:10:10:10] [async-threads:1] [jit]
+ Product version   4.0.7
+ RabbitMQ version  4.0.7
+ Erlang version    26.2.5.10
+ Erlang details    Erlang/OTP 26 [erts-14.2.5.9] [source] [64-bit] [smp:10:10] [ds:10:10:10] [async-threads:1] [jit]
 ```
 
 ### Retrieving Basic Node Information
@@ -474,6 +474,30 @@ rabbitmqadmin deprecated_features list
 # same command as above
 rabbitmqadmin list deprecated_features
 ```
+
+## Subcommand and Long Option Inference
+
+This feature is available only in the `main` branch
+at the moment.
+
+If the `RABBITMQADMIN_NON_INTERACTIVE_MODE` is not set to `true`, this tool
+now can infer subcommand and --long-option names.
+
+This means that a subcommand can be referenced with its unique prefix,
+that is,
+
+* 'del queue' will be inferred as 'delete queue'
+* 'del q --nam "a.queue"' will be inferred as 'delete queue --name "a.queue"'
+
+To enable each feature, set the following environment variables to
+'true':
+
+* `RABBITMQADMIN_INFER_SUBCOMMANDS`
+* `RABBITMQADMIN_INFER_LONG_OPTIONS`
+
+This feature is only mean to be used interactively. For non-interactive
+use, it can be potentially dangerous and therefore requires
+an explicit opt-in from the user.
 
 
 ## Configuration Files
