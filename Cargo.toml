@@ -39,13 +39,3 @@ rustls = { version = "0.23", features = ["aws_lc_rs"] }
 [dev-dependencies]
 assert_cmd = "2.0"
 predicates = "3.1"
-
-[profiles.dev]
-incremental = true
-overflow-checks = true
-debug-assertions = true
-
-[profiles.release]
-incremental = false
-overflow-checks = false
-debug-assertions = false
