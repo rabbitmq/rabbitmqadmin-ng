@@ -1,4 +1,4 @@
-# rabbitmqadmin-ng Change Log
+# rabbitmqadmin gen 2 Change Log
 
 ## v2.0.0 (in development)
 
