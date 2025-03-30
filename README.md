@@ -496,8 +496,7 @@ To enable each feature, set the following environment variables to
 * `RABBITMQADMIN_INFER_LONG_OPTIONS`
 
 This feature is only mean to be used interactively. For non-interactive
-use, it can be potentially dangerous and therefore requires
-an explicit opt-in from the user.
+use, it can be potentially too dangerous to allow.
 
 
 ## Configuration Files
