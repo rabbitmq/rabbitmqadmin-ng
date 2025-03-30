@@ -24,6 +24,35 @@ use std::path::{Path, PathBuf};
 use thiserror::Error;
 use url::Url;
 
+/// A set of settings that must be set very early on.
+/// More specifically, before the command line argument parser is
+/// configured.
+#[derive(Debug, Clone)]
+pub struct PreFlightSettings {
+    pub infer_subcommands: bool,
+    pub infer_long_options: bool,
+}
+
+impl Default for PreFlightSettings {
+    fn default() -> Self {
+        Self {
+            infer_long_options: true,
+            infer_subcommands: false,
+        }
+    }
+}
+
+impl PreFlightSettings {
+    /// Returns a set of [`PreFlightSettings`] that disable inference.
+    /// Primarily meant to be used by/for the non-interactive mode.
+    pub fn non_interactive() -> Self {
+        Self {
+            infer_long_options: false,
+            infer_subcommands: false,
+        }
+    }
+}
+
 #[derive(Error, Debug)]
 pub enum ConfigFileError {
     #[error("provided config file at '{0}' does not exist")]

@@ -28,12 +28,13 @@ mod config;
 mod constants;
 mod errors;
 mod output;
+mod pre_flight;
 mod static_urls;
 mod tables;
 mod tanzu_cli;
 mod tanzu_commands;
 
-use crate::config::SharedSettings;
+use crate::config::{PreFlightSettings, SharedSettings};
 use crate::constants::{
     DEFAULT_CONFIG_FILE_PATH, DEFAULT_HTTPS_PORT, DEFAULT_NODE_ALIAS, DEFAULT_VHOST,
     TANZU_COMMAND_PREFIX,
@@ -48,7 +49,15 @@ use rustls::pki_types::{CertificateDer, PrivateKeyDer};
 type APIClient<'a> = GenericAPIClient<&'a str, &'a str, &'a str>;
 
 fn main() {
-    let parser = cli::parser();
+    let pre_flight_settings = match pre_flight::is_non_interactive() {
+        true => PreFlightSettings::non_interactive(),
+        false => PreFlightSettings {
+            infer_subcommands: pre_flight::should_infer_subcommands(),
+            infer_long_options: pre_flight::should_infer_long_options(),
+        },
+    };
+
+    let parser = cli::parser(pre_flight_settings);
     let cli = parser.get_matches();
     let default_config_file_path = PathBuf::from(DEFAULT_CONFIG_FILE_PATH);
     let config_file_path = cli

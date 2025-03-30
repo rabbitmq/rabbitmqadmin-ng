@@ -62,3 +62,4 @@ pub(crate) const FEDERATED_QUEUES_GUIDE_URL: &str = "https://rabbitmq.com/docs/f
 pub(crate) const FEDERATED_EXCHANGES_GUIDE_URL: &str =
     "https://rabbitmq.com/docs/federated-exchanges";
 pub(crate) const FEDERATION_REFERENCE_URL: &str = "https://rabbitmq.com/docs/federation-reference";
+pub(crate) const COMMERCIAL_OFFERINGS_GUIDE_URL: &str = "https://www.rabbitmq.com/contact";
