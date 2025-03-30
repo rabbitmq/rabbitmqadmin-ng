@@ -118,6 +118,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
             Arg::new("vhost")
                 .short('V')
                 .long("vhost")
+                .global(true)
                 .env("RABBITMQADMIN_TARGET_VHOST")
                 .help("target virtual host. Defaults to '/'"),
         )
@@ -155,6 +156,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         .arg(
             Arg::new("tls")
                 .long("use-tls")
+                .global(true)
                 .help("use TLS (HTTPS) for HTTP API requests ")
                 .env("RABBITMQADMIN_USE_TLS")
                 .value_parser(value_parser!(bool))
@@ -165,6 +167,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         .arg(
             Arg::new("tls-ca-cert-file")
                 .long("tls-ca-cert-file")
+                .global(true)
                 .required(false)
                 .requires("tls")
                 .help("Local path to a CA certificate file in the PEM format")
@@ -174,6 +177,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         .arg(
             Arg::new("tls-cert-file")
                 .long("tls-cert-file")
+                .global(true)
                 .required(false)
                 .requires("tls-key-file")
                 .help("Local path to a client certificate file in the PEM format")
@@ -183,6 +187,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         .arg(
             Arg::new("tls-key-file")
                 .long("tls-key-file")
+                .global(true)
                 .required(false)
                 .requires("tls-cert-file")
                 .help("Local path to a client private key file in the PEM format")
@@ -203,6 +208,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         .arg(
             Arg::new("non_interactive")
                 .long("non-interactive")
+                .global(true)
                 .env("RABBITMQADMIN_NON_INTERACTIVE_MODE")
                 .help("pass when invoking from scripts")
                 .conflicts_with("table_style")
@@ -214,6 +220,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         .arg(
             Arg::new("table_style")
                 .long("table-style")
+                .global(true)
                 .env("RABBITMQADMIN_TABLE_STYLE")
                 .help("style preset to apply to output tables: modern, borderless, ascii, dots, psql, markdown, sharp")
                 .conflicts_with("non_interactive")
