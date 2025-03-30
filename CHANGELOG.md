@@ -48,6 +48,8 @@ These environment variables are as follows:
 | `RABBITMQADMIN_CONFIG_FILE_PATH`     | Local filesystem path                             | Pre-flight (before command execution) | Same meaning as the global `--confg-file` argument           |
 | `RABBITMQADMIN_NON_INTERACTIVE_MODE` | Boolean                                           | Command execution                     | Enables the non-interactive mode.<br><br>Same meaning as the global `--non-interactive` argument |
 | `RABBITMQADMIN_QUIET_MODE`<br>       | Boolean                                           | Command execution                     | Instructs the tool to produce less output.<br><br>Same meaning as the global `--quiet` argument |
+| `RABBITMQADMIN_INFER_SUBCOMMANDS`    | Boolean                                           | Pre-flight (before command execution) | Enables inference (completion of partial names) of subcommands .<br><br>Does not apply to the non-interactive mode. |
+| `RABBITMQADMIN_INFER_LONG_OPTIONS`   | Boolean                                           | Pre-flight (before command execution) | Enables inference (completion of partial names) of `--long-options` .<br><br>Does not apply to the non-interactive mode. |
 | `RABBITMQADMIN_NODE_ALIAS`           | String                                            | Command execution                     | Same meaning as the global `--node` argument                 |
 | `RABBITMQADMIN_TARGET_HOST`          | String                                            | Command execution                     | Same meaning as the global `--host` argument                 |
 | `RABBITMQADMIN_TARGET_PORT`          | Positive integer                                  | Command execution                     | Same meaning as the global `--port` argument                 |
@@ -58,7 +60,6 @@ These environment variables are as follows:
 | `RABBITMQADMIN_USERNAME`             | String                                            | Command execution                     | Same meaning as the global `--username` argument             |
 | `RABBITMQADMIN_PASSWORD`             | String                                            | Command execution                     | Same meaning as the global `--password` argument             |
 | `RABBITMQADMIN_TABLE_STYLE`          | Enum, see `--table-style` in `rabbitmqadmin help` | Command execution                     | Same meaning as the global `--table-style` argument          |
-
 
 ## v0.29.0 (Mar 23, 2025)
 
