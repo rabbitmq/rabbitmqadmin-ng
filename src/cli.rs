@@ -118,6 +118,8 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
             Arg::new("vhost")
                 .short('V')
                 .long("vhost")
+                // IMPORTANT: this means that subcommands won't be able to override --vhost or -V,
+                // otherwise the parser will panic. MK.
                 .global(true)
                 .env("RABBITMQADMIN_TARGET_VHOST")
                 .help("target virtual host. Defaults to '/'"),
