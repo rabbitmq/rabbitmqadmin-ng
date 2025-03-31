@@ -65,25 +65,25 @@ rabbitmqadmin help
 which will output a list of command groups:
 
 ```
-Usage: rabbitmqadmin [OPTIONS] <command>
+Usage: rabbitmqadmin [OPTIONS] <COMMAND>
 
 Commands:
-  show                 overview
-  list                 lists objects by type
-  declare              creates or declares things
-  delete               deletes objects
-  purge                purges queues
-  policies             operations on policies
-  health_check         runs health checks
-  close                closes connections
-  rebalance            rebalances queue leaders
-  definitions          operations on definitions (everything except for messages: virtual hosts, queues, streams, exchanges, bindings, users, etc)
-  export               see 'definitions export'
-  import               see 'definitions import'
-  feature_flags        operations on feature flags
-  deprecated_features  operations on deprecated features
-  publish              publishes (inefficiently) message(s) to a queue or a stream. Only suitable for development and test environments.
-  get                  fetches message(s) from a queue or stream via polling. Only suitable for development and test environments.
+  show                 Overview, memory footprint breakdown, and more
+  list                 Lists objects
+  declare              Creates or declares objects
+  delete               Deletes objects
+  purge                Purges queues
+  policies             Operations on policies
+  health_check         Runs health checks
+  close                Closes connections
+  rebalance            Rebalancing of leader replicas
+  definitions          Operations on definitions (everything except for messages: virtual hosts, queues, streams, exchanges, bindings, users, etc)
+  export               See 'definitions export'
+  import               See 'definitions import'
+  feature_flags        Operations on feature flags
+  deprecated_features  Operations on deprecated features
+  publish              Publishes (inefficiently) message(s) to a queue or a stream. Only suitable for development and test environments.
+  get                  Fetches message(s) from a queue or stream via polling. Only suitable for development and test environments.
   shovels              Operations on shovels
   federation           Operations on federation upstreams and links
   tanzu                Tanzu RabbitMQ-specific commands
