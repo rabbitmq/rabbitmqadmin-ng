@@ -866,10 +866,10 @@ fn declare_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 12] 
 
 fn show_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 5] {
     let overview_cmd = Command::new("overview")
-        .about("Displays a essential information about target node and its cluster");
+        .about("Displays essential information about target node and its cluster");
     let churn_cmd = Command::new("churn").about("Displays object churn metrics");
     let endpoint_cmd = Command::new("endpoint")
-        .about("For troubleshooting: displays the computed HTTP API endpoint URI");
+        .about("Displays the computed HTTP API endpoint URI. Use for troubleshooting only.");
     let memory_breakdown_in_bytes_cmd = Command::new("memory_breakdown_in_bytes")
         .about("Provides a memory footprint breakdown (in bytes) for the target node")
         .arg(
