@@ -228,14 +228,13 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         .subcommand_required(true)
         .subcommands([
             Command::new("show")
-                .about("Overview")
+                .about("Overview, memory footprint breakdown, and more")
                 .after_long_help(color_print::cformat!(
                     "<bold>Doc guide</bold>: {}",
                     MONITORING_GUIDE_URL
                 ))
                 .infer_subcommands(pre_flight_settings.infer_subcommands)
                 .infer_long_args(pre_flight_settings.infer_long_options)
-                .subcommand_value_name("summary")
                 .subcommands(show_subcommands(pre_flight_settings.clone())),
             Command::new("list")
                 .about("Lists objects")
@@ -514,7 +513,7 @@ fn list_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 19] {
 fn declare_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 12] {
     [
         Command::new("user")
-            .about("creates a user")
+            .about("Creates a user")
             .arg(
                 Arg::new("name")
                     .long("name")
@@ -542,7 +541,7 @@ fn declare_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 12] 
                     .default_value(""),
             ),
         Command::new("vhost")
-            .about("creates a virtual host")
+            .about("Creates a virtual host")
             .after_long_help(color_print::cformat!("<bold>Doc guide:</bold>: {}", VIRTUAL_HOST_GUIDE_URL))
             .arg(
                 Arg::new("name")
@@ -598,7 +597,7 @@ fn declare_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 12] 
                     .required(true),
             ),
         Command::new("queue")
-            .about("declares a queue or a stream")
+            .about("Declares a queue or a stream")
             .after_long_help(color_print::cformat!("<bold>Doc guide:</bold>: {}", QUEUE_GUIDE_URL))
             .arg(Arg::new("name").long("name").required(true).help("name"))
             .arg(
@@ -632,7 +631,7 @@ fn declare_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 12] 
                     .value_parser(value_parser!(String)),
             ),
         Command::new("stream")
-            .about("declares a stream")
+            .about("Declares a stream")
             .after_long_help(color_print::cformat!("<bold>Doc guide:</bold>: {}", STREAM_GUIDE_URL))
             .arg(Arg::new("name").long("name").required(true).help("name"))
             .arg(
@@ -665,7 +664,7 @@ fn declare_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 12] 
                     .value_parser(value_parser!(String)),
             ),
         Command::new("exchange")
-            .about("declares an exchange")
+            .about("Declares an exchange")
             .arg(
                 Arg::new("name")
                     .long("name")
@@ -702,7 +701,7 @@ fn declare_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 12] 
                     .value_parser(value_parser!(String)),
             ),
         Command::new("binding")
-            .about("creates a binding between a source exchange and a destination (a queue or an exchange)")
+            .about("Creates a binding between a source exchange and a destination (a queue or an exchange)")
             .arg(
                 Arg::new("source")
                     .long("source")
@@ -737,7 +736,7 @@ fn declare_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 12] 
                     .value_parser(value_parser!(String)),
             ),
         Command::new("parameter").
-            about("sets a runtime parameter")
+            about("Sets a runtime parameter")
             .after_long_help(color_print::cformat!("<bold>Doc guide:</bold>: {}", RUNTIME_PARAMETER_GUIDE_URL))
             .arg(
                 Arg::new("name")
@@ -755,7 +754,7 @@ fn declare_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 12] 
                     .help("parameter's value")
                     .required(true)),
         Command::new("policy")
-            .about("creates or updates a policy")
+            .about("Creates or updates a policy")
             .after_long_help(color_print::cformat!("<bold>Doc guide:</bold>: {}", POLICY_GUIDE_URL))
             .arg(
                 Arg::new("name")
@@ -791,7 +790,7 @@ fn declare_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 12] 
                     .required(true),
             ),
         Command::new("operator_policy")
-            .about("creates or updates an operator policy")
+            .about("Creates or updates an operator policy")
             .after_long_help(color_print::cformat!("<bold>Doc guide:</bold>: {}", OPERATOR_POLICY_GUIDE_URL))
             .arg(
                 Arg::new("name")
@@ -827,7 +826,7 @@ fn declare_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 12] 
                     .required(true),
             ),
         Command::new("vhost_limit")
-            .about("set a vhost limit")
+            .about("Set a vhost limit")
             .after_long_help(color_print::cformat!("<bold>Doc guide:</bold>: {}", VIRTUAL_HOST_LIMIT_GUIDE_URL))
             .arg(
                 Arg::new("name")
@@ -842,7 +841,7 @@ fn declare_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 12] 
                     .required(true),
             ),
         Command::new("user_limit")
-            .about("set a user limit")
+            .about("Set a user limit")
             .after_long_help(color_print::cformat!("<bold>Doc guide:</bold>: {}", USER_LIMIT_GUIDE_URL))
             .arg(
                 Arg::new("user")
@@ -867,12 +866,12 @@ fn declare_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 12] 
 
 fn show_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 5] {
     let overview_cmd = Command::new("overview")
-        .about("displays a essential information about target node and its cluster");
-    let churn_cmd = Command::new("churn").about("displays object churn metrics");
+        .about("Displays a essential information about target node and its cluster");
+    let churn_cmd = Command::new("churn").about("Displays object churn metrics");
     let endpoint_cmd = Command::new("endpoint")
-        .about("for troubleshooting: displays the computed HTTP API endpoint URI");
+        .about("For troubleshooting: displays the computed HTTP API endpoint URI");
     let memory_breakdown_in_bytes_cmd = Command::new("memory_breakdown_in_bytes")
-        .about("provides a memory footprint breakdown (in bytes) for the target node")
+        .about("Provides a memory footprint breakdown (in bytes) for the target node")
         .arg(
             Arg::new("node")
                 .long("node")
@@ -885,7 +884,7 @@ fn show_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 5] {
         ));
 
     let memory_breakdown_in_percent_cmd = Command::new("memory_breakdown_in_percent")
-        .about("provides a memory footprint breakdown (in percent) for the target node")
+        .about("Provides a memory footprint breakdown (in percent) for the target node")
         .arg(
             Arg::new("node")
                 .long("node")
@@ -917,7 +916,7 @@ fn delete_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 13] {
 
     [
         Command::new("user")
-            .about("deletes a user")
+            .about("Deletes a user")
             .arg(
                 Arg::new("name")
                     .long("name")
@@ -926,7 +925,7 @@ fn delete_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 13] {
             )
             .arg(idempotently_arg.clone()),
         Command::new("vhost")
-            .about("deletes a virtual host")
+            .about("Deletes a virtual host")
             .arg(
                 Arg::new("name")
                     .long("name")
@@ -935,7 +934,7 @@ fn delete_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 13] {
             )
             .arg(idempotently_arg.clone()),
         Command::new("permissions")
-            .about("revokes user permissions to a given vhost")
+            .about("Revokes user permissions to a given vhost")
             .arg(
                 Arg::new("user")
                     .long("user")
@@ -944,7 +943,7 @@ fn delete_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 13] {
             )
             .arg(idempotently_arg.clone()),
         Command::new("queue")
-            .about("deletes a queue")
+            .about("Deletes a queue")
             .arg(
                 Arg::new("name")
                     .long("name")
@@ -953,7 +952,7 @@ fn delete_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 13] {
             )
             .arg(idempotently_arg.clone()),
         Command::new("stream")
-            .about("deletes a stream")
+            .about("Deletes a stream")
             .arg(
                 Arg::new("name")
                     .long("name")
@@ -962,7 +961,7 @@ fn delete_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 13] {
             )
             .arg(idempotently_arg.clone()),
         Command::new("exchange")
-            .about("deletes an exchange")
+            .about("Deletes an exchange")
             .arg(
                 Arg::new("name")
                     .long("name")
@@ -971,7 +970,7 @@ fn delete_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 13] {
             )
             .arg(idempotently_arg.clone()),
         Command::new("binding")
-            .about("deletes a binding")
+            .about("Deletes a binding")
             .arg(
                 Arg::new("source")
                     .long("source")
@@ -1005,7 +1004,7 @@ fn delete_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 13] {
                     .value_parser(value_parser!(String)),
             ),
         Command::new("parameter")
-            .about("clears a runtime parameter")
+            .about("Clears a runtime parameter")
             .arg(
                 Arg::new("name")
                     .long("name")
@@ -1018,14 +1017,14 @@ fn delete_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 13] {
                     .help("component (eg. federation-upstream)")
                     .required(true),
             ),
-        Command::new("policy").about("deletes a policy").arg(
+        Command::new("policy").about("Deletes a policy").arg(
             Arg::new("name")
                 .long("name")
                 .help("policy name")
                 .required(true),
         ),
         Command::new("operator_policy")
-            .about("deletes an operator policy")
+            .about("Deletes an operator policy")
             .arg(
                 Arg::new("name")
                     .long("name")
@@ -1041,7 +1040,7 @@ fn delete_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 13] {
                     .required(true),
             ),
         Command::new("user_limit")
-            .about("clears a user limit")
+            .about("Clears a user limit")
             .arg(
                 Arg::new("user")
                     .long("user")
@@ -1055,7 +1054,7 @@ fn delete_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 13] {
                     .required(true),
             ),
         Command::new("shovel")
-            .about("delete a shovel")
+            .about("Delete a shovel")
             .arg(idempotently_arg.clone())
             .arg(
                 Arg::new("name")
@@ -1069,7 +1068,7 @@ fn delete_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 13] {
 
 fn purge_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 1] {
     let queue_cmd = Command::new("queue")
-        .long_about("purges (permanently removes unacknowledged messages from) a queue")
+        .long_about("Purges (permanently removes unacknowledged messages from) a queue")
         .arg(
             Arg::new("name")
                 .long("name")
@@ -1081,7 +1080,7 @@ fn purge_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 1] {
 
 fn policies_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 5] {
     let declare_cmd = Command::new("declare")
-        .about("creates or updates a policy")
+        .about("Creates or updates a policy")
         .after_long_help(color_print::cformat!("<bold>Doc guide:</bold>: {}", POLICY_GUIDE_URL))
         .arg(
             Arg::new("name")
@@ -1118,13 +1117,13 @@ fn policies_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 5] 
         );
 
     let list_cmd = Command::new("list")
-        .long_about("lists policies")
+        .long_about("Lists policies")
         .after_long_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             POLICY_GUIDE_URL
         ));
 
-    let delete_cmd = Command::new("delete").about("deletes a policy").arg(
+    let delete_cmd = Command::new("delete").about("Deletes a policy").arg(
         Arg::new("name")
             .long("name")
             .help("policy name")
@@ -1132,7 +1131,7 @@ fn policies_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 5] 
     );
 
     let list_in_cmd = Command::new("list_in")
-        .about("lists policies in a specific virtual host")
+        .about("Lists policies in a specific virtual host")
         .arg(
             Arg::new("apply_to")
                 .long("apply-to")
@@ -1141,7 +1140,7 @@ fn policies_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 5] 
         );
 
     let list_matching_cmd = Command::new("list_matching_object")
-        .about("lists policies that match an object (queue, stream, exchange) name")
+        .about("Lists policies that match an object (queue, stream, exchange) name")
         .arg(
             Arg::new("name")
                 .long("name")
@@ -1178,14 +1177,14 @@ fn health_check_subcommands(pre_flight_settings: PreFlightSettings) -> [Command;
     );
 
     let local_alarms = Command::new("local_alarms")
-        .about("checks if there are any resource alarms in effect on the target node");
+        .about("Checks if there are any resource alarms in effect on the target node");
     let cluster_wide_alarms = Command::new("cluster_wide_alarms")
-        .about("checks if there are any resource alarms in effect across the entire cluster");
+        .about("Checks if there are any resource alarms in effect across the entire cluster");
     let node_is_quorum_critical = Command::new("node_is_quorum_critical")
-        .about("fails if there are queues/streams with minimum online quorum (queues/streams that will lose their quorum if the target node shuts down)")
+        .about("Fails if there are queues/streams with minimum online quorum (queues/streams that will lose their quorum if the target node shuts down)")
         .after_long_help(node_is_quorum_critical_after_help);
     let deprecated_features_in_use = Command::new("deprecated_features_in_use")
-        .about("fails if there are any deprecated features in use in the cluster")
+        .about("Fails if there are any deprecated features in use in the cluster")
         .after_long_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             DEPRECATED_FEATURE_GUIDE_URL
@@ -1193,7 +1192,7 @@ fn health_check_subcommands(pre_flight_settings: PreFlightSettings) -> [Command;
 
     let port_listener = Command::new("port_listener")
         .about(
-            "verifies that there's a reachable TCP listener on the given port on the target node",
+            "Verifies that there's a reachable TCP listener on the given port on the target node",
         )
         .arg(
             Arg::new("port")
@@ -1207,7 +1206,7 @@ fn health_check_subcommands(pre_flight_settings: PreFlightSettings) -> [Command;
 
     let protocol_listener = Command::new("protocol_listener")
         .about(
-            "verifies that there's a reachable TCP listener on the given protocol alias on the target node",
+            "Verifies that there's a reachable TCP listener on the given protocol alias on the target node",
         )
         .arg(
             Arg::new("protocol")
@@ -1232,13 +1231,13 @@ fn health_check_subcommands(pre_flight_settings: PreFlightSettings) -> [Command;
 }
 
 fn rebalance_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 1] {
-    let queues_cmd = Command::new("queues").about("rebalances queue leaders");
+    let queues_cmd = Command::new("queues").about("Rebalances queue leaders");
     [queues_cmd].map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
 }
 
 fn close_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 2] {
     let close_connection = Command::new("connection")
-        .about("closes a client connection")
+        .about("Closes a client connection")
         .arg(
             Arg::new("name")
                 .long("name")
@@ -1246,7 +1245,7 @@ fn close_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 2] {
                 .required(true),
         );
     let close_user_connections = Command::new("user_connections")
-        .about("closes all connections that authenticated with a specific username")
+        .about("Closes all connections that authenticated with a specific username")
         .arg(
             Arg::new("username")
                 .short('u')
@@ -1260,7 +1259,7 @@ fn close_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 2] {
 
 fn definitions_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 4] {
     let export_cmd = Command::new("export")
-        .about("export cluster-wide definitions")
+        .about("Export cluster-wide definitions")
         .after_long_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             DEFINITION_GUIDE_URL
@@ -1319,7 +1318,7 @@ Examples:
         );
 
     let export_from_vhost_cmd = Command::new("export_from_vhost")
-        .about("export definitions of a specific virtual host")
+        .about("Export definitions of a specific virtual host")
         .after_long_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             DEFINITION_GUIDE_URL
@@ -1345,7 +1344,7 @@ Examples:
         );
 
     let import_cmd = Command::new("import")
-        .about("import cluster-wide definitions (of multiple virtual hosts)")
+        .about("Import cluster-wide definitions (of multiple virtual hosts)")
         .after_long_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             DEFINITION_GUIDE_URL
@@ -1370,7 +1369,7 @@ Examples:
         );
 
     let import_into_vhost_cmd = Command::new("import_into_vhost")
-        .about("import a virtual host-specific definitions file into a virtual host")
+        .about("Import a virtual host-specific definitions file into a virtual host")
         .after_long_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             DEFINITION_GUIDE_URL
@@ -1405,7 +1404,7 @@ Examples:
 
 fn export_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 1] {
     let definitions = Command::new("definitions")
-        .about("prefer 'definitions export'")
+        .about("Prefer 'definitions export'")
         .after_long_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             DEFINITION_GUIDE_URL
@@ -1443,7 +1442,7 @@ Example use: --transformations strip_cmq_keys_from_policies,drop_empty_policies
 
 fn import_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 1] {
     [Command::new("definitions")
-        .about("prefer 'definitions import'")
+        .about("Prefer 'definitions import'")
         .after_long_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             DEFINITION_GUIDE_URL
@@ -1459,14 +1458,14 @@ fn import_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 1] {
 
 pub fn feature_flags_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 3] {
     let list_cmd = Command::new("list")
-        .long_about("lists feature flags and their cluster state")
+        .long_about("Lists feature flags and their cluster state")
         .after_long_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             FEATURE_FLAG_GUIDE_URL
         ));
 
     let enable_cmd = Command::new("enable")
-        .long_about("enables a feature flag")
+        .long_about("Enables a feature flag")
         .after_long_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             FEATURE_FLAG_GUIDE_URL
@@ -1479,7 +1478,7 @@ pub fn feature_flags_subcommands(pre_flight_settings: PreFlightSettings) -> [Com
         );
 
     let enable_all_cmd = Command::new("enable_all")
-        .long_about("enables all stable feature flags")
+        .long_about("Enables all stable feature flags")
         .after_long_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             FEATURE_FLAG_GUIDE_URL
@@ -1491,14 +1490,14 @@ pub fn feature_flags_subcommands(pre_flight_settings: PreFlightSettings) -> [Com
 
 pub fn deprecated_features_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 2] {
     let list_cmd = Command::new("list")
-        .long_about("lists deprecated features")
+        .long_about("Lists deprecated features")
         .after_long_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             DEPRECATED_FEATURE_GUIDE_URL
         ));
 
     let list_in_use_cmd = Command::new("list_used")
-        .long_about("lists the deprecated features that are found to be in use in the cluster")
+        .long_about("Lists the deprecated features that are found to be in use in the cluster")
         .after_long_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             DEPRECATED_FEATURE_GUIDE_URL
@@ -1510,8 +1509,7 @@ pub fn deprecated_features_subcommands(pre_flight_settings: PreFlightSettings) -
 
 pub fn publish_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 1] {
     [Command::new("message")
-        .about("publishes a message to an exchange")
-        .about(color_print::cstr!("publishes (<red>inefficiently</red>) message(s) to a queue or a stream. <bold><red>Only suitable for development and test environments</red></bold>. Prefer messaging or streaming protocol clients!"))
+        .about(color_print::cstr!("Publishes (<red>inefficiently</red>) message(s) to a queue or a stream. <bold><red>Only suitable for development and test environments</red></bold>. Prefer messaging or streaming protocol clients!"))
         .after_long_help(color_print::cformat!("<bold>Doc guide</bold>: {}", PUBLISHER_GUIDE_URL))
         .arg(
             Arg::new("routing_key")
