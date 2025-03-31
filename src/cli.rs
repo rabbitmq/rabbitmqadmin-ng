@@ -30,6 +30,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         r#"
 <bold><blue>Documentation and Community Resources</blue></bold>
 
+  rabbitmqadmin docs: {}
   RabbitMQ docs: {}
   GitHub Discussions: {}
   Discord server: {}
@@ -37,6 +38,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
 <bold><blue>Contribute</blue></bold>
 
   On GitHub: {}"#,
+        RABBITMQADMIN_DOC_GUIDE_URL,
         RABBITMQ_DOC_GUIDES_URL,
         GITHUB_DISCUSSIONS_URL,
         DISCORD_SERVER_INVITATION_URL,

@@ -15,6 +15,7 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
 
+pub(crate) const RABBITMQADMIN_DOC_GUIDE_URL: &str = "https://www.rabbitmq.com/docs/management-cli";
 pub(crate) const RABBITMQ_DOC_GUIDES_URL: &str = "https://rabbitmq.com/docs/";
 pub(crate) const GITHUB_DISCUSSIONS_URL: &str =
     "https://github.com/rabbitmq/rabbitmq-server/discussions";
