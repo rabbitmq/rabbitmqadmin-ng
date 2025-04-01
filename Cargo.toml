@@ -3,7 +3,7 @@ name = "rabbitmqadmin"
 version = "2.1.0"
 edition = "2024"
 
-description = "rabbitmqadmin v2 is a major revision of rabbitmqadmin, one of the RabbitMQ CLI tools that target the HTTP API"
+description = "rabbitmqadmin v2 is a modern CLI tool for the RabbitMQ HTTP API"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
