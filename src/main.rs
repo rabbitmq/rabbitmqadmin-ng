@@ -476,6 +476,18 @@ fn dispatch_common_subcommand(
             let result = commands::delete_parameter(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);
         }
+        ("vhosts", "declare") => {
+            let result = commands::declare_vhost(client, second_level_args);
+            res_handler.no_output_on_success(result);
+        }
+        ("vhosts", "list") => {
+            let result = commands::list_vhosts(client);
+            res_handler.tabular_result(result)
+        }
+        ("vhosts", "delete") => {
+            let result = commands::delete_vhost(client, second_level_args);
+            res_handler.delete_operation_result(result);
+        }
         ("purge", "queue") => {
             let result = commands::purge_queue(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);

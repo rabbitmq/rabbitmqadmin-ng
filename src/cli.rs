@@ -279,11 +279,15 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
                     HEALTH_CHECK_GUIDE_URL,
                     DEPRECATED_FEATURE_GUIDE_URL
                 )),
+            Command::new("vhosts")
+                .about("Virtual host operations")
+                .infer_subcommands(pre_flight_settings.infer_subcommands)
+                .infer_long_args(pre_flight_settings.infer_long_options)
+                .subcommands(vhosts_subcommands(pre_flight_settings.clone())),
             Command::new("close")
                 .about("Closes connections")
                 .infer_subcommands(pre_flight_settings.infer_subcommands)
                 .infer_long_args(pre_flight_settings.infer_long_options)
-                .subcommand_value_name("connection")
                 .subcommands(close_subcommands(pre_flight_settings.clone())),
             Command::new("rebalance")
                 .about("Rebalancing of leader replicas")
@@ -394,476 +398,536 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
 }
 
 fn list_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 19] {
+    let nodes_cmd = Command::new("nodes").long_about("Lists cluster members");
+    let users_cmd = Command::new("users").long_about("Lists users in the internal database");
+    let vhosts_cmd = Command::new("vhosts")
+        .long_about("Lists virtual hosts")
+        .after_long_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            VIRTUAL_HOST_GUIDE_URL
+        ));
+
+    let permissions_cmd = Command::new("permissions")
+        .long_about("Lists user permissions")
+        .after_long_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            ACCESS_CONTROL_GUIDE_URL
+        ));
+    let connections_cmd = Command::new("connections")
+        .long_about("Lists client connections")
+        .after_long_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            CONNECTION_GUIDE_URL
+        ));
+    let user_connections_cmd = Command::new("user_connections")
+        .arg(
+            Arg::new("username")
+                .short('u')
+                .long("username")
+                .required(true)
+                .help("Name of the user whose connections to list"),
+        )
+        .long_about("Lists client connections that authenticated with a specific username")
+        .after_long_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            CONNECTION_GUIDE_URL
+        ));
+    let channels_cmd = Command::new("channels")
+        .long_about("Lists AMQP 0-9-1 channels")
+        .after_long_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            CHANNEL_GUIDE_URL
+        ));
+    let queues_cmd = Command::new("queues")
+        .long_about("Lists queues and streams")
+        .after_long_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            QUEUE_GUIDE_URL
+        ));
+    let exchanges_cmd = Command::new("exchanges").long_about("Lists exchanges");
+    let bindings_cmd = Command::new("bindings").long_about("Lists bindings");
+    let consumers_cmd = Command::new("consumers")
+        .long_about("Lists consumers")
+        .after_long_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            CONSUMER_GUIDE_URL
+        ));
+    let parameters_cmd = Command::new("parameters")
+        .arg(
+            Arg::new("component")
+                .long("component")
+                .help("component (for example: federation-upstream, vhost-limits)")
+                .required(false),
+        )
+        .long_about("Lists runtime parameters")
+        .after_long_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            RUNTIME_PARAMETER_GUIDE_URL
+        ));
+    let policies_cmd = Command::new("policies")
+        .long_about("Lists policies")
+        .after_long_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            POLICY_GUIDE_URL
+        ));
+    let operator_policies_cmd = Command::new("operator_policies")
+        .long_about("Lists operator policies")
+        .after_long_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            OPERATOR_POLICY_GUIDE_URL
+        ));
+    let vhost_limits_cmd = Command::new("vhost_limits")
+        .long_about("Lists virtual host (resource) limits")
+        .after_long_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            VIRTUAL_HOST_GUIDE_URL
+        ));
+    let user_limits_cmd = Command::new("user_limits")
+        .arg(
+            Arg::new("user")
+                .long("user")
+                .help("username")
+                .required(false),
+        )
+        .long_about("Lists per-user (resource) limits")
+        .after_long_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            USER_LIMIT_GUIDE_URL
+        ));
+    let feature_flags_cmd = Command::new("feature_flags")
+        .long_about("Lists feature flags and their cluster state")
+        .after_long_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            FEATURE_FLAG_GUIDE_URL
+        ));
+    let deprecated_features_cmd = Command::new("deprecated_features")
+        .long_about("Lists all deprecated features")
+        .after_long_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            DEPRECATED_FEATURE_GUIDE_URL
+        ));
+    let deprecated_features_in_use_cmd = Command::new("deprecated_features_in_use")
+        .long_about("Lists the deprecated features that are in used in the cluster")
+        .after_long_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            DEPRECATED_FEATURE_GUIDE_URL
+        ));
     [
-        Command::new("nodes").long_about("Lists cluster members"),
-        Command::new("users").long_about("Lists users in the internal database"),
-        Command::new("vhosts")
-            .long_about("Lists virtual hosts")
-            .after_long_help(color_print::cformat!(
-                "<bold>Doc guide</bold>: {}",
-                VIRTUAL_HOST_GUIDE_URL
-            )),
-        Command::new("permissions")
-            .long_about("Lists user permissions")
-            .after_long_help(color_print::cformat!(
-                "<bold>Doc guide</bold>: {}",
-                ACCESS_CONTROL_GUIDE_URL
-            )),
-        Command::new("connections")
-            .long_about("Lists client connections")
-            .after_long_help(color_print::cformat!(
-                "<bold>Doc guide</bold>: {}",
-                CONNECTION_GUIDE_URL
-            )),
-        Command::new("user_connections")
-            .arg(
-                Arg::new("username")
-                    .short('u')
-                    .long("username")
-                    .required(true)
-                    .help("Name of the user whose connections to list"),
-            )
-            .long_about("Lists client connections that authenticated with a specific username")
-            .after_long_help(color_print::cformat!(
-                "<bold>Doc guide</bold>: {}",
-                CONNECTION_GUIDE_URL
-            )),
-        Command::new("channels")
-            .long_about("Lists AMQP 0-9-1 channels")
-            .after_long_help(color_print::cformat!(
-                "<bold>Doc guide</bold>: {}",
-                CHANNEL_GUIDE_URL
-            )),
-        Command::new("queues")
-            .long_about("Lists queues and streams")
-            .after_long_help(color_print::cformat!(
-                "<bold>Doc guide</bold>: {}",
-                QUEUE_GUIDE_URL
-            )),
-        Command::new("exchanges").long_about("Lists exchanges"),
-        Command::new("bindings").long_about("Lists bindings"),
-        Command::new("consumers")
-            .long_about("Lists consumers")
-            .after_long_help(color_print::cformat!(
-                "<bold>Doc guide</bold>: {}",
-                CONSUMER_GUIDE_URL
-            )),
-        Command::new("parameters")
-            .arg(
-                Arg::new("component")
-                    .long("component")
-                    .help("component (for example: federation-upstream, vhost-limits)")
-                    .required(false),
-            )
-            .long_about("Lists runtime parameters")
-            .after_long_help(color_print::cformat!(
-                "<bold>Doc guide</bold>: {}",
-                RUNTIME_PARAMETER_GUIDE_URL
-            )),
-        Command::new("policies")
-            .long_about("Lists policies")
-            .after_long_help(color_print::cformat!(
-                "<bold>Doc guide</bold>: {}",
-                POLICY_GUIDE_URL
-            )),
-        Command::new("operator_policies")
-            .long_about("Lists operator policies")
-            .after_long_help(color_print::cformat!(
-                "<bold>Doc guide</bold>: {}",
-                OPERATOR_POLICY_GUIDE_URL
-            )),
-        Command::new("vhost_limits")
-            .long_about("Lists virtual host (resource) limits")
-            .after_long_help(color_print::cformat!(
-                "<bold>Doc guide</bold>: {}",
-                VIRTUAL_HOST_GUIDE_URL
-            )),
-        Command::new("user_limits")
-            .arg(
-                Arg::new("user")
-                    .long("user")
-                    .help("username")
-                    .required(false),
-            )
-            .long_about("Lists per-user (resource) limits")
-            .after_long_help(color_print::cformat!(
-                "<bold>Doc guide</bold>: {}",
-                USER_LIMIT_GUIDE_URL
-            )),
-        Command::new("feature_flags")
-            .long_about("Lists feature flags and their cluster state")
-            .after_long_help(color_print::cformat!(
-                "<bold>Doc guide</bold>: {}",
-                FEATURE_FLAG_GUIDE_URL
-            )),
-        Command::new("deprecated_features")
-            .long_about("Lists all deprecated features")
-            .after_long_help(color_print::cformat!(
-                "<bold>Doc guide</bold>: {}",
-                DEPRECATED_FEATURE_GUIDE_URL
-            )),
-        Command::new("deprecated_features_in_use")
-            .long_about("Lists the deprecated features that are in used in the cluster")
-            .after_long_help(color_print::cformat!(
-                "<bold>Doc guide</bold>: {}",
-                DEPRECATED_FEATURE_GUIDE_URL
-            )),
+        nodes_cmd,
+        users_cmd,
+        vhosts_cmd,
+        permissions_cmd,
+        connections_cmd,
+        user_connections_cmd,
+        channels_cmd,
+        queues_cmd,
+        exchanges_cmd,
+        bindings_cmd,
+        consumers_cmd,
+        parameters_cmd,
+        policies_cmd,
+        operator_policies_cmd,
+        vhost_limits_cmd,
+        user_limits_cmd,
+        feature_flags_cmd,
+        deprecated_features_cmd,
+        deprecated_features_in_use_cmd,
     ]
     .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
 }
 
 fn declare_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 12] {
-    [
-        Command::new("user")
-            .about("Creates a user")
-            .arg(
-                Arg::new("name")
-                    .long("name")
-                    .help("username")
-                    .required(true),
-            )
-            .arg(
-                Arg::new("password_hash")
-                    .help(color_print::cformat!("salted password hash, see {}", PASSWORD_GUIDE_URL))
-                    .long("password-hash")
-                    .required(false)
-                    .default_value(""),
-            )
-            .arg(
-                Arg::new("password")
-                    .long("password")
-                    .help(color_print::cformat!("prefer providing a hash, see {}", PASSWORD_GUIDE_URL))
-                    .required(false)
-                    .default_value(""),
-            )
-            .arg(
-                Arg::new("tags")
-                    .long("tags")
-                    .help("a list of comma-separated tags")
-                    .default_value(""),
-            ),
-        Command::new("vhost")
-            .about("Creates a virtual host")
-            .after_long_help(color_print::cformat!("<bold>Doc guide:</bold>: {}", VIRTUAL_HOST_GUIDE_URL))
-            .arg(
-                Arg::new("name")
-                    .long("name")
-                    .help("virtual host name")
-                    .required(true),
-            )
-            .arg(
-                Arg::new("default_queue_type")
-                    .long("default-queue-type")
-                    .required(false)
-                    .default_value(DEFAULT_QUEUE_TYPE)
-                    .help(color_print::cformat!("default queue type, one of: <bold>classic</bold>, <bright-blue>quorum</bright-blue>, <bright-magenta>stream</bright-magenta>"))
-            )
-            .arg(
-                Arg::new("description")
-                    .long("description")
-                    .required(false)
-                    .help("what's the purpose of this virtual host?"),
-            )
-            .arg(
-                Arg::new("tracing")
-                    .long("tracing")
-                    .required(false)
-                    .action(ArgAction::SetTrue)
-                    .help("should tracing be enabled for this virtual host?"),
-            ),
-        Command::new("permissions")
-            .about("grants permissions to a user")
-            .after_long_help(color_print::cformat!("<bold>Doc guide:</bold>: {}", ACCESS_CONTROL_GUIDE_URL))
-            .arg(
-                Arg::new("user")
-                    .long("user")
-                    .help("username")
-                    .required(true),
-            )
-            .arg(
-                Arg::new("configure")
-                    .long("configure")
-                    .help("name pattern for configuration access")
-                    .required(true),
-            )
-            .arg(
-                Arg::new("read")
-                    .long("read")
-                    .help("name pattern for read access")
-                    .required(true),
-            )
-            .arg(
-                Arg::new("write")
-                    .long("write")
-                    .help("name pattern for write access")
-                    .required(true),
-            ),
-        Command::new("queue")
-            .about("Declares a queue or a stream")
-            .after_long_help(color_print::cformat!("<bold>Doc guide:</bold>: {}", QUEUE_GUIDE_URL))
-            .arg(Arg::new("name").long("name").required(true).help("name"))
-            .arg(
-                Arg::new("type")
-                    .long("type")
-                    .help("queue type")
-                    .value_parser(value_parser!(QueueType))
-                    .required(false)
-                    .default_value("classic"),
-            )
-            .arg(
-                Arg::new("durable")
-                    .long("durable")
-                    .help("should it persist after a restart")
-                    .required(false)
-                    .value_parser(value_parser!(bool)),
-            )
-            .arg(
-                Arg::new("auto_delete")
-                    .long("auto-delete")
-                    .help("should it be deleted when the last consumer disconnects")
-                    .required(false)
-                    .value_parser(value_parser!(bool)),
-            )
-            .arg(
-                Arg::new("arguments")
-                    .long("arguments")
-                    .help("additional exchange arguments")
-                    .required(false)
-                    .default_value("{}")
-                    .value_parser(value_parser!(String)),
-            ),
-        Command::new("stream")
-            .about("Declares a stream")
-            .after_long_help(color_print::cformat!("<bold>Doc guide:</bold>: {}", STREAM_GUIDE_URL))
-            .arg(Arg::new("name").long("name").required(true).help("name"))
-            .arg(
-                Arg::new("expiration")
-                    .long("expiration")
-                    .help("stream expiration, e.g. 12h for 12 hours, 7D for 7 days, or 1M for 1 month")
-                    .required(true)
-                    .value_parser(value_parser!(String)),
-            )
-            .arg(
-                Arg::new("max_length_bytes")
-                    .long("max-length-bytes")
-                    .help("maximum stream length in bytes")
-                    .required(false)
-                    .value_parser(value_parser!(u64)),
-            )
-            .arg(
-                Arg::new("max_segment_length_bytes")
-                    .long("stream-max-segment-size-bytes")
-                    .help("maximum stream segment file length in bytes")
-                    .required(false)
-                    .value_parser(value_parser!(u64)),
-            )
-            .arg(
-                Arg::new("arguments")
-                    .long("arguments")
-                    .help("additional exchange arguments")
-                    .required(false)
-                    .default_value("{}")
-                    .value_parser(value_parser!(String)),
-            ),
-        Command::new("exchange")
-            .about("Declares an exchange")
-            .arg(
-                Arg::new("name")
-                    .long("name")
-                    .help("exchange name")
-                    .required(true),
-            )
-            .arg(
-                Arg::new("type")
-                    .long("type")
-                    .help("exchange type")
-                    .value_parser(value_parser!(ExchangeType))
-                    .required(false),
-            )
-            .arg(
-                Arg::new("durable")
-                    .long("durable")
-                    .help("should it persist after a restart")
-                    .required(false)
-                    .value_parser(value_parser!(bool)),
-            )
-            .arg(
-                Arg::new("auto_delete")
-                    .long("auto-delete")
-                    .help("should it be deleted when the last queue is unbound")
-                    .required(false)
-                    .value_parser(value_parser!(bool)),
-            )
-            .arg(
-                Arg::new("arguments")
-                    .long("arguments")
-                    .help("additional exchange arguments")
-                    .required(false)
-                    .default_value("{}")
-                    .value_parser(value_parser!(String)),
-            ),
-        Command::new("binding")
-            .about("Creates a binding between a source exchange and a destination (a queue or an exchange)")
-            .arg(
-                Arg::new("source")
-                    .long("source")
-                    .help("source exchange")
-                    .required(true),
-            )
-            .arg(
-                Arg::new("destination_type")
-                    .long("destination-type")
-                    .help("destination type: exchange or queue")
-                    .required(true)
-                    .value_parser(value_parser!(BindingDestinationType)),
-            )
-            .arg(
-                Arg::new("destination")
-                    .long("destination")
-                    .help("destination exchange/queue name")
-                    .required(true),
-            )
-            .arg(
-                Arg::new("routing_key")
-                    .long("routing-key")
-                    .help("routing key")
-                    .required(true),
-            )
-            .arg(
-                Arg::new("arguments")
-                    .long("arguments")
-                    .help("additional arguments")
-                    .required(false)
-                    .default_value("{}")
-                    .value_parser(value_parser!(String)),
-            ),
-        Command::new("parameter").
-            about("Sets a runtime parameter")
-            .after_long_help(color_print::cformat!("<bold>Doc guide:</bold>: {}", RUNTIME_PARAMETER_GUIDE_URL))
-            .arg(
-                Arg::new("name")
-                    .long("name")
-                    .help("parameter's name")
-                    .required(true)
-            ).arg(
+    let user_cmd = Command::new("user")
+        .about("Creates a user")
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("username")
+                .required(true),
+        )
+        .arg(
+            Arg::new("password_hash")
+                .help(color_print::cformat!(
+                    "salted password hash, see {}",
+                    PASSWORD_GUIDE_URL
+                ))
+                .long("password-hash")
+                .required(false)
+                .default_value(""),
+        )
+        .arg(
+            Arg::new("password")
+                .long("password")
+                .help(color_print::cformat!(
+                    "prefer providing a hash, see {}",
+                    PASSWORD_GUIDE_URL
+                ))
+                .required(false)
+                .default_value(""),
+        )
+        .arg(
+            Arg::new("tags")
+                .long("tags")
+                .help("a list of comma-separated tags")
+                .default_value(""),
+        );
+    let vhost_cmd = Command::new("vhost")
+        .about("Creates a virtual host")
+        .after_long_help(color_print::cformat!("<bold>Doc guide:</bold>: {}", VIRTUAL_HOST_GUIDE_URL))
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("virtual host name")
+                .required(true),
+        )
+        .arg(
+            Arg::new("default_queue_type")
+                .long("default-queue-type")
+                .required(false)
+                .default_value(DEFAULT_QUEUE_TYPE)
+                .help(color_print::cformat!("default queue type, one of: <bold>classic</bold>, <bright-blue>quorum</bright-blue>, <bright-magenta>stream</bright-magenta>"))
+        )
+        .arg(
+            Arg::new("description")
+                .long("description")
+                .required(false)
+                .help("what's the purpose of this virtual host?"),
+        )
+        .arg(
+            Arg::new("tracing")
+                .long("tracing")
+                .required(false)
+                .action(ArgAction::SetTrue)
+                .help("should tracing be enabled for this virtual host?"),
+        );
+    let permissions_cmd = Command::new("permissions")
+        .about("grants permissions to a user")
+        .after_long_help(color_print::cformat!(
+            "<bold>Doc guide:</bold>: {}",
+            ACCESS_CONTROL_GUIDE_URL
+        ))
+        .arg(
+            Arg::new("user")
+                .long("user")
+                .help("username")
+                .required(true),
+        )
+        .arg(
+            Arg::new("configure")
+                .long("configure")
+                .help("name pattern for configuration access")
+                .required(true),
+        )
+        .arg(
+            Arg::new("read")
+                .long("read")
+                .help("name pattern for read access")
+                .required(true),
+        )
+        .arg(
+            Arg::new("write")
+                .long("write")
+                .help("name pattern for write access")
+                .required(true),
+        );
+    let queue_cmd = Command::new("queue")
+        .about("Declares a queue or a stream")
+        .after_long_help(color_print::cformat!(
+            "<bold>Doc guide:</bold>: {}",
+            QUEUE_GUIDE_URL
+        ))
+        .arg(Arg::new("name").long("name").required(true).help("name"))
+        .arg(
+            Arg::new("type")
+                .long("type")
+                .help("queue type")
+                .value_parser(value_parser!(QueueType))
+                .required(false)
+                .default_value("classic"),
+        )
+        .arg(
+            Arg::new("durable")
+                .long("durable")
+                .help("should it persist after a restart")
+                .required(false)
+                .value_parser(value_parser!(bool)),
+        )
+        .arg(
+            Arg::new("auto_delete")
+                .long("auto-delete")
+                .help("should it be deleted when the last consumer disconnects")
+                .required(false)
+                .value_parser(value_parser!(bool)),
+        )
+        .arg(
+            Arg::new("arguments")
+                .long("arguments")
+                .help("additional exchange arguments")
+                .required(false)
+                .default_value("{}")
+                .value_parser(value_parser!(String)),
+        );
+    let stream_cmd = Command::new("stream")
+        .about("Declares a stream")
+        .after_long_help(color_print::cformat!(
+            "<bold>Doc guide:</bold>: {}",
+            STREAM_GUIDE_URL
+        ))
+        .arg(Arg::new("name").long("name").required(true).help("name"))
+        .arg(
+            Arg::new("expiration")
+                .long("expiration")
+                .help("stream expiration, e.g. 12h for 12 hours, 7D for 7 days, or 1M for 1 month")
+                .required(true)
+                .value_parser(value_parser!(String)),
+        )
+        .arg(
+            Arg::new("max_length_bytes")
+                .long("max-length-bytes")
+                .help("maximum stream length in bytes")
+                .required(false)
+                .value_parser(value_parser!(u64)),
+        )
+        .arg(
+            Arg::new("max_segment_length_bytes")
+                .long("stream-max-segment-size-bytes")
+                .help("maximum stream segment file length in bytes")
+                .required(false)
+                .value_parser(value_parser!(u64)),
+        )
+        .arg(
+            Arg::new("arguments")
+                .long("arguments")
+                .help("additional exchange arguments")
+                .required(false)
+                .default_value("{}")
+                .value_parser(value_parser!(String)),
+        );
+    let exchange_cmd = Command::new("exchange")
+        .about("Declares an exchange")
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("exchange name")
+                .required(true),
+        )
+        .arg(
+            Arg::new("type")
+                .long("type")
+                .help("exchange type")
+                .value_parser(value_parser!(ExchangeType))
+                .required(false),
+        )
+        .arg(
+            Arg::new("durable")
+                .long("durable")
+                .help("should it persist after a restart")
+                .required(false)
+                .value_parser(value_parser!(bool)),
+        )
+        .arg(
+            Arg::new("auto_delete")
+                .long("auto-delete")
+                .help("should it be deleted when the last queue is unbound")
+                .required(false)
+                .value_parser(value_parser!(bool)),
+        )
+        .arg(
+            Arg::new("arguments")
+                .long("arguments")
+                .help("additional exchange arguments")
+                .required(false)
+                .default_value("{}")
+                .value_parser(value_parser!(String)),
+        );
+    let binding_cmd = Command::new("binding")
+        .about("Creates a binding between a source exchange and a destination (a queue or an exchange)")
+        .arg(
+            Arg::new("source")
+                .long("source")
+                .help("source exchange")
+                .required(true),
+        )
+        .arg(
+            Arg::new("destination_type")
+                .long("destination-type")
+                .help("destination type: exchange or queue")
+                .required(true)
+                .value_parser(value_parser!(BindingDestinationType)),
+        )
+        .arg(
+            Arg::new("destination")
+                .long("destination")
+                .help("destination exchange/queue name")
+                .required(true),
+        )
+        .arg(
+            Arg::new("routing_key")
+                .long("routing-key")
+                .help("routing key")
+                .required(true),
+        )
+        .arg(
+            Arg::new("arguments")
+                .long("arguments")
+                .help("additional arguments")
+                .required(false)
+                .default_value("{}")
+                .value_parser(value_parser!(String)),
+        );
+    let parameter_cmd = Command::new("parameter")
+        .about("Sets a runtime parameter")
+        .after_long_help(color_print::cformat!(
+            "<bold>Doc guide:</bold>: {}",
+            RUNTIME_PARAMETER_GUIDE_URL
+        ))
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("parameter's name")
+                .required(true),
+        )
+        .arg(
             Arg::new("component")
                 .long("component")
                 .help("component (eg. federation)")
-                .required(true))
-            .arg(
-                Arg::new("value")
-                    .long("value")
-                    .help("parameter's value")
-                    .required(true)),
-        Command::new("policy")
-            .about("Creates or updates a policy")
-            .after_long_help(color_print::cformat!("<bold>Doc guide:</bold>: {}", POLICY_GUIDE_URL))
-            .arg(
-                Arg::new("name")
-                    .long("name")
-                    .help("policy name")
-                    .required(true),
-            )
-            .arg(
-                Arg::new("pattern")
-                    .long("pattern")
-                    .help("the pattern that is used to match entity (queue, stream, exchange) names")
-                    .required(true),
-            )
-            .arg(
-                Arg::new("apply_to")
-                    .long("apply-to")
-                    .alias("applies-to")
-                    .help("entities to apply to (queues, classic_queues, quorum_queues, streams, exchanges, all)")
-                    .value_parser(value_parser!(PolicyTarget))
-                    .required(true),
-            )
-            .arg(
-                Arg::new("priority")
-                    .long("priority")
-                    .help("policy priority (only the policy with the highest priority is effective)")
-                    .required(false)
-                    .default_value("0"),
-            )
-            .arg(
-                Arg::new("definition")
-                    .long("definition")
-                    .help("policy definition")
-                    .required(true),
-            ),
-        Command::new("operator_policy")
-            .about("Creates or updates an operator policy")
-            .after_long_help(color_print::cformat!("<bold>Doc guide:</bold>: {}", OPERATOR_POLICY_GUIDE_URL))
-            .arg(
-                Arg::new("name")
-                    .long("name")
-                    .help("operator policy name")
-                    .required(true),
-            )
-            .arg(
-                Arg::new("pattern")
-                    .long("pattern")
-                    .help("queue/exchange name pattern")
-                    .required(true),
-            )
-            .arg(
-                Arg::new("apply_to")
-                    .long("apply-to")
-                    .alias("applies-to")
-                    .help("entities to apply to (queues, classic_queues, quorum_queues, streams, exchanges, all)")
-                    .value_parser(value_parser!(PolicyTarget))
-                    .required(true),
-            )
-            .arg(
-                Arg::new("priority")
-                    .long("priority")
-                    .help("policy priority (only the policy with the highest priority is effective)")
-                    .required(false)
-                    .default_value("0"),
-            )
-            .arg(
-                Arg::new("definition")
-                    .long("definition")
-                    .help("policy definition")
-                    .required(true),
-            ),
-        Command::new("vhost_limit")
-            .about("Set a vhost limit")
-            .after_long_help(color_print::cformat!("<bold>Doc guide:</bold>: {}", VIRTUAL_HOST_LIMIT_GUIDE_URL))
-            .arg(
-                Arg::new("name")
-                    .long("name")
-                    .help("limit name (eg. max-connections, max-queues)")
-                    .required(true),
-            )
-            .arg(
-                Arg::new("value")
-                    .long("value")
-                    .help("limit value")
-                    .required(true),
-            ),
-        Command::new("user_limit")
-            .about("Set a user limit")
-            .after_long_help(color_print::cformat!("<bold>Doc guide:</bold>: {}", USER_LIMIT_GUIDE_URL))
-            .arg(
-                Arg::new("user")
-                    .long("user")
-                    .help("username")
-                    .required(true),
-            )
-            .arg(
-                Arg::new("name")
-                    .long("name")
-                    .help("limit name (eg. max-connections, max-queues)")
-                    .required(true),
-            )
-            .arg(
-                Arg::new("value")
-                    .long("value")
-                    .help("limit value")
-                    .required(true),
-            )
-    ].map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+                .required(true),
+        )
+        .arg(
+            Arg::new("value")
+                .long("value")
+                .help("parameter's value")
+                .required(true),
+        );
+    let policy_cmd = Command::new("policy")
+        .about("Creates or updates a policy")
+        .after_long_help(color_print::cformat!("<bold>Doc guide:</bold>: {}", POLICY_GUIDE_URL))
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("policy name")
+                .required(true),
+        )
+        .arg(
+            Arg::new("pattern")
+                .long("pattern")
+                .help("the pattern that is used to match entity (queue, stream, exchange) names")
+                .required(true),
+        )
+        .arg(
+            Arg::new("apply_to")
+                .long("apply-to")
+                .alias("applies-to")
+                .help("entities to apply to (queues, classic_queues, quorum_queues, streams, exchanges, all)")
+                .value_parser(value_parser!(PolicyTarget))
+                .required(true),
+        )
+        .arg(
+            Arg::new("priority")
+                .long("priority")
+                .help("policy priority (only the policy with the highest priority is effective)")
+                .required(false)
+                .default_value("0"),
+        )
+        .arg(
+            Arg::new("definition")
+                .long("definition")
+                .help("policy definition")
+                .required(true),
+        );
+    let operator_policy_cmd = Command::new("operator_policy")
+        .about("Creates or updates an operator policy")
+        .after_long_help(color_print::cformat!("<bold>Doc guide:</bold>: {}", OPERATOR_POLICY_GUIDE_URL))
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("operator policy name")
+                .required(true),
+        )
+        .arg(
+            Arg::new("pattern")
+                .long("pattern")
+                .help("queue/exchange name pattern")
+                .required(true),
+        )
+        .arg(
+            Arg::new("apply_to")
+                .long("apply-to")
+                .alias("applies-to")
+                .help("entities to apply to (queues, classic_queues, quorum_queues, streams, exchanges, all)")
+                .value_parser(value_parser!(PolicyTarget))
+                .required(true),
+        )
+        .arg(
+            Arg::new("priority")
+                .long("priority")
+                .help("policy priority (only the policy with the highest priority is effective)")
+                .required(false)
+                .default_value("0"),
+        )
+        .arg(
+            Arg::new("definition")
+                .long("definition")
+                .help("policy definition")
+                .required(true),
+        );
+    let vhost_limit_cmd = Command::new("vhost_limit")
+        .about("Set a vhost limit")
+        .after_long_help(color_print::cformat!(
+            "<bold>Doc guide:</bold>: {}",
+            VIRTUAL_HOST_LIMIT_GUIDE_URL
+        ))
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("limit name (eg. max-connections, max-queues)")
+                .required(true),
+        )
+        .arg(
+            Arg::new("value")
+                .long("value")
+                .help("limit value")
+                .required(true),
+        );
+    let user_limit_cmd = Command::new("user_limit")
+        .about("Set a user limit")
+        .after_long_help(color_print::cformat!(
+            "<bold>Doc guide:</bold>: {}",
+            USER_LIMIT_GUIDE_URL
+        ))
+        .arg(
+            Arg::new("user")
+                .long("user")
+                .help("username")
+                .required(true),
+        )
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("limit name (eg. max-connections, max-queues)")
+                .required(true),
+        )
+        .arg(
+            Arg::new("value")
+                .long("value")
+                .help("limit value")
+                .required(true),
+        );
+    [
+        user_cmd,
+        vhost_cmd,
+        permissions_cmd,
+        queue_cmd,
+        stream_cmd,
+        exchange_cmd,
+        binding_cmd,
+        parameter_cmd,
+        policy_cmd,
+        operator_policy_cmd,
+        vhost_limit_cmd,
+        user_limit_cmd,
+    ]
+    .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
 }
 
 fn show_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 5] {
@@ -916,154 +980,167 @@ fn delete_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 13] {
         .help("do not consider 404 Not Found API responses to be errors")
         .required(false);
 
-    [
-        Command::new("user")
-            .about("Deletes a user")
-            .arg(
-                Arg::new("name")
-                    .long("name")
-                    .help("username")
-                    .required(true),
-            )
-            .arg(idempotently_arg.clone()),
-        Command::new("vhost")
-            .about("Deletes a virtual host")
-            .arg(
-                Arg::new("name")
-                    .long("name")
-                    .help("virtual host")
-                    .required(true),
-            )
-            .arg(idempotently_arg.clone()),
-        Command::new("permissions")
-            .about("Revokes user permissions to a given vhost")
-            .arg(
-                Arg::new("user")
-                    .long("user")
-                    .help("username")
-                    .required(true),
-            )
-            .arg(idempotently_arg.clone()),
-        Command::new("queue")
-            .about("Deletes a queue")
-            .arg(
-                Arg::new("name")
-                    .long("name")
-                    .help("queue name")
-                    .required(true),
-            )
-            .arg(idempotently_arg.clone()),
-        Command::new("stream")
-            .about("Deletes a stream")
-            .arg(
-                Arg::new("name")
-                    .long("name")
-                    .help("stream name")
-                    .required(true),
-            )
-            .arg(idempotently_arg.clone()),
-        Command::new("exchange")
-            .about("Deletes an exchange")
-            .arg(
-                Arg::new("name")
-                    .long("name")
-                    .help("exchange name")
-                    .required(true),
-            )
-            .arg(idempotently_arg.clone()),
-        Command::new("binding")
-            .about("Deletes a binding")
-            .arg(
-                Arg::new("source")
-                    .long("source")
-                    .help("source exchange")
-                    .required(true),
-            )
-            .arg(
-                Arg::new("destination_type")
-                    .long("destination-type")
-                    .help("destination type: exchange or queue")
-                    .required(true),
-            )
-            .arg(
-                Arg::new("destination")
-                    .long("destination")
-                    .help("destination exchange/queue name")
-                    .required(true),
-            )
-            .arg(
-                Arg::new("routing_key")
-                    .long("routing-key")
-                    .help("routing key")
-                    .required(true),
-            )
-            .arg(
-                Arg::new("arguments")
-                    .long("arguments")
-                    .help("additional arguments")
-                    .required(false)
-                    .default_value("{}")
-                    .value_parser(value_parser!(String)),
-            ),
-        Command::new("parameter")
-            .about("Clears a runtime parameter")
-            .arg(
-                Arg::new("name")
-                    .long("name")
-                    .help("parameter's name")
-                    .required(true),
-            )
-            .arg(
-                Arg::new("component")
-                    .long("component")
-                    .help("component (eg. federation-upstream)")
-                    .required(true),
-            ),
-        Command::new("policy").about("Deletes a policy").arg(
+    let user_cmd = Command::new("user")
+        .about("Deletes a user")
+        .arg(
             Arg::new("name")
                 .long("name")
-                .help("policy name")
+                .help("username")
                 .required(true),
-        ),
-        Command::new("operator_policy")
-            .about("Deletes an operator policy")
-            .arg(
-                Arg::new("name")
-                    .long("name")
-                    .help("operator policy name")
-                    .required(true),
-            ),
-        Command::new("vhost_limit")
-            .about("delete a vhost limit")
-            .arg(
-                Arg::new("name")
-                    .long("name")
-                    .help("limit name (eg. max-connections, max-queues)")
-                    .required(true),
-            ),
-        Command::new("user_limit")
-            .about("Clears a user limit")
-            .arg(
-                Arg::new("user")
-                    .long("user")
-                    .help("username")
-                    .required(true),
-            )
-            .arg(
-                Arg::new("name")
-                    .long("name")
-                    .help("limit name (eg. max-connections, max-queues)")
-                    .required(true),
-            ),
-        Command::new("shovel")
-            .about("Delete a shovel")
-            .arg(idempotently_arg.clone())
-            .arg(
-                Arg::new("name")
-                    .long("name")
-                    .help("shovel name")
-                    .required(true),
-            ),
+        )
+        .arg(idempotently_arg.clone());
+    let vhost_cmd = Command::new("vhost")
+        .about("Deletes a virtual host")
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("virtual host")
+                .required(true),
+        )
+        .arg(idempotently_arg.clone());
+    let permissions_cmd = Command::new("permissions")
+        .about("Revokes user permissions to a given vhost")
+        .arg(
+            Arg::new("user")
+                .long("user")
+                .help("username")
+                .required(true),
+        )
+        .arg(idempotently_arg.clone());
+    let queue_cmd = Command::new("queue")
+        .about("Deletes a queue")
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("queue name")
+                .required(true),
+        )
+        .arg(idempotently_arg.clone());
+    let stream_cmd = Command::new("stream")
+        .about("Deletes a stream")
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("stream name")
+                .required(true),
+        )
+        .arg(idempotently_arg.clone());
+    let exchange_cmd = Command::new("exchange")
+        .about("Deletes an exchange")
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("exchange name")
+                .required(true),
+        )
+        .arg(idempotently_arg.clone());
+    let binding_cmd = Command::new("binding")
+        .about("Deletes a binding")
+        .arg(
+            Arg::new("source")
+                .long("source")
+                .help("source exchange")
+                .required(true),
+        )
+        .arg(
+            Arg::new("destination_type")
+                .long("destination-type")
+                .help("destination type: exchange or queue")
+                .required(true),
+        )
+        .arg(
+            Arg::new("destination")
+                .long("destination")
+                .help("destination exchange/queue name")
+                .required(true),
+        )
+        .arg(
+            Arg::new("routing_key")
+                .long("routing-key")
+                .help("routing key")
+                .required(true),
+        )
+        .arg(
+            Arg::new("arguments")
+                .long("arguments")
+                .help("additional arguments")
+                .required(false)
+                .default_value("{}")
+                .value_parser(value_parser!(String)),
+        );
+    let parameter_cmd = Command::new("parameter")
+        .about("Clears a runtime parameter")
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("parameter's name")
+                .required(true),
+        )
+        .arg(
+            Arg::new("component")
+                .long("component")
+                .help("component (eg. federation-upstream)")
+                .required(true),
+        );
+    let policy_cmd = Command::new("policy").about("Deletes a policy").arg(
+        Arg::new("name")
+            .long("name")
+            .help("policy name")
+            .required(true),
+    );
+    let operator_policy_cmd = Command::new("operator_policy")
+        .about("Deletes an operator policy")
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("operator policy name")
+                .required(true),
+        );
+    let vhost_limit_cmd = Command::new("vhost_limit")
+        .about("delete a vhost limit")
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("limit name (eg. max-connections, max-queues)")
+                .required(true),
+        );
+    let user_limit_cmd = Command::new("user_limit")
+        .about("Clears a user limit")
+        .arg(
+            Arg::new("user")
+                .long("user")
+                .help("username")
+                .required(true),
+        )
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("limit name (eg. max-connections, max-queues)")
+                .required(true),
+        );
+    let shovel_cmd = Command::new("shovel")
+        .about("Delete a shovel")
+        .arg(idempotently_arg.clone())
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("shovel name")
+                .required(true),
+        );
+    [
+        user_cmd,
+        vhost_cmd,
+        permissions_cmd,
+        queue_cmd,
+        stream_cmd,
+        exchange_cmd,
+        binding_cmd,
+        parameter_cmd,
+        policy_cmd,
+        operator_policy_cmd,
+        vhost_limit_cmd,
+        user_limit_cmd,
+        shovel_cmd,
     ]
     .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
 }
@@ -1506,6 +1583,64 @@ pub fn deprecated_features_subcommands(pre_flight_settings: PreFlightSettings) -
         ));
 
     [list_cmd, list_in_use_cmd]
+        .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+}
+
+pub fn vhosts_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 3] {
+    let list_cmd = Command::new("list")
+        .long_about("Lists virtual hosts")
+        .after_long_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            VIRTUAL_HOST_GUIDE_URL
+        ));
+
+    let declare_cmd = Command::new("declare")
+        .about("Creates a virtual host")
+        .after_long_help(color_print::cformat!("<bold>Doc guide:</bold>: {}", VIRTUAL_HOST_GUIDE_URL))
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("virtual host name")
+                .required(true),
+        )
+        .arg(
+            Arg::new("default_queue_type")
+                .long("default-queue-type")
+                .required(false)
+                .default_value(DEFAULT_QUEUE_TYPE)
+                .help(color_print::cformat!("default queue type, one of: <bold>classic</bold>, <bright-blue>quorum</bright-blue>, <bright-magenta>stream</bright-magenta>"))
+        )
+        .arg(
+            Arg::new("description")
+                .long("description")
+                .required(false)
+                .help("what's the purpose of this virtual host?"),
+        )
+        .arg(
+            Arg::new("tracing")
+                .long("tracing")
+                .required(false)
+                .action(ArgAction::SetTrue)
+                .help("should tracing be enabled for this virtual host?"),
+        );
+
+    let idempotently_arg = Arg::new("idempotently")
+        .long("idempotently")
+        .value_parser(value_parser!(bool))
+        .action(ArgAction::SetTrue)
+        .help("do not consider 404 Not Found API responses to be errors")
+        .required(false);
+    let delete_cmd = Command::new("delete")
+        .about("Deletes a virtual host")
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("virtual host")
+                .required(true),
+        )
+        .arg(idempotently_arg.clone());
+
+    [list_cmd, declare_cmd, delete_cmd]
         .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
 }
 

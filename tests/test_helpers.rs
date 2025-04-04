@@ -82,14 +82,14 @@ where
 
 pub fn create_vhost(vhost: &str) -> CommandRunResult {
     let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.args(["declare", "vhost", "--name", vhost]);
+    cmd.args(["vhosts", "declare", "--name", vhost]);
     cmd.assert().success();
     Ok(())
 }
 
 pub fn delete_vhost(vhost: &str) -> CommandRunResult {
     let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
-    cmd.args(["delete", "vhost", "--name", vhost, "--idempotently"]);
+    cmd.args(["vhosts", "delete", "--name", vhost, "--idempotently"]);
     cmd.assert().success();
     Ok(())
 }

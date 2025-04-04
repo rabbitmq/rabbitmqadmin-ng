@@ -2,7 +2,10 @@
 
 ## v2.1.0 (in development)
 
-No changes yet.
+### Enhancements
+
+ * `vhosts` is a new command group that aggregates all the existing
+   commands directly related to virtual hosts: `list vhosts`, `declare vhost`, `delete vhost`
 
 
 ## v2.0.0 (Mar 31, 2024)
