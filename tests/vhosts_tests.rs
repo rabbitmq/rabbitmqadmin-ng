@@ -37,7 +37,7 @@ fn vhosts_list() -> Result<(), Box<dyn std::error::Error>> {
     let vh = "list_vhosts.2";
     delete_vhost(vh).expect("failed to delete a virtual host");
 
-    run_succeeds(["vhost", "declare", "--name", vh]);
+    run_succeeds(["vhosts", "declare", "--name", vh]);
     run_succeeds(["vhosts", "list"])
         .stdout(predicate::str::contains("/").and(predicate::str::contains(vh)));
 
