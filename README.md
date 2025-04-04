@@ -556,6 +556,57 @@ To import definitions from a file, use `definitions import --file /path/to/defin
 rabbitmqadmin definitions import --file /path/to/definitions.file.json
 ```
 
+### Declare an AMQP 0-9-1 Shovel
+
+To declare a [dynamic shovel](https://www.rabbitmq.com/docs/shovel-dynamic) that uses AMQP 0-9-1 for both source and desitnation, use
+`shovel declare_amqp091`:
+
+```shell
+rabbitmqadmin shovel declare_amqp091 --name my-amqp091-shovel \
+    --source-uri amqp://username:s3KrE7@source.hostname:5672 \
+    --destination-uri amqp://username:s3KrE7@source.hostname:5672 \
+    --ack-mode "on-confirm" \
+    --source-queue "src.queue" \
+    --destination-queue "dest.queue" \
+    --predeclared-source false \
+    --predeclared-destination false
+```
+
+### Declare an AMQP 1.0 Shovel
+
+To declare a [dynamic shovel](https://www.rabbitmq.com/docs/shovel-dynamic) that uses AMQP 1.0 for both source and desitnation, use
+`shovel declare_amqp10`.
+
+Note that
+
+1. With AMQP 1.0 shovels, credentials in the URI are mandatory (there are no defaults)
+2. With AMQP 1.0 shovels, the topology must be pre-declared (an equivalent of `--predeclared-source true` and `--predeclared-destination true` for AMQP 0-9-1 shovels)
+2. AMQP 1.0 shovels should use [AMQP 1.0 addresses v2](https://www.rabbitmq.com/docs/amqp#addresses)
+
+```shell
+rabbitmqadmin shovel declare_amqp10 --name my-amqp1.0-shovel \
+    --source-uri "amqp://username:s3KrE7@source.hostname:5672?hostname=vhost:src-vhost" \
+    --destination-uri "amqp://username:s3KrE7@source.hostname:5672?hostname=vhost:dest-vhost" \
+    --ack-mode "on-confirm" \
+    --source-address "/queues/src.queue" \
+    --destination-address "/queues/dest.queue"
+```
+
+### List Shovels
+
+To list shovels across all virtual hosts, use `shovel list_all`:
+
+```shell
+rabbitmqadmin shovel list_all
+```
+
+### Delete a Shovel
+
+To delete a shovel, use `shovel delete --name`:
+
+```shell
+rabbitmqadmin shovel delete --name my-amqp091-shovel
+```
 
 ## Subcommand and Long Option Inference
 
