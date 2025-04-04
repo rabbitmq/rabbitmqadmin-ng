@@ -29,7 +29,7 @@ To enable each feature, set the following environment variables to
 * `RABBITMQADMIN_INFER_SUBCOMMANDS`
 * `RABBITMQADMIN_INFER_LONG_OPTIONS`
 
-This feature is only mean to be used interactively. For non-interactive
+This feature is only meant to be used interactively. For non-interactive
 use, it can be potentially too dangerous to allow.
 
 #### Intentionally Restricted Environment Variable Support

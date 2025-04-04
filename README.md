@@ -120,7 +120,7 @@ of tagging on `--help` at the end of command name:
 ```shell
 rabbitmqadmin declare help queue
 # => declares a queue or a stream
-# => 
+# =>
 # => Usage: rabbitmqadmin declare queue [OPTIONS] --name <name>
 ```
 
@@ -209,8 +209,8 @@ as a result:
 ```
  key
  Product name      RabbitMQ
- Product version   4.0.7
- RabbitMQ version  4.0.7
+ Product version   4.0.8
+ RabbitMQ version  4.0.8
  Erlang version    26.2.5.10
  Erlang details    Erlang/OTP 26 [erts-14.2.5.9] [source] [64-bit] [smp:10:10] [ds:10:10:10] [async-threads:1] [jit]
 ```
@@ -475,6 +475,88 @@ rabbitmqadmin deprecated_features list
 rabbitmqadmin list deprecated_features
 ```
 
+### Export Definitions
+
+To export [definitions](https://www.rabbitmq.com/docs/definitions) to standard output, use `definitions export --stdout`:
+
+```shell
+rabbitmqadmin definitions export --stdout
+```
+
+To export definitions to a file, use `definitions export --file /path/to/definitions.file.json`:
+
+```shell
+rabbitmqadmin definitions export --file /path/to/definitions.file.json
+```
+
+### Export and Transform Definitions
+
+`definitions export` can transform the exported JSON definitions file it gets from the
+target node. This is done by applying one or more transformations to the exported
+JSON file.
+
+This can be useful to remove classic queue mirroring-related keys (such as `ha-mode`) from a definitions
+set originating from a 3.13.x node, or to obfuscate usernames and passwords, or exclude certain definitions file
+sections entirely.
+
+To specify what transformations should be applied, use the `--transformations` options,
+which takes a comma-separated list of  supported operation names.
+
+The following table explains what transformations are available and what they do:
+
+| Transformation name            | Description                                                  |
+|--------------------------------|--------------------------------------------------------------|
+| `strip_cmq_keys_from_policies` | Deletes all classic queue mirroring-related keys (such as `ha-mode`) from all exported policies.<br><br>Must be followed by `drop_empty_policies` to strip off the policies whose definition has become empty (and thus invalid at import time) after the removal of all classic queue mirroring-related keys |
+| `drop_empty_policies`          | Should be used after `strip_cmq_keys_from_policies` to strip off the policies whose definition has become empty (and thus invalid at import time) after the removal of all classic queue mirroring-related keys |
+| `obfuscate_usernames`          | Replaces usernames and passwords with dummy values.<br><br>For usernames the values used are: `obfuscated-username-1`, `obfuscated-username-2`, and so on.<br><br>For passwords the values generated are: `password-1`, `password-2`, and so forth.<br><br>This transformations updates both the users and the permissions sections, consistently |
+| `exclude_users`                | Removes all users from the result. Commonly used together with `exclude_permissions` |
+| `exclude_permissions`          | Removes all permissions from the result. Commonly used together with `exclude_users` |
+| `exclude_runtime_parameters`   | Removes all runtime parameters (including federation upstreams, shovels, WSR and SDS settings in Tanzu RabbitMQ) from the result |
+| `exclude_policies`             | Removes all policies from the result                         |
+| `no_op`                        | Does nothing. Can be used as the default in dynamically computed transformation lists, e.g. in scripts |
+
+#### Examples
+
+The following command applies two transformations named `strip_cmq_keys_from_policies` and `drop_empty_policies`
+that will strip all classic queue mirroring-related policy keys that RabbitMQ 3.13 nodes supported,
+then removes the policies that did not have any keys left (ended up having an empty definition):
+
+```shell
+# strips classic mirrored queue-related policy keys from the exported definitions, then prints them
+# to the standard output stream
+rabbitmqadmin definitions export --stdout --transformations strip_cmq_keys_from_policies,drop_empty_policies
+```
+
+The following example exports definitions without users and permissions:
+
+```shell
+# removes users and user permissions from the exported definitions, then prints them
+# to the standard output stream
+rabbitmqadmin definitions export --stdout --transformations exclude_users,exclude_permissions
+```
+
+To export definitions with usernames replaced by dummy values (usernames: `obfuscated-username-1`, `obfuscated-username-2`, and so on;
+passwords: `password-1`, `password-2`, and so forth), use the `obfuscate_usernames` transformation:
+
+```shell
+rabbitmqadmin definitions export --file /path/to/definitions.file.json --transformations obfuscate_usernames
+```
+
+### Import Definition
+
+To import definitions from the standard input, use `definitions import --stdin`:
+
+```shell
+cat /path/to/definitions.file.json | rabbitmqadmin definitions import --stdin
+```
+
+To import definitions from a file, use `definitions import --file /path/to/definitions.file.json`:
+
+```shell
+rabbitmqadmin definitions import --file /path/to/definitions.file.json
+```
+
+
 ## Subcommand and Long Option Inference
 
 This feature is available only in the `main` branch
@@ -495,14 +577,14 @@ To enable each feature, set the following environment variables to
 * `RABBITMQADMIN_INFER_SUBCOMMANDS`
 * `RABBITMQADMIN_INFER_LONG_OPTIONS`
 
-This feature is only mean to be used interactively. For non-interactive
+This feature is only meant to be used interactively. For non-interactive
 use, it can be potentially too dangerous to allow.
 
 
 ## Configuration Files
 
 `rabbitmqadmin` v2 supports [TOML](https://toml.io/en/)-based configuration files
-stores groups of HTTP API connection settings under aliases ("node names" in original `rabbitmqadmin` speak). 
+stores groups of HTTP API connection settings under aliases ("node names" in original `rabbitmqadmin` speak).
 
 Here is an example `rabbitmqadmin` v2 configuration file:
 
@@ -625,7 +707,7 @@ rabbitmqadmin-v1 --vhost "vh-2" declare queue name="qq.1" type="quorum" durable=
 
 ```shell
 # Note: --auto-delete
-rabbitmqadmin --vhost "vh-2" declare queue --name "qq.1" --type "quorum" --durable true --auto-delete false 
+rabbitmqadmin --vhost "vh-2" declare queue --name "qq.1" --type "quorum" --durable true --auto-delete false
 ```
 
 ### Global Arguments Come First
