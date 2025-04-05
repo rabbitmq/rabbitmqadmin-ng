@@ -17,7 +17,7 @@ mod test_helpers;
 use crate::test_helpers::*;
 
 #[test]
-fn list_vhosts() -> Result<(), Box<dyn std::error::Error>> {
+fn test_list_vhosts() -> Result<(), Box<dyn std::error::Error>> {
     let vh = "list_vhosts.1";
     delete_vhost(vh).expect("failed to delete a virtual host");
 
@@ -33,7 +33,7 @@ fn list_vhosts() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn vhosts_list() -> Result<(), Box<dyn std::error::Error>> {
+fn test_vhosts_list() -> Result<(), Box<dyn std::error::Error>> {
     let vh = "list_vhosts.2";
     delete_vhost(vh).expect("failed to delete a virtual host");
 
@@ -44,6 +44,42 @@ fn vhosts_list() -> Result<(), Box<dyn std::error::Error>> {
     delete_vhost(vh).expect("failed to delete a virtual host");
     run_succeeds(["vhosts", "list"])
         .stdout(predicate::str::contains("/").and(predicate::str::contains(vh).not()));
+
+    Ok(())
+}
+
+#[test]
+fn test_vhosts_create() -> Result<(), Box<dyn std::error::Error>> {
+    let vh = "vhosts.create.1";
+    delete_vhost(vh).expect("failed to delete a virtual host");
+
+    run_succeeds([
+        "vhosts",
+        "declare",
+        "--name",
+        vh,
+        "--default-queue-type",
+        "quorum",
+        "--description",
+        "just a test vhost",
+        "--tracing",
+    ]);
+
+    delete_vhost(vh).expect("failed to delete a virtual host");
+
+    Ok(())
+}
+
+#[test]
+fn test_vhosts_delete() -> Result<(), Box<dyn std::error::Error>> {
+    let vh = "vhosts.delete.1";
+    run_succeeds(["vhosts", "delete", "--name", vh, "--idempotently"]);
+
+    run_succeeds(["vhosts", "declare", "--name", vh]);
+
+    run_succeeds(["vhosts", "delete", "--name", vh]);
+
+    run_succeeds(["vhosts", "delete", "--name", vh, "--idempotently"]);
 
     Ok(())
 }
