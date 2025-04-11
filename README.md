@@ -608,6 +608,80 @@ To delete a shovel, use `shovel delete --name`:
 rabbitmqadmin shovel delete --name my-amqp091-shovel
 ```
 
+### List Federation Upstreams
+
+To list [federation upstreams](https://www.rabbitmq.com/docs/federation) across all virtual hosts, use `federation list_all_upstreams`:
+
+```shell
+rabbitmqadmin federation list_all_upstreams
+```
+
+### Create a Federation Upstream for Exchange Federation
+
+To create a [federation upstream](https://www.rabbitmq.com/docs/federated-exchanges), use `federation declare_upstream_for_exchanges`
+
+```shell
+rabbitmqadmin --vhost "local-vhost" federation declare_upstream_for_exchanges --name "pollux" \
+                --uri "amqp://pollux.eng.megacorp.local:5672/remote-vhost" \
+                --ack-mode 'on-publish' \
+                --prefetch-count 2000 \
+                --exchange-name "overridden.name" \
+                --queue-type quorum \
+                --bind-using-nowait true
+```
+
+### Create a Federation Upstream for Queue Federation
+
+To create a [federation upstream](https://www.rabbitmq.com/docs/federated-queues), use `declare_upstream_for_queues`.
+This command provides a reduced set of options, only those that are relevant
+specifically to queue federation.
+
+```shell
+rabbitmqadmin --vhost "local-vhost" federation declare_upstream_for_queues --name "clusters.sirius" \
+                --uri "amqp://sirius.eng.megacorp.local:5672/remote-vhost" \
+                --ack-mode 'on-publish' \
+                --prefetch-count 2000 \
+                --queue-name "overridden.name" \
+                --consumer-tag "overriden.ctag"
+```
+
+### Create a Universal Federation Upstream
+
+To create a [federation upstream](https://www.rabbitmq.com/docs/federation) that will be (or can be)
+used for federating both queues and exchanges, use `declare_upstream`. It combines
+[all the federation options](https://www.rabbitmq.com/docs/federation-reference), that is,
+the options of both `declare_upstream_for_queues` and `declare_upstream_for_exchanges`.
+
+```shell
+rabbitmqadmin --vhost "local-vhost" federation declare_upstream --name "pollux" \
+                --uri "amqp://pollux.eng.megacorp.local:5672/remove-vhost" \
+                --ack-mode 'on-publish' \
+                --prefetch-count 2000 \
+                --queue-name "overridden.name" \
+                --consumer-tag "overriden.ctag" \
+                --exchange-name "overridden.name" \
+                --queue-type quorum \
+                --bind-using-nowait true
+```
+
+### Delete a Federation Upstream
+
+To delete a [federation upstream](https://www.rabbitmq.com/docs/federation), use 'federation delete_upstream',
+which takes a virtual host and an upstream name:
+
+```shell
+rabbitmqadmin --vhost "local-vhost" federation delete_upstream --name "upstream.to.delete"
+```
+
+### List Federation Links
+
+To list all [federation links](https://www.rabbitmq.com/docs/federation) across all virtual hosts, use `federation list_all_links`:
+
+```shell
+rabbitmqadmin federation list_all_links
+```
+
+
 ## Subcommand and Long Option Inference
 
 This feature is available only in the `main` branch
