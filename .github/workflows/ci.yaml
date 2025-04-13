@@ -3,7 +3,7 @@ name: CI
 on:
   push:
     paths:
-      - ".github/workflows/ci.yaml"]
+      - ".github/workflows/ci.yaml"
       - ".config/nextest.toml"
       - "src/**"
       - "tests/**"
