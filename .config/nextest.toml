@@ -1,0 +1,53 @@
+[profile.default]
+default-filter = "all()"
+
+retries = 2
+test-threads = 8
+
+filter = 'package(rabbitmqadmin)'
+# an overridable default
+priority = 0
+test-group = 'parallel_safe'
+
+status-level = "retry"
+final-status-level = "pass"
+failure-output = "immediate"
+
+[test-groups]
+parallel_safe = { max-threads = "num-cpus" }
+sequential = { max-threads = 1 }
+
+[[profile.default.overrides]]
+filter = 'test(list)'
+priority = 60
+test-group = 'sequential'
+
+[[profile.default.overrides]]
+filter = 'test(test_policies)'
+priority = 55
+test-group = 'sequential'
+
+[[profile.default.overrides]]
+filter = 'test(test_memory_breakdown)'
+priority = 50
+test-group = 'sequential'
+
+[[profile.default.overrides]]
+filter = 'test(definitions_export)'
+priority = 40
+test-group = 'sequential'
+
+[[profile.default.overrides]]
+filter = 'test(definitions_export)'
+priority = 30
+test-group = 'sequential'
+
+[[profile.default.overrides]]
+filter = 'test(test_shovel)'
+priority = 20
+test-group = 'sequential'
+
+[[profile.default.overrides]]
+filter = 'test(deprecated_features)'
+priority = 10
+test-group = 'sequential'

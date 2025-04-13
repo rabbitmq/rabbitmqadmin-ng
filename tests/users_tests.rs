@@ -53,7 +53,7 @@ fn test_list_users_with_table_styles() -> Result<(), Box<dyn std::error::Error>>
 
     run_succeeds(["--table-style", "markdown", "list", "users"])
         .stdout(predicate::str::contains(username));
-    run_succeeds(["delete", "user", "--name", username]);
+    run_succeeds(["delete", "user", "--name", username, "--idempotently"]);
 
     run_succeeds(["--table-style", "borderless", "list", "users"])
         .stdout(predicate::str::contains(username).not());
