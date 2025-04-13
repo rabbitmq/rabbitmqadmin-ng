@@ -56,3 +56,9 @@ test-group = 'sequential'
 filter = 'test(deprecated_features)'
 priority = 10
 test-group = 'sequential'
+
+
+[profile.ci]
+default-filter = "all()"
+retries = 4
+test-threads = 1
