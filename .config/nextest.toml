@@ -2,7 +2,7 @@
 default-filter = "all()"
 
 retries = 2
-test-threads = 8
+test-threads = "num-cpus"
 
 filter = 'package(rabbitmqadmin)'
 # an overridable default
@@ -14,12 +14,17 @@ final-status-level = "pass"
 failure-output = "immediate"
 
 [test-groups]
-parallel_safe = { max-threads = "num-cpus" }
+parallel_safe = { max-threads = 8 }
 sequential = { max-threads = 1 }
 
 [[profile.default.overrides]]
 filter = 'test(list)'
 priority = 60
+test-group = 'sequential'
+
+[[profile.default.overrides]]
+filter = 'test(test_federation)'
+priority = 56
 test-group = 'sequential'
 
 [[profile.default.overrides]]
@@ -33,12 +38,12 @@ priority = 50
 test-group = 'sequential'
 
 [[profile.default.overrides]]
-filter = 'test(definitions_export)'
+filter = 'test(test_export)'
 priority = 40
 test-group = 'sequential'
 
 [[profile.default.overrides]]
-filter = 'test(definitions_export)'
+filter = 'test(test_import)'
 priority = 30
 test-group = 'sequential'
 
