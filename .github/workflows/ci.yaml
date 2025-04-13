@@ -73,4 +73,4 @@ jobs:
         run: RUST_HTTP_API_CLIENT_RABBITMQCTL=DOCKER:${{job.services.rabbitmq.id}} bin/ci/before_build.sh
 
       - name: Run tests
-        run: RUST_BACKTRACE=1 NEXTEST_RETRIES=2 cargo nextest run -j 1 --workspace --no-fail-fast --all-features
+        run: RUST_BACKTRACE=1 NEXTEST_RETRIES=2 cargo nextest run --workspace --no-fail-fast --all-features
