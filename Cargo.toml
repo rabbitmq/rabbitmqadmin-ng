@@ -17,7 +17,7 @@ reqwest = { version = "0.12.12", features = [
     "__rustls",
     "rustls-tls-native-roots",
 ] }
-rabbitmq_http_client = { git = "", features = [
+rabbitmq_http_client = { git = "https://github.com/michaelklishin/rabbitmq-http-api-rs.git", features = [
     "core",
     "blocking",
     "tabled",
