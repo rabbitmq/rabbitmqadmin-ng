@@ -4,11 +4,6 @@ default-filter = "all()"
 retries = 2
 test-threads = "num-cpus"
 
-filter = 'package(rabbitmqadmin)'
-# an overridable default
-priority = 0
-test-group = 'parallel_safe'
-
 status-level = "retry"
 final-status-level = "pass"
 failure-output = "immediate"

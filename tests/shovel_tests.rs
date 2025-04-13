@@ -33,7 +33,7 @@ fn test_shovel_declaration_without_source_uri() -> Result<(), Box<dyn std::error
         "shovels",
         "declare_amqp091",
         "--name",
-        &name,
+        name,
         "--destination-uri",
         &amqp_endpoint,
         "--source-queue",
@@ -66,7 +66,7 @@ fn test_shovel_declaration_without_destination_uri() -> Result<(), Box<dyn std::
         "shovels",
         "declare_amqp091",
         "--name",
-        &name,
+        name,
         "--source-uri",
         &amqp_endpoint,
         "--source-queue",
@@ -100,7 +100,7 @@ fn test_shovel_declaration_with_overlapping_destination_types()
         "shovels",
         "declare_amqp091",
         "--name",
-        &name,
+        name,
         "--source-uri",
         &amqp_endpoint,
         "--destination-uri",
@@ -114,9 +114,9 @@ fn test_shovel_declaration_with_overlapping_destination_types()
     ])
     .stderr(predicate::str::contains("cannot be used with"));
 
-    run_succeeds(["-V", vh, "shovels", "delete", "--name", &name]);
+    run_succeeds(["-V", vh, "shovels", "delete", "--name", name]);
 
-    run_succeeds(["-V", vh, "shovels", "delete", "--name", &name]);
+    run_succeeds(["-V", vh, "shovels", "delete", "--name", name]);
 
     delete_vhost(vh).expect("failed to delete a virtual host");
 
@@ -139,7 +139,7 @@ fn test_amqp091_shovel_declaration_and_deletion() -> Result<(), Box<dyn std::err
         "shovels",
         "declare_amqp091",
         "--name",
-        &name,
+        name,
         "--source-uri",
         &amqp_endpoint,
         "--destination-uri",
@@ -150,8 +150,8 @@ fn test_amqp091_shovel_declaration_and_deletion() -> Result<(), Box<dyn std::err
         dest_x,
     ]);
 
-    run_succeeds(["-V", vh, "shovels", "delete", "--name", &name]);
-    run_succeeds(["-V", vh, "shovels", "delete", "--name", &name]);
+    run_succeeds(["-V", vh, "shovels", "delete", "--name", name]);
+    run_succeeds(["-V", vh, "shovels", "delete", "--name", name]);
 
     delete_vhost(vh).expect("failed to delete a virtual host");
 
@@ -181,7 +181,7 @@ fn test_amqp10_shovel_declaration_and_deletion() -> Result<(), Box<dyn std::erro
         "shovels",
         "declare_amqp10",
         "--name",
-        &name,
+        name,
         "--source-uri",
         &amqp_endpoint,
         "--destination-uri",
@@ -192,8 +192,8 @@ fn test_amqp10_shovel_declaration_and_deletion() -> Result<(), Box<dyn std::erro
         format!("/queue/{}", dest_q).as_str(),
     ]);
 
-    run_succeeds(["-V", vh, "shovels", "delete", "--name", &name]);
-    run_succeeds(["-V", vh, "shovels", "delete", "--name", &name]);
+    run_succeeds(["-V", vh, "shovels", "delete", "--name", name]);
+    run_succeeds(["-V", vh, "shovels", "delete", "--name", name]);
 
     delete_vhost(vh).expect("failed to delete a virtual host");
 

@@ -41,13 +41,13 @@ fn test_federation_upstream_declaration_for_queue_federation_case0()
         "federation",
         "declare_upstream_for_queues",
         "--name",
-        &upstream.name,
+        upstream.name,
         "--uri",
-        &upstream.uri,
+        upstream.uri,
         "--queue-name",
-        &q,
+        q,
         "--consumer-tag",
-        &qfp.consumer_tag.unwrap(),
+        qfp.consumer_tag.unwrap(),
     ]);
 
     delete_vhost(vh).expect("failed to delete a virtual host");
@@ -78,15 +78,15 @@ fn test_federation_upstream_declaration_for_queue_federation_case1a()
         "federation",
         "declare_upstream_for_queues",
         "--name",
-        &upstream.name,
+        upstream.name,
         "--uri",
-        &upstream.uri,
+        upstream.uri,
         "--ack-mode",
         "on-confirm",
         "--queue-name",
-        &q,
+        q,
         "--consumer-tag",
-        &qfp.consumer_tag.unwrap(),
+        qfp.consumer_tag.unwrap(),
     ]);
 
     delete_vhost(vh).expect("failed to delete a virtual host");
@@ -117,15 +117,15 @@ fn test_federation_upstream_declaration_for_queue_federation_case1b()
         "federation",
         "declare_upstream",
         "--name",
-        &upstream.name,
+        upstream.name,
         "--uri",
-        &upstream.uri,
+        upstream.uri,
         "--ack-mode",
         "on-confirm",
         "--queue-name",
-        &q,
+        q,
         "--consumer-tag",
-        &qfp.consumer_tag.unwrap(),
+        qfp.consumer_tag.unwrap(),
         // exchange federation
         "--queue-type",
         "quorum",
@@ -158,9 +158,9 @@ fn test_federation_upstream_declaration_for_queue_federation_case2()
         "federation",
         "declare_upstream_for_queues",
         "--name",
-        &upstream.name,
+        upstream.name,
         "--uri",
-        &upstream.uri,
+        upstream.uri,
         "--ack-mode",
         "on-publish",
     ]);
@@ -193,7 +193,7 @@ fn test_federation_upstream_declaration_for_queue_federation_case3()
         "federation",
         "declare_upstream_for_queues",
         "--name",
-        &upstream.name,
+        upstream.name,
     ])
     .stderr(predicate::str::contains(
         "required arguments were not provided",
@@ -227,7 +227,7 @@ fn test_federation_upstream_declaration_for_queue_federation_case4()
         "federation",
         "declare_upstream_for_queues",
         "--uri",
-        &upstream.uri,
+        upstream.uri,
         "--ack-mode",
         "on-publish",
     ])
@@ -263,13 +263,13 @@ fn test_federation_list_all_upstreams_with_queue_federation()
         "federation",
         "declare_upstream_for_queues",
         "--name",
-        &upstream.name,
+        upstream.name,
         "--uri",
-        &upstream.uri,
+        upstream.uri,
         "--queue-name",
-        &q,
+        q,
         "--consumer-tag",
-        &qfp.consumer_tag.unwrap(),
+        qfp.consumer_tag.unwrap(),
     ]);
 
     run_succeeds(["-V", vh, "federation", "list_all_upstreams"])
@@ -306,13 +306,13 @@ fn test_federation_delete_an_upstream_with_queue_federation_settings()
         "federation",
         "declare_upstream_for_queues",
         "--name",
-        &upstream.name,
+        upstream.name,
         "--uri",
-        &upstream.uri,
+        upstream.uri,
         "--queue-name",
-        &q,
+        q,
         "--consumer-tag",
-        &qfp.consumer_tag.unwrap(),
+        qfp.consumer_tag.unwrap(),
     ]);
 
     run_succeeds(["federation", "list_all_upstreams"])
@@ -325,7 +325,7 @@ fn test_federation_delete_an_upstream_with_queue_federation_settings()
         "federation",
         "delete_upstream",
         "--name",
-        &upstream.name,
+        upstream.name,
     ]);
 
     run_succeeds(["federation", "list_all_upstreams"])
@@ -362,19 +362,19 @@ fn test_federation_list_all_links_with_queue_federation_settings()
         "federation",
         "declare_upstream",
         "--name",
-        &upstream.name,
+        upstream.name,
         "--uri",
-        &upstream.uri,
+        upstream.uri,
         "--ack-mode",
         "on-confirm",
         "--queue-name",
-        &q,
+        q,
         "--consumer-tag",
-        &qfp.consumer_tag.unwrap(),
+        qfp.consumer_tag.unwrap(),
     ]);
 
     run_succeeds([
-        "-V", vh1, "declare", "queue", "--name", &q, "--type", "classic",
+        "-V", vh1, "declare", "queue", "--name", q, "--type", "classic",
     ]);
 
     run_succeeds([
