@@ -209,8 +209,8 @@ as a result:
 ```
  key
  Product name      RabbitMQ
- Product version   4.0.8
- RabbitMQ version  4.0.8
+ Product version   4.1.0
+ RabbitMQ version  4.1.0
  Erlang version    26.2.5.10
  Erlang details    Erlang/OTP 26 [erts-14.2.5.9] [source] [64-bit] [smp:10:10] [ds:10:10:10] [async-threads:1] [jit]
 ```
