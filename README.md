@@ -146,13 +146,13 @@ will output a table that looks like this:
 ├───────────────────────────────────────────────────────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────┤
 │ Product name                                                      │ RabbitMQ                                                                                        │
 ├───────────────────────────────────────────────────────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────┤
-│ Product version                                                   │ 4.0.5                                                                                           │
+│ Product version                                                   │ 4.1.0                                                                                           │
 ├───────────────────────────────────────────────────────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────┤
-│ RabbitMQ version                                                  │ 4.0.5                                                                                           │
+│ RabbitMQ version                                                  │ 4.1.0                                                                                           │
 ├───────────────────────────────────────────────────────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────┤
-│ Erlang version                                                    │ 27.2.1                                                                                          │
+│ Erlang version                                                    │ 27.3.3                                                                                          │
 ├───────────────────────────────────────────────────────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────┤
-│ Erlang details                                                    │ Erlang/OTP 27 [erts-15.2.1] [source] [64-bit] [smp:10:10] [ds:10:10:10] [async-threads:1] [jit] │
+│ Erlang details                                                    │ Erlang/OTP 27 [erts-15.2.5] [source] [64-bit] [smp:10:10] [ds:10:10:10] [async-threads:1] [jit] │
 ├───────────────────────────────────────────────────────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────┤
 │ Connections (total)                                               │ 4                                                                                               │
 ├───────────────────────────────────────────────────────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────┤
@@ -618,7 +618,9 @@ rabbitmqadmin federation list_all_upstreams
 
 ### Create a Federation Upstream for Exchange Federation
 
-To create a [federation upstream](https://www.rabbitmq.com/docs/federated-exchanges), use `federation declare_upstream_for_exchanges`
+To create a [federation upstream](https://www.rabbitmq.com/docs/federated-exchanges), use `federation declare_upstream_for_exchanges`.
+This command provides a reduced set of options, only those that are relevant
+specifically to exchange federation.
 
 ```shell
 rabbitmqadmin --vhost "local-vhost" federation declare_upstream_for_exchanges --name "pollux" \
