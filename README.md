@@ -211,8 +211,8 @@ as a result:
  Product name      RabbitMQ
  Product version   4.1.0
  RabbitMQ version  4.1.0
- Erlang version    26.2.5.10
- Erlang details    Erlang/OTP 26 [erts-14.2.5.9] [source] [64-bit] [smp:10:10] [ds:10:10:10] [async-threads:1] [jit]
+ Erlang version    27.3.3
+ Erlang details    Erlang/OTP 27 [erts-15.2.5 [source] [64-bit] [smp:10:10] [ds:10:10:10] [async-threads:1] [jit]
 ```
 
 ### Retrieving Basic Node Information
