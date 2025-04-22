@@ -1591,7 +1591,7 @@ pub fn deprecated_features_subcommands(pre_flight_settings: PreFlightSettings) -
         .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
 }
 
-pub fn nodes_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 1] {
+pub fn nodes_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 3] {
     let list_cmd = Command::new("list")
         .long_about("Lists cluster nodes")
         .after_help(color_print::cformat!(
@@ -1599,7 +1599,38 @@ pub fn nodes_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 1]
             CLUSTERING_GUIDE_URL
         ));
 
-    [list_cmd].map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+    let memory_breakdown_in_bytes_cmd = Command::new("memory_breakdown_in_bytes")
+        .about("Provides a memory footprint breakdown (in bytes) for the target node")
+        .arg(
+            Arg::new("node")
+                .long("node")
+                .help("target node, must be a cluster member")
+                .required(true),
+        )
+        .after_help(color_print::cformat!(
+            "<bold>Doc guide:</bold>: {}",
+            MEMORY_FOOTPRINT_GUIDE_URL
+        ));
+
+    let memory_breakdown_in_percent_cmd = Command::new("memory_breakdown_in_percent")
+        .about("Provides a memory footprint breakdown (in percent) for the target node")
+        .arg(
+            Arg::new("node")
+                .long("node")
+                .help("target node, must be a cluster member")
+                .required(true),
+        )
+        .after_help(color_print::cformat!(
+            "<bold>Doc guide:</bold>: {}",
+            MEMORY_FOOTPRINT_GUIDE_URL
+        ));
+
+    [
+        list_cmd,
+        memory_breakdown_in_percent_cmd,
+        memory_breakdown_in_bytes_cmd,
+    ]
+    .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
 }
 
 pub fn vhosts_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 3] {

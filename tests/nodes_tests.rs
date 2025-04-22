@@ -24,3 +24,47 @@ fn test_list_nodes() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
+
+#[test]
+fn test_nodes_memory_breakdown_in_bytes_succeeds() -> Result<(), Box<dyn std::error::Error>> {
+    let rc = api_client();
+    let nodes = rc.list_nodes()?;
+    let first = nodes.first().unwrap();
+
+    run_succeeds([
+        "nodes",
+        "memory_breakdown_in_bytes",
+        "--node",
+        first.name.as_str(),
+    ])
+    .stdout(
+        predicates::str::contains("Allocated but unused")
+            .and(predicates::str::contains("Quorum queue ETS tables"))
+            .and(predicates::str::contains("Client connections"))
+            .and(predicates::str::contains("Metadata store")),
+    );
+
+    Ok(())
+}
+
+#[test]
+fn test_nodes_memory_breakdown_in_percent_succeeds() -> Result<(), Box<dyn std::error::Error>> {
+    let rc = api_client();
+    let nodes = rc.list_nodes()?;
+    let first = nodes.first().unwrap();
+
+    run_succeeds([
+        "nodes",
+        "memory_breakdown_in_bytes",
+        "--node",
+        first.name.as_str(),
+    ])
+    .stdout(
+        predicates::str::contains("Allocated but unused")
+            .and(predicates::str::contains("Quorum queue ETS tables"))
+            .and(predicates::str::contains("Client connections"))
+            .and(predicates::str::contains("Metadata store")),
+    );
+
+    Ok(())
+}

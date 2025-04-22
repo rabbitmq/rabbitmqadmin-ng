@@ -291,13 +291,13 @@ fn dispatch_common_subcommand(
             println!("Using endpoint: {}", endpoint);
             res_handler.no_output_on_success(Ok(()))
         }
-        ("show", "memory_breakdown_in_bytes") => {
-            let result = commands::show_memory_breakdown(client, second_level_args);
-            res_handler.memory_breakdown_in_bytes_result(result)
-        }
         ("show", "memory_breakdown_in_percent") => {
             let result = commands::show_memory_breakdown(client, second_level_args);
             res_handler.memory_breakdown_in_percent_result(result)
+        }
+        ("show", "memory_breakdown_in_bytes") => {
+            let result = commands::show_memory_breakdown(client, second_level_args);
+            res_handler.memory_breakdown_in_bytes_result(result)
         }
 
         ("list", "nodes") => {
@@ -491,6 +491,14 @@ fn dispatch_common_subcommand(
         ("nodes", "list") => {
             let result = commands::list_nodes(client);
             res_handler.tabular_result(result)
+        }
+        ("nodes", "memory_breakdown_in_percent") => {
+            let result = commands::show_memory_breakdown(client, second_level_args);
+            res_handler.memory_breakdown_in_percent_result(result)
+        }
+        ("nodes", "memory_breakdown_in_bytes") => {
+            let result = commands::show_memory_breakdown(client, second_level_args);
+            res_handler.memory_breakdown_in_bytes_result(result)
         }
         ("purge", "queue") => {
             let result = commands::purge_queue(client, &vhost, second_level_args);

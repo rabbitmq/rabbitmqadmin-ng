@@ -4,10 +4,13 @@
 
 ### Enhancements
 
- * `vhosts` is a new command group that aggregates all the existing
-   commands directly related to virtual hosts: `list vhosts`, `declare vhost`, `delete vhost`
+ * `vhosts` is a new command group for operations on virtual hosts
+ * `nodes` is a new command group for operations on nodes 
 
- * `nodes` is a new command group for operations on nodes: `nodes list`
+### Bug Fixes
+
+ * Both `-h` and `--help` now display relevant doc guide URLs.
+   Previously it was only the case for `--help`.
 
 
 ## v2.0.0 (Mar 31, 2024)
