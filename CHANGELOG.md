@@ -7,6 +7,8 @@
  * `vhosts` is a new command group that aggregates all the existing
    commands directly related to virtual hosts: `list vhosts`, `declare vhost`, `delete vhost`
 
+ * `nodes` is a new command group for operations on nodes: `nodes list`
+
 
 ## v2.0.0 (Mar 31, 2024)
 
