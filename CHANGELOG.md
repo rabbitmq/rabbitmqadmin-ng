@@ -4,8 +4,9 @@
 
 ### Enhancements
 
+ * `nodes` is a new command group for operations on nodes
+ * `users` is a new command group for operations on users
  * `vhosts` is a new command group for operations on virtual hosts
- * `nodes` is a new command group for operations on nodes 
  * Command groups are now ordered alphabetically
 
 ### Bug Fixes
