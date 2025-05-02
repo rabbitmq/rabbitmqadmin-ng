@@ -299,7 +299,6 @@ fn dispatch_common_subcommand(
             let result = commands::show_memory_breakdown(client, second_level_args);
             res_handler.memory_breakdown_in_bytes_result(result)
         }
-
         ("list", "nodes") => {
             let result = commands::list_nodes(client);
             res_handler.tabular_result(result)
@@ -487,6 +486,30 @@ fn dispatch_common_subcommand(
         ("vhosts", "delete") => {
             let result = commands::delete_vhost(client, second_level_args);
             res_handler.delete_operation_result(result);
+        }
+        ("users", "declare") => {
+            let result = commands::declare_user(client, second_level_args);
+            res_handler.no_output_on_success(result);
+        }
+        ("users", "list") => {
+            let result = commands::list_users(client);
+            res_handler.tabular_result(result)
+        }
+        ("users", "delete") => {
+            let result = commands::delete_user(client, second_level_args);
+            res_handler.delete_operation_result(result);
+        }
+        ("users", "permissions") => {
+            let result = commands::list_permissions(client);
+            res_handler.tabular_result(result)
+        }
+        ("users", "connections") => {
+            let result = commands::list_user_connections(client, second_level_args);
+            res_handler.tabular_result(result)
+        }
+        ("users", "limits") => {
+            let result = commands::list_user_limits(client, second_level_args);
+            res_handler.tabular_result(result)
         }
         ("nodes", "list") => {
             let result = commands::list_nodes(client);

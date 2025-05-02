@@ -19,7 +19,7 @@ use crate::test_helpers::*;
 
 #[test]
 fn test_list_users() -> Result<(), Box<dyn std::error::Error>> {
-    let username = "new_user";
+    let username = "test_list_users";
     let password = "pa$$w0rd";
     run_succeeds([
         "declare",
@@ -32,6 +32,7 @@ fn test_list_users() -> Result<(), Box<dyn std::error::Error>> {
 
     run_succeeds(["list", "users"]).stdout(predicate::str::contains(username));
     run_succeeds(["delete", "user", "--name", username]);
+    run_succeeds(["delete", "user", "--name", username, "--idempotently"]);
 
     run_succeeds(["list", "users"]).stdout(predicate::str::contains(username).not());
 
@@ -39,8 +40,30 @@ fn test_list_users() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
+fn test_users_list() -> Result<(), Box<dyn std::error::Error>> {
+    let username = "test_users_list.2";
+    let password = "pa$$w0rd";
+    run_succeeds([
+        "users",
+        "declare",
+        "--name",
+        username,
+        "--password",
+        password,
+    ]);
+
+    run_succeeds(["users", "list"]).stdout(predicate::str::contains(username));
+    run_succeeds(["users", "delete", "--name", username]);
+    run_succeeds(["users", "delete", "--name", username, "--idempotently"]);
+
+    run_succeeds(["users", "list"]).stdout(predicate::str::contains(username).not());
+
+    Ok(())
+}
+
+#[test]
 fn test_list_users_with_table_styles() -> Result<(), Box<dyn std::error::Error>> {
-    let username = "new_user";
+    let username = "test_list_users_with_table_styles";
     let password = "pa$$w0rd";
     run_succeeds([
         "declare",
@@ -53,6 +76,7 @@ fn test_list_users_with_table_styles() -> Result<(), Box<dyn std::error::Error>>
 
     run_succeeds(["--table-style", "markdown", "list", "users"])
         .stdout(predicate::str::contains(username));
+    run_succeeds(["delete", "user", "--name", username]);
     run_succeeds(["delete", "user", "--name", username, "--idempotently"]);
 
     run_succeeds(["--table-style", "borderless", "list", "users"])

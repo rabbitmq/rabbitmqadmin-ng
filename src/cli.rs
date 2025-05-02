@@ -216,6 +216,16 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         ))
         .subcommand_value_name("subcommand")
         .subcommands(tanzu_subcommands());
+    let users_group = Command::new("users")
+        .about("Operations on users")
+        .infer_subcommands(pre_flight_settings.infer_subcommands)
+        .infer_long_args(pre_flight_settings.infer_long_options)
+        .after_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            ACCESS_CONTROL_GUIDE_URL
+        ))
+        .subcommand_value_name("subcommand")
+        .subcommands(users_subcommands(pre_flight_settings.clone()));
     let vhosts_group = Command::new("vhosts")
         .about("Virtual host operations")
         .infer_subcommands(pre_flight_settings.infer_subcommands)
@@ -243,6 +253,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         show_group,
         shovels_group,
         tanzu_group,
+        users_group,
         vhosts_group,
     ];
 
@@ -434,35 +445,20 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
 
 fn list_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 19] {
     let nodes_cmd = Command::new("nodes").long_about("Lists cluster members");
-    let users_cmd = Command::new("users").long_about("Lists users in the internal database");
     let vhosts_cmd = Command::new("vhosts")
         .long_about("Lists virtual hosts")
         .after_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             VIRTUAL_HOST_GUIDE_URL
         ));
-
-    let permissions_cmd = Command::new("permissions")
-        .long_about("Lists user permissions")
+    let vhost_limits_cmd = Command::new("vhost_limits")
+        .long_about("Lists virtual host (resource) limits")
         .after_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
-            ACCESS_CONTROL_GUIDE_URL
+            VIRTUAL_HOST_GUIDE_URL
         ));
     let connections_cmd = Command::new("connections")
         .long_about("Lists client connections")
-        .after_help(color_print::cformat!(
-            "<bold>Doc guide</bold>: {}",
-            CONNECTION_GUIDE_URL
-        ));
-    let user_connections_cmd = Command::new("user_connections")
-        .arg(
-            Arg::new("username")
-                .short('u')
-                .long("username")
-                .required(true)
-                .help("Name of the user whose connections to list"),
-        )
-        .long_about("Lists client connections that authenticated with a specific username")
         .after_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             CONNECTION_GUIDE_URL
@@ -511,11 +507,25 @@ fn list_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 19] {
             "<bold>Doc guide</bold>: {}",
             OPERATOR_POLICY_GUIDE_URL
         ));
-    let vhost_limits_cmd = Command::new("vhost_limits")
-        .long_about("Lists virtual host (resource) limits")
+    let users_cmd = Command::new("users").long_about("Lists users in the internal database");
+    let permissions_cmd = Command::new("permissions")
+        .long_about("Lists user permissions")
         .after_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
-            VIRTUAL_HOST_GUIDE_URL
+            ACCESS_CONTROL_GUIDE_URL
+        ));
+    let user_connections_cmd = Command::new("user_connections")
+        .arg(
+            Arg::new("username")
+                .short('u')
+                .long("username")
+                .required(true)
+                .help("Name of the user whose connections to list"),
+        )
+        .long_about("Lists client connections that authenticated with a specific username")
+        .after_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            CONNECTION_GUIDE_URL
         ));
     let user_limits_cmd = Command::new("user_limits")
         .arg(
@@ -1717,6 +1727,101 @@ pub fn vhosts_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 3
 
     [list_cmd, declare_cmd, delete_cmd]
         .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+}
+
+pub fn users_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 6] {
+    let declare_cmd = Command::new("declare")
+        .about("Creates a user")
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("username")
+                .required(true),
+        )
+        .arg(
+            Arg::new("password_hash")
+                .help(color_print::cformat!(
+                    "salted password hash, see {}",
+                    PASSWORD_GUIDE_URL
+                ))
+                .long("password-hash")
+                .required(false)
+                .default_value(""),
+        )
+        .arg(
+            Arg::new("password")
+                .long("password")
+                .help(color_print::cformat!(
+                    "prefer providing a hash, see {}",
+                    PASSWORD_GUIDE_URL
+                ))
+                .required(false)
+                .default_value(""),
+        )
+        .arg(
+            Arg::new("tags")
+                .long("tags")
+                .help("a list of comma-separated tags")
+                .default_value(""),
+        );
+    let list_cmd = Command::new("list").long_about("Lists users in the internal database");
+    let permissions_cmd = Command::new("permissions")
+        .long_about("Lists user permissions")
+        .after_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            ACCESS_CONTROL_GUIDE_URL
+        ));
+    let connections_cmd = Command::new("connections")
+        .arg(
+            Arg::new("username")
+                .short('u')
+                .long("username")
+                .required(true)
+                .help("Name of the user whose connections to list"),
+        )
+        .long_about("Lists client connections that authenticated with a specific username")
+        .after_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            CONNECTION_GUIDE_URL
+        ));
+    let limits_cmd = Command::new("limits")
+        .arg(
+            Arg::new("user")
+                .long("user")
+                .help("username")
+                .required(false),
+        )
+        .long_about("Lists per-user (resource) limits")
+        .after_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            USER_LIMIT_GUIDE_URL
+        ));
+
+    let idempotently_arg = Arg::new("idempotently")
+        .long("idempotently")
+        .value_parser(value_parser!(bool))
+        .action(ArgAction::SetTrue)
+        .help("do not consider 404 Not Found API responses to be errors")
+        .required(false);
+    let delete_cmd = Command::new("delete")
+        .about("Deletes a user")
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("username")
+                .required(true),
+        )
+        .arg(idempotently_arg.clone());
+
+    [
+        connections_cmd,
+        declare_cmd,
+        delete_cmd,
+        limits_cmd,
+        list_cmd,
+        permissions_cmd,
+    ]
+    .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
 }
 
 pub fn publish_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 1] {
