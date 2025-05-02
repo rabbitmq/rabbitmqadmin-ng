@@ -10,7 +10,12 @@
 ### Bug Fixes
 
  * Both `-h` and `--help` now display relevant doc guide URLs.
-   Previously it was only the case for `--help`.
+   Previously it was only the case for `--help`
+
+### Other Changes
+
+ * `vhosts declare` no longer has a default value for `--default-queue-type`.
+   Instead, the default will be controlled exclusively by RabbitMQ
 
 
 ## v2.0.0 (Mar 31, 2024)
