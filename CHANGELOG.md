@@ -6,6 +6,7 @@
 
  * `vhosts` is a new command group for operations on virtual hosts
  * `nodes` is a new command group for operations on nodes 
+ * Command groups are now ordered alphabetically
 
 ### Bug Fixes
 
