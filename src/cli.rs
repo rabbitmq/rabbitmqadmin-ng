@@ -45,6 +45,202 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         GITHUB_REPOSITORY_URL
     );
 
+    let close_group = Command::new("close")
+        .about("Closes connections")
+        .infer_subcommands(pre_flight_settings.infer_subcommands)
+        .infer_long_args(pre_flight_settings.infer_long_options)
+        .subcommands(close_subcommands(pre_flight_settings.clone()));
+    let declare_group = Command::new("declare")
+        .about("Creates or declares objects")
+        .infer_subcommands(pre_flight_settings.infer_subcommands)
+        .infer_long_args(pre_flight_settings.infer_long_options)
+        .subcommands(declare_subcommands(pre_flight_settings.clone()));
+    let definitions_group = Command::new("definitions")
+        .about("Operations on definitions (everything except for messages: virtual hosts, queues, streams, exchanges, bindings, users, etc)")
+        .infer_subcommands(pre_flight_settings.infer_subcommands)
+        .infer_long_args(pre_flight_settings.infer_long_options)
+        .after_help(color_print::cformat!(
+                    "<bold>Doc guide</bold>: {}",
+                    DEFINITION_GUIDE_URL
+                ))
+        .subcommand_value_name("export")
+        .subcommands(definitions_subcommands(pre_flight_settings.clone()));
+    let delete_group = Command::new("delete")
+        .about("Deletes objects")
+        .infer_subcommands(pre_flight_settings.infer_subcommands)
+        .infer_long_args(pre_flight_settings.infer_long_options)
+        .subcommands(delete_subcommands(pre_flight_settings.clone()));
+    let deprecated_features_group = Command::new("deprecated_features")
+        .about("Operations on deprecated features")
+        .infer_subcommands(pre_flight_settings.infer_subcommands)
+        .infer_long_args(pre_flight_settings.infer_long_options)
+        .after_help(color_print::cformat!(
+                    "<bold>Doc guide</bold>: {}",
+                    DEPRECATED_FEATURE_GUIDE_URL
+                ))
+        .subcommand_value_name("deprecated feature")
+        .subcommands(deprecated_features_subcommands(pre_flight_settings.clone()));
+    let export_group = Command::new("export")
+        .about("See 'definitions export'")
+        .infer_subcommands(pre_flight_settings.infer_subcommands)
+        .infer_long_args(pre_flight_settings.infer_long_options)
+        .after_help(color_print::cformat!(
+                    "<bold>Doc guide</bold>: {}",
+                    DEFINITION_GUIDE_URL
+                ))
+        .subcommand_value_name("definitions")
+        .subcommands(export_subcommands(pre_flight_settings.clone()));
+    let feature_flags_group = Command::new("feature_flags")
+        .about("Operations on feature flags")
+        .infer_subcommands(pre_flight_settings.infer_subcommands)
+        .infer_long_args(pre_flight_settings.infer_long_options)
+        .after_help(color_print::cformat!(
+                    "<bold>Doc guide</bold>: {}",
+                    FEATURE_FLAG_GUIDE_URL
+                ))
+        .subcommand_value_name("feature flag")
+        .subcommands(feature_flags_subcommands(pre_flight_settings.clone()));
+    let federation_group = Command::new("federation")
+        .about("Operations on federation upstreams and links")
+        .infer_subcommands(pre_flight_settings.infer_subcommands)
+        .infer_long_args(pre_flight_settings.infer_long_options)
+        .after_help(color_print::cformat!(
+                    r#"<bold>Doc guides</bold>:
+
+ * {}
+ * {}
+ * {}
+ * {}"#,
+                    FEDERATION_GUIDE_URL,
+                    FEDERATED_EXCHANGES_GUIDE_URL,
+                    FEDERATED_QUEUES_GUIDE_URL,
+                    FEDERATION_REFERENCE_URL
+                ))
+        .subcommands(federation_subcommands(pre_flight_settings.clone()));
+    let get_group = Command::new("get")
+        .about(color_print::cstr!("Fetches message(s) from a queue or stream via <bold><red>polling</red></bold>. <bold><red>Only suitable for development and test environments</red></bold>."))
+        .infer_subcommands(pre_flight_settings.infer_subcommands)
+        .infer_long_args(pre_flight_settings.infer_long_options)
+        .after_help(color_print::cformat!("<bold>Doc guide</bold>: {}", POLLING_CONSUMER_GUIDE_URL))
+        .subcommand_value_name("message")
+        .subcommands(get_subcommands(pre_flight_settings.clone()));
+    let health_check_group = Command::new("health_check")
+        .about("Runs health checks")
+        .infer_subcommands(pre_flight_settings.infer_subcommands)
+        .infer_long_args(pre_flight_settings.infer_long_options)
+        .subcommand_value_name("check")
+        .subcommands(health_check_subcommands(pre_flight_settings.clone()))
+        .after_help(color_print::cformat!(
+                    r#"<bold>Doc guides</bold>:
+
+ * {}
+ * {}"#,
+                    HEALTH_CHECK_GUIDE_URL,
+                    DEPRECATED_FEATURE_GUIDE_URL
+                ));
+    let import_group = Command::new("import")
+        .about("See 'definitions import'")
+        .infer_subcommands(pre_flight_settings.infer_subcommands)
+        .infer_long_args(pre_flight_settings.infer_long_options)
+        .after_help(color_print::cformat!(
+                    "<bold>Doc guide</bold>: {}",
+                    DEFINITION_GUIDE_URL
+                ))
+        .subcommand_value_name("definitions")
+        .subcommands(import_subcommands(pre_flight_settings.clone()));
+    let list_group = Command::new("list")
+        .about("Lists objects")
+        .infer_subcommands(pre_flight_settings.infer_subcommands)
+        .infer_long_args(pre_flight_settings.infer_long_options)
+        .subcommands(list_subcommands(pre_flight_settings.clone()));
+    let nodes_group = Command::new("nodes")
+        .about("Node operations")
+        .infer_subcommands(pre_flight_settings.infer_subcommands)
+        .infer_long_args(pre_flight_settings.infer_long_options)
+        .subcommands(nodes_subcommands(pre_flight_settings.clone()));
+    let policies_group = Command::new("policies")
+        .about("Operations on policies")
+        .infer_subcommands(pre_flight_settings.infer_subcommands)
+        .infer_long_args(pre_flight_settings.infer_long_options)
+        .subcommand_value_name("policy")
+        .subcommands(policies_subcommands(pre_flight_settings.clone()));
+    let publish_group = Command::new("publish")
+        .about(color_print::cstr!("Publishes (<red>inefficiently</red>) message(s) to a queue or a stream. <bold><red>Only suitable for development and test environments</red></bold>."))
+        .infer_subcommands(pre_flight_settings.infer_subcommands)
+        .infer_long_args(pre_flight_settings.infer_long_options)
+        .after_help(color_print::cformat!("<bold>Doc guide</bold>: {}", PUBLISHER_GUIDE_URL))
+        .subcommand_value_name("message")
+        .subcommands(publish_subcommands(pre_flight_settings.clone()));
+    let purge_group = Command::new("purge")
+        .about("Purges queues")
+        .infer_subcommands(pre_flight_settings.infer_subcommands)
+        .infer_long_args(pre_flight_settings.infer_long_options)
+        .subcommand_value_name("queue")
+        .subcommands(purge_subcommands(pre_flight_settings.clone()));
+    let rebalance_group = Command::new("rebalance")
+        .about("Rebalancing of leader replicas")
+        .infer_subcommands(pre_flight_settings.infer_subcommands)
+        .infer_long_args(pre_flight_settings.infer_long_options)
+        .after_help(color_print::cformat!(
+                    "<bold>Doc guide</bold>: {}",
+                    QUORUM_QUEUE_GUIDE_URL
+                ))
+        .subcommand_value_name("queues")
+        .subcommands(rebalance_subcommands(pre_flight_settings.clone()));
+    let show_group = Command::new("show")
+        .about("Overview, memory footprint breakdown, and more")
+        .after_help(color_print::cformat!(
+                    "<bold>Doc guide</bold>: {}",
+                    MONITORING_GUIDE_URL
+                ))
+        .infer_subcommands(pre_flight_settings.infer_subcommands)
+        .infer_long_args(pre_flight_settings.infer_long_options)
+        .subcommands(show_subcommands(pre_flight_settings.clone()));
+    let shovels_group = Command::new("shovels")
+        .about("Operations on shovels")
+        .infer_subcommands(pre_flight_settings.infer_subcommands)
+        .infer_long_args(pre_flight_settings.infer_long_options)
+        .after_help(color_print::cformat!("<bold>Doc guide</bold>: {}", SHOVEL_GUIDE_URL))
+        .subcommand_value_name("shovels")
+        .subcommands(shovel_subcommands(pre_flight_settings.clone()));
+    let tanzu_group = Command::new("tanzu")
+        .about("Tanzu RabbitMQ-specific commands")
+        .infer_subcommands(pre_flight_settings.infer_subcommands)
+        .infer_long_args(pre_flight_settings.infer_long_options)
+        .after_help(color_print::cformat!("<bold>Doc guide</bold>: {}", COMMERCIAL_OFFERINGS_GUIDE_URL))
+        .subcommand_value_name("subcommand")
+        .subcommands(tanzu_subcommands());
+    let vhosts_group = Command::new("vhosts")
+        .about("Virtual host operations")
+        .infer_subcommands(pre_flight_settings.infer_subcommands)
+        .infer_long_args(pre_flight_settings.infer_long_options)
+        .subcommands(vhosts_subcommands(pre_flight_settings.clone()));
+
+    let command_groups = [
+        close_group,
+        declare_group,
+        definitions_group,
+        delete_group,
+        deprecated_features_group,
+        export_group,
+        feature_flags_group,
+        federation_group,
+        get_group,
+        health_check_group,
+        import_group,
+        list_group,
+        nodes_group,
+        policies_group,
+        publish_group,
+        purge_group,
+        rebalance_group,
+        show_group,
+        shovels_group,
+        tanzu_group,
+        vhosts_group,
+    ];
+
+
     Command::new("rabbitmqadmin")
         .version(clap::crate_version!())
         .author("RabbitMQ Core Team")
@@ -228,178 +424,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
                 .value_parser(value_parser!(TableStyle))
         )
         .subcommand_required(true)
-        .subcommands([
-            Command::new("show")
-                .about("Overview, memory footprint breakdown, and more")
-                .after_help(color_print::cformat!(
-                    "<bold>Doc guide</bold>: {}",
-                    MONITORING_GUIDE_URL
-                ))
-                .infer_subcommands(pre_flight_settings.infer_subcommands)
-                .infer_long_args(pre_flight_settings.infer_long_options)
-                .subcommands(show_subcommands(pre_flight_settings.clone())),
-            Command::new("list")
-                .about("Lists objects")
-                .infer_subcommands(pre_flight_settings.infer_subcommands)
-                .infer_long_args(pre_flight_settings.infer_long_options)
-                .subcommands(list_subcommands(pre_flight_settings.clone())),
-            Command::new("declare")
-                .about("Creates or declares objects")
-                .infer_subcommands(pre_flight_settings.infer_subcommands)
-                .infer_long_args(pre_flight_settings.infer_long_options)
-                .subcommands(declare_subcommands(pre_flight_settings.clone())),
-            Command::new("delete")
-                .about("Deletes objects")
-                .infer_subcommands(pre_flight_settings.infer_subcommands)
-                .infer_long_args(pre_flight_settings.infer_long_options)
-                .subcommands(delete_subcommands(pre_flight_settings.clone())),
-            Command::new("purge")
-                .about("Purges queues")
-                .infer_subcommands(pre_flight_settings.infer_subcommands)
-                .infer_long_args(pre_flight_settings.infer_long_options)
-                .subcommand_value_name("queue")
-                .subcommands(purge_subcommands(pre_flight_settings.clone())),
-            Command::new("policies")
-                .about("Operations on policies")
-                .infer_subcommands(pre_flight_settings.infer_subcommands)
-                .infer_long_args(pre_flight_settings.infer_long_options)
-                .subcommand_value_name("policy")
-                .subcommands(policies_subcommands(pre_flight_settings.clone())),
-            Command::new("health_check")
-                .about("Runs health checks")
-                .infer_subcommands(pre_flight_settings.infer_subcommands)
-                .infer_long_args(pre_flight_settings.infer_long_options)
-                .subcommand_value_name("check")
-                .subcommands(health_check_subcommands(pre_flight_settings.clone()))
-                .after_help(color_print::cformat!(
-                    r#"<bold>Doc guides</bold>:
-
- * {}
- * {}"#,
-                    HEALTH_CHECK_GUIDE_URL,
-                    DEPRECATED_FEATURE_GUIDE_URL
-                )),
-            Command::new("vhosts")
-                .about("Virtual host operations")
-                .infer_subcommands(pre_flight_settings.infer_subcommands)
-                .infer_long_args(pre_flight_settings.infer_long_options)
-                .subcommands(vhosts_subcommands(pre_flight_settings.clone())),
-            Command::new("nodes")
-                .about("Node operations")
-                .infer_subcommands(pre_flight_settings.infer_subcommands)
-                .infer_long_args(pre_flight_settings.infer_long_options)
-                .subcommands(nodes_subcommands(pre_flight_settings.clone())),
-            Command::new("close")
-                .about("Closes connections")
-                .infer_subcommands(pre_flight_settings.infer_subcommands)
-                .infer_long_args(pre_flight_settings.infer_long_options)
-                .subcommands(close_subcommands(pre_flight_settings.clone())),
-            Command::new("rebalance")
-                .about("Rebalancing of leader replicas")
-                .infer_subcommands(pre_flight_settings.infer_subcommands)
-                .infer_long_args(pre_flight_settings.infer_long_options)
-                .after_help(color_print::cformat!(
-                    "<bold>Doc guide</bold>: {}",
-                    QUORUM_QUEUE_GUIDE_URL
-                ))
-                .subcommand_value_name("queues")
-                .subcommands(rebalance_subcommands(pre_flight_settings.clone())),
-            Command::new("definitions")
-                .about("Operations on definitions (everything except for messages: virtual hosts, queues, streams, exchanges, bindings, users, etc)")
-                .infer_subcommands(pre_flight_settings.infer_subcommands)
-                .infer_long_args(pre_flight_settings.infer_long_options)
-                .after_help(color_print::cformat!(
-                    "<bold>Doc guide</bold>: {}",
-                    DEFINITION_GUIDE_URL
-                ))
-                .subcommand_value_name("export")
-                .subcommands(definitions_subcommands(pre_flight_settings.clone())),
-            Command::new("export")
-                .about("See 'definitions export'")
-                .infer_subcommands(pre_flight_settings.infer_subcommands)
-                .infer_long_args(pre_flight_settings.infer_long_options)
-                .after_help(color_print::cformat!(
-                    "<bold>Doc guide</bold>: {}",
-                    DEFINITION_GUIDE_URL
-                ))
-                .subcommand_value_name("definitions")
-                .subcommands(export_subcommands(pre_flight_settings.clone())),
-            Command::new("import")
-                .about("See 'definitions import'")
-                .infer_subcommands(pre_flight_settings.infer_subcommands)
-                .infer_long_args(pre_flight_settings.infer_long_options)
-                .after_help(color_print::cformat!(
-                    "<bold>Doc guide</bold>: {}",
-                    DEFINITION_GUIDE_URL
-                ))
-                .subcommand_value_name("definitions")
-                .subcommands(import_subcommands(pre_flight_settings.clone())),
-            Command::new("feature_flags")
-                .about("Operations on feature flags")
-                .infer_subcommands(pre_flight_settings.infer_subcommands)
-                .infer_long_args(pre_flight_settings.infer_long_options)
-                .after_help(color_print::cformat!(
-                    "<bold>Doc guide</bold>: {}",
-                    FEATURE_FLAG_GUIDE_URL
-                ))
-                .subcommand_value_name("feature flag")
-                .subcommands(feature_flags_subcommands(pre_flight_settings.clone())),
-            Command::new("deprecated_features")
-                .about("Operations on deprecated features")
-                .infer_subcommands(pre_flight_settings.infer_subcommands)
-                .infer_long_args(pre_flight_settings.infer_long_options)
-                .after_help(color_print::cformat!(
-                    "<bold>Doc guide</bold>: {}",
-                    DEPRECATED_FEATURE_GUIDE_URL
-                ))
-                .subcommand_value_name("deprecated feature")
-                .subcommands(deprecated_features_subcommands(pre_flight_settings.clone())),
-            Command::new("publish")
-                .about(color_print::cstr!("Publishes (<red>inefficiently</red>) message(s) to a queue or a stream. <bold><red>Only suitable for development and test environments</red></bold>."))
-                .infer_subcommands(pre_flight_settings.infer_subcommands)
-                .infer_long_args(pre_flight_settings.infer_long_options)
-                .after_help(color_print::cformat!("<bold>Doc guide</bold>: {}", PUBLISHER_GUIDE_URL))
-                .subcommand_value_name("message")
-                .subcommands(publish_subcommands(pre_flight_settings.clone())),
-            Command::new("get")
-                .about(color_print::cstr!("Fetches message(s) from a queue or stream via <bold><red>polling</red></bold>. <bold><red>Only suitable for development and test environments</red></bold>."))
-                .infer_subcommands(pre_flight_settings.infer_subcommands)
-                .infer_long_args(pre_flight_settings.infer_long_options)
-                .after_help(color_print::cformat!("<bold>Doc guide</bold>: {}", POLLING_CONSUMER_GUIDE_URL))
-                .subcommand_value_name("message")
-                .subcommands(get_subcommands(pre_flight_settings.clone())),
-            Command::new("shovels")
-                .about("Operations on shovels")
-                .infer_subcommands(pre_flight_settings.infer_subcommands)
-                .infer_long_args(pre_flight_settings.infer_long_options)
-                .after_help(color_print::cformat!("<bold>Doc guide</bold>: {}", SHOVEL_GUIDE_URL))
-                .subcommand_value_name("shovels")
-                .subcommands(shovel_subcommands(pre_flight_settings.clone())),
-            Command::new("federation")
-                .about("Operations on federation upstreams and links")
-                .infer_subcommands(pre_flight_settings.infer_subcommands)
-                .infer_long_args(pre_flight_settings.infer_long_options)
-                .after_help(color_print::cformat!(
-                    r#"<bold>Doc guides</bold>:
-
- * {}
- * {}
- * {}
- * {}"#,
-                    FEDERATION_GUIDE_URL,
-                    FEDERATED_EXCHANGES_GUIDE_URL,
-                    FEDERATED_QUEUES_GUIDE_URL,
-                    FEDERATION_REFERENCE_URL
-                ))
-                .subcommands(federation_subcommands(pre_flight_settings.clone())),
-            Command::new("tanzu")
-                .about("Tanzu RabbitMQ-specific commands")
-                .infer_subcommands(pre_flight_settings.infer_subcommands)
-                .infer_long_args(pre_flight_settings.infer_long_options)
-                .after_help(color_print::cformat!("<bold>Doc guide</bold>: {}", COMMERCIAL_OFFERINGS_GUIDE_URL))
-                .subcommand_value_name("subcommand")
-                .subcommands(tanzu_subcommands()),
-        ])
+        .subcommands(command_groups)
 }
 
 fn list_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 19] {
