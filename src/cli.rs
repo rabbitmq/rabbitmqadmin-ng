@@ -589,7 +589,6 @@ fn declare_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 12] 
             Arg::new("default_queue_type")
                 .long("default-queue-type")
                 .required(false)
-                .default_value(DEFAULT_QUEUE_TYPE)
                 .help(color_print::cformat!("default queue type, one of: <bold>classic</bold>, <bright-blue>quorum</bright-blue>, <bright-magenta>stream</bright-magenta>"))
         )
         .arg(
@@ -1654,7 +1653,6 @@ pub fn vhosts_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 3
             Arg::new("default_queue_type")
                 .long("default-queue-type")
                 .required(false)
-                .default_value(DEFAULT_QUEUE_TYPE)
                 .help(color_print::cformat!("default queue type, one of: <bold>classic</bold>, <bright-blue>quorum</bright-blue>, <bright-magenta>stream</bright-magenta>"))
         )
         .arg(
