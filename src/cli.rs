@@ -158,10 +158,24 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         .infer_subcommands(pre_flight_settings.infer_subcommands)
         .infer_long_args(pre_flight_settings.infer_long_options)
         .subcommands(nodes_subcommands(pre_flight_settings.clone()));
+    let parameters_group = Command::new("parameters")
+        .about("Operations on runtime parameters")
+        .infer_subcommands(pre_flight_settings.infer_subcommands)
+        .infer_long_args(pre_flight_settings.infer_long_options)
+        .after_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            RUNTIME_PARAMETER_GUIDE_URL
+        ))
+        .subcommand_value_name("runtime_parameter")
+        .subcommands(parameters_subcommands(pre_flight_settings.clone()));
     let policies_group = Command::new("policies")
         .about("Operations on policies")
         .infer_subcommands(pre_flight_settings.infer_subcommands)
         .infer_long_args(pre_flight_settings.infer_long_options)
+        .after_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            POLICY_GUIDE_URL
+        ))
         .subcommand_value_name("policy")
         .subcommands(policies_subcommands(pre_flight_settings.clone()));
     let publish_group = Command::new("publish")
@@ -246,6 +260,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         import_group,
         list_group,
         nodes_group,
+        parameters_group,
         policies_group,
         publish_group,
         purge_group,
@@ -1201,6 +1216,66 @@ fn purge_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 1] {
     [queue_cmd].map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
 }
 
+fn parameters_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 3] {
+    let list_cmd = Command::new("list")
+        .arg(
+            Arg::new("component")
+                .long("component")
+                .help("component (for example: federation-upstream, vhost-limits)")
+                .required(false),
+        )
+        .long_about("Lists runtime parameters")
+        .after_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            RUNTIME_PARAMETER_GUIDE_URL
+        ));
+
+    let set_cmd = Command::new("set")
+        .alias("declare")
+        .about("Sets a runtime parameter")
+        .after_help(color_print::cformat!(
+            "<bold>Doc guide:</bold>: {}",
+            RUNTIME_PARAMETER_GUIDE_URL
+        ))
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("parameter's name")
+                .required(true),
+        )
+        .arg(
+            Arg::new("component")
+                .long("component")
+                .help("component (eg. federation)")
+                .required(true),
+        )
+        .arg(
+            Arg::new("value")
+                .long("value")
+                .help("parameter's value")
+                .required(true),
+        );
+
+    let clear_cmd = Command::new("clear")
+        .alias("delete")
+        .about("Clears (deletes) a runtime parameter")
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("parameter's name")
+                .required(true),
+        )
+        .arg(
+            Arg::new("component")
+                .long("component")
+                .help("component (eg. federation-upstream)")
+                .required(true),
+        );
+
+    [clear_cmd, list_cmd, set_cmd]
+        .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+}
+
 fn policies_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 5] {
     let declare_cmd = Command::new("declare")
         .about("Creates or updates a policy")
@@ -1280,8 +1355,8 @@ fn policies_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 5] 
 
     [
         declare_cmd,
-        list_cmd,
         delete_cmd,
+        list_cmd,
         list_in_cmd,
         list_matching_cmd,
     ]

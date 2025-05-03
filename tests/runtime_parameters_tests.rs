@@ -18,8 +18,8 @@ mod test_helpers;
 use crate::test_helpers::*;
 
 #[test]
-fn test_runtime_parameters() -> Result<(), Box<dyn std::error::Error>> {
-    let vh = "parameters_vhost_1";
+fn test_runtime_parameters_across_groups() -> Result<(), Box<dyn std::error::Error>> {
+    let vh = "test_runtime_parameters_across_groups";
     run_succeeds(["declare", "vhost", "--name", vh]);
     run_succeeds([
         "-V",
@@ -60,6 +60,59 @@ fn test_runtime_parameters() -> Result<(), Box<dyn std::error::Error>> {
         vh,
         "list",
         "parameters",
+        "--component",
+        "federation-upstream",
+    ])
+    .stdout(predicate::str::contains("my-upstream").not());
+
+    delete_vhost(vh).expect("failed to delete a virtual host");
+
+    Ok(())
+}
+
+#[test]
+fn test_runtime_parameters_cmd_group() -> Result<(), Box<dyn std::error::Error>> {
+    let vh = "test_runtime_parameters_cmd_group";
+    run_succeeds(["vhosts", "declare", "--name", vh]);
+    run_succeeds([
+        "-V",
+        vh,
+        "parameters",
+        "set",
+        "--component",
+        "federation-upstream",
+        "--name",
+        "my-upstream",
+        "--value",
+        "{\"uri\":\"amqp://target.hostname\",\"expires\":3600000}",
+    ]);
+
+    run_succeeds([
+        "-V",
+        vh,
+        "parameters",
+        "list",
+        "--component",
+        "federation-upstream",
+    ])
+    .stdout(predicate::str::contains("my-upstream").and(predicate::str::contains("3600000")));
+
+    run_succeeds([
+        "-V",
+        vh,
+        "parameters",
+        "delete",
+        "--component",
+        "federation-upstream",
+        "--name",
+        "my-upstream",
+    ]);
+
+    run_succeeds([
+        "-V",
+        vh,
+        "parameters",
+        "list",
         "--component",
         "federation-upstream",
     ])
