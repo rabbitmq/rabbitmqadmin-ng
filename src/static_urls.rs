@@ -54,7 +54,7 @@ pub(crate) const VIRTUAL_HOST_LIMIT_GUIDE_URL: &str = "https://www.rabbitmq.com/
 pub(crate) const VIRTUAL_HOST_DEFAULT_QUEUE_TYPE_GUIDE_URL: &str =
     "https://www.rabbitmq.com/docs/vhosts#default-queue-type";
 pub(crate) const RUNTIME_PARAMETER_GUIDE_URL: &str = "https://rabbitmq.com/docs/parameters";
-pub(crate) const POLICY_GUIDE_URL: &str = "https://www.rabbitmq.com/docs/parameters#policies";
+pub(crate) const POLICY_GUIDE_URL: &str = "https://www.rabbitmq.com/docs/policies";
 pub(crate) const OPERATOR_POLICY_GUIDE_URL: &str =
     "https://www.rabbitmq.com/docs/parameters#operator-policies";
 pub(crate) const USER_LIMIT_GUIDE_URL: &str = "https://rabbitmq.com/docs/user-limits";
