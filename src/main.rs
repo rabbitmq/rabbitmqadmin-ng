@@ -415,6 +415,26 @@ fn dispatch_common_subcommand(
             let result = commands::export_cluster_wide_definitions(client, second_level_args);
             res_handler.no_output_on_success(result);
         }
+        ("exchanges", "bind") => {
+            let result = commands::declare_binding(client, &vhost, second_level_args);
+            res_handler.no_output_on_success(result);
+        }
+        ("exchanges", "declare") => {
+            let result = commands::declare_exchange(client, &vhost, second_level_args);
+            res_handler.no_output_on_success(result);
+        }
+        ("exchanges", "delete") => {
+            let result = commands::delete_exchange(client, &vhost, second_level_args);
+            res_handler.delete_operation_result(result);
+        }
+        ("exchanges", "list") => {
+            let result = commands::list_exchanges(client, &vhost);
+            res_handler.tabular_result(result)
+        }
+        ("exchanges", "unbind") => {
+            let result = commands::delete_binding(client, &vhost, second_level_args);
+            res_handler.no_output_on_success(result);
+        }
         ("feature_flags", "enable") => {
             let result = commands::enable_feature_flag(client, second_level_args);
             res_handler.no_output_on_success(result);

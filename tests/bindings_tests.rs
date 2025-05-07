@@ -84,7 +84,7 @@ fn test_list_bindings() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     // delete the queue from vhost 1
-    run_succeeds(["-V", vh1, "delete", "queue", "--name", q1]);
+    run_succeeds(["-V", vh1, "queues", "delete", "--name", q1]);
 
     // these bindings were deleted with the queue
     run_succeeds(["-V", "bindings_vhost_1", "list", "bindings"]).stdout(

@@ -80,6 +80,12 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         ))
         .subcommand_value_name("deprecated feature")
         .subcommands(deprecated_features_subcommands(pre_flight_settings.clone()));
+    let exchanges_group = Command::new("exchanges")
+        .about("Operations on exchanges")
+        .infer_subcommands(pre_flight_settings.infer_subcommands)
+        .infer_long_args(pre_flight_settings.infer_long_options)
+        .subcommand_value_name("exchange")
+        .subcommands(exchanges_subcommands(pre_flight_settings.clone()));
     let export_group = Command::new("export")
         .about("See 'definitions export'")
         .infer_subcommands(pre_flight_settings.infer_subcommands)
@@ -274,6 +280,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         definitions_group,
         delete_group,
         deprecated_features_group,
+        exchanges_group,
         export_group,
         feature_flags_group,
         federation_group,
@@ -1801,6 +1808,132 @@ Examples:
     .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
 }
 
+fn exchanges_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 5] {
+    let bind_cmd = Command::new("bind")
+        .about("Creates a binding between a source exchange and a destination (a queue or an exchange)")
+        .arg(
+            Arg::new("source")
+                .long("source")
+                .help("source exchange")
+                .required(true),
+        )
+        .arg(
+            Arg::new("destination_type")
+                .long("destination-type")
+                .help("destination type: exchange or queue")
+                .required(true)
+                .value_parser(value_parser!(BindingDestinationType)),
+        )
+        .arg(
+            Arg::new("destination")
+                .long("destination")
+                .help("destination exchange/queue name")
+                .required(true),
+        )
+        .arg(
+            Arg::new("routing_key")
+                .long("routing-key")
+                .help("routing key")
+                .required(true),
+        )
+        .arg(
+            Arg::new("arguments")
+                .long("arguments")
+                .help("additional arguments")
+                .required(false)
+                .default_value("{}")
+                .value_parser(value_parser!(String)),
+        );
+    let declare_cmd = Command::new("declare")
+        .about("Declares an exchange")
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("exchange name")
+                .required(true),
+        )
+        .arg(
+            Arg::new("type")
+                .long("type")
+                .help("exchange type")
+                .value_parser(value_parser!(ExchangeType))
+                .required(false),
+        )
+        .arg(
+            Arg::new("durable")
+                .long("durable")
+                .help("should it persist after a restart")
+                .required(false)
+                .value_parser(value_parser!(bool)),
+        )
+        .arg(
+            Arg::new("auto_delete")
+                .long("auto-delete")
+                .help("should it be deleted when the last queue is unbound")
+                .required(false)
+                .value_parser(value_parser!(bool)),
+        )
+        .arg(
+            Arg::new("arguments")
+                .long("arguments")
+                .help("additional exchange arguments")
+                .required(false)
+                .default_value("{}")
+                .value_parser(value_parser!(String)),
+        );
+    let idempotently_arg = Arg::new("idempotently")
+        .long("idempotently")
+        .value_parser(value_parser!(bool))
+        .action(ArgAction::SetTrue)
+        .help("do not consider 404 Not Found API responses to be errors")
+        .required(false);
+    let delete_cmd = Command::new("delete")
+        .about("Deletes an exchange")
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("exchange name")
+                .required(true),
+        )
+        .arg(idempotently_arg.clone());
+    let list_cmd = Command::new("list").long_about("Lists exchanges");
+    let unbind_cmd = Command::new("unbind")
+        .about("Deletes a binding")
+        .arg(
+            Arg::new("source")
+                .long("source")
+                .help("source exchange")
+                .required(true),
+        )
+        .arg(
+            Arg::new("destination_type")
+                .long("destination-type")
+                .help("destination type: exchange or queue")
+                .required(true),
+        )
+        .arg(
+            Arg::new("destination")
+                .long("destination")
+                .help("destination exchange/queue name")
+                .required(true),
+        )
+        .arg(
+            Arg::new("routing_key")
+                .long("routing-key")
+                .help("routing key")
+                .required(true),
+        )
+        .arg(
+            Arg::new("arguments")
+                .long("arguments")
+                .help("additional arguments")
+                .required(false)
+                .default_value("{}")
+                .value_parser(value_parser!(String)),
+        );
+    [bind_cmd, declare_cmd, delete_cmd, list_cmd, unbind_cmd]
+        .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+}
 fn export_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 1] {
     let definitions = Command::new("definitions")
         .about("Prefer 'definitions export'")

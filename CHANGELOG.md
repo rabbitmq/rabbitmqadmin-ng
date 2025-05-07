@@ -4,6 +4,7 @@
 
 ### Enhancements
 
+ * `exchanges` is a new command group for operations on exchanges
  * `global_parameters` is a new command group for operations on [global runtime parameters](https://www.rabbitmq.com/docs/parameters)
  * `nodes` is a new command group for operations on nodes
  * `parameters` is a new command group for operations on [runtime parameters](https://www.rabbitmq.com/docs/parameters)
