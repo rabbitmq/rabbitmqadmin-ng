@@ -49,11 +49,61 @@ fn list_queues() -> Result<(), Box<dyn std::error::Error>> {
     run_succeeds(["-V", vh1, "list", "queues"])
         .stdout(predicate::str::contains(q1).and(predicate::str::contains("new_queue2").not()));
 
-    // delete the queue in vhost 1
+    // purge a queue in vhost 1
+    run_succeeds(["-V", vh1, "purge", "queue", "--name", q1]);
+
+    // delete a queue in vhost 1
     run_succeeds(["-V", vh1, "delete", "queue", "--name", q1]);
 
     // list queues in vhost 1
     run_succeeds(["-V", vh1, "list", "queues"]).stdout(predicate::str::contains(q1).not());
+
+    delete_vhost(vh1).expect("failed to delete a virtual host");
+    delete_vhost(vh2).expect("failed to delete a virtual host");
+
+    Ok(())
+}
+
+#[test]
+fn queues_lists() -> Result<(), Box<dyn std::error::Error>> {
+    let vh1 = "queue_vhost_3";
+    let vh2 = "queue_vhost_4";
+    let q1 = "new_queue1";
+    let q2 = "new_queue2";
+
+    delete_vhost(vh1).expect("failed to delete a virtual host");
+    delete_vhost(vh2).expect("failed to delete a virtual host");
+
+    // declare vhost 1
+    run_succeeds(["vhosts", "declare", "--name", vh1]);
+
+    // declare vhost 2
+    run_succeeds(["vhosts", "declare", "--name", vh2]);
+
+    // declare a new queue in vhost 1
+    run_succeeds([
+        "-V", vh1, "queues", "declare", "--name", q1, "--type", "classic",
+    ]);
+
+    // declare new queue in vhost 2
+    run_succeeds([
+        "-V", vh2, "queues", "declare", "--name", q2, "--type", "quorum",
+    ]);
+
+    await_queue_metric_emission();
+
+    // list queues in vhost 1
+    run_succeeds(["-V", vh1, "queues", "list"])
+        .stdout(predicate::str::contains(q1).and(predicate::str::contains("new_queue2").not()));
+
+    // purge a queue in vhost 1
+    run_succeeds(["-V", vh1, "queues", "purge", "--name", q1]);
+
+    // delete a queue in vhost 1
+    run_succeeds(["-V", vh1, "queues", "delete", "--name", q1]);
+
+    // list queues in vhost 1
+    run_succeeds(["-V", vh1, "queues", "list"]).stdout(predicate::str::contains(q1).not());
 
     delete_vhost(vh1).expect("failed to delete a virtual host");
     delete_vhost(vh2).expect("failed to delete a virtual host");

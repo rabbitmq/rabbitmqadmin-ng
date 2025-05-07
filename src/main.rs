@@ -641,6 +641,26 @@ fn dispatch_common_subcommand(
             let result = commands::purge_queue(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);
         }
+        ("queues", "declare") => {
+            let result = commands::declare_queue(client, &vhost, second_level_args);
+            res_handler.no_output_on_success(result);
+        }
+        ("queues", "delete") => {
+            let result = commands::delete_queue(client, &vhost, second_level_args);
+            res_handler.delete_operation_result(result);
+        }
+        ("queues", "list") => {
+            let result = commands::list_queues(client, &vhost);
+            res_handler.tabular_result(result)
+        }
+        ("queues", "purge") => {
+            let result = commands::purge_queue(client, &vhost, second_level_args);
+            res_handler.no_output_on_success(result);
+        }
+        ("queues", "rebalance") => {
+            let result = commands::rebalance_queues(client);
+            res_handler.no_output_on_success(result);
+        }
         ("rebalance", "queues") => {
             let result = commands::rebalance_queues(client);
             res_handler.no_output_on_success(result);

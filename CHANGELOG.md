@@ -7,6 +7,7 @@
  * `global_parameters` is a new command group for operations on [global runtime parameters](https://www.rabbitmq.com/docs/parameters)
  * `nodes` is a new command group for operations on nodes
  * `parameters` is a new command group for operations on [runtime parameters](https://www.rabbitmq.com/docs/parameters)
+ * `queues` is a new command group for operations on queues
  * `users` is a new command group for operations on users
  * `vhosts` is a new command group for operations on virtual hosts
  * Command groups are now ordered alphabetically

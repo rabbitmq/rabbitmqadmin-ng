@@ -201,6 +201,12 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         .infer_long_args(pre_flight_settings.infer_long_options)
         .subcommand_value_name("queue")
         .subcommands(purge_subcommands(pre_flight_settings.clone()));
+    let queues_group = Command::new("queues")
+        .about("Operations on queues")
+        .infer_subcommands(pre_flight_settings.infer_subcommands)
+        .infer_long_args(pre_flight_settings.infer_long_options)
+        .subcommand_value_name("queue")
+        .subcommands(queues_subcommands(pre_flight_settings.clone()));
     let rebalance_group = Command::new("rebalance")
         .about("Rebalancing of leader replicas")
         .infer_subcommands(pre_flight_settings.infer_subcommands)
@@ -275,6 +281,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         policies_group,
         publish_group,
         purge_group,
+        queues_group,
         rebalance_group,
         show_group,
         shovels_group,
@@ -1225,6 +1232,78 @@ fn purge_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 1] {
                 .required(true),
         );
     [queue_cmd].map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+}
+
+fn queues_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 5] {
+    let declare_cmd = Command::new("declare")
+        .about("Declares a queue or a stream")
+        .after_help(color_print::cformat!(
+            "<bold>Doc guide:</bold>: {}",
+            QUEUE_GUIDE_URL
+        ))
+        .arg(Arg::new("name").long("name").required(true).help("name"))
+        .arg(
+            Arg::new("type")
+                .long("type")
+                .help("queue type")
+                .value_parser(value_parser!(QueueType))
+                .required(false)
+                .default_value("classic"),
+        )
+        .arg(
+            Arg::new("durable")
+                .long("durable")
+                .help("should it persist after a restart")
+                .required(false)
+                .value_parser(value_parser!(bool)),
+        )
+        .arg(
+            Arg::new("auto_delete")
+                .long("auto-delete")
+                .help("should it be deleted when the last consumer disconnects")
+                .required(false)
+                .value_parser(value_parser!(bool)),
+        )
+        .arg(
+            Arg::new("arguments")
+                .long("arguments")
+                .help("additional exchange arguments")
+                .required(false)
+                .default_value("{}")
+                .value_parser(value_parser!(String)),
+        );
+    let idempotently_arg = Arg::new("idempotently")
+        .long("idempotently")
+        .value_parser(value_parser!(bool))
+        .action(ArgAction::SetTrue)
+        .help("do not consider 404 Not Found API responses to be errors")
+        .required(false);
+    let delete_cmd = Command::new("delete")
+        .about("Deletes a queue")
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("queue name")
+                .required(true),
+        )
+        .arg(idempotently_arg.clone());
+    let list_cmd = Command::new("list")
+        .long_about("Lists queues and streams")
+        .after_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            QUEUE_GUIDE_URL
+        ));
+    let purge_cmd = Command::new("purge")
+        .long_about("Purges (permanently removes unacknowledged messages from) a queue")
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("name of the queue to purge")
+                .required(true),
+        );
+    let rebalance_cmd = Command::new("rebalance").about("Rebalances queue leaders");
+    [declare_cmd, delete_cmd, list_cmd, purge_cmd, rebalance_cmd]
+        .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
 }
 
 fn parameters_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 3] {
