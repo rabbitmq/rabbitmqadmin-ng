@@ -8,6 +8,7 @@
  * `nodes` is a new command group for operations on nodes
  * `parameters` is a new command group for operations on [runtime parameters](https://www.rabbitmq.com/docs/parameters)
  * `queues` is a new command group for operations on queues
+ * `streams` is a new command group for operations on streams
  * `users` is a new command group for operations on users
  * `vhosts` is a new command group for operations on virtual hosts
  * Command groups are now ordered alphabetically

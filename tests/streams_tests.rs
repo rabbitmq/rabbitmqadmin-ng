@@ -74,3 +74,61 @@ fn list_streams() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
+
+#[test]
+fn streams_list() -> Result<(), Box<dyn std::error::Error>> {
+    let vh1 = "stream_vhost_3";
+    let vh2 = "stream_vhost_4";
+    let s1 = "new_stream1";
+    let s2 = "new_stream2";
+
+    delete_vhost(vh1).expect("failed to delete a virtual host");
+    delete_vhost(vh2).expect("failed to delete a virtual host");
+
+    // declare vhost 1
+    run_succeeds(["vhosts", "declare", "--name", vh1]);
+
+    // declare vhost 2
+    run_succeeds(["vhosts", "declare", "--name", vh2]);
+
+    // declare a new stream in vhost 1
+    run_succeeds([
+        "-V",
+        vh1,
+        "streams",
+        "declare",
+        "--name",
+        s1,
+        "--expiration",
+        "2D",
+    ]);
+
+    // declare new stream in vhost 2
+    run_succeeds([
+        "-V",
+        vh2,
+        "streams",
+        "declare",
+        "--name",
+        s2,
+        "--expiration",
+        "12h",
+    ]);
+
+    await_queue_metric_emission();
+
+    // list streams in vhost 1
+    run_succeeds(["-V", vh1, "streams", "list"])
+        .stdout(predicate::str::contains(s1).and(predicate::str::contains("random_stream").not()));
+
+    // delete the stream in vhost 1
+    run_succeeds(["-V", vh1, "streams", "delete", "--name", s1]);
+
+    // list streams in vhost 1
+    run_succeeds(["-V", vh1, "streams", "list"]).stdout(predicate::str::contains(s1).not());
+
+    delete_vhost(vh1).expect("failed to delete a virtual host");
+    delete_vhost(vh2).expect("failed to delete a virtual host");
+
+    Ok(())
+}

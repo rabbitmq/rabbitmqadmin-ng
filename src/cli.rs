@@ -236,6 +236,12 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         ))
         .subcommand_value_name("shovels")
         .subcommands(shovel_subcommands(pre_flight_settings.clone()));
+    let streams_group = Command::new("streams")
+        .about("Operations on streams")
+        .infer_subcommands(pre_flight_settings.infer_subcommands)
+        .infer_long_args(pre_flight_settings.infer_long_options)
+        .subcommand_value_name("stream")
+        .subcommands(streams_subcommands(pre_flight_settings.clone()));
     let tanzu_group = Command::new("tanzu")
         .about("Tanzu RabbitMQ-specific commands")
         .infer_subcommands(pre_flight_settings.infer_subcommands)
@@ -285,6 +291,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         rebalance_group,
         show_group,
         shovels_group,
+        streams_group,
         tanzu_group,
         users_group,
         vhosts_group,
@@ -1303,6 +1310,68 @@ fn queues_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 5] {
         );
     let rebalance_cmd = Command::new("rebalance").about("Rebalances queue leaders");
     [declare_cmd, delete_cmd, list_cmd, purge_cmd, rebalance_cmd]
+        .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+}
+
+fn streams_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 3] {
+    let declare_cmd = Command::new("declare")
+        .about("Declares a stream")
+        .after_help(color_print::cformat!(
+            "<bold>Doc guide:</bold>: {}",
+            STREAM_GUIDE_URL
+        ))
+        .arg(Arg::new("name").long("name").required(true).help("name"))
+        .arg(
+            Arg::new("expiration")
+                .long("expiration")
+                .help("stream expiration, e.g. 12h for 12 hours, 7D for 7 days, or 1M for 1 month")
+                .required(true)
+                .value_parser(value_parser!(String)),
+        )
+        .arg(
+            Arg::new("max_length_bytes")
+                .long("max-length-bytes")
+                .help("maximum stream length in bytes")
+                .required(false)
+                .value_parser(value_parser!(u64)),
+        )
+        .arg(
+            Arg::new("max_segment_length_bytes")
+                .long("stream-max-segment-size-bytes")
+                .help("maximum stream segment file length in bytes")
+                .required(false)
+                .value_parser(value_parser!(u64)),
+        )
+        .arg(
+            Arg::new("arguments")
+                .long("arguments")
+                .help("additional exchange arguments")
+                .required(false)
+                .default_value("{}")
+                .value_parser(value_parser!(String)),
+        );
+    let idempotently_arg = Arg::new("idempotently")
+        .long("idempotently")
+        .value_parser(value_parser!(bool))
+        .action(ArgAction::SetTrue)
+        .help("do not consider 404 Not Found API responses to be errors")
+        .required(false);
+    let delete_cmd = Command::new("delete")
+        .about("Deletes a queue")
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("queue name")
+                .required(true),
+        )
+        .arg(idempotently_arg.clone());
+    let list_cmd = Command::new("list")
+        .long_about("Lists streams and queues and")
+        .after_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            STREAM_GUIDE_URL
+        ));
+    [declare_cmd, delete_cmd, list_cmd]
         .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
 }
 
