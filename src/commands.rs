@@ -180,6 +180,12 @@ pub fn list_parameters(
     }
 }
 
+pub fn list_global_parameters(
+    client: APIClient,
+) -> ClientResult<Vec<responses::GlobalRuntimeParameter>> {
+    client.list_global_runtime_parameters()
+}
+
 pub fn list_feature_flags(client: APIClient) -> ClientResult<responses::FeatureFlagList> {
     client.list_feature_flags()
 }
@@ -796,6 +802,12 @@ pub fn delete_parameter(
     client.clear_runtime_parameter(component, vhost, name)
 }
 
+pub fn delete_global_parameter(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
+    let name = command_args.get_one::<String>("name").unwrap();
+
+    client.clear_global_runtime_parameter(name)
+}
+
 pub fn delete_vhost(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
     // the flag is required
     let name = command_args.get_one::<String>("name").unwrap();
@@ -1025,6 +1037,25 @@ pub fn declare_parameter(
     };
 
     client.upsert_runtime_parameter(&params)
+}
+
+pub fn declare_global_parameter(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
+    let name = command_args.get_one::<String>("name").unwrap();
+    let value = command_args.get_one::<String>("value").unwrap();
+    // TODO: global runtime parameter values can be regular strings (not JSON documents)
+    //       but we don't support that yet in the HTTP API client.
+    let parsed_value = serde_json::from_str::<requests::RuntimeParameterValue>(value)
+        .unwrap_or_else(|err| {
+            eprintln!("`{}` is not a valid JSON: {}", value, err);
+            process::exit(1);
+        });
+
+    let params = requests::GlobalRuntimeParameterDefinition {
+        name,
+        value: parsed_value,
+    };
+
+    client.upsert_global_runtime_parameter(&params)
 }
 
 pub fn delete_queue(client: APIClient, vhost: &str, command_args: &ArgMatches) -> ClientResult<()> {

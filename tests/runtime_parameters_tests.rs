@@ -122,3 +122,25 @@ fn test_runtime_parameters_cmd_group() -> Result<(), Box<dyn std::error::Error>>
 
     Ok(())
 }
+
+#[test]
+fn test_global_runtime_parameters_cmd_group() -> Result<(), Box<dyn std::error::Error>> {
+    run_succeeds([
+        "global_parameters",
+        "set",
+        "--name",
+        "cluster_tags",
+        "--value",
+        "{\"region\": \"ca-central-1\"}",
+    ]);
+
+    run_succeeds(["global_parameters", "list"])
+        .stdout(predicate::str::contains("region").and(predicate::str::contains("ca-central-1")));
+
+    run_succeeds(["global_parameters", "delete", "--name", "cluster_tags"]);
+
+    run_succeeds(["global_parameters", "list"])
+        .stdout(predicate::str::contains("cluster_tags").not());
+
+    Ok(())
+}

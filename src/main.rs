@@ -463,6 +463,18 @@ fn dispatch_common_subcommand(
             let result = commands::get_messages(client, &vhost, second_level_args);
             res_handler.tabular_result(result)
         }
+        ("global_parameters", "clear") => {
+            let result = commands::delete_global_parameter(client, second_level_args);
+            res_handler.no_output_on_success(result);
+        }
+        ("global_parameters", "list") => {
+            let result = commands::list_global_parameters(client);
+            res_handler.tabular_result(result)
+        }
+        ("global_parameters", "set") => {
+            let result = commands::declare_global_parameter(client, second_level_args);
+            res_handler.no_output_on_success(result);
+        }
         ("health_check", "cluster_wide_alarms") => {
             let result = commands::health_check_cluster_wide_alarms(client);
             res_handler.health_check_result(result);

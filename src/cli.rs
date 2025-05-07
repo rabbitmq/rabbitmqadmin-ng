@@ -124,6 +124,16 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         .after_help(color_print::cformat!("<bold>Doc guide</bold>: {}", POLLING_CONSUMER_GUIDE_URL))
         .subcommand_value_name("message")
         .subcommands(get_subcommands(pre_flight_settings.clone()));
+    let global_parameters_group = Command::new("global_parameters")
+        .about("Operations on global runtime parameters")
+        .infer_subcommands(pre_flight_settings.infer_subcommands)
+        .infer_long_args(pre_flight_settings.infer_long_options)
+        .after_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            RUNTIME_PARAMETER_GUIDE_URL
+        ))
+        .subcommand_value_name("runtime_parameter")
+        .subcommands(global_parameters_subcommands(pre_flight_settings.clone()));
     let health_check_group = Command::new("health_check")
         .about("Runs health checks")
         .infer_subcommands(pre_flight_settings.infer_subcommands)
@@ -256,6 +266,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         feature_flags_group,
         federation_group,
         get_group,
+        global_parameters_group,
         health_check_group,
         import_group,
         list_group,
@@ -1269,6 +1280,48 @@ fn parameters_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 3
             Arg::new("component")
                 .long("component")
                 .help("component (eg. federation-upstream)")
+                .required(true),
+        );
+
+    [clear_cmd, list_cmd, set_cmd]
+        .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+}
+
+fn global_parameters_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 3] {
+    let list_cmd = Command::new("list")
+        .long_about("Lists global runtime parameters")
+        .after_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            RUNTIME_PARAMETER_GUIDE_URL
+        ));
+
+    let set_cmd = Command::new("set")
+        .alias("declare")
+        .about("Sets a global runtime parameter")
+        .after_help(color_print::cformat!(
+            "<bold>Doc guide:</bold>: {}",
+            RUNTIME_PARAMETER_GUIDE_URL
+        ))
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("parameter's name")
+                .required(true),
+        )
+        .arg(
+            Arg::new("value")
+                .long("value")
+                .help("parameter's value")
+                .required(true),
+        );
+
+    let clear_cmd = Command::new("clear")
+        .alias("delete")
+        .about("Clears (deletes) a global runtime parameter")
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("parameter's name")
                 .required(true),
         );
 
