@@ -18,8 +18,8 @@ use crate::test_helpers::*;
 
 #[test]
 fn test_list_bindings() -> Result<(), Box<dyn std::error::Error>> {
-    let vh1 = "bindings_vhost_1";
-    let vh2 = "bindings_vhost_2";
+    let vh1 = "test_list_bindings_1";
+    let vh2 = "test_list_bindings_2";
     let q1 = "new_queue_1";
     let q2 = "new_queue_2";
 
@@ -88,6 +88,105 @@ fn test_list_bindings() -> Result<(), Box<dyn std::error::Error>> {
 
     // these bindings were deleted with the queue
     run_succeeds(["-V", "bindings_vhost_1", "list", "bindings"]).stdout(
+        predicate::str::contains("new_queue_1")
+            .not()
+            .and(predicate::str::contains("routing_key_queue"))
+            .not()
+            .and(predicate::str::contains("routing_key_exchange")),
+    );
+
+    delete_vhost(vh1).expect("failed to delete a virtual host");
+    delete_vhost(vh2).expect("failed to delete a virtual host");
+
+    Ok(())
+}
+
+#[test]
+fn test_bindings_list() -> Result<(), Box<dyn std::error::Error>> {
+    let vh1 = "test_bindings_list_1";
+    let vh2 = "test_bindings_list_2";
+    let q1 = "new_queue_1";
+    let q2 = "new_queue_2";
+
+    delete_vhost(vh1).expect("failed to delete a virtual host");
+    delete_vhost(vh2).expect("failed to delete a virtual host");
+
+    // declare vhost 1
+    run_succeeds(["vhosts", "declare", "--name", vh1]);
+
+    // declare vhost 2
+    run_succeeds(["vhosts", "declare", "--name", vh2]);
+
+    // declare a new queue in vhost 1
+    run_succeeds([
+        "-V", vh1, "queues", "declare", "--name", q1, "--type", "classic",
+    ]);
+
+    // declare a new queue in vhost 2
+    run_succeeds([
+        "-V", vh2, "queues", "declare", "--name", q2, "--type", "quorum",
+    ]);
+
+    // bind the queue -> a pre-existing exchange
+    run_succeeds([
+        "-V",
+        vh1,
+        "bindings",
+        "declare",
+        "--source",
+        "amq.direct",
+        "--destination-type",
+        "queue",
+        "--destination",
+        q1,
+        "--routing-key",
+        "routing_key_queue",
+    ]);
+
+    // declare an exchange -> exchange binding
+    run_succeeds([
+        "-V",
+        vh1,
+        "bindings",
+        "declare",
+        "--source",
+        "amq.direct",
+        "--destination-type",
+        "exchange",
+        "--destination",
+        "amq.topic",
+        "--routing-key",
+        "routing_key_exchange",
+    ]);
+
+    await_queue_metric_emission();
+
+    // list bindings in vhost 1
+    run_succeeds(["-V", vh1, "list", "bindings"]).stdout(
+        predicate::str::contains("new_queue_1")
+            .and(predicate::str::contains("routing_key_queue"))
+            .and(predicate::str::contains("routing_key_exchange")),
+    );
+
+    // delete a binding
+    // declare an exchange -> exchange binding
+    run_succeeds([
+        "-V",
+        vh1,
+        "bindings",
+        "declare",
+        "--source",
+        "amq.direct",
+        "--destination-type",
+        "queue",
+        "--destination",
+        q1,
+        "--routing-key",
+        "routing_key_queue",
+    ]);
+
+    // ensure that the deleted binding is no longer listed
+    run_succeeds(["-V", vh1, "list", "bindings"]).stdout(
         predicate::str::contains("new_queue_1")
             .not()
             .and(predicate::str::contains("routing_key_queue"))

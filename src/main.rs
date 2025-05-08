@@ -279,6 +279,18 @@ fn dispatch_common_subcommand(
     res_handler: &mut ResultHandler,
 ) -> ExitCode {
     match &pair {
+        ("bindings", "declare") => {
+            let result = commands::declare_binding(client, &vhost, second_level_args);
+            res_handler.no_output_on_success(result);
+        }
+        ("bindings", "delete") => {
+            let result = commands::delete_binding(client, &vhost, second_level_args);
+            res_handler.no_output_on_success(result);
+        }
+        ("bindings", "list") => {
+            let result = commands::list_bindings(client);
+            res_handler.tabular_result(result)
+        }
         ("close", "connection") => {
             let result = commands::close_connection(client, second_level_args);
             res_handler.no_output_on_success(result);

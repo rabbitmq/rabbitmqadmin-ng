@@ -45,6 +45,12 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         GITHUB_REPOSITORY_URL
     );
 
+    let bindings_group = Command::new("bindings")
+        .about("Operations on bindings")
+        .infer_subcommands(pre_flight_settings.infer_subcommands)
+        .infer_long_args(pre_flight_settings.infer_long_options)
+        .subcommand_value_name("binding")
+        .subcommands(binding_subcommands(pre_flight_settings.clone()));
     let close_group = Command::new("close")
         .about("Closes connections")
         .infer_subcommands(pre_flight_settings.infer_subcommands)
@@ -275,6 +281,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         .subcommands(vhosts_subcommands(pre_flight_settings.clone()));
 
     let command_groups = [
+        bindings_group,
         close_group,
         declare_group,
         definitions_group,
@@ -1246,6 +1253,82 @@ fn purge_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 1] {
                 .required(true),
         );
     [queue_cmd].map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+}
+
+fn binding_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 3] {
+    let declare_cmd = Command::new("declare")
+        .about("Creates a binding between a source exchange and a destination (a queue or an exchange)")
+        .arg(
+            Arg::new("source")
+                .long("source")
+                .help("source exchange")
+                .required(true),
+        )
+        .arg(
+            Arg::new("destination_type")
+                .long("destination-type")
+                .help("destination type: exchange or queue")
+                .required(true)
+                .value_parser(value_parser!(BindingDestinationType)),
+        )
+        .arg(
+            Arg::new("destination")
+                .long("destination")
+                .help("destination exchange/queue name")
+                .required(true),
+        )
+        .arg(
+            Arg::new("routing_key")
+                .long("routing-key")
+                .help("routing key")
+                .required(true),
+        )
+        .arg(
+            Arg::new("arguments")
+                .long("arguments")
+                .help("additional arguments")
+                .required(false)
+                .default_value("{}")
+                .value_parser(value_parser!(String)),
+        );
+    let delete_cmd = Command::new("delete")
+        .about("Deletes a binding")
+        .arg(
+            Arg::new("source")
+                .long("source")
+                .help("source exchange")
+                .required(true),
+        )
+        .arg(
+            Arg::new("destination_type")
+                .long("destination-type")
+                .help("destination type: exchange or queue")
+                .required(true),
+        )
+        .arg(
+            Arg::new("destination")
+                .long("destination")
+                .help("destination exchange/queue name")
+                .required(true),
+        )
+        .arg(
+            Arg::new("routing_key")
+                .long("routing-key")
+                .help("routing key")
+                .required(true),
+        )
+        .arg(
+            Arg::new("arguments")
+                .long("arguments")
+                .help("additional arguments")
+                .required(false)
+                .default_value("{}")
+                .value_parser(value_parser!(String)),
+        );
+    let list_cmd = Command::new("list").long_about("Lists bindings");
+
+    [declare_cmd, delete_cmd, list_cmd]
+        .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
 }
 
 fn queues_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 5] {

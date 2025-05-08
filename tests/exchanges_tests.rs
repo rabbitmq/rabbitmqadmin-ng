@@ -276,7 +276,7 @@ fn test_exchanges_bind_and_unbind() -> Result<(), Box<dyn std::error::Error>> {
     await_queue_metric_emission();
 
     // list bindings in vhost 1
-    run_succeeds(["-V", "bindings_vhost_1", "list", "bindings"]).stdout(
+    run_succeeds(["-V", vh2, "list", "bindings"]).stdout(
         predicate::str::contains("new_queue_1")
             .and(predicate::str::contains("routing_key_queue"))
             .and(predicate::str::contains("routing_key_exchange")),
@@ -298,7 +298,7 @@ fn test_exchanges_bind_and_unbind() -> Result<(), Box<dyn std::error::Error>> {
         "routing_key_queue",
     ]);
 
-    run_succeeds(["-V", "bindings_vhost_1", "list", "bindings"]).stdout(
+    run_succeeds(["-V", vh1, "list", "bindings"]).stdout(
         predicate::str::contains("new_queue_1")
             .not()
             .and(predicate::str::contains("routing_key_queue"))
