@@ -1,6 +1,11 @@
 # rabbitmqadmin-ng Change Log
 
-## v2.1.0 (in development)
+## v2.2.0 (in development)
+
+No changes yet.
+
+
+## v2.1.0 (May 8, 2025)
 
 ### Enhancements
 
@@ -26,7 +31,7 @@
    Instead, the default will be controlled exclusively by RabbitMQ
 
 
-## v2.0.0 (Mar 31, 2024)
+## v2.0.0 (Mar 31, 2025)
 
 ### Enhancements
 
