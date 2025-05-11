@@ -1465,13 +1465,31 @@ fn streams_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 3] {
         .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
 }
 
-fn parameters_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 3] {
+fn parameters_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 5] {
+    let list_all_cmd = Command::new("list_all")
+        .long_about("Lists all runtime parameters across all virtual hosts")
+        .after_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            RUNTIME_PARAMETER_GUIDE_URL
+        ));
     let list_cmd = Command::new("list")
         .arg(
             Arg::new("component")
                 .long("component")
                 .help("component (for example: federation-upstream, vhost-limits)")
                 .required(false),
+        )
+        .long_about("Lists runtime parameters")
+        .after_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            RUNTIME_PARAMETER_GUIDE_URL
+        ));
+    let list_in_cmd = Command::new("list_in")
+        .arg(
+            Arg::new("component")
+                .long("component")
+                .help("component (for example: federation-upstream, vhost-limits)")
+                .required(true),
         )
         .long_about("Lists runtime parameters")
         .after_help(color_print::cformat!(
@@ -1521,7 +1539,7 @@ fn parameters_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 3
                 .required(true),
         );
 
-    [clear_cmd, list_cmd, set_cmd]
+    [clear_cmd, list_all_cmd, list_cmd, list_in_cmd, set_cmd]
         .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
 }
 

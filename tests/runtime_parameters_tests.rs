@@ -91,11 +91,26 @@ fn test_runtime_parameters_cmd_group() -> Result<(), Box<dyn std::error::Error>>
         "-V",
         vh,
         "parameters",
+        "list_all"
+    ]).stdout(predicate::str::contains("my-upstream").and(predicate::str::contains("3600000")));
+
+    run_succeeds([
+        "-V",
+        vh,
+        "parameters",
         "list",
         "--component",
         "federation-upstream",
-    ])
-    .stdout(predicate::str::contains("my-upstream").and(predicate::str::contains("3600000")));
+    ]).stdout(predicate::str::contains("my-upstream").and(predicate::str::contains("3600000")));
+
+    run_succeeds([
+        "-V",
+        vh,
+        "parameters",
+        "list_in",
+        "--component",
+        "federation-upstream",
+    ]).stdout(predicate::str::contains("my-upstream").and(predicate::str::contains("3600000")));
 
     run_succeeds([
         "-V",

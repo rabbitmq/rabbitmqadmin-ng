@@ -623,8 +623,18 @@ fn dispatch_common_subcommand(
             let result = commands::delete_parameter(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);
         }
+        ("parameters", "list_all") => {
+            let result =
+                commands::list_all_parameters(client);
+            res_handler.tabular_result(result)
+        }
         ("parameters", "list") => {
             let result = commands::list_parameters(client, &vhost, second_level_args);
+            res_handler.tabular_result(result)
+        }
+        ("parameters", "list_in") => {
+            let result =
+                commands::list_parameters_of_component_in(client, &vhost, second_level_args);
             res_handler.tabular_result(result)
         }
         ("parameters", "set") => {

@@ -164,6 +164,10 @@ pub fn list_permissions(client: APIClient) -> ClientResult<Vec<responses::Permis
     client.list_permissions()
 }
 
+pub fn list_all_parameters(client: APIClient) -> ClientResult<Vec<responses::RuntimeParameter>> {
+    client.list_runtime_parameters()
+} 
+
 pub fn list_parameters(
     client: APIClient,
     vhost: &str,
@@ -178,6 +182,15 @@ pub fn list_parameters(
         }
         Some(c) => client.list_runtime_parameters_of_component_in(c, vhost),
     }
+}
+
+pub fn list_parameters_of_component_in(
+    client: APIClient,
+    vhost: &str,
+    command_args: &ArgMatches,
+) -> ClientResult<Vec<responses::RuntimeParameter>> {
+    let component = command_args.get_one::<String>("component").unwrap();
+    client.list_runtime_parameters_of_component_in(component, vhost)
 }
 
 pub fn list_global_parameters(
