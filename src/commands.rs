@@ -166,7 +166,7 @@ pub fn list_permissions(client: APIClient) -> ClientResult<Vec<responses::Permis
 
 pub fn list_all_parameters(client: APIClient) -> ClientResult<Vec<responses::RuntimeParameter>> {
     client.list_runtime_parameters()
-} 
+}
 
 pub fn list_parameters(
     client: APIClient,

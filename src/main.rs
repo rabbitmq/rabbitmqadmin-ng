@@ -624,8 +624,7 @@ fn dispatch_common_subcommand(
             res_handler.no_output_on_success(result);
         }
         ("parameters", "list_all") => {
-            let result =
-                commands::list_all_parameters(client);
+            let result = commands::list_all_parameters(client);
             res_handler.tabular_result(result)
         }
         ("parameters", "list") => {

@@ -87,12 +87,8 @@ fn test_runtime_parameters_cmd_group() -> Result<(), Box<dyn std::error::Error>>
         "{\"uri\":\"amqp://target.hostname\",\"expires\":3600000}",
     ]);
 
-    run_succeeds([
-        "-V",
-        vh,
-        "parameters",
-        "list_all"
-    ]).stdout(predicate::str::contains("my-upstream").and(predicate::str::contains("3600000")));
+    run_succeeds(["parameters", "list_all"])
+        .stdout(predicate::str::contains("my-upstream").and(predicate::str::contains("3600000")));
 
     run_succeeds([
         "-V",
@@ -101,7 +97,8 @@ fn test_runtime_parameters_cmd_group() -> Result<(), Box<dyn std::error::Error>>
         "list",
         "--component",
         "federation-upstream",
-    ]).stdout(predicate::str::contains("my-upstream").and(predicate::str::contains("3600000")));
+    ])
+    .stdout(predicate::str::contains("my-upstream").and(predicate::str::contains("3600000")));
 
     run_succeeds([
         "-V",
@@ -110,7 +107,8 @@ fn test_runtime_parameters_cmd_group() -> Result<(), Box<dyn std::error::Error>>
         "list_in",
         "--component",
         "federation-upstream",
-    ]).stdout(predicate::str::contains("my-upstream").and(predicate::str::contains("3600000")));
+    ])
+    .stdout(predicate::str::contains("my-upstream").and(predicate::str::contains("3600000")));
 
     run_succeeds([
         "-V",
