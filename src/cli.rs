@@ -1585,7 +1585,7 @@ fn global_parameters_subcommands(pre_flight_settings: PreFlightSettings) -> [Com
         .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
 }
 
-fn policies_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 6] {
+fn policies_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 9] {
     let declare_cmd = Command::new("declare")
         .about("Creates or updates a policy")
         .after_help(color_print::cformat!("<bold>Doc guide:</bold>: {}", POLICY_GUIDE_URL))
@@ -1637,6 +1637,28 @@ fn policies_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 6] 
             .required(true),
     );
 
+    let delete_definition_key_cmd = Command::new("delete_definition_key")
+        .about("Deletes a definition key from a policy, unless it is the only key")
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("policy name")
+                .required(true),
+        )
+        .arg(
+            Arg::new("definition_key")
+                .long("definition-key")
+                .help("definition key"),
+        );
+
+    let delete_definition_key_from_all_in_cmd = Command::new("delete_definition_key_from_all_in")
+        .about("Deletes a definition key from all policies in a virtual host, unless it is the only key")
+        .arg(
+            Arg::new("definition_key")
+                .long("definition-key")
+                .help("definition key")
+        );
+
     let list_in_cmd = Command::new("list_in")
         .about("Lists policies in a specific virtual host")
         .arg(
@@ -1683,13 +1705,31 @@ fn policies_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 6] 
                 .required(true),
         );
 
+    let update_all_in_cmd = Command::new("update_definitions_of_all_in")
+        .about("Updates a definition key in all policies in a virtual host")
+        .arg(
+            Arg::new("definition_key")
+                .long("definition-key")
+                .help("policy definition key to update")
+                .required(true),
+        )
+        .arg(
+            Arg::new("definition_value")
+                .long("new-value")
+                .help("new definition value to set")
+                .required(true),
+        );
+
     [
         declare_cmd,
         delete_cmd,
+        delete_definition_key_cmd,
+        delete_definition_key_from_all_in_cmd,
         list_cmd,
         list_in_cmd,
         list_matching_cmd,
         update_cmd,
+        update_all_in_cmd,
     ]
     .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
 }

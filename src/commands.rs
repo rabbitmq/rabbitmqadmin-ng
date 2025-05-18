@@ -33,8 +33,10 @@ use std::process;
 
 use rabbitmq_http_client::commons::BindingDestinationType;
 use rabbitmq_http_client::commons::QueueType;
+use rabbitmq_http_client::responses::PolicyDefinitionOps;
 use rabbitmq_http_client::transformers::TransformationChain;
 use rabbitmq_http_client::{password_hashing, requests, responses};
+use serde_json::Value;
 
 type APIClient<'a> = Client<&'a str, &'a str, &'a str>;
 
@@ -1047,8 +1049,83 @@ pub fn update_policy_definition(
         process::exit(1);
     });
 
-    let mut policy = client.get_policy(vhost, &name)?;
-    policy.insert_definition_key(key, parsed_value);
+    update_policy_definition_with(&client, vhost, &name, &key, &parsed_value)
+}
+
+pub fn update_all_policy_definitions_in(
+    client: APIClient,
+    vhost: &str,
+    command_args: &ArgMatches,
+) -> ClientResult<()> {
+    let pols = client.list_policies_in(vhost)?;
+    let key = command_args
+        .get_one::<String>("definition_key")
+        .cloned()
+        .unwrap();
+    let value = command_args
+        .get_one::<String>("definition_value")
+        .cloned()
+        .unwrap();
+    let parsed_value = serde_json::from_str::<serde_json::Value>(&value).unwrap_or_else(|err| {
+        eprintln!("`{}` is not a valid JSON value: {}", value, err);
+        process::exit(1);
+    });
+
+    for pol in pols {
+        update_policy_definition_with(&client, vhost, &pol.name, &key, &parsed_value)?
+    }
+
+    Ok(())
+}
+
+pub fn delete_policy_definition(
+    client: APIClient,
+    vhost: &str,
+    command_args: &ArgMatches,
+) -> ClientResult<()> {
+    let name = command_args.get_one::<String>("name").cloned().unwrap();
+    let key = command_args
+        .get_one::<String>("definition_key")
+        .cloned()
+        .unwrap();
+
+    let pol = client.get_policy(vhost, &name)?;
+    let updated_pol = pol.without_keys(vec![&key]);
+
+    let params = PolicyParams::from(&updated_pol);
+    client.declare_policy(&params)
+}
+
+pub fn delete_policy_definition_key_in(
+    client: APIClient,
+    vhost: &str,
+    command_args: &ArgMatches,
+) -> ClientResult<()> {
+    let pols = client.list_policies_in(vhost)?;
+    let key = command_args
+        .get_one::<String>("definition_key")
+        .cloned()
+        .unwrap();
+
+    for pol in pols {
+        let updated_pol = pol.without_keys(vec![&key]);
+
+        let params = PolicyParams::from(&updated_pol);
+        client.declare_policy(&params)?
+    }
+
+    Ok(())
+}
+
+fn update_policy_definition_with(
+    client: &APIClient,
+    vhost: &str,
+    name: &str,
+    key: &str,
+    parsed_value: &Value,
+) -> ClientResult<()> {
+    let mut policy = client.get_policy(vhost, name)?;
+    policy.insert_definition_key(key.to_owned(), parsed_value.clone());
 
     let params = PolicyParams::from(&policy);
     client.declare_policy(&params)

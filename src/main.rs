@@ -648,6 +648,15 @@ fn dispatch_common_subcommand(
             let result = commands::delete_policy(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);
         }
+        ("policies", "delete_definition_key") => {
+            let result = commands::delete_policy_definition(client, &vhost, second_level_args);
+            res_handler.no_output_on_success(result);
+        }
+        ("policies", "delete_definition_key_from_all_in") => {
+            let result =
+                commands::delete_policy_definition_key_in(client, &vhost, second_level_args);
+            res_handler.no_output_on_success(result);
+        }
         ("policies", "list") => {
             let result = commands::list_policies(client);
             res_handler.tabular_result(result)
@@ -676,6 +685,11 @@ fn dispatch_common_subcommand(
         }
         ("policies", "update_definition") => {
             let result = commands::update_policy_definition(client, &vhost, second_level_args);
+            res_handler.no_output_on_success(result);
+        }
+        ("policies", "update_definitions_of_all_in") => {
+            let result =
+                commands::update_all_policy_definitions_in(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);
         }
         ("publish", "message") => {
