@@ -382,3 +382,134 @@ fn test_policies_declare_list_update_definition_and_delete()
 
     Ok(())
 }
+
+#[test]
+fn test_policies_individual_policy_key_manipulation() -> Result<(), Box<dyn std::error::Error>> {
+    let policy_name = "test_policies_individual_policy_key_manipulation";
+
+    run_succeeds([
+        "policies",
+        "declare",
+        "--name",
+        policy_name,
+        "--pattern",
+        "foo-.*",
+        "--apply-to",
+        "queues",
+        "--priority",
+        "123",
+        "--definition",
+        "{\"max-length\": 20, \"max-length-bytes\": 99999999}",
+    ]);
+    run_succeeds(["policies", "list"])
+        .stdout(predicate::str::contains(policy_name).and(predicate::str::contains("20")));
+
+    run_succeeds([
+        "policies",
+        "update_definition",
+        "--name",
+        policy_name,
+        "--definition-key",
+        "max-length",
+        "--new-value",
+        "131",
+    ]);
+
+    run_succeeds(["policies", "list"])
+        .stdout(predicate::str::contains(policy_name).and(predicate::str::contains("131")));
+
+    run_succeeds([
+        "policies",
+        "delete_definition_key",
+        "--name",
+        policy_name,
+        "--definition-key",
+        "max-length",
+    ]);
+
+    run_succeeds(["policies", "list"])
+        .stdout(predicate::str::contains(policy_name).and(predicate::str::contains("99999999")));
+
+    run_succeeds(["policies", "list"]).stdout(predicate::str::contains("131").not());
+
+    run_succeeds(["policies", "delete", "--name", policy_name]);
+    run_succeeds(["policies", "list"]).stdout(predicate::str::contains(policy_name).not());
+
+    Ok(())
+}
+
+#[test]
+fn test_policies_bulk_policy_key_manipulation() -> Result<(), Box<dyn std::error::Error>> {
+    let policy1_name = "test_policies_bulk_policy_key_manipulation-1";
+    let policy2_name = "test_policies_bulk_policy_key_manipulation-2";
+
+    run_succeeds([
+        "policies",
+        "declare",
+        "--name",
+        policy1_name,
+        "--pattern",
+        "foo-.*",
+        "--apply-to",
+        "queues",
+        "--priority",
+        "123",
+        "--definition",
+        "{\"max-length\": 20, \"max-length-bytes\": 99999999}",
+    ]);
+    run_succeeds([
+        "policies",
+        "declare",
+        "--name",
+        policy2_name,
+        "--pattern",
+        "foo-.*",
+        "--apply-to",
+        "queues",
+        "--priority",
+        "123",
+        "--definition",
+        "{\"max-length\": 120, \"max-length-bytes\": 333333333}",
+    ]);
+    run_succeeds(["policies", "list"])
+        .stdout(predicate::str::contains(policy1_name).and(predicate::str::contains("20")));
+    run_succeeds(["policies", "list"])
+        .stdout(predicate::str::contains(policy1_name).and(predicate::str::contains("333333333")));
+
+    run_succeeds([
+        "policies",
+        "update_definitions_of_all_in",
+        "--definition-key",
+        "max-length",
+        "--new-value",
+        "272",
+    ]);
+
+    run_succeeds(["policies", "list"]).stdout(
+        predicate::str::contains(policy1_name)
+            .and(predicate::str::contains("272"))
+            .and(predicate::str::contains("120").not()),
+    );
+
+    run_succeeds([
+        "policies",
+        "delete_definition_key_from_all_in",
+        "--definition-key",
+        "max-length",
+    ]);
+
+    run_succeeds(["policies", "list"])
+        .stdout(predicate::str::contains(policy1_name).and(predicate::str::contains("333333333")));
+
+    run_succeeds(["policies", "list"]).stdout(predicate::str::contains("272").not());
+
+    run_succeeds(["policies", "delete", "--name", policy1_name]);
+    run_succeeds(["policies", "delete", "--name", policy2_name]);
+    run_succeeds(["policies", "list"]).stdout(
+        predicate::str::contains(policy1_name)
+            .not()
+            .and(predicate::str::contains(policy2_name).not()),
+    );
+
+    Ok(())
+}
