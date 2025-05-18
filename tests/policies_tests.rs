@@ -340,3 +340,45 @@ fn test_policies_matching_objects() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
+
+#[test]
+fn test_policies_declare_list_update_definition_and_delete()
+-> Result<(), Box<dyn std::error::Error>> {
+    let policy_name = "test_policies_declare_list_update_definition_and_delete";
+
+    run_succeeds([
+        "policies",
+        "declare",
+        "--name",
+        policy_name,
+        "--pattern",
+        "foo-.*",
+        "--apply-to",
+        "queues",
+        "--priority",
+        "123",
+        "--definition",
+        "{\"max-length\": 20}",
+    ]);
+    run_succeeds(["policies", "list"])
+        .stdout(predicate::str::contains(policy_name).and(predicate::str::contains("20")));
+
+    run_succeeds([
+        "policies",
+        "update_definition",
+        "--name",
+        policy_name,
+        "--definition-key",
+        "max-length",
+        "--new-value",
+        "131",
+    ]);
+
+    run_succeeds(["policies", "list"])
+        .stdout(predicate::str::contains(policy_name).and(predicate::str::contains("131")));
+
+    run_succeeds(["policies", "delete", "--name", policy_name]);
+    run_succeeds(["policies", "list"]).stdout(predicate::str::contains(policy_name).not());
+
+    Ok(())
+}

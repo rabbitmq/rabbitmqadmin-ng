@@ -1585,7 +1585,7 @@ fn global_parameters_subcommands(pre_flight_settings: PreFlightSettings) -> [Com
         .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
 }
 
-fn policies_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 5] {
+fn policies_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 6] {
     let declare_cmd = Command::new("declare")
         .about("Creates or updates a policy")
         .after_help(color_print::cformat!("<bold>Doc guide:</bold>: {}", POLICY_GUIDE_URL))
@@ -1662,12 +1662,34 @@ fn policies_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 5] 
                 .help("target type, one of 'queues', 'streams', 'exchanges'"),
         );
 
+    let update_cmd = Command::new("update_definition")
+        .about("Updates a policy definition key")
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("policy name")
+                .required(true),
+        )
+        .arg(
+            Arg::new("definition_key")
+                .long("definition-key")
+                .help("policy definition key to update")
+                .required(true),
+        )
+        .arg(
+            Arg::new("definition_value")
+                .long("new-value")
+                .help("new definition value to set")
+                .required(true),
+        );
+
     [
         declare_cmd,
         delete_cmd,
         list_cmd,
         list_in_cmd,
         list_matching_cmd,
+        update_cmd,
     ]
     .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
 }

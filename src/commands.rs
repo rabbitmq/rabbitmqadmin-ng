@@ -24,7 +24,7 @@ use rabbitmq_http_client::requests::{
     Amqp10ShovelDestinationParams, Amqp10ShovelParams, Amqp10ShovelSourceParams,
     Amqp091ShovelDestinationParams, Amqp091ShovelParams, Amqp091ShovelSourceParams,
     EnforcedLimitParams, ExchangeFederationParams, FEDERATION_UPSTREAM_COMPONENT,
-    FederationResourceCleanupMode, FederationUpstreamParams, QueueFederationParams,
+    FederationResourceCleanupMode, FederationUpstreamParams, PolicyParams, QueueFederationParams,
     RuntimeParameterDefinition,
 };
 use std::fs;
@@ -1026,6 +1026,32 @@ pub fn declare_operator_policy(
     };
 
     client.declare_operator_policy(&params)
+}
+
+pub fn update_policy_definition(
+    client: APIClient,
+    vhost: &str,
+    command_args: &ArgMatches,
+) -> ClientResult<()> {
+    let name = command_args.get_one::<String>("name").cloned().unwrap();
+    let key = command_args
+        .get_one::<String>("definition_key")
+        .cloned()
+        .unwrap();
+    let value = command_args
+        .get_one::<String>("definition_value")
+        .cloned()
+        .unwrap();
+    let parsed_value = serde_json::from_str::<serde_json::Value>(&value).unwrap_or_else(|err| {
+        eprintln!("`{}` is not a valid JSON value: {}", value, err);
+        process::exit(1);
+    });
+
+    let mut policy = client.get_policy(vhost, &name)?;
+    policy.insert_definition_key(key, parsed_value);
+
+    let params = PolicyParams::from(&policy);
+    client.declare_policy(&params)
 }
 
 pub fn declare_parameter(
