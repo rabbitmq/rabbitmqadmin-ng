@@ -683,6 +683,10 @@ fn dispatch_common_subcommand(
             let result = commands::list_matching_policies_in(client, &vhost, &name, typ);
             res_handler.tabular_result(result)
         }
+        ("policies", "patch") => {
+            let result = commands::patch_policy_definition(client, &vhost, second_level_args);
+            res_handler.no_output_on_success(result);
+        }
         ("policies", "update_definition") => {
             let result = commands::update_policy_definition(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);

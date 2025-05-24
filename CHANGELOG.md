@@ -4,6 +4,10 @@
 
 ### Enhancements
 
+ * `policies set` and `policies update` are two new aliases for `policies declare`. The former follows the naming
+   used by `rabbitmqctl` and the latter reflects the fact that the command can be used to update an existing policy,
+   in particular, to override its definition
+ * `policies patch` is a new command that updates a policy definition by merging the provided definition with the existing one
  * `parameters list_all` is a new command that lists all runtime parameters across all virtual hosts
  * `parameters list_in` is a new command that lists runtime parameters of a given component (type)
    in a specific virtual host

@@ -1052,6 +1052,31 @@ pub fn update_policy_definition(
     update_policy_definition_with(&client, vhost, &name, &key, &parsed_value)
 }
 
+pub fn patch_policy_definition(
+    client: APIClient,
+    vhost: &str,
+    command_args: &ArgMatches,
+) -> ClientResult<()> {
+    let name = command_args.get_one::<String>("name").cloned().unwrap();
+    let value = command_args
+        .get_one::<String>("definition")
+        .cloned()
+        .unwrap();
+    let parsed_value = serde_json::from_str::<serde_json::Value>(&value).unwrap_or_else(|err| {
+        eprintln!("`{}` is not a valid JSON value: {}", value, err);
+        process::exit(1);
+    });
+
+    let mut pol = client.get_policy(vhost, &name)?;
+    let patch = parsed_value.as_object().unwrap();
+    for (k, v) in patch.iter() {
+        pol.insert_definition_key(k.clone(), v.clone());
+    }
+
+    let params = PolicyParams::from(&pol);
+    client.declare_policy(&params)
+}
+
 pub fn update_all_policy_definitions_in(
     client: APIClient,
     vhost: &str,
