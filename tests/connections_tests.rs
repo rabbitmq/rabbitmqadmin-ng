@@ -16,7 +16,14 @@ mod test_helpers;
 use crate::test_helpers::*;
 
 #[test]
-fn test_list_connections() -> Result<(), Box<dyn std::error::Error>> {
+fn test_list_connections1() -> Result<(), Box<dyn std::error::Error>> {
+    run_succeeds(["connections", "list"]);
+
+    Ok(())
+}
+
+#[test]
+fn test_list_connections2() -> Result<(), Box<dyn std::error::Error>> {
     run_succeeds(["list", "connections"]);
 
     Ok(())
@@ -30,7 +37,21 @@ fn test_list_connections_table_styles() -> Result<(), Box<dyn std::error::Error>
 }
 
 #[test]
-fn test_list_user_connections() -> Result<(), Box<dyn std::error::Error>> {
+fn test_list_user_connections1() -> Result<(), Box<dyn std::error::Error>> {
+    run_succeeds([
+        "--table-style",
+        "markdown",
+        "connections",
+        "list_of_user",
+        "--username",
+        "monitoring",
+    ]);
+
+    Ok(())
+}
+
+#[test]
+fn test_list_user_connections2() -> Result<(), Box<dyn std::error::Error>> {
     run_succeeds([
         "--table-style",
         "markdown",

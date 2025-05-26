@@ -299,6 +299,22 @@ fn dispatch_common_subcommand(
             let result = commands::close_user_connections(client, second_level_args);
             res_handler.no_output_on_success(result);
         }
+        ("connections", "close") => {
+            let result = commands::close_connection(client, second_level_args);
+            res_handler.no_output_on_success(result);
+        }
+        ("connections", "close_of_user") => {
+            let result = commands::close_user_connections(client, second_level_args);
+            res_handler.no_output_on_success(result);
+        }
+        ("connections", "list") => {
+            let result = commands::list_connections(client);
+            res_handler.tabular_result(result)
+        }
+        ("connections", "list_of_user") => {
+            let result = commands::list_user_connections(client, second_level_args);
+            res_handler.tabular_result(result)
+        }
         ("declare", "binding") => {
             let result = commands::declare_binding(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);

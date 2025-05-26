@@ -56,6 +56,11 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         .infer_subcommands(pre_flight_settings.infer_subcommands)
         .infer_long_args(pre_flight_settings.infer_long_options)
         .subcommands(close_subcommands(pre_flight_settings.clone()));
+    let connections_group = Command::new("connections")
+        .about("Operations on connections")
+        .infer_subcommands(pre_flight_settings.infer_subcommands)
+        .infer_long_args(pre_flight_settings.infer_long_options)
+        .subcommands(connections_subcommands(pre_flight_settings.clone()));
     let declare_group = Command::new("declare")
         .about("Creates or declares objects")
         .infer_subcommands(pre_flight_settings.infer_subcommands)
@@ -283,6 +288,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
     let command_groups = [
         bindings_group,
         close_group,
+        connections_group,
         declare_group,
         definitions_group,
         delete_group,
@@ -574,7 +580,7 @@ fn list_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 19] {
                 .short('u')
                 .long("username")
                 .required(true)
-                .help("Name of the user whose connections to list"),
+                .help("Name of the user whose connections should be listed"),
         )
         .long_about("Lists client connections that authenticated with a specific username")
         .after_help(color_print::cformat!(
@@ -1842,6 +1848,53 @@ fn close_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 2] {
         .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
 }
 
+fn connections_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 4] {
+    let close_connection = Command::new("close")
+        .about("Closes a client connection")
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("connection name (identifying string)")
+                .required(true),
+        );
+    let close_user_connections = Command::new("close_of_user")
+        .about("Closes all connections that are authenticated with a specific username")
+        .arg(
+            Arg::new("username")
+                .short('u')
+                .long("username")
+                .help("Name of the user whose connections should be closed")
+                .required(true),
+        );
+    let list_cmd = Command::new("list")
+        .long_about("Lists client connections")
+        .after_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            CONNECTION_GUIDE_URL
+        ));
+    let list_user_connections_cmd = Command::new("list_of_user")
+        .arg(
+            Arg::new("username")
+                .short('u')
+                .long("username")
+                .required(true)
+                .help("Name of the user whose connections should be listed"),
+        )
+        .long_about("Lists client connections that are authenticated with a specific username")
+        .after_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            CONNECTION_GUIDE_URL
+        ));
+
+    [
+        close_connection,
+        close_user_connections,
+        list_cmd,
+        list_user_connections_cmd,
+    ]
+    .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+}
+
 fn definitions_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 4] {
     let export_cmd = Command::new("export")
         .about("Export cluster-wide definitions")
@@ -2365,7 +2418,7 @@ pub fn users_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 6]
                 .short('u')
                 .long("username")
                 .required(true)
-                .help("Name of the user whose connections to list"),
+                .help("Name of the user whose connections should be listed"),
         )
         .long_about("Lists client connections that authenticated with a specific username")
         .after_help(color_print::cformat!(

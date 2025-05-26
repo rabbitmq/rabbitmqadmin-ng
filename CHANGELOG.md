@@ -4,6 +4,7 @@
 
 ### Enhancements
 
+ * `connections` is a new command group for operations on connections
  * `policies set` and `policies update` are two new aliases for `policies declare`. The former follows the naming
    used by `rabbitmqctl` and the latter reflects the fact that the command can be used to update an existing policy,
    in particular, to override its definition
