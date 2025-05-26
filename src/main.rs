@@ -641,6 +641,73 @@ fn dispatch_common_subcommand(
             let result = commands::show_memory_breakdown(client, second_level_args);
             res_handler.memory_breakdown_in_percent_result(result)
         }
+        ("operator_policies", "declare") => {
+            let result = commands::declare_operator_policy(client, &vhost, second_level_args);
+            res_handler.no_output_on_success(result);
+        }
+        ("operator_policies", "delete") => {
+            let result = commands::delete_operator_policy(client, &vhost, second_level_args);
+            res_handler.no_output_on_success(result);
+        }
+        ("operator_policies", "delete_definition_key") => {
+            let result =
+                commands::delete_operator_policy_definition(client, &vhost, second_level_args);
+            res_handler.no_output_on_success(result);
+        }
+        ("operator_policies", "delete_definition_key_from_all_in") => {
+            let result = commands::delete_operator_policy_definition_key_in(
+                client,
+                &vhost,
+                second_level_args,
+            );
+            res_handler.no_output_on_success(result);
+        }
+        ("operator_policies", "list") => {
+            let result = commands::list_operator_policies(client);
+            res_handler.tabular_result(result)
+        }
+        ("operator_policies", "list_in") => {
+            let typ_opt = second_level_args
+                .get_one::<PolicyTarget>("apply_to")
+                .cloned();
+            let result = match typ_opt {
+                None => commands::list_operator_policies_in(client, &vhost),
+                Some(typ) => {
+                    commands::list_operator_policies_in_and_applying_to(client, &vhost, typ)
+                }
+            };
+            res_handler.tabular_result(result)
+        }
+        ("operator_policies", "list_matching_object") => {
+            let name = second_level_args
+                .get_one::<String>("name")
+                .cloned()
+                .unwrap();
+            let typ = second_level_args
+                .get_one::<PolicyTarget>("type")
+                .cloned()
+                .unwrap();
+            let result = commands::list_matching_operator_policies_in(client, &vhost, &name, typ);
+            res_handler.tabular_result(result)
+        }
+        ("operator_policies", "patch") => {
+            let result =
+                commands::patch_operator_policy_definition(client, &vhost, second_level_args);
+            res_handler.no_output_on_success(result);
+        }
+        ("operator_policies", "update_definition") => {
+            let result =
+                commands::update_operator_policy_definition(client, &vhost, second_level_args);
+            res_handler.no_output_on_success(result);
+        }
+        ("operator_policies", "update_definitions_of_all_in") => {
+            let result = commands::update_all_operator_policy_definitions_in(
+                client,
+                &vhost,
+                second_level_args,
+            );
+            res_handler.no_output_on_success(result);
+        }
         ("parameters", "clear") => {
             let result = commands::delete_parameter(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);

@@ -147,6 +147,44 @@ pub fn list_operator_policies(client: APIClient) -> ClientResult<Vec<responses::
     client.list_operator_policies()
 }
 
+pub fn list_operator_policies_in(
+    client: APIClient,
+    vhost: &str,
+) -> ClientResult<Vec<responses::Policy>> {
+    client.list_operator_policies_in(vhost)
+}
+
+pub fn list_operator_policies_in_and_applying_to(
+    client: APIClient,
+    vhost: &str,
+    apply_to: PolicyTarget,
+) -> ClientResult<Vec<responses::Policy>> {
+    let policies = client.list_operator_policies_in(vhost)?;
+    let filtered = policies
+        .iter()
+        .filter(|&pol| apply_to.does_apply_to(pol.apply_to.clone()))
+        .cloned()
+        .collect();
+
+    Ok(filtered)
+}
+
+pub fn list_matching_operator_policies_in(
+    client: APIClient,
+    vhost: &str,
+    name: &str,
+    typ: PolicyTarget,
+) -> ClientResult<Vec<responses::Policy>> {
+    let candidates = list_operator_policies_in_and_applying_to(client, vhost, typ.clone())?;
+    let matching = candidates
+        .iter()
+        .filter(|&pol| pol.does_match_name(vhost, name, typ.clone()))
+        .cloned()
+        .collect();
+
+    Ok(matching)
+}
+
 pub fn list_queues(client: APIClient, vhost: &str) -> ClientResult<Vec<responses::QueueInfo>> {
     client.list_queues_in(vhost)
 }
@@ -1052,6 +1090,28 @@ pub fn update_policy_definition(
     update_policy_definition_with(&client, vhost, &name, &key, &parsed_value)
 }
 
+pub fn update_operator_policy_definition(
+    client: APIClient,
+    vhost: &str,
+    command_args: &ArgMatches,
+) -> ClientResult<()> {
+    let name = command_args.get_one::<String>("name").cloned().unwrap();
+    let key = command_args
+        .get_one::<String>("definition_key")
+        .cloned()
+        .unwrap();
+    let value = command_args
+        .get_one::<String>("definition_value")
+        .cloned()
+        .unwrap();
+    let parsed_value = serde_json::from_str::<serde_json::Value>(&value).unwrap_or_else(|err| {
+        eprintln!("`{}` is not a valid JSON value: {}", value, err);
+        process::exit(1);
+    });
+
+    update_operator_policy_definition_with(&client, vhost, &name, &key, &parsed_value)
+}
+
 pub fn patch_policy_definition(
     client: APIClient,
     vhost: &str,
@@ -1103,6 +1163,57 @@ pub fn update_all_policy_definitions_in(
     Ok(())
 }
 
+pub fn patch_operator_policy_definition(
+    client: APIClient,
+    vhost: &str,
+    command_args: &ArgMatches,
+) -> ClientResult<()> {
+    let name = command_args.get_one::<String>("name").cloned().unwrap();
+    let value = command_args
+        .get_one::<String>("definition")
+        .cloned()
+        .unwrap();
+    let parsed_value = serde_json::from_str::<serde_json::Value>(&value).unwrap_or_else(|err| {
+        eprintln!("`{}` is not a valid JSON value: {}", value, err);
+        process::exit(1);
+    });
+
+    let mut pol = client.get_operator_policy(vhost, &name)?;
+    let patch = parsed_value.as_object().unwrap();
+    for (k, v) in patch.iter() {
+        pol.insert_definition_key(k.clone(), v.clone());
+    }
+
+    let params = PolicyParams::from(&pol);
+    client.declare_operator_policy(&params)
+}
+
+pub fn update_all_operator_policy_definitions_in(
+    client: APIClient,
+    vhost: &str,
+    command_args: &ArgMatches,
+) -> ClientResult<()> {
+    let pols = client.list_operator_policies_in(vhost)?;
+    let key = command_args
+        .get_one::<String>("definition_key")
+        .cloned()
+        .unwrap();
+    let value = command_args
+        .get_one::<String>("definition_value")
+        .cloned()
+        .unwrap();
+    let parsed_value = serde_json::from_str::<serde_json::Value>(&value).unwrap_or_else(|err| {
+        eprintln!("`{}` is not a valid JSON value: {}", value, err);
+        process::exit(1);
+    });
+
+    for pol in pols {
+        update_operator_policy_definition_with(&client, vhost, &pol.name, &key, &parsed_value)?
+    }
+
+    Ok(())
+}
+
 pub fn delete_policy_definition(
     client: APIClient,
     vhost: &str,
@@ -1142,6 +1253,45 @@ pub fn delete_policy_definition_key_in(
     Ok(())
 }
 
+pub fn delete_operator_policy_definition(
+    client: APIClient,
+    vhost: &str,
+    command_args: &ArgMatches,
+) -> ClientResult<()> {
+    let name = command_args.get_one::<String>("name").cloned().unwrap();
+    let key = command_args
+        .get_one::<String>("definition_key")
+        .cloned()
+        .unwrap();
+
+    let pol = client.get_operator_policy(vhost, &name)?;
+    let updated_pol = pol.without_keys(vec![&key]);
+
+    let params = PolicyParams::from(&updated_pol);
+    client.declare_operator_policy(&params)
+}
+
+pub fn delete_operator_policy_definition_key_in(
+    client: APIClient,
+    vhost: &str,
+    command_args: &ArgMatches,
+) -> ClientResult<()> {
+    let pols = client.list_operator_policies_in(vhost)?;
+    let key = command_args
+        .get_one::<String>("definition_key")
+        .cloned()
+        .unwrap();
+
+    for pol in pols {
+        let updated_pol = pol.without_keys(vec![&key]);
+
+        let params = PolicyParams::from(&updated_pol);
+        client.declare_operator_policy(&params)?
+    }
+
+    Ok(())
+}
+
 fn update_policy_definition_with(
     client: &APIClient,
     vhost: &str,
@@ -1154,6 +1304,20 @@ fn update_policy_definition_with(
 
     let params = PolicyParams::from(&policy);
     client.declare_policy(&params)
+}
+
+fn update_operator_policy_definition_with(
+    client: &APIClient,
+    vhost: &str,
+    name: &str,
+    key: &str,
+    parsed_value: &Value,
+) -> ClientResult<()> {
+    let mut policy = client.get_operator_policy(vhost, name)?;
+    policy.insert_definition_key(key.to_owned(), parsed_value.clone());
+
+    let params = PolicyParams::from(&policy);
+    client.declare_operator_policy(&params)
 }
 
 pub fn declare_parameter(

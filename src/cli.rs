@@ -190,6 +190,16 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         .infer_subcommands(pre_flight_settings.infer_subcommands)
         .infer_long_args(pre_flight_settings.infer_long_options)
         .subcommands(nodes_subcommands(pre_flight_settings.clone()));
+    let operator_policies_group = Command::new("operator_policies")
+        .about("Operations on operator policies")
+        .infer_subcommands(pre_flight_settings.infer_subcommands)
+        .infer_long_args(pre_flight_settings.infer_long_options)
+        .after_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            POLICY_GUIDE_URL
+        ))
+        .subcommand_value_name("operator policy")
+        .subcommands(operator_policies_subcommands(pre_flight_settings.clone()));
     let parameters_group = Command::new("parameters")
         .about("Operations on runtime parameters")
         .infer_subcommands(pre_flight_settings.infer_subcommands)
@@ -309,6 +319,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         import_group,
         list_group,
         nodes_group,
+        operator_policies_group,
         parameters_group,
         policies_group,
         publish_group,
@@ -1595,6 +1606,173 @@ fn global_parameters_subcommands(pre_flight_settings: PreFlightSettings) -> [Com
 
     [clear_cmd, list_cmd, set_cmd]
         .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+}
+
+fn operator_policies_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 10] {
+    let declare_cmd = Command::new("declare")
+        .visible_aliases(vec!["update", "set"])
+        .about("Creates or updates an operator policy")
+        .after_help(color_print::cformat!("<bold>Doc guide:</bold>: {}", POLICY_GUIDE_URL))
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("operator policy name")
+                .required(true),
+        )
+        .arg(
+            Arg::new("pattern")
+                .long("pattern")
+                .help("the pattern that is used to match entity (queue, stream, exchange) names")
+                .required(true),
+        )
+        .arg(
+            Arg::new("apply_to")
+                .long("apply-to")
+                .alias("applies-to")
+                .help("entities to apply to (queues, classic_queues, quorum_queues, streams, exchanges, all)")
+                .value_parser(value_parser!(PolicyTarget))
+                .required(true),
+        )
+        .arg(
+            Arg::new("priority")
+                .long("priority")
+                .help("operator policy priority (only the policy with the highest priority is effective)")
+                .required(false)
+                .default_value("0"),
+        )
+        .arg(
+            Arg::new("definition")
+                .long("definition")
+                .help("operator policy definition")
+                .required(true),
+        );
+
+    let list_cmd = Command::new("list")
+        .long_about("Lists operator policies")
+        .after_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            POLICY_GUIDE_URL
+        ));
+
+    let delete_cmd = Command::new("delete")
+        .about("Deletes an operator policy")
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("policy name")
+                .required(true),
+        );
+
+    let delete_definition_key_cmd = Command::new("delete_definition_key")
+        .about("Deletes a definition key from an operator policy, unless it is the only key")
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("operator policy name")
+                .required(true),
+        )
+        .arg(
+            Arg::new("definition_key")
+                .long("definition-key")
+                .help("definition key"),
+        );
+
+    let delete_definition_key_from_all_in_cmd = Command::new("delete_definition_key_from_all_in")
+        .about("Deletes a definition key from all operator policies in a virtual host, unless it is the only key")
+        .arg(
+            Arg::new("definition_key")
+                .long("definition-key")
+                .help("definition key")
+        );
+
+    let list_in_cmd = Command::new("list_in")
+        .about("Lists operator policies in a specific virtual host")
+        .arg(
+            Arg::new("apply_to")
+                .long("apply-to")
+                .alias("applies-to")
+                .value_parser(value_parser!(PolicyTarget)),
+        );
+
+    let list_matching_cmd = Command::new("list_matching_object")
+        .about("Lists operator policies that match an object (queue, stream, exchange) name")
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("name to verify")
+                .required(true),
+        )
+        .arg(
+            Arg::new("type")
+                .long("type")
+                .value_parser(value_parser!(PolicyTarget))
+                .required(true)
+                .help("target type, one of 'queues', 'streams', 'exchanges'"),
+        );
+
+    let patch_cmd = Command::new("patch")
+        .about("Merges a set of keys into existing operator policy definitions")
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("operator policy name")
+                .required(true),
+        )
+        .arg(
+            Arg::new("definition")
+                .long("definition")
+                .help("operator policy definition changes to merge into the existing ones"),
+        );
+
+    let update_cmd = Command::new("update_definition")
+        .about("Updates an operator policy definition key")
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("operator policy name")
+                .required(true),
+        )
+        .arg(
+            Arg::new("definition_key")
+                .long("definition-key")
+                .help("operator policy definition key to update")
+                .required(true),
+        )
+        .arg(
+            Arg::new("definition_value")
+                .long("new-value")
+                .help("new definition value to set")
+                .required(true),
+        );
+
+    let update_all_in_cmd = Command::new("update_definitions_of_all_in")
+        .about("Updates a definition key in all operator policies in a virtual host")
+        .arg(
+            Arg::new("definition_key")
+                .long("definition-key")
+                .help("operator policy definition key to update")
+                .required(true),
+        )
+        .arg(
+            Arg::new("definition_value")
+                .long("new-value")
+                .help("new operator definition value to set")
+                .required(true),
+        );
+
+    [
+        declare_cmd,
+        delete_cmd,
+        delete_definition_key_cmd,
+        delete_definition_key_from_all_in_cmd,
+        list_cmd,
+        list_in_cmd,
+        list_matching_cmd,
+        patch_cmd,
+        update_cmd,
+        update_all_in_cmd,
+    ]
+    .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
 }
 
 fn policies_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 10] {

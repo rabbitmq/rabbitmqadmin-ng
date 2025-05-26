@@ -6,6 +6,8 @@
 
  * `connections` is a new command group for operations on connections
  * `channels` is a new command group for operations on channels
+ * `operator_policies` is a new command group for working with operator policies.
+   It matches the `policies` group but acts on [operator policies](https://www.rabbitmq.com/docs/policies#operator-policies)
  * `policies set` and `policies update` are two new aliases for `policies declare`. The former follows the naming
    used by `rabbitmqctl` and the latter reflects the fact that the command can be used to update an existing policy,
    in particular, to override its definition
