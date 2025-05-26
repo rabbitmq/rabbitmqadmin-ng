@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 #![allow(clippy::result_large_err)]
+#![allow(clippy::unnecessary_unwrap)]
+#![allow(clippy::collapsible_if)]
 
 use clap::ArgMatches;
 use errors::CommandRunError;
@@ -289,6 +291,10 @@ fn dispatch_common_subcommand(
         }
         ("bindings", "list") => {
             let result = commands::list_bindings(client);
+            res_handler.tabular_result(result)
+        }
+        ("channels", "list") => {
+            let result = commands::list_channels(client);
             res_handler.tabular_result(result)
         }
         ("close", "connection") => {

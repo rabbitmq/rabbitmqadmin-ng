@@ -51,6 +51,11 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         .infer_long_args(pre_flight_settings.infer_long_options)
         .subcommand_value_name("binding")
         .subcommands(binding_subcommands(pre_flight_settings.clone()));
+    let channels_group = Command::new("channels")
+        .about("Operations on channels")
+        .infer_subcommands(pre_flight_settings.infer_subcommands)
+        .infer_long_args(pre_flight_settings.infer_long_options)
+        .subcommands(channels_subcommands(pre_flight_settings.clone()));
     let close_group = Command::new("close")
         .about("Closes connections")
         .infer_subcommands(pre_flight_settings.infer_subcommands)
@@ -287,6 +292,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
 
     let command_groups = [
         bindings_group,
+        channels_group,
         close_group,
         connections_group,
         declare_group,
@@ -1846,6 +1852,17 @@ fn close_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 2] {
         );
     [close_connection, close_user_connections]
         .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+}
+
+fn channels_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 1] {
+    let list_cmd = Command::new("list")
+        .long_about("Lists all channels across all virtual hosts")
+        .after_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            "https://www.rabbitmq.com/docs/channels"
+        ));
+
+    [list_cmd].map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
 }
 
 fn connections_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 4] {
