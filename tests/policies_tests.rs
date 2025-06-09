@@ -597,3 +597,52 @@ fn test_policies_patch_definition() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
+
+#[test]
+fn test_policies_declare_override() -> Result<(), Box<dyn std::error::Error>> {
+    let policy_name = "test_list_policies_override.1";
+    let override_name = "overrides.test_list_policies_override.a";
+
+    run_succeeds([
+        "policies",
+        "declare",
+        "--name",
+        policy_name,
+        "--pattern",
+        "foo-.*",
+        "--apply-to",
+        "queues",
+        "--priority",
+        "12",
+        "--definition",
+        "{\"max-length\": 12345}",
+    ]);
+
+    run_succeeds([
+        "policies",
+        "declare_override",
+        "--name",
+        policy_name,
+        "--override-name",
+        override_name,
+        "--definition",
+        "{\"max-length\": 23456, \"max-length-bytes\": 99999999}",
+    ]);
+
+    run_succeeds(["policies", "list"])
+        .stdout(predicate::str::contains(policy_name).and(predicate::str::contains("12345")));
+    run_succeeds(["policies", "list"]).stdout(
+        predicate::str::contains(override_name)
+            .and(predicate::str::contains("23456"))
+            .and(predicate::str::contains("112"))
+            .and(predicate::str::contains("99999999")),
+    );
+
+    run_succeeds(["delete", "policy", "--name", policy_name]);
+    run_succeeds(["policies", "list"]).stdout(predicate::str::contains(policy_name).not());
+
+    run_succeeds(["policies", "delete", "--name", override_name]);
+    run_succeeds(["policies", "list"]).stdout(predicate::str::contains(override_name).not());
+
+    Ok(())
+}

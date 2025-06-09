@@ -1041,8 +1041,8 @@ pub fn declare_operator_policy(
     vhost: &str,
     command_args: &ArgMatches,
 ) -> ClientResult<()> {
-    let name = command_args.get_one::<String>("name").unwrap();
-    let pattern = command_args.get_one::<String>("pattern").unwrap();
+    let name = command_args.get_one::<String>("name").cloned().unwrap();
+    let pattern = command_args.get_one::<String>("pattern").cloned().unwrap();
     let apply_to = command_args
         .get_one::<PolicyTarget>("apply_to")
         .cloned()
@@ -1058,14 +1058,43 @@ pub fn declare_operator_policy(
 
     let params = requests::PolicyParams {
         vhost,
-        name,
-        pattern,
+        name: &name,
+        pattern: &pattern,
         apply_to: apply_to.clone(),
         priority: priority.parse::<i32>().unwrap(),
         definition: parsed_definition,
     };
 
     client.declare_operator_policy(&params)
+}
+
+pub fn declare_policy_override(
+    client: APIClient,
+    vhost: &str,
+    command_args: &ArgMatches,
+) -> ClientResult<()> {
+    let original_pol_name = command_args.get_one::<String>("name").cloned().unwrap();
+    let override_pol_name = command_args
+        .get_one::<String>("override_name")
+        .cloned()
+        .unwrap_or(override_policy_name(&original_pol_name));
+
+    let existing_policy = client.get_policy(vhost, &original_pol_name)?;
+
+    let new_priority = existing_policy.priority + 100;
+    let definition = command_args.get_one::<String>("definition").unwrap();
+
+    let parsed_definition = serde_json::from_str::<responses::PolicyDefinition>(definition)
+        .unwrap_or_else(|err| {
+            eprintln!("`{}` is not a valid JSON: {}", definition, err);
+            process::exit(1);
+        });
+
+    let overridden =
+        existing_policy.with_overrides(&override_pol_name, new_priority, &parsed_definition);
+    dbg!(&overridden);
+    let params = PolicyParams::from(&overridden);
+    client.declare_policy(&params)
 }
 
 pub fn update_policy_definition(
@@ -1689,6 +1718,18 @@ pub fn import_vhost_definitions(
             process::exit(1)
         }
     }
+}
+
+const POLICY_LENGTH_LIMIT: usize = 255;
+const OVERRIDE_POLICY_PREFIX: &str = "overrides.";
+
+fn override_policy_name(original_policy_name: &str) -> String {
+    let n = POLICY_LENGTH_LIMIT - OVERRIDE_POLICY_PREFIX.len();
+
+    let mut s = original_policy_name.to_owned();
+    s.truncate(n);
+
+    format!("{}{}", OVERRIDE_POLICY_PREFIX, s)
 }
 
 fn read_definitions(path: Option<&str>, use_stdin: Option<bool>) -> io::Result<String> {

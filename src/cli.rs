@@ -1775,7 +1775,7 @@ fn operator_policies_subcommands(pre_flight_settings: PreFlightSettings) -> [Com
     .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
 }
 
-fn policies_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 10] {
+fn policies_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 11] {
     let declare_cmd = Command::new("declare")
         .visible_aliases(vec!["update", "set"])
         .about("Creates or updates a policy")
@@ -1812,6 +1812,26 @@ fn policies_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 10]
                 .long("definition")
                 .help("policy definition")
                 .required(true),
+        );
+
+    let declare_override_cmd = Command::new("declare_override")
+        .about("Declares a new policy from an existing one, with a higher priority, and merges a set of keys into the new overriding policy definition")
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("the name of the policy to create an override for")
+                .required(true),
+        )
+        .arg(
+            Arg::new("override_name")
+                .long("override-name")
+                .help("the name of the new overriding policy. If omitted, an 'override' suffix will be added to the original name.")
+                .required(false),
+        )
+        .arg(
+            Arg::new("definition")
+                .long("definition")
+                .help("additional definitions to merge into the new overriding policy"),
         );
 
     let list_cmd = Command::new("list")
@@ -1927,6 +1947,7 @@ fn policies_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 10]
 
     [
         declare_cmd,
+        declare_override_cmd,
         delete_cmd,
         delete_definition_key_cmd,
         delete_definition_key_from_all_in_cmd,

@@ -733,6 +733,10 @@ fn dispatch_common_subcommand(
             let result = commands::declare_policy(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);
         }
+        ("policies", "declare_override") => {
+            let result = commands::declare_policy_override(client, &vhost, second_level_args);
+            res_handler.no_output_on_success(result);
+        }
         ("policies", "delete") => {
             let result = commands::delete_policy(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);

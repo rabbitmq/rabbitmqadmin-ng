@@ -45,7 +45,7 @@ fn test_list_operator_policies() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn test_operator_policies() -> Result<(), Box<dyn std::error::Error>> {
-    let operator_policy_name = "test_operator_policy";
+    let operator_policy_name = "test_operator_policies.1";
 
     run_succeeds([
         "declare",

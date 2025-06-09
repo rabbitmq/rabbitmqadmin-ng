@@ -432,7 +432,7 @@ impl SharedSettings {
     }
 }
 
-fn from_local_path(path: &Path) -> Result<ConfigurationMap, ConfigFileError> {
+fn from_local_path(path: &Path) -> Result<ConfigurationMap<'_>, ConfigFileError> {
     let expanded_s = shellexpand::tilde(&path.to_string_lossy()).to_string();
     let expanded_path = PathBuf::from(&expanded_s);
     if expanded_path.exists() {
@@ -442,7 +442,7 @@ fn from_local_path(path: &Path) -> Result<ConfigurationMap, ConfigFileError> {
     }
 }
 
-fn read_from_local_path(path: &PathBuf) -> Result<ConfigurationMap, ConfigFileError> {
+fn read_from_local_path(path: &PathBuf) -> Result<ConfigurationMap<'_>, ConfigFileError> {
     let contents = std::fs::read_to_string(path)?;
     toml::from_str(&contents).map_err(ConfigFileError::from)
 }
