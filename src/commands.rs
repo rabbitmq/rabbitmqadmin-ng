@@ -1092,7 +1092,6 @@ pub fn declare_policy_override(
 
     let overridden =
         existing_policy.with_overrides(&override_pol_name, new_priority, &parsed_definition);
-    dbg!(&overridden);
     let params = PolicyParams::from(&overridden);
     client.declare_policy(&params)
 }
