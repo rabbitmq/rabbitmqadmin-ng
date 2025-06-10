@@ -328,6 +328,9 @@ pub fn failure_details(error: &HttpClientError) -> Table {
                 HealthCheckFailureDetails::NoActiveProtocolListener(details) => {
                     details.reason.clone()
                 }
+                HealthCheckFailureDetails::NoActiveProtocolListeners(details) => {
+                    details.reason.clone()
+                }
             };
             data.push(RowOfTwo {
                 key: "reason",
@@ -486,6 +489,7 @@ pub fn health_check_failure(
         HealthCheckFailureDetails::NodeIsQuorumCritical(ref details) => details.reason.clone(),
         HealthCheckFailureDetails::NoActivePortListener(ref details) => details.reason.clone(),
         HealthCheckFailureDetails::NoActiveProtocolListener(ref details) => details.reason.clone(),
+        HealthCheckFailureDetails::NoActiveProtocolListeners(ref details) => details.reason.clone(),
     };
     let code_str = format!("{}", status_code);
 
@@ -535,6 +539,10 @@ pub fn health_check_failure(
                 details.inactive_protocol.to_string().as_str(),
             ]);
         }
+        HealthCheckFailureDetails::NoActiveProtocolListeners(details) => tb.push_record([
+            "inactive protocols",
+            details.inactive_protocols.join(", ").as_str(),
+        ]),
     };
 
     tb.build()
