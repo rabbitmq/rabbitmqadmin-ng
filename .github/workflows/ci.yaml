@@ -41,6 +41,9 @@ jobs:
   build:
     strategy:
       matrix:
+        rabbitmq-series:
+          - "4.0"
+          - "4.1"
         rust-version:
           - stable
           - beta
@@ -52,7 +55,7 @@ jobs:
 
     services:
       rabbitmq:
-        image: rabbitmq:4-management
+        image: rabbitmq:${{ matrix.rabbitmq-series }}-management
         ports:
           - 15672:15672
           - 5672:5672
