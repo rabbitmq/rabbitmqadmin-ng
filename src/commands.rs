@@ -1295,7 +1295,6 @@ pub fn delete_policy_definition_keys(
     let keys = command_args
         .get_many::<String>("definition_keys")
         .unwrap()
-        .into_iter()
         .map(String::from)
         .collect::<Vec<_>>();
     let str_keys: Vec<&str> = keys.iter().map(AsRef::as_ref).collect::<Vec<_>>();
@@ -1316,7 +1315,6 @@ pub fn delete_policy_definition_keys_in(
     let keys = command_args
         .get_many::<String>("definition_keys")
         .unwrap()
-        .into_iter()
         .map(String::from)
         .collect::<Vec<_>>();
     let str_keys: Vec<&str> = keys.iter().map(AsRef::as_ref).collect::<Vec<_>>();
@@ -1340,7 +1338,6 @@ pub fn delete_operator_policy_definition_keys(
     let keys = command_args
         .get_many::<String>("definition_keys")
         .unwrap()
-        .into_iter()
         .map(String::from)
         .collect::<Vec<_>>();
     let str_keys: Vec<&str> = keys.iter().map(AsRef::as_ref).collect::<Vec<_>>();
@@ -1361,7 +1358,6 @@ pub fn delete_operator_policy_definition_keys_in(
     let keys = command_args
         .get_many::<String>("definition_keys")
         .unwrap()
-        .into_iter()
         .map(String::from)
         .collect::<Vec<_>>();
     let str_keys: Vec<&str> = keys.iter().map(AsRef::as_ref).collect::<Vec<_>>();
