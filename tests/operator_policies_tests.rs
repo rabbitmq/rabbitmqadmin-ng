@@ -360,8 +360,8 @@ fn test_operator_policies_individual_policy_key_manipulation()
         "delete_definition_keys",
         "--name",
         policy_name,
-        "--definition-key",
-        "max-length",
+        "--definition-keys",
+        "max-length,abc,def",
     ]);
 
     run_succeeds(["operator_policies", "list"]).stdout(
