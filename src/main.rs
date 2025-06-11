@@ -737,6 +737,10 @@ fn dispatch_common_subcommand(
             let result = commands::declare_policy_override(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);
         }
+        ("policies", "declare_blanket") => {
+            let result = commands::declare_blanket_policy(client, &vhost, second_level_args);
+            res_handler.no_output_on_success(result);
+        }
         ("policies", "delete") => {
             let result = commands::delete_policy(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);

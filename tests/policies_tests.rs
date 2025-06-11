@@ -646,3 +646,36 @@ fn test_policies_declare_override() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
+
+#[test]
+fn test_policies_declare_blanket() -> Result<(), Box<dyn std::error::Error>> {
+    let policy_name = "test_policies_declare_blanket.1";
+
+    run_succeeds([
+        "policies",
+        "declare_blanket",
+        "--name",
+        policy_name,
+        "--apply-to",
+        "queues",
+        "--definition",
+        "{\"max-length\": 787876}",
+    ]);
+
+    run_succeeds(["policies", "list"]).stdout(
+        predicate::str::contains(policy_name)
+            // default blanket policy priority
+            .and(predicate::str::contains("787876")),
+    );
+
+    let client = api_client();
+    let pol = client.get_policy("/", policy_name).unwrap();
+
+    assert_eq!(pol.pattern, ".*");
+    assert!(pol.priority < 0);
+
+    run_succeeds(["delete", "policy", "--name", policy_name]);
+    run_succeeds(["policies", "list"]).stdout(predicate::str::contains(policy_name).not());
+
+    Ok(())
+}

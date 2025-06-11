@@ -31,6 +31,7 @@ use std::fs;
 use std::io;
 use std::process;
 
+use crate::constants::DEFAULT_BLANKET_POLICY_PRIORITY;
 use rabbitmq_http_client::commons::BindingDestinationType;
 use rabbitmq_http_client::commons::QueueType;
 use rabbitmq_http_client::responses::PolicyDefinitionOps;
@@ -1093,6 +1094,49 @@ pub fn declare_policy_override(
     let overridden =
         existing_policy.with_overrides(&override_pol_name, new_priority, &parsed_definition);
     let params = PolicyParams::from(&overridden);
+    client.declare_policy(&params)
+}
+
+pub fn declare_blanket_policy(
+    client: APIClient,
+    vhost: &str,
+    command_args: &ArgMatches,
+) -> ClientResult<()> {
+    // find the lowest policy priority in the target virtual host
+    let existing_policies = client.list_policies_in(vhost)?;
+    let min_priority = existing_policies
+        .iter()
+        .fold(0, |acc, p| if p.priority < acc { p.priority } else { acc });
+
+    // blanket policy priority should be the lowest in the virtual host
+    let priority = [min_priority - 1, DEFAULT_BLANKET_POLICY_PRIORITY]
+        .iter()
+        .min()
+        .cloned()
+        .unwrap();
+
+    let name = command_args.get_one::<String>("name").cloned().unwrap();
+    let apply_to = command_args
+        .get_one::<PolicyTarget>("apply_to")
+        .cloned()
+        .unwrap();
+    let definition = command_args.get_one::<String>("definition").unwrap();
+
+    let parsed_definition = serde_json::from_str::<requests::PolicyDefinition>(definition)
+        .unwrap_or_else(|err| {
+            eprintln!("`{}` is not a valid JSON: {}", definition, err);
+            process::exit(1);
+        });
+
+    let params = requests::PolicyParams {
+        vhost,
+        name: &name,
+        pattern: ".*",
+        apply_to,
+        priority: priority as i32,
+        definition: parsed_definition,
+    };
+
     client.declare_policy(&params)
 }
 
