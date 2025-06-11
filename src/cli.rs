@@ -1663,8 +1663,8 @@ fn operator_policies_subcommands(pre_flight_settings: PreFlightSettings) -> [Com
                 .required(true),
         );
 
-    let delete_definition_key_cmd = Command::new("delete_definition_key")
-        .about("Deletes a definition key from an operator policy, unless it is the only key")
+    let delete_definition_key_cmd = Command::new("delete_definition_keys")
+        .about("Deletes definition keys from an operator policy, unless it is the only key")
         .arg(
             Arg::new("name")
                 .long("name")
@@ -1672,17 +1672,23 @@ fn operator_policies_subcommands(pre_flight_settings: PreFlightSettings) -> [Com
                 .required(true),
         )
         .arg(
-            Arg::new("definition_key")
-                .long("definition-key")
-                .help("definition key"),
+            Arg::new("definition_keys")
+                .long("definition-keys")
+                .num_args(1..)
+                .value_delimiter(',')
+                .action(ArgAction::Append)
+                .help("comma-separated definition keys"),
         );
 
-    let delete_definition_key_from_all_in_cmd = Command::new("delete_definition_key_from_all_in")
+    let delete_definition_key_from_all_in_cmd = Command::new("delete_definition_keys_from_all_in")
         .about("Deletes a definition key from all operator policies in a virtual host, unless it is the only key")
         .arg(
-            Arg::new("definition_key")
-                .long("definition-key")
-                .help("definition key")
+            Arg::new("definition_keys")
+                .long("definition-keys")
+                .num_args(1..)
+                .value_delimiter(',')
+                .action(ArgAction::Append)
+                .help("comma-separated definition keys")
         );
 
     let list_in_cmd = Command::new("list_in")
@@ -1872,7 +1878,7 @@ fn policies_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 12]
             .required(true),
     );
 
-    let delete_definition_key_cmd = Command::new("delete_definition_key")
+    let delete_definition_keys_cmd = Command::new("delete_definition_keys")
         .about("Deletes a definition key from a policy, unless it is the only key")
         .arg(
             Arg::new("name")
@@ -1881,17 +1887,24 @@ fn policies_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 12]
                 .required(true),
         )
         .arg(
-            Arg::new("definition_key")
-                .long("definition-key")
-                .help("definition key"),
+            Arg::new("definition_keys")
+                .long("definition-keys")
+                .num_args(1..)
+                .value_delimiter(',')
+                .action(ArgAction::Append)
+                .help("comma-separated definition keys"),
         );
 
-    let delete_definition_key_from_all_in_cmd = Command::new("delete_definition_key_from_all_in")
-        .about("Deletes a definition key from all policies in a virtual host, unless it is the only key")
+    let delete_definition_keys_from_all_in_cmd = Command::new("delete_definition_keys_from_all_in")
+        .about("Deletes definition keys from all policies in a virtual host, unless it is the only policy key")
         .arg(
-            Arg::new("definition_key")
-                .long("definition-key")
-                .help("definition key")
+            Arg::new("definition_keys")
+                .long("definition-keys")
+                .help("comma-separated definition keys")
+                .num_args(1..)
+                .value_delimiter(',')
+                .action(ArgAction::Append)
+                .required(true)
         );
 
     let list_in_cmd = Command::new("list_in")
@@ -1974,8 +1987,8 @@ fn policies_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 12]
         declare_override_cmd,
         declare_blanket_cmd,
         delete_cmd,
-        delete_definition_key_cmd,
-        delete_definition_key_from_all_in_cmd,
+        delete_definition_keys_cmd,
+        delete_definition_keys_from_all_in_cmd,
         list_cmd,
         list_in_cmd,
         list_matching_cmd,

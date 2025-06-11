@@ -425,11 +425,11 @@ fn test_policies_individual_policy_key_manipulation() -> Result<(), Box<dyn std:
 
     run_succeeds([
         "policies",
-        "delete_definition_key",
+        "delete_definition_keys",
         "--name",
         policy_name,
-        "--definition-key",
-        "max-length",
+        "--definition-keys",
+        "max-length,non-existent-key",
     ]);
 
     run_succeeds(["policies", "list"])
@@ -514,18 +514,18 @@ fn test_policies_bulk_policy_key_manipulation() -> Result<(), Box<dyn std::error
         "--vhost",
         vh1,
         "policies",
-        "delete_definition_key_from_all_in",
-        "--definition-key",
-        "max-length",
+        "delete_definition_keys_from_all_in",
+        "--definition-keys",
+        "max-length,abc,def,ghi",
     ]);
 
     run_succeeds([
         "--vhost",
         vh2,
         "policies",
-        "delete_definition_key_from_all_in",
-        "--definition-key",
-        "max-length",
+        "delete_definition_keys_from_all_in",
+        "--definition-keys",
+        "max-length,abc-keys",
     ]);
 
     run_succeeds(["policies", "list"])
@@ -566,7 +566,7 @@ fn test_policies_patch_definition() -> Result<(), Box<dyn std::error::Error>> {
         "--priority",
         "123",
         "--definition",
-        "{\"max-length\": 20, \"max-length-bytes\": 99999999}",
+        "{\"max-length\": 20, \"max-length-bytes\": 4823748374}",
     ]);
     run_succeeds(["--vhost", vh1, "policies", "list"])
         .stdout(predicate::str::contains(policy_name).and(predicate::str::contains("20")));
@@ -588,7 +588,7 @@ fn test_policies_patch_definition() -> Result<(), Box<dyn std::error::Error>> {
             .and(predicate::str::contains("29")),
     );
 
-    run_succeeds(["policies", "list"]).stdout(predicate::str::contains("99999999").not());
+    run_succeeds(["policies", "list"]).stdout(predicate::str::contains("4823748374").not());
 
     run_succeeds(["--vhost", vh1, "policies", "delete", "--name", policy_name]);
     run_succeeds(["policies", "list"]).stdout(predicate::str::contains(policy_name).not());

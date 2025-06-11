@@ -1286,37 +1286,43 @@ pub fn update_all_operator_policy_definitions_in(
     Ok(())
 }
 
-pub fn delete_policy_definition(
+pub fn delete_policy_definition_keys(
     client: APIClient,
     vhost: &str,
     command_args: &ArgMatches,
 ) -> ClientResult<()> {
     let name = command_args.get_one::<String>("name").cloned().unwrap();
-    let key = command_args
-        .get_one::<String>("definition_key")
-        .cloned()
-        .unwrap();
+    let keys = command_args
+        .get_many::<String>("definition_keys")
+        .unwrap()
+        .into_iter()
+        .map(String::from)
+        .collect::<Vec<_>>();
+    let str_keys: Vec<&str> = keys.iter().map(AsRef::as_ref).collect::<Vec<_>>();
 
     let pol = client.get_policy(vhost, &name)?;
-    let updated_pol = pol.without_keys(vec![&key]);
+    let updated_pol = pol.without_keys(str_keys);
 
     let params = PolicyParams::from(&updated_pol);
     client.declare_policy(&params)
 }
 
-pub fn delete_policy_definition_key_in(
+pub fn delete_policy_definition_keys_in(
     client: APIClient,
     vhost: &str,
     command_args: &ArgMatches,
 ) -> ClientResult<()> {
     let pols = client.list_policies_in(vhost)?;
-    let key = command_args
-        .get_one::<String>("definition_key")
-        .cloned()
-        .unwrap();
+    let keys = command_args
+        .get_many::<String>("definition_keys")
+        .unwrap()
+        .into_iter()
+        .map(String::from)
+        .collect::<Vec<_>>();
+    let str_keys: Vec<&str> = keys.iter().map(AsRef::as_ref).collect::<Vec<_>>();
 
     for pol in pols {
-        let updated_pol = pol.without_keys(vec![&key]);
+        let updated_pol = pol.without_keys(str_keys.clone());
 
         let params = PolicyParams::from(&updated_pol);
         client.declare_policy(&params)?
@@ -1325,37 +1331,43 @@ pub fn delete_policy_definition_key_in(
     Ok(())
 }
 
-pub fn delete_operator_policy_definition(
+pub fn delete_operator_policy_definition_keys(
     client: APIClient,
     vhost: &str,
     command_args: &ArgMatches,
 ) -> ClientResult<()> {
     let name = command_args.get_one::<String>("name").cloned().unwrap();
-    let key = command_args
-        .get_one::<String>("definition_key")
-        .cloned()
-        .unwrap();
+    let keys = command_args
+        .get_many::<String>("definition_keys")
+        .unwrap()
+        .into_iter()
+        .map(String::from)
+        .collect::<Vec<_>>();
+    let str_keys: Vec<&str> = keys.iter().map(AsRef::as_ref).collect::<Vec<_>>();
 
     let pol = client.get_operator_policy(vhost, &name)?;
-    let updated_pol = pol.without_keys(vec![&key]);
+    let updated_pol = pol.without_keys(str_keys);
 
     let params = PolicyParams::from(&updated_pol);
     client.declare_operator_policy(&params)
 }
 
-pub fn delete_operator_policy_definition_key_in(
+pub fn delete_operator_policy_definition_keys_in(
     client: APIClient,
     vhost: &str,
     command_args: &ArgMatches,
 ) -> ClientResult<()> {
     let pols = client.list_operator_policies_in(vhost)?;
-    let key = command_args
-        .get_one::<String>("definition_key")
-        .cloned()
-        .unwrap();
+    let keys = command_args
+        .get_many::<String>("definition_keys")
+        .unwrap()
+        .into_iter()
+        .map(String::from)
+        .collect::<Vec<_>>();
+    let str_keys: Vec<&str> = keys.iter().map(AsRef::as_ref).collect::<Vec<_>>();
 
     for pol in pols {
-        let updated_pol = pol.without_keys(vec![&key]);
+        let updated_pol = pol.without_keys(str_keys.clone());
 
         let params = PolicyParams::from(&updated_pol);
         client.declare_operator_policy(&params)?

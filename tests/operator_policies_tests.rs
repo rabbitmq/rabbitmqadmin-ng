@@ -73,7 +73,7 @@ fn test_operator_policies() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn test_policies_declare_list_and_delete() -> Result<(), Box<dyn std::error::Error>> {
+fn test_operator_policies_declare_list_and_delete() -> Result<(), Box<dyn std::error::Error>> {
     let policy_name = "test_policies_declare_list_and_delete";
 
     run_succeeds([
@@ -100,7 +100,7 @@ fn test_policies_declare_list_and_delete() -> Result<(), Box<dyn std::error::Err
 }
 
 #[test]
-fn test_policies_in() -> Result<(), Box<dyn std::error::Error>> {
+fn test_operator_policies_in() -> Result<(), Box<dyn std::error::Error>> {
     let vh1 = "rabbitmqadmin.test_policies_in.1";
     run_succeeds(["delete", "vhost", "--name", vh1, "--idempotently"]);
     run_succeeds(["declare", "vhost", "--name", vh1]);
@@ -149,7 +149,7 @@ fn test_policies_in() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn test_policies_in_with_entity_type() -> Result<(), Box<dyn std::error::Error>> {
+fn test_operator_policies_in_with_entity_type() -> Result<(), Box<dyn std::error::Error>> {
     let vh = "rabbitmqadmin.vh.operator_policies.2";
     run_succeeds(["delete", "vhost", "--name", vh, "--idempotently"]);
     run_succeeds(["declare", "vhost", "--name", vh]);
@@ -278,7 +278,7 @@ fn test_operator_policies_matching_objects() -> Result<(), Box<dyn std::error::E
 }
 
 #[test]
-fn test_policies_declare_list_update_definition_and_delete()
+fn test_operator_policies_declare_list_update_definition_and_delete()
 -> Result<(), Box<dyn std::error::Error>> {
     let policy_name = "test_policies_declare_list_update_definition_and_delete";
 
@@ -320,7 +320,8 @@ fn test_policies_declare_list_update_definition_and_delete()
 }
 
 #[test]
-fn test_policies_individual_policy_key_manipulation() -> Result<(), Box<dyn std::error::Error>> {
+fn test_operator_policies_individual_policy_key_manipulation()
+-> Result<(), Box<dyn std::error::Error>> {
     let policy_name = "test_policies_individual_policy_key_manipulation";
 
     run_succeeds([
@@ -335,7 +336,7 @@ fn test_policies_individual_policy_key_manipulation() -> Result<(), Box<dyn std:
         "--priority",
         "123",
         "--definition",
-        "{\"max-length\": 20, \"max-length-bytes\": 99999999}",
+        "{\"max-length\": 20, \"max-length-bytes\": 128372836172}",
     ]);
     run_succeeds(["operator_policies", "list"])
         .stdout(predicate::str::contains(policy_name).and(predicate::str::contains("20")));
@@ -356,15 +357,16 @@ fn test_policies_individual_policy_key_manipulation() -> Result<(), Box<dyn std:
 
     run_succeeds([
         "operator_policies",
-        "delete_definition_key",
+        "delete_definition_keys",
         "--name",
         policy_name,
         "--definition-key",
         "max-length",
     ]);
 
-    run_succeeds(["operator_policies", "list"])
-        .stdout(predicate::str::contains(policy_name).and(predicate::str::contains("99999999")));
+    run_succeeds(["operator_policies", "list"]).stdout(
+        predicate::str::contains(policy_name).and(predicate::str::contains("128372836172")),
+    );
 
     run_succeeds(["operator_policies", "list"]).stdout(predicate::str::contains("131").not());
 
@@ -375,17 +377,18 @@ fn test_policies_individual_policy_key_manipulation() -> Result<(), Box<dyn std:
 }
 
 #[test]
-fn test_policies_bulk_policy_key_manipulation() -> Result<(), Box<dyn std::error::Error>> {
-    let vh1 = "rabbitmqadmin.test_policies_bulk_policy_key_manipulation.1";
-    let vh2 = "rabbitmqadmin.test_policies_bulk_policy_key_manipulation.2";
+fn test_operator_policies_bulk_policy_keys_manipulation() -> Result<(), Box<dyn std::error::Error>>
+{
+    let vh1 = "rabbitmqadmin.test_policies_bulk_policy_keys_manipulation.1";
+    let vh2 = "rabbitmqadmin.test_policies_bulk_policy_keys_manipulation.2";
 
     run_succeeds(["delete", "vhost", "--name", vh1, "--idempotently"]);
     run_succeeds(["declare", "vhost", "--name", vh1]);
     run_succeeds(["delete", "vhost", "--name", vh2, "--idempotently"]);
     run_succeeds(["declare", "vhost", "--name", vh2]);
 
-    let policy1_name = "test_policies_bulk_policy_key_manipulation-1";
-    let policy2_name = "test_policies_bulk_policy_key_manipulation-2";
+    let policy1_name = "test_policies_bulk_policy_keys_manipulation-1";
+    let policy2_name = "test_policies_bulk_policy_keys_manipulation-2";
 
     run_succeeds([
         "--vhost",
@@ -401,7 +404,7 @@ fn test_policies_bulk_policy_key_manipulation() -> Result<(), Box<dyn std::error
         "--priority",
         "123",
         "--definition",
-        "{\"max-length\": 20, \"max-length-bytes\": 99999999}",
+        "{\"max-length\": 20, \"max-length-bytes\": 467467467467}",
     ]);
     run_succeeds([
         "--vhost",
@@ -445,17 +448,17 @@ fn test_policies_bulk_policy_key_manipulation() -> Result<(), Box<dyn std::error
         "--vhost",
         vh1,
         "operator_policies",
-        "delete_definition_key_from_all_in",
-        "--definition-key",
-        "max-length",
+        "delete_definition_keys_from_all_in",
+        "--definition-keys",
+        "max-length,other-key",
     ]);
 
     run_succeeds([
         "--vhost",
         vh2,
         "operator_policies",
-        "delete_definition_key_from_all_in",
-        "--definition-key",
+        "delete_definition_keys_from_all_in",
+        "--definition-keys",
         "max-length",
     ]);
 
@@ -511,7 +514,7 @@ fn test_operator_policies_patch_definition() -> Result<(), Box<dyn std::error::E
         "--priority",
         "123",
         "--definition",
-        "{\"max-length\": 923, \"max-length-bytes\": 99999999}",
+        "{\"max-length\": 923, \"max-length-bytes\": 287237182378237}",
     ]);
     run_succeeds(["--vhost", vh, "operator_policies", "list"])
         .stdout(predicate::str::contains(policy_name).and(predicate::str::contains("923")));
@@ -533,7 +536,8 @@ fn test_operator_policies_patch_definition() -> Result<(), Box<dyn std::error::E
             .and(predicate::str::contains("875")),
     );
 
-    run_succeeds(["operator_policies", "list"]).stdout(predicate::str::contains("99999999").not());
+    run_succeeds(["operator_policies", "list"])
+        .stdout(predicate::str::contains("287237182378237").not());
 
     run_succeeds([
         "--vhost",

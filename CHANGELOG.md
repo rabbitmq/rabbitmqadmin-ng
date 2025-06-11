@@ -12,6 +12,10 @@
    used by `rabbitmqctl` and the latter reflects the fact that the command can be used to update an existing policy,
    in particular, to override its definition
  * `policies patch` is a new command that updates a policy definition by merging the provided definition with the existing one
+ * `policies delete_definition_keys` is a new command that removes keys from a policy definition
+ * `policies delete_definition_keys_from_all_in` is a new command that removes definition keys from all policies in a virtual host
+ * `policies update_definition` is a new command that updates a policy definition key; for multi-key updates, see `policies patch
+ * `policies update_definitions_of_all_in` is a new command that updates a definition key for all policies in a virtual host
  * `policies declare_override` is a new command that declares a policy that overrides another policy
  * `policies declare_blanket` is a new command that declares a low priority policy that matches all objects not matched
    by any other policies

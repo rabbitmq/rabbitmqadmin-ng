@@ -649,13 +649,13 @@ fn dispatch_common_subcommand(
             let result = commands::delete_operator_policy(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);
         }
-        ("operator_policies", "delete_definition_key") => {
+        ("operator_policies", "delete_definition_keys") => {
             let result =
-                commands::delete_operator_policy_definition(client, &vhost, second_level_args);
+                commands::delete_operator_policy_definition_keys(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);
         }
-        ("operator_policies", "delete_definition_key_from_all_in") => {
-            let result = commands::delete_operator_policy_definition_key_in(
+        ("operator_policies", "delete_definition_keys_from_all_in") => {
+            let result = commands::delete_operator_policy_definition_keys_in(
                 client,
                 &vhost,
                 second_level_args,
@@ -745,13 +745,13 @@ fn dispatch_common_subcommand(
             let result = commands::delete_policy(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);
         }
-        ("policies", "delete_definition_key") => {
-            let result = commands::delete_policy_definition(client, &vhost, second_level_args);
+        ("policies", "delete_definition_keys") => {
+            let result = commands::delete_policy_definition_keys(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);
         }
-        ("policies", "delete_definition_key_from_all_in") => {
+        ("policies", "delete_definition_keys_from_all_in") => {
             let result =
-                commands::delete_policy_definition_key_in(client, &vhost, second_level_args);
+                commands::delete_policy_definition_keys_in(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);
         }
         ("policies", "list") => {
