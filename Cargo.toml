@@ -1,6 +1,6 @@
 [package]
 name = "rabbitmqadmin"
-version = "2.2.0"
+version = "2.3.0"
 edition = "2024"
 
 description = "rabbitmqadmin v2 is a modern CLI tool for the RabbitMQ HTTP API"
@@ -10,20 +10,20 @@ license = "MIT OR Apache-2.0"
 clap = { version = "4", features = ["help", "color", "cargo", "env"] }
 url = "2"
 sysexits = "0.9"
-reqwest = { version = "0.12.12", features = [
+reqwest = { version = "0.12.20", features = [
     "blocking",
     "json",
     "multipart",
     "__rustls",
     "rustls-tls-native-roots",
 ] }
-rabbitmq_http_client = { version = "0.33.0", features = [
+rabbitmq_http_client = { version = "0.34.0", features = [
     "blocking",
     "tabled",
 ] }
 serde = { version = "1.0", features = ["derive", "std"] }
 serde_json = "1"
-tabled = "0.19"
+tabled = "0.20"
 toml = "0.8"
 color-print = "0.3"
 thiserror = "2"
