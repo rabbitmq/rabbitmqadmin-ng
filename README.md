@@ -68,25 +68,37 @@ which will output a list of command groups:
 Usage: rabbitmqadmin [OPTIONS] <COMMAND>
 
 Commands:
-  show                 Overview, memory footprint breakdown, and more
-  list                 Lists objects
-  declare              Creates or declares objects
-  delete               Deletes objects
-  purge                Purges queues
-  policies             Operations on policies
-  health_check         Runs health checks
+  bindings             Operations on bindings
+  channels             Operations on channels
   close                Closes connections
-  rebalance            Rebalancing of leader replicas
+  connections          Operations on connections
+  declare              Creates or declares objects
   definitions          Operations on definitions (everything except for messages: virtual hosts, queues, streams, exchanges, bindings, users, etc)
-  export               See 'definitions export'
-  import               See 'definitions import'
-  feature_flags        Operations on feature flags
+  delete               Deletes objects
   deprecated_features  Operations on deprecated features
-  publish              Publishes (inefficiently) message(s) to a queue or a stream. Only suitable for development and test environments.
-  get                  Fetches message(s) from a queue or stream via polling. Only suitable for development and test environments.
-  shovels              Operations on shovels
+  exchanges            Operations on exchanges
+  export               See 'definitions export'
+  feature_flags        Operations on feature flags
   federation           Operations on federation upstreams and links
+  get                  Fetches message(s) from a queue or stream via polling. Only suitable for development and test environments.
+  global_parameters    Operations on global runtime parameters
+  health_check         Runs health checks
+  import               See 'definitions import'
+  list                 Lists objects
+  nodes                Node operations
+  operator_policies    Operations on operator policies
+  parameters           Operations on runtime parameters
+  policies             Operations on policies
+  publish              Publishes (inefficiently) message(s) to a queue or a stream. Only suitable for development and test environments.
+  purge                Purges queues
+  queues               Operations on queues
+  rebalance            Rebalancing of leader replicas
+  show                 Overview, memory footprint breakdown, and more
+  shovels              Operations on shovels
+  streams              Operations on streams
   tanzu                Tanzu RabbitMQ-specific commands
+  users                Operations on users
+  vhosts               Virtual host operations
   help                 Print this message or the help of the given subcommand(s)
 ```
 
