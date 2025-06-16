@@ -384,8 +384,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
                 .env("RABBITMQADMIN_TARGET_PORT")
                 .help("HTTP API port to use when connecting")
                 .required(false)
-                .value_parser(value_parser!(u16))
-                .default_value(DEFAULT_PORT_STR),
+                .value_parser(value_parser!(u16)),
         )
         // --base-uri
         .arg(
@@ -460,7 +459,6 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
             Arg::new("tls-ca-cert-file")
                 .long("tls-ca-cert-file")
                 .required(false)
-                .requires("tls")
                 .help("Local path to a CA certificate file in the PEM format")
                 .value_parser(value_parser!(PathBuf)),
         )

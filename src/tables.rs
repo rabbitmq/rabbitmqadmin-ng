@@ -1,3 +1,4 @@
+use std::error::Error;
 // Copyright (C) 2023-2025 RabbitMQ Core Team (teamrabbitmq@gmail.com)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -415,7 +416,7 @@ pub fn failure_details(error: &HttpClientError) -> Table {
             backtrace: _,
         } => {
             let reason = format!("HTTP API request failed: {}", error);
-            let data = vec![
+            let mut data = vec![
                 RowOfTwo {
                     key: "result",
                     value: "request failed",
@@ -425,6 +426,45 @@ pub fn failure_details(error: &HttpClientError) -> Table {
                     value: reason.as_str(),
                 },
             ];
+
+            let underlying_error1 = match error.source() {
+                Some(source) => source.to_string(),
+                None => "(none)".to_string(),
+            };
+            let underlying_error2 = match error.source() {
+                Some(err) => match err.source() {
+                    None => "(none)".to_string(),
+                    Some(err2) => {
+                        format!("{}", err2)
+                    }
+                },
+                None => "(none)".to_string(),
+            };
+            let underlying_error3 = match error.source() {
+                Some(err) => match err.source() {
+                    None => "(none)".to_string(),
+                    Some(err2) => match err2.source() {
+                        None => "(none)".to_string(),
+                        Some(err3) => {
+                            format!("{}", err3)
+                        }
+                    },
+                },
+                None => "(none)".to_string(),
+            };
+
+            data.push(RowOfTwo {
+                key: "underlying error",
+                value: &underlying_error1,
+            });
+            data.push(RowOfTwo {
+                key: "underlying error",
+                value: &underlying_error2,
+            });
+            data.push(RowOfTwo {
+                key: "underlying error",
+                value: &underlying_error3,
+            });
 
             let tb = Table::builder(data);
             tb.build()

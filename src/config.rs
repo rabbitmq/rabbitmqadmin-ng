@@ -159,7 +159,11 @@ impl SharedSettings {
             || config_file_defaults.non_interactive;
         let quiet = cli_args.get_one::<bool>("quiet").cloned().unwrap_or(false)
             || config_file_defaults.quiet;
-        let scheme = if should_use_tls { "https" } else { "http" };
+        let scheme = if should_use_tls {
+            "https"
+        } else {
+            config_file_defaults.scheme.as_str()
+        };
         let hostname = cli_args
             .get_one::<String>("host")
             .cloned()
@@ -228,7 +232,11 @@ impl SharedSettings {
             .unwrap_or(false)
             || default_non_interactive();
         let quiet = cli_args.get_one::<bool>("quiet").cloned().unwrap_or(false) || default_quiet();
-        let scheme = if should_use_tls { "https" } else { "http" };
+        let scheme = if should_use_tls {
+            "https".to_owned()
+        } else {
+            default_scheme()
+        };
         let hostname = cli_args
             .get_one::<String>("host")
             .cloned()
@@ -271,7 +279,7 @@ impl SharedSettings {
             non_interactive,
             quiet,
             base_uri: None,
-            scheme: scheme.to_string(),
+            scheme,
             hostname: Some(hostname),
             port: Some(port),
             path_prefix: path_prefix.clone(),
@@ -298,7 +306,11 @@ impl SharedSettings {
         let quiet = cli_args.get_one::<bool>("quiet").cloned().unwrap_or(false)
             || config_file_defaults.quiet;
 
-        let scheme = url.scheme().to_string();
+        let scheme = if should_use_tls {
+            HTTPS_SCHEME.to_owned()
+        } else {
+            config_file_defaults.scheme.clone()
+        };
         let hostname = url.host_str().unwrap_or(DEFAULT_HOST).to_string();
         let port = url
             .port()
@@ -341,7 +353,7 @@ impl SharedSettings {
             non_interactive,
             quiet,
             base_uri: Some(url.to_string()),
-            scheme: scheme.to_string(),
+            scheme,
             hostname: Some(hostname),
             port: Some(port),
             path_prefix,
@@ -364,7 +376,11 @@ impl SharedSettings {
             .cloned()
             .unwrap_or(default_quiet());
 
-        let scheme = url.scheme().to_string();
+        let scheme = if should_use_tls {
+            "https".to_owned()
+        } else {
+            url.scheme().to_string()
+        };
         let hostname = url.host_str().unwrap_or(DEFAULT_HOST).to_string();
         let port = url
             .port()
@@ -403,7 +419,7 @@ impl SharedSettings {
             non_interactive,
             quiet,
             base_uri: Some(url.to_string()),
-            scheme: scheme.to_string(),
+            scheme,
             hostname: Some(hostname),
             port: Some(port),
             path_prefix,

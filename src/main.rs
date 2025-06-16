@@ -994,7 +994,8 @@ fn dispatch_tanzu_subcommand(
 }
 
 fn should_use_tls(shared_settings: &SharedSettings) -> bool {
-    shared_settings.scheme.to_lowercase() == "https"
+    shared_settings.tls
+        || shared_settings.scheme.to_lowercase() == "https"
         || shared_settings.port.unwrap_or(DEFAULT_HTTPS_PORT) == DEFAULT_HTTPS_PORT
 }
 

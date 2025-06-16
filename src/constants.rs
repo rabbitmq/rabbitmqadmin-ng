@@ -14,7 +14,6 @@
 pub const DEFAULT_SCHEME: &str = "http";
 pub const HTTPS_SCHEME: &str = "https";
 pub const DEFAULT_HOST: &str = "localhost";
-pub const DEFAULT_PORT_STR: &str = "15672";
 pub const DEFAULT_HTTPS_PORT: u16 = 15671;
 pub const DEFAULT_HTTP_PORT: u16 = 15672;
 // This path prefix that precedes
