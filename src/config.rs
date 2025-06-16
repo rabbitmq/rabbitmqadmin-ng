@@ -160,9 +160,9 @@ impl SharedSettings {
         let quiet = cli_args.get_one::<bool>("quiet").cloned().unwrap_or(false)
             || config_file_defaults.quiet;
         let scheme = if should_use_tls {
-            "https"
+            HTTPS_SCHEME.to_owned()
         } else {
-            config_file_defaults.scheme.as_str()
+            config_file_defaults.scheme.to_owned()
         };
         let hostname = cli_args
             .get_one::<String>("host")
@@ -212,7 +212,7 @@ impl SharedSettings {
             non_interactive,
             quiet,
             base_uri: None,
-            scheme: scheme.to_string(),
+            scheme,
             hostname: Some(hostname),
             port: Some(port),
             path_prefix: path_prefix.clone(),
@@ -233,7 +233,7 @@ impl SharedSettings {
             || default_non_interactive();
         let quiet = cli_args.get_one::<bool>("quiet").cloned().unwrap_or(false) || default_quiet();
         let scheme = if should_use_tls {
-            "https".to_owned()
+            HTTPS_SCHEME.to_owned()
         } else {
             default_scheme()
         };
