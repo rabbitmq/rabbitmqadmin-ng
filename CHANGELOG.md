@@ -5,6 +5,16 @@
 No changes yet.
 
 
+## v2.2.1 (Jun 19, 2025)
+
+### Bug Fixes
+
+ * Several `rabbitmqadmin.conf` settings were not merged correctly with
+   the command line arguments.
+
+   GitHub issue: [#58](https://github.com/rabbitmq/rabbitmqadmin-ng/issues/58)
+
+
 ## v2.2.0 (Jun 12, 2025)
 
 ### Enhancements
