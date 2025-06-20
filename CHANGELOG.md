@@ -5,7 +5,7 @@
 No changes yet.
 
 
-## v2.2.1 (Jun 19, 2025)
+## v2.2.1 (Jun 20, 2025)
 
 ### Bug Fixes
 
