@@ -158,11 +158,11 @@ will output a table that looks like this:
 ├───────────────────────────────────────────────────────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────┤
 │ Product name                                                      │ RabbitMQ                                                                                        │
 ├───────────────────────────────────────────────────────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────┤
-│ Product version                                                   │ 4.1.0                                                                                           │
+│ Product version                                                   │ 4.1.1                                                                                           │
 ├───────────────────────────────────────────────────────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────┤
-│ RabbitMQ version                                                  │ 4.1.0                                                                                           │
+│ RabbitMQ version                                                  │ 4.1.1                                                                                           │
 ├───────────────────────────────────────────────────────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────┤
-│ Erlang version                                                    │ 27.3.3                                                                                          │
+│ Erlang version                                                    │ 27.3.4                                                                                          │
 ├───────────────────────────────────────────────────────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────┤
 │ Erlang details                                                    │ Erlang/OTP 27 [erts-15.2.5] [source] [64-bit] [smp:10:10] [ds:10:10:10] [async-threads:1] [jit] │
 ├───────────────────────────────────────────────────────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────┤
@@ -219,12 +219,28 @@ The output of the above command will not include any table borders and will is m
 as a result:
 
 ```
- key
- Product name      RabbitMQ
- Product version   4.1.0
- RabbitMQ version  4.1.0
- Erlang version    27.3.3
- Erlang details    Erlang/OTP 27 [erts-15.2.5 [source] [64-bit] [smp:10:10] [ds:10:10:10] [async-threads:1] [jit]
+key
+Product name                                                      RabbitMQ
+Product version                                                   4.1.1
+RabbitMQ version                                                  4.1.1
+Erlang version                                                    27.3.4
+Erlang details                                                    Erlang/OTP 27 [erts-15.2.7] [source] [64-bit] [smp:10:10] [ds:10:10:10] [async-threads:1] [jit]
+Connections (total)                                               0
+AMQP 0-9-1 channels (total)                                       0
+Queues and streams (total)                                        3
+Consumers (total)                                                 0
+Messages (total)                                                  0
+Messages ready for delivery (total)                               0
+Messages delivered but unacknowledged by consumers (total)        0
+Publishing (ingress) rate (global)
+Publishing confirm rate (global)
+Consumer delivery (egress) rate (global)
+Consumer delivery in automatic acknowledgement mode rate (global)
+Consumer acknowledgement rate (global)
+Unroutable messages: returned-to-publisher rate (global)
+Unroutable messages: dropped rate (global)
+Cluster tags                                                      "az": "us-east-3","environment": "production","region": "us-east",
+Node tags                                                         "environment": "production","instance": "xlarge.m3",
 ```
 
 ### Retrieving Basic Node Information
@@ -553,6 +569,98 @@ passwords: `password-1`, `password-2`, and so forth), use the `obfuscate_usernam
 ```shell
 rabbitmqadmin definitions export --file /path/to/definitions.file.json --transformations obfuscate_usernames
 ```
+
+### Declare a Policy
+
+```shell
+rabbitmqadmin --vhost "vh-1" policies declare \
+  --name "policy-name-1" \
+  --pattern '^cq.1\..+' \
+  --apply-to "queues" \
+  --priority 10 \
+  --definition '{"max-length": 1000000}'
+```
+
+### Delete a Policy
+
+```shell
+rabbitmqadmin --vhost "vh-1" policies delete --name "policy-name-1"
+```
+
+### List All Policies
+
+```shell
+rabbitmqadmin policies list
+```
+
+### List Policies in A Virtual Host
+
+```shell
+rabbitmqadmin --vhost "vh-1" policies list_in
+```
+
+### List Policies Matching an Object
+
+```shell
+rabbitmqadmin --vhost "vh-1" policies list_matching_object --name "cq.1" --type "classic_queue"
+
+rabbitmqadmin --vhost "vh-1" policies list_matching_object --name "qq.1" --type "quorum_queue"
+
+rabbitmqadmin --vhost "vh-1" policies list_matching_object --name "topics.events" --type "exchange"
+```
+
+### Patch (Perform a Partial Update on) a Policy
+
+```shell
+rabbitmqadmin --vhost "vh-1" policies patch \
+  --name "policy-name-1" \
+  --definition '{"max-length": 7777777, "max-length-bytes": 3333333333}'
+```
+
+### Remove One Or More Policy Definition Keys
+
+```shell
+rabbitmqadmin policies delete_definition_keys \
+  --name "policy-name-2" \
+  --definition-keys max-length-bytes,max-length
+```
+
+### Declare an [Override Policy](https://www.rabbitmq.com/docs/policies#override)
+
+[Override policies](https://www.rabbitmq.com/docs/policies#override) are temporarily declared
+policies that match the same objects as an existing policy but have a higher priority
+and a slightly different definition.
+
+This is a potentially safer alternative to patching policies, say, during [Blue-Green deployment migrations](https://www.rabbitmq.com/docs/blue-green-upgrade).
+
+Override policies are meant to be relatively short lived.
+
+```shell
+rabbitmqadmin --vhost "vh-1" policies declare_override \
+  --name "policy-name-1" \
+  --override-name "tmp.overrides.policy-name-1" \
+  --apply-to "queues" \
+  --definition '{"federation-upstream-set": "all"}'
+```
+
+### Declare a [Blanket Policy](https://www.rabbitmq.com/docs/policies#blanket)
+
+A [blanket policy](https://www.rabbitmq.com/docs/policies#blanket) is a policy with a negative priority that
+matches all names. That is, it is a policy that matches everything not matched by other policies (that usually
+will have positive priorities).
+
+Blanket policies are most useful in combination with override policies
+covered above during [Blue-Green deployment migrations](https://www.rabbitmq.com/docs/blue-green-upgrade).
+
+Blanket policies are meant to be relatively short lived.
+
+```shell
+rabbitmqadmin --vhost "vh-1" policies declare_blanket \
+  --name "blanket-queuues" \
+  --apply-to "queues" \
+  --definition '{"federation-upstream-set": "all"}'
+```
+
 
 ### Import Definition
 
