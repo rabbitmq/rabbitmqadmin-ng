@@ -2,7 +2,7 @@
 
 ## v2.3.0 (in development)
 
-No changes yet.
+ * RabbitMQ HTTP API client was upgraded to `0.35.0`
 
 
 ## v2.2.1 (Jun 20, 2025)
