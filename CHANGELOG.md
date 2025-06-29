@@ -2,7 +2,8 @@
 
 ## v2.3.0 (in development)
 
- * RabbitMQ HTTP API client was upgraded to `0.35.0`
+ * RabbitMQ HTTP API client was upgraded to [`0.35.0`](https://github.com/michaelklishin/rabbitmq-http-api-rs/releases/tag/v0.35.0) to fix a `connections list` command
+   panic.
 
 
 ## v2.2.1 (Jun 20, 2025)
