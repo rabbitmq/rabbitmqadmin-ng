@@ -1,6 +1,11 @@
 # rabbitmqadmin-ng Change Log
 
-## v2.3.0 (in development)
+## v2.4.0 (in development)
+
+No changes yet.
+
+
+## v2.3.0 (Jun 30, 2025)
 
  * RabbitMQ HTTP API client was upgraded to [`0.35.0`](https://github.com/michaelklishin/rabbitmq-http-api-rs/releases/tag/v0.35.0) to fix a `connections list` command
    panic.
