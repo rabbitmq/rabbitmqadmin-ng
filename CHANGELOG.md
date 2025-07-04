@@ -1,8 +1,21 @@
 # rabbitmqadmin-ng Change Log
 
-## v2.4.0 (in development)
+## v2.5.0 (in development)
 
 No changes yet.
+
+## v2.4.0 (Jul 4, 2025)
+
+### Bug Fixes
+
+ * `connections list` failed to deserialize a list of connections that included direct connections
+   (as in the Erlang AMQP 0-9-1 client), namely local connections of shovels and federation links.
+
+   GitHub issue: [#68](https://github.com/rabbitmq/rabbitmqadmin-ng/issues/68)
+
+### Upgrades
+
+ * RabbitMQ HTTP API client was upgraded to [`0.36.0`](https://github.com/michaelklishin/rabbitmq-http-api-rs/releases/tag/v0.36.0)
 
 
 ## v2.3.0 (Jun 30, 2025)
