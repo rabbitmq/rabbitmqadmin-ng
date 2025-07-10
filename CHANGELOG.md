@@ -2,7 +2,12 @@
 
 ## v2.5.0 (in development)
 
-No changes yet.
+### Bug Fixes
+
+ * `export definitions` CLI interface was unintentionally different from that of `definitions export`.
+    Note that `export definitions` only exists for better backwards compatibility with `rabbitmqadmin` v1,
+    use `definitions export` when possible.
+
 
 ## v2.4.0 (Jul 4, 2025)
 
