@@ -2420,17 +2420,29 @@ fn exchanges_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 5]
 }
 fn export_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 1] {
     let definitions = Command::new("definitions")
-        .about("Prefer 'definitions export'")
+        .about("Export cluster-wide definitions")
         .after_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             DEFINITION_GUIDE_URL
         ))
         .arg(
             Arg::new("file")
+                .group("output")
                 .long("file")
-                .help("output path")
+                .help("output file path")
                 .required(false)
-                .default_value("-"),
+                .default_value("-")
+                .conflicts_with("stdout"),
+        )
+        .arg(
+            Arg::new("stdout")
+                .group("output")
+                .long("stdout")
+                .help("print result to the standard output stream")
+                .required(false)
+                .num_args(0)
+                .action(ArgAction::SetTrue)
+                .conflicts_with("file"),
         )
         .arg(
             Arg::new("transformations")
@@ -2442,10 +2454,22 @@ A comma-separated list of names of the definition transformations to apply.
 
 Supported transformations:
 
+ * no_op
  * strip_cmq_keys_from_policies
  * drop_empty_policies
+ * obfuscate_usernames
+ * exclude_users
+ * exclude_permissions
+ * exclude_runtime_parameters
+ * exclude_policies
 
-Example use: --transformations strip_cmq_keys_from_policies,drop_empty_policies
+Examples:
+
+ * --transformations strip_cmq_keys_from_policies,drop_empty_policies
+ * --transformations exclude_users,exclude_permissions
+ * --transformations obfuscate_usernames
+ * --transformations exclude_runtime_parameters,exclude_policies
+ * --transformations no_op
                 "#,
                 )
                 .num_args(1..)
