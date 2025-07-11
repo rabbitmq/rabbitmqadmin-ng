@@ -191,7 +191,7 @@ pub fn churn_overview(ov: Overview) -> Table {
 
 pub fn show_salted_and_hashed_value(value: String) -> Table {
     let data = vec![RowOfTwo {
-        key: "value",
+        key: "password hash",
         value: value.as_str(),
     }];
     let tb = Table::builder(data);
