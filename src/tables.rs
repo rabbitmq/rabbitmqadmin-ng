@@ -14,6 +14,7 @@ use std::error::Error;
 // limitations under the License.
 use rabbitmq_http_client::blocking_api::HttpClientError;
 use rabbitmq_http_client::formatting::*;
+use rabbitmq_http_client::password_hashing::HashingError;
 use rabbitmq_http_client::responses::{
     ClusterAlarmCheckDetails, HealthCheckFailureDetails, NodeMemoryBreakdown, Overview,
     QuorumCriticalityCheckDetails, SchemaDefinitionSyncStatus,
@@ -185,6 +186,17 @@ pub fn churn_overview(ov: Overview) -> Table {
     t.with(Panel::header(
         "Entity (connections, queues, etc) churn over the most recent sampling period",
     ));
+    t
+}
+
+pub fn show_salted_and_hashed_value(value: String) -> Table {
+    let data = vec![RowOfTwo {
+        key: "value",
+        value: value.as_str(),
+    }];
+    let tb = Table::builder(data);
+    let mut t = tb.build();
+    t.with(Panel::header("Result"));
     t
 }
 
@@ -512,6 +524,23 @@ fn generic_failed_request_details(
         RowOfTwo {
             key: "body",
             value: body_s.as_str(),
+        },
+    ];
+
+    let tb = Table::builder(data);
+    tb.build()
+}
+
+pub fn hashing_error_details(error: &HashingError) -> Table {
+    let details = format!("{}", error);
+    let data = vec![
+        RowOfTwo {
+            key: "result",
+            value: "hashing failed",
+        },
+        RowOfTwo {
+            key: "details",
+            value: details.as_str(),
         },
     ];
 

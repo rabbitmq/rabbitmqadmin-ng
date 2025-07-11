@@ -23,6 +23,7 @@ use rabbitmq_http_client::commons::{
     BindingDestinationType, ExchangeType, MessageTransferAcknowledgementMode, PolicyTarget,
     QueueType, SupportedProtocol,
 };
+use rabbitmq_http_client::password_hashing::HashingAlgorithm;
 use rabbitmq_http_client::requests::FederationResourceCleanupMode;
 
 pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
@@ -210,6 +211,15 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         ))
         .subcommand_value_name("runtime_parameter")
         .subcommands(parameters_subcommands(pre_flight_settings.clone()));
+    let passwords_group = Command::new("passwords")
+        .about("Operations on passwords")
+        .infer_subcommands(pre_flight_settings.infer_subcommands)
+        .infer_long_args(pre_flight_settings.infer_long_options)
+        .after_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            PASSWORD_GUIDE_URL
+        ))
+        .subcommands(passwords_subcommands(pre_flight_settings.clone()));
     let policies_group = Command::new("policies")
         .about("Operations on policies")
         .infer_subcommands(pre_flight_settings.infer_subcommands)
@@ -321,6 +331,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         nodes_group,
         operator_policies_group,
         parameters_group,
+        passwords_group,
         policies_group,
         publish_group,
         purge_group,
@@ -2680,6 +2691,16 @@ pub fn users_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 6]
                 .default_value(""),
         )
         .arg(
+            Arg::new("hashing_algorithm")
+                .long("hashing-algorithm")
+                .required(false)
+                .conflicts_with("password_hash")
+                .requires("password")
+                .value_parser(value_parser!(HashingAlgorithm))
+                .default_value("SHA256")
+                .help("The hashing algorithm to use: SHA256 or SHA512"),
+        )
+        .arg(
             Arg::new("tags")
                 .long("tags")
                 .help("a list of comma-separated tags")
@@ -2743,6 +2764,25 @@ pub fn users_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 6]
         permissions_cmd,
     ]
     .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+}
+
+pub fn passwords_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 1] {
+    let hash_password = Command::new("salt_and_hash")
+        .arg(
+            Arg::new("password")
+                .required(true)
+                .help("A cleartext password value to hash"),
+        )
+        .arg(
+            Arg::new("hashing_algorithm")
+                .long("hashing-algorithm")
+                .required(false)
+                .value_parser(value_parser!(HashingAlgorithm))
+                .default_value("SHA256")
+                .help("The hashing algorithm to use: SHA256 or SHA512"),
+        );
+
+    [hash_password].map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
 }
 
 pub fn publish_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 1] {

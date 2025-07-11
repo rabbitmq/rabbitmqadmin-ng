@@ -1454,9 +1454,7 @@ checksum = "69cdb34c158ceb288df11e18b4bd39de994f6657d83847bdffdbd7f346754b0f"
 
 [[package]]
 name = "rabbitmq_http_client"
-version = "0.37.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "133ee28f0c1964c4f047e0047087bc81ff310b0c6d63b17d05c575a96d900ec3"
+version = "0.38.0"
 dependencies = [
  "backtrace",
  "percent-encoding",
@@ -1476,7 +1474,7 @@ dependencies = [
 
 [[package]]
 name = "rabbitmqadmin"
-version = "2.5.0"
+version = "2.6.0"
 dependencies = [
  "assert_cmd",
  "clap",
@@ -2700,9 +2698,9 @@ checksum = "271414315aff87387382ec3d271b52d7ae78726f5d44ac98b4f4030c91880486"
 
 [[package]]
 name = "winnow"
-version = "0.7.11"
+version = "0.7.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "74c7b26e3480b707944fc872477815d29a8e429d2f93a1ce000f5fa84a15cbcd"
+checksum = "f3edebf492c8125044983378ecb5766203ad3b4c2f7a922bd7dd207f6d443e95"
 dependencies = [
  "memchr",
 ]

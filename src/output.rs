@@ -17,6 +17,7 @@ use crate::tables;
 use clap::ArgMatches;
 use rabbitmq_http_client::blocking_api::{HttpClientError, Result as ClientResult};
 use rabbitmq_http_client::error::Error as ClientError;
+use rabbitmq_http_client::password_hashing::HashingError;
 use rabbitmq_http_client::responses::{
     NodeMemoryBreakdown, Overview, SchemaDefinitionSyncStatus, WarmStandbyReplicationStatus,
 };
@@ -200,6 +201,20 @@ impl<'a> ResultHandler<'a> {
         }
     }
 
+    pub fn show_salted_and_hashed_value(&mut self, result: Result<String, HashingError>) {
+        match result {
+            Ok(value) => {
+                self.exit_code = Some(ExitCode::Ok);
+
+                let mut table = tables::show_salted_and_hashed_value(value);
+                self.table_styler.apply(&mut table);
+
+                println!("{}", table);
+            }
+            Err(error) => self.report_hashing_error(&error),
+        }
+    }
+
     pub fn tabular_result<T>(&mut self, result: ClientResult<Vec<T>>)
     where
         T: fmt::Debug + Tabled,
@@ -380,6 +395,13 @@ impl<'a> ResultHandler<'a> {
         eprintln!("{}", table);
         let code = client_error_to_exit_code(error);
         self.exit_code = Some(code);
+    }
+
+    fn report_hashing_error(&mut self, error: &HashingError) {
+        let mut table = tables::hashing_error_details(error);
+        self.table_styler.apply(&mut table);
+        eprintln!("{}", table);
+        self.exit_code = Some(ExitCode::DataErr);
     }
 }
 

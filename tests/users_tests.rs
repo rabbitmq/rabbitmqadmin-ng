@@ -22,8 +22,8 @@ fn test_list_users() -> Result<(), Box<dyn std::error::Error>> {
     let username = "test_list_users";
     let password = "pa$$w0rd";
     run_succeeds([
+        "users",
         "declare",
-        "user",
         "--name",
         username,
         "--password",
@@ -81,6 +81,31 @@ fn test_list_users_with_table_styles() -> Result<(), Box<dyn std::error::Error>>
 
     run_succeeds(["--table-style", "borderless", "list", "users"])
         .stdout(predicate::str::contains(username).not());
+
+    Ok(())
+}
+
+#[test]
+fn test_create_user() -> Result<(), Box<dyn std::error::Error>> {
+    let username = "test_create_user.1";
+    let password = "pa$$w0rd///8*9";
+    run_succeeds([
+        "users",
+        "declare",
+        "--name",
+        username,
+        "--password",
+        password,
+        "--hashing-algorithm",
+        "sha256",
+        "--tags",
+        "administrator",
+    ]);
+
+    run_succeeds(["--username", username, "--password", password, "users", "list"]).stdout(predicate::str::contains(username));
+    run_succeeds(["users", "delete", "--name", username]);
+
+    run_succeeds(["list", "users"]).stdout(predicate::str::contains(username).not());
 
     Ok(())
 }

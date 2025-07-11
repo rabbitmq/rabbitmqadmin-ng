@@ -13,13 +13,17 @@
 // limitations under the License.
 #![allow(clippy::result_large_err)]
 
+use crate::constants::DEFAULT_BLANKET_POLICY_PRIORITY;
 use clap::ArgMatches;
 use rabbitmq_http_client::blocking_api::Client;
 use rabbitmq_http_client::blocking_api::Result as ClientResult;
 use rabbitmq_http_client::commons;
+use rabbitmq_http_client::commons::BindingDestinationType;
+use rabbitmq_http_client::commons::QueueType;
 use rabbitmq_http_client::commons::{ExchangeType, SupportedProtocol};
 use rabbitmq_http_client::commons::{MessageTransferAcknowledgementMode, UserLimitTarget};
 use rabbitmq_http_client::commons::{PolicyTarget, VirtualHostLimitTarget};
+use rabbitmq_http_client::password_hashing::{HashingAlgorithm, HashingError};
 use rabbitmq_http_client::requests::{
     Amqp10ShovelDestinationParams, Amqp10ShovelParams, Amqp10ShovelSourceParams,
     Amqp091ShovelDestinationParams, Amqp091ShovelParams, Amqp091ShovelSourceParams,
@@ -27,17 +31,13 @@ use rabbitmq_http_client::requests::{
     FederationResourceCleanupMode, FederationUpstreamParams, PolicyParams, QueueFederationParams,
     RuntimeParameterDefinition,
 };
-use std::fs;
-use std::io;
-use std::process;
-
-use crate::constants::DEFAULT_BLANKET_POLICY_PRIORITY;
-use rabbitmq_http_client::commons::BindingDestinationType;
-use rabbitmq_http_client::commons::QueueType;
 use rabbitmq_http_client::responses::OptionalArgumentSourceOps;
 use rabbitmq_http_client::transformers::TransformationChain;
 use rabbitmq_http_client::{password_hashing, requests, responses};
 use serde_json::Value;
+use std::fs;
+use std::io;
+use std::process;
 
 type APIClient<'a> = Client<&'a str, &'a str, &'a str>;
 
@@ -910,8 +910,12 @@ pub fn declare_user(client: APIClient, command_args: &ArgMatches) -> ClientResul
     }
 
     let password_hash = if provided_hash.is_empty() {
+        let hashing_algo = command_args
+            .get_one::<HashingAlgorithm>("hashing_algorithm")
+            .unwrap();
         let salt = password_hashing::salt();
-        password_hashing::base64_encoded_salted_password_hash_sha256(&salt, password)
+        let hash = hashing_algo.salt_and_hash(&salt, password).unwrap();
+        String::from_utf8_lossy(hash.as_slice()).to_string()
     } else {
         provided_hash.to_string()
     };
@@ -922,6 +926,18 @@ pub fn declare_user(client: APIClient, command_args: &ArgMatches) -> ClientResul
         tags,
     };
     client.create_user(&params)
+}
+
+pub fn salt_and_hash_password(command_args: &ArgMatches) -> Result<String, HashingError> {
+    let password = command_args.get_one::<String>("password").cloned().unwrap();
+    let hashing_algo = command_args
+        .get_one::<HashingAlgorithm>("hashing_algorithm")
+        .unwrap();
+
+    let salt = password_hashing::salt();
+    let password_hash = hashing_algo.salt_and_hash(&salt, &password)?;
+
+    Ok(String::from_utf8_lossy(password_hash.as_slice()).to_string())
 }
 
 pub fn declare_permissions(

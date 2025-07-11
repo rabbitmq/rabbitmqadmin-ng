@@ -729,6 +729,10 @@ fn dispatch_common_subcommand(
             let result = commands::declare_parameter(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);
         }
+        ("passwords", "salt_and_hash") => {
+            let result = commands::salt_and_hash_password(second_level_args);
+            res_handler.show_salted_and_hashed_value(result)
+        }
         ("policies", "declare") => {
             let result = commands::declare_policy(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);
