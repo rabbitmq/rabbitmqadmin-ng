@@ -105,7 +105,15 @@ fn test_create_user_using_sha256_for_hashing() -> Result<(), Box<dyn std::error:
         "administrator",
     ]);
 
-    run_succeeds(["--username", username, "--password", password, "users", "list"]).stdout(predicate::str::contains(username));
+    run_succeeds([
+        "--username",
+        username,
+        "--password",
+        password,
+        "users",
+        "list",
+    ])
+    .stdout(predicate::str::contains(username));
     run_succeeds(["users", "delete", "--name", username]);
 
     run_succeeds(["list", "users"]).stdout(predicate::str::contains(username).not());
