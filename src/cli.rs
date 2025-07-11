@@ -697,6 +697,16 @@ fn declare_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 12] 
                 .default_value(""),
         )
         .arg(
+            Arg::new("hashing_algorithm")
+                .long("hashing-algorithm")
+                .required(false)
+                .conflicts_with("password_hash")
+                .requires("password")
+                .value_parser(value_parser!(HashingAlgorithm))
+                .default_value("SHA256")
+                .help("The hashing algorithm to use: SHA256 or SHA512"),
+        )
+        .arg(
             Arg::new("tags")
                 .long("tags")
                 .help("a list of comma-separated tags")
