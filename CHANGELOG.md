@@ -1,6 +1,24 @@
 # rabbitmqadmin-ng Change Log
 
-## v2.5.0 (in development)
+## v2.6.0 (in development)
+
+No changes yet.
+
+
+## v2.5.0 (Jul 11, 2025)
+
+### Enhancements
+
+ * `definitions export` now supports a new transformation: `prepare_for_quorum_queue_migration`.
+
+   ```shell
+   rabbitmqadmin definitions export --transformations prepare_for_quorum_queue_migration,drop_empty_policies --stdout
+   ```
+
+   This one not only strips off the CMQ-related keys
+   but also handles an incompatible `"overflow"`/`"x-overflow"` key value
+   and `"queue-mode"`/`"x-queue-mode"` keys, both not supported
+   by quorum queues.
 
 ### Bug Fixes
 
