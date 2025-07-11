@@ -2184,6 +2184,7 @@ A comma-separated list of names of the definition transformations to apply.
 Supported transformations:
 
  * no_op
+ * prepare_for_quorum_queue_migration
  * strip_cmq_keys_from_policies
  * drop_empty_policies
  * obfuscate_usernames
@@ -2194,6 +2195,7 @@ Supported transformations:
 
 Examples:
 
+ * --transformations prepare_for_quorum_queue_migration,drop_empty_policies
  * --transformations strip_cmq_keys_from_policies,drop_empty_policies
  * --transformations exclude_users,exclude_permissions
  * --transformations obfuscate_usernames
@@ -2455,6 +2457,7 @@ A comma-separated list of names of the definition transformations to apply.
 Supported transformations:
 
  * no_op
+ * prepare_for_quorum_queue_migration
  * strip_cmq_keys_from_policies
  * drop_empty_policies
  * obfuscate_usernames
@@ -2465,6 +2468,7 @@ Supported transformations:
 
 Examples:
 
+ * --transformations prepare_for_quorum_queue_migration,drop_empty_policies
  * --transformations strip_cmq_keys_from_policies,drop_empty_policies
  * --transformations exclude_users,exclude_permissions
  * --transformations obfuscate_usernames
