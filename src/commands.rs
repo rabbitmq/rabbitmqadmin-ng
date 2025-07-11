@@ -34,7 +34,7 @@ use std::process;
 use crate::constants::DEFAULT_BLANKET_POLICY_PRIORITY;
 use rabbitmq_http_client::commons::BindingDestinationType;
 use rabbitmq_http_client::commons::QueueType;
-use rabbitmq_http_client::responses::PolicyDefinitionOps;
+use rabbitmq_http_client::responses::OptionalArgumentSourceOps;
 use rabbitmq_http_client::transformers::TransformationChain;
 use rabbitmq_http_client::{password_hashing, requests, responses};
 use serde_json::Value;
