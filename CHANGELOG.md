@@ -1,8 +1,42 @@
 # rabbitmqadmin-ng Change Log
 
-## v2.6.0 (in development)
+## v2.7.0 (in development)
 
 No changes yet.
+
+
+## v2.6.0 (Jul 11, 2025)
+
+### Enhancements
+
+ * New command, `passwords salt_and_hash`, that implements the [password salting and hashing algorithm](https://www.rabbitmq.com/docs/passwords#computing-password-hash)
+   used by RabbitMQ's internal authentication backend:
+
+   ```shell
+   rabbitmqadmin passwords salt_and_hash "sEkr37^va1ue"
+   # => ┌───────────────┬──────────────────────────────────────────────────┐
+   # => │ Result                                                           │
+   # => ├───────────────┼──────────────────────────────────────────────────┤
+   # => │ key           │ value                                            │
+   # => ├───────────────┼──────────────────────────────────────────────────┤
+   # => │ password hash │ vRZC0bF0Ut4+6pmcQRSu87S/wRXdHRalgY5DV/5KDd5SzK69 │
+   # => └───────────────┴──────────────────────────────────────────────────┘
+   ```
+
+   This value can be passed as a `--password-hash` when creating a user with the `users declare`
+   command.
+
+ * `users declare` now supports a new argument, `--hashing-algorithm`, that accepts two
+   possible values: `sha256` (the default) and `sha512`:
+
+   ```shell
+   # RabbitMQ nodes must also be configured to use SHA-512 password hashing,
+   # or this user won't be able to authenticate against them
+   rabbitmqadmin users declare --username "username43742" --password "example_%^4@8s7" --hashing-algorithm "sha512"
+   ```
+
+   Target RabbitMQ nodes must be [configured](https://www.rabbitmq.com/docs/passwords#changing-algorithm) to use the same hashing algorithm (SHA-256 is
+   used by default).
 
 
 ## v2.5.0 (Jul 11, 2025)

@@ -88,6 +88,7 @@ Commands:
   nodes                Node operations
   operator_policies    Operations on operator policies
   parameters           Operations on runtime parameters
+  passwords            Operations on passwords
   policies             Operations on policies
   publish              Publishes (inefficiently) message(s) to a queue or a stream. Only suitable for development and test environments.
   purge                Purges queues
