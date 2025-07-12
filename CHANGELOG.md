@@ -5,7 +5,7 @@
 No changes yet.
 
 
-## v2.6.0 (Jul 11, 2025)
+## v2.6.0 (Jul 12, 2025)
 
 ### Enhancements
 
