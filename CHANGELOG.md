@@ -4,7 +4,7 @@
 
 ### Bug Fixes
 
- * Tool version was unintentionally missing from `--help` output  
+ * Tool version was unintentionally missing from `-h` output (but present in its long counterpart, `--help`)  
 
 
 ## v2.6.0 (Jul 12, 2025)
