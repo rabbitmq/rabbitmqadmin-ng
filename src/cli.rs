@@ -347,8 +347,8 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
 
     Command::new("rabbitmqadmin")
         .version(clap::crate_version!())
-        .author("RabbitMQ Core Team")
-        .about("rabbitmqadmin gen 2")
+        .author("The RabbitMQ Core Team")
+        .about(format!("rabbitmqadmin gen 2, version: {}", clap::crate_version!()))
         .long_about(format!(
             "RabbitMQ CLI that uses the HTTP API. Version: {}",
             clap::crate_version!()
