@@ -2,7 +2,9 @@
 
 ## v2.7.0 (in development)
 
-No changes yet.
+### Bug Fixes
+
+ * Tool version was unintentionally missing from `--help` output  
 
 
 ## v2.6.0 (Jul 12, 2025)
