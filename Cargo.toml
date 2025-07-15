@@ -10,7 +10,7 @@ license = "MIT OR Apache-2.0"
 clap = { version = "4", features = ["help", "color", "cargo", "env"] }
 url = "2"
 sysexits = "0.9"
-reqwest = { version = "0.12.20", features = [
+reqwest = { version = "0.12.22", features = [
     "blocking",
     "json",
     "multipart",
@@ -27,7 +27,7 @@ tabled = "0.20"
 toml = "0.8"
 color-print = "0.3"
 thiserror = "2"
-shellexpand = "3.0"
+shellexpand = "3.1"
 
 log = "0.4"
 rustls = { version = "0.23", features = ["aws_lc_rs"] }
