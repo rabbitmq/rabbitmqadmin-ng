@@ -66,7 +66,7 @@ fn main() {
 
     match configure_http_api_client(&cli, &common_settings, &endpoint.clone()) {
         Ok(client) => {
-            let exit_code = dispatch_command(&cli, client, &common_settings, endpoint);
+            let exit_code = dispatch_command(&cli, client, &common_settings);
             process::exit(exit_code.into())
         }
         Err(err) => {
@@ -116,13 +116,13 @@ fn resolve_run_configuration(cli: &ArgMatches) -> (SharedSettings, String) {
 
 fn configure_http_api_client<'a>(
     cli: &'a ArgMatches,
-    common_settings: &'a SharedSettings,
+    merged_settings: &'a SharedSettings,
     endpoint: &'a str,
 ) -> Result<APIClient, CommandRunError> {
-    let httpc = build_http_client(cli, common_settings)?;
+    let httpc = build_http_client(cli, merged_settings)?;
     // Due to how SharedSettings are computed, these should safe to unwrap()
-    let username = common_settings.username.clone().unwrap();
-    let password = common_settings.password.clone().unwrap();
+    let username = merged_settings.username.clone().unwrap();
+    let password = merged_settings.password.clone().unwrap();
     let client = build_rabbitmq_http_api_client(
         httpc,
         endpoint.to_owned(),
@@ -135,8 +135,7 @@ fn configure_http_api_client<'a>(
 fn dispatch_command(
     cli: &ArgMatches,
     client: APIClient,
-    common_settings: &SharedSettings,
-    endpoint: String,
+    merged_settings: &SharedSettings,
 ) -> ExitCode {
     if let Some((first_level, first_level_args)) = cli.subcommand() {
         if let Some((second_level, second_level_args)) = first_level_args.subcommand() {
@@ -144,7 +143,7 @@ fn dispatch_command(
             if first_level == TANZU_COMMAND_PREFIX {
                 if let Some((third_level, third_level_args)) = second_level_args.subcommand() {
                     let pair = (second_level, third_level);
-                    let mut res_handler = ResultHandler::new(common_settings, second_level_args);
+                    let mut res_handler = ResultHandler::new(merged_settings, second_level_args);
                     return dispatch_tanzu_subcommand(
                         pair,
                         third_level_args,
@@ -155,13 +154,13 @@ fn dispatch_command(
             } else {
                 // this is a common (OSS and Tanzu) command
                 let pair = (first_level, second_level);
-                let vhost = virtual_host(common_settings, second_level_args);
-                let mut res_handler = ResultHandler::new(common_settings, second_level_args);
+                let vhost = virtual_host(merged_settings, second_level_args);
+                let mut res_handler = ResultHandler::new(merged_settings, second_level_args);
                 return dispatch_common_subcommand(
                     pair,
                     second_level_args,
                     client,
-                    endpoint,
+                    merged_settings.endpoint(),
                     vhost,
                     &mut res_handler,
                 );
@@ -192,12 +191,12 @@ fn build_http_client(
     if should_use_tls(common_settings) {
         let _ = CryptoProvider::install_default(rustls::crypto::aws_lc_rs::default_provider());
 
-        let ca_cert_pem_file = cli.get_one::<PathBuf>("tls-ca-cert-file");
-
-        let maybe_client_cert_pem_file = cli.get_one::<PathBuf>("tls-cert-file");
-        let maybe_client_key_pem_file = cli.get_one::<PathBuf>("tls-key-file");
+        let ca_cert_pem_file = common_settings.ca_certificate_bundle_path.clone();
+        let maybe_client_cert_pem_file = common_settings.client_certificate_file_path.clone();
+        let maybe_client_key_pem_file = common_settings.client_private_key_file_path.clone();
 
         let ca_certs = ca_cert_pem_file
+            .clone()
             .map(|path| load_certs(&path.to_string_lossy()))
             .unwrap()?;
 
@@ -209,15 +208,18 @@ fn build_http_client(
             .tls_info(true)
             .tls_sni(true)
             .min_tls_version(reqwest::tls::Version::TLS_1_2)
+            .tls_built_in_native_certs(true)
             .tls_built_in_root_certs(true)
             .danger_accept_invalid_certs(disable_peer_verification)
             .danger_accept_invalid_hostnames(disable_peer_verification);
 
-        // --tls-ca-cert-file
+        // local certificate store
         let mut store = rustls::RootCertStore::empty();
+
         for c in ca_certs {
             store.add(c).map_err(|err| {
-                let readable_path = maybe_client_cert_pem_file
+                let readable_path = ca_cert_pem_file
+                    .clone()
                     .unwrap()
                     .to_string_lossy()
                     .to_string();
@@ -230,8 +232,8 @@ fn build_http_client(
 
         // --tls-cert-file, --tls-key-file
         if maybe_client_cert_pem_file.is_some() && maybe_client_key_pem_file.is_some() {
-            let client_cert_pem_file = maybe_client_cert_pem_file.unwrap();
-            let client_key_pem_file = maybe_client_key_pem_file.unwrap();
+            let client_cert_pem_file = maybe_client_cert_pem_file.clone().unwrap();
+            let client_key_pem_file = maybe_client_key_pem_file.clone().unwrap();
 
             let client_cert = fs::read(client_cert_pem_file)?;
             let client_key = fs::read(client_key_pem_file)?;
@@ -239,6 +241,7 @@ fn build_http_client(
             let concatenated = [&client_cert[..], &client_key[..]].concat();
             let client_id = Identity::from_pem(&concatenated).map_err(|err| {
                 let readable_path = maybe_client_key_pem_file
+                    .clone()
                     .unwrap()
                     .to_string_lossy()
                     .to_string();

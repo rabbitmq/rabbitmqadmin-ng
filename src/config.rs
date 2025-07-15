@@ -63,7 +63,7 @@ pub enum ConfigFileError {
     MissingConfigSection(String),
     #[error(transparent)]
     IoError(#[from] std::io::Error),
-    #[error("failed to deserialize config file. Make sure it is valid TOML")]
+    #[error("failed to deserialize config file. Make sure it is valid TOML. Details: {0}")]
     DeserializationError(#[from] toml::de::Error),
 }
 
@@ -103,6 +103,13 @@ pub struct SharedSettings {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub table_style: Option<TableStyle>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ca_certificate_bundle_path: Option<PathBuf>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub client_certificate_file_path: Option<PathBuf>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub client_private_key_file_path: Option<PathBuf>,
 }
 
 impl SharedSettings {
@@ -148,10 +155,9 @@ impl SharedSettings {
 
     pub fn new_with_defaults(cli_args: &ArgMatches, config_file_defaults: &Self) -> Self {
         let default_hostname = DEFAULT_HOST.to_string();
-        let should_use_tls = cli_args
-            .get_one::<bool>("tls")
-            .cloned()
-            .unwrap_or(config_file_defaults.tls);
+        let should_use_tls =
+            cli_args.get_one::<bool>("tls").cloned().unwrap_or(false) || config_file_defaults.tls;
+
         let non_interactive = cli_args
             .get_one::<bool>("non_interactive")
             .cloned()
@@ -207,8 +213,27 @@ impl SharedSettings {
             .or(Some(TableStyle::default()))
             .unwrap_or_default();
 
+        let ca_certificate_bundle_path = cli_args
+            .get_one::<PathBuf>("ca_certificate_bundle_path")
+            .cloned()
+            .or(config_file_defaults.ca_certificate_bundle_path.clone());
+
+        let client_certificate_file_path = cli_args
+            .get_one::<PathBuf>("client_certificate_file_path")
+            .cloned()
+            .or(config_file_defaults.client_certificate_file_path.clone());
+
+        let client_private_key_file_path = cli_args
+            .get_one::<PathBuf>("client_private_key_file_path")
+            .cloned()
+            .or(config_file_defaults.client_private_key_file_path.clone());
+
         Self {
             tls: should_use_tls,
+            ca_certificate_bundle_path,
+            client_certificate_file_path,
+            client_private_key_file_path,
+
             non_interactive,
             quiet,
             base_uri: None,
@@ -274,8 +299,24 @@ impl SharedSettings {
             .or(Some(TableStyle::default()))
             .unwrap_or_default();
 
+        let ca_certificate_bundle_path = cli_args
+            .get_one::<PathBuf>("ca_certificate_bundle_path")
+            .cloned();
+
+        let client_certificate_file_path = cli_args
+            .get_one::<PathBuf>("client_certificate_file_path")
+            .cloned();
+
+        let client_private_key_file_path = cli_args
+            .get_one::<PathBuf>("client_private_key_file_path")
+            .cloned();
+
         Self {
             tls: should_use_tls,
+            ca_certificate_bundle_path,
+            client_certificate_file_path,
+            client_private_key_file_path,
+
             non_interactive,
             quiet,
             base_uri: None,
@@ -348,8 +389,24 @@ impl SharedSettings {
             .or(Some(TableStyle::default()))
             .unwrap_or_default();
 
+        let ca_certificate_bundle_path = cli_args
+            .get_one::<PathBuf>("ca_certificate_bundle_path")
+            .cloned();
+
+        let client_certificate_file_path = cli_args
+            .get_one::<PathBuf>("client_certificate_file_path")
+            .cloned();
+
+        let client_private_key_file_path = cli_args
+            .get_one::<PathBuf>("client_private_key_file_path")
+            .cloned();
+
         Self {
             tls: should_use_tls,
+            ca_certificate_bundle_path,
+            client_certificate_file_path,
+            client_private_key_file_path,
+
             non_interactive,
             quiet,
             base_uri: Some(url.to_string()),
@@ -414,8 +471,24 @@ impl SharedSettings {
             .or(Some(TableStyle::default()))
             .unwrap_or_default();
 
+        let ca_certificate_bundle_path = cli_args
+            .get_one::<PathBuf>("ca_certificate_bundle_path")
+            .cloned();
+
+        let client_certificate_file_path = cli_args
+            .get_one::<PathBuf>("client_certificate_file_path")
+            .cloned();
+
+        let client_private_key_file_path = cli_args
+            .get_one::<PathBuf>("client_private_key_file_path")
+            .cloned();
+
         Self {
             tls: should_use_tls,
+            ca_certificate_bundle_path,
+            client_certificate_file_path,
+            client_private_key_file_path,
+
             non_interactive,
             quiet,
             base_uri: Some(url.to_string()),

@@ -2,10 +2,33 @@
 
 ## v2.7.0 (in development)
 
+### Enhancements
+
+ * `rabbitmqadmin.conf` now supports more TLS-related settings: `ca_certificate_bundle_path` (corresponds to `--tls-ca-cert-file` on the command line), 
+   `client_certificate_file_path` (corresponds to `--tls-cert-file`), and `client_private_key_file_path` (corresponds to `--tls-key-file`). 
+
+   As the names suggest, they are used to configure the CA certificate bundle file path, the client certificate file path,
+   and the client private key file path, respectively:
+ 
+   ```toml
+    [production]
+    hostname = "(redacted)"
+    port = 15671
+    username = "user-efe1f4d763f6"
+    password = "(redacted)"
+    tls = true
+    ca_certificate_bundle_path = "/path/to/ca_certificate.pem"
+    client_certificate_file_path = "/path/to/client_certificate.pem"
+    client_private_key_file_path = "/path/to/client_key.pem"
+   ```
+
+   To learn more, see [RabbitMQ's TLS guide](https://www.rabbitmq.com/docs/ssl).
+
 ### Bug Fixes
 
  * Tool version was unintentionally missing from `-h` output (but present in its long counterpart, `--help`)  
-
+ * The `tls` setting in `rabbitmqadmin.conf`, a `--use-tls` equivalent, was not respected when connecting to a node 
+   in certain cases
 
 ## v2.6.0 (Jul 12, 2025)
 

@@ -462,12 +462,11 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
                 .help("use TLS (HTTPS) for HTTP API requests ")
                 .env("RABBITMQADMIN_USE_TLS")
                 .value_parser(value_parser!(bool))
-                .action(ArgAction::SetTrue)
-                .requires("tls-ca-cert-file"),
+                .action(ArgAction::SetTrue),
         )
         // --tls-ca-cert-file
         .arg(
-            Arg::new("tls-ca-cert-file")
+            Arg::new("ca_certificate_bundle_path")
                 .long("tls-ca-cert-file")
                 .required(false)
                 .help("Local path to a CA certificate file in the PEM format")
@@ -475,19 +474,19 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         )
         // --tls-cert-file
         .arg(
-            Arg::new("tls-cert-file")
+            Arg::new("client_certificate_file_path")
                 .long("tls-cert-file")
                 .required(false)
-                .requires("tls-key-file")
+                .requires("tls")
                 .help("Local path to a client certificate file in the PEM format")
                 .value_parser(value_parser!(PathBuf)),
         )
         // --tls-key-file
         .arg(
-            Arg::new("tls-key-file")
+            Arg::new("client_private_key_file_path")
                 .long("tls-key-file")
                 .required(false)
-                .requires("tls-cert-file")
+                .requires("tls")
                 .help("Local path to a client private key file in the PEM format")
                 .value_parser(value_parser!(PathBuf)),
         )
