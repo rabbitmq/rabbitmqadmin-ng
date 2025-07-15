@@ -48,7 +48,7 @@ use reqwest::blocking::Client as HTTPClient;
 use rustls::crypto::CryptoProvider;
 use rustls::pki_types::{CertificateDer, PrivateKeyDer};
 
-type APIClient<'a> = GenericAPIClient<&'a str, &'a str, &'a str>;
+type APIClient = GenericAPIClient<String, String, String>;
 
 fn main() {
     let pre_flight_settings = match pre_flight::is_non_interactive() {
@@ -61,91 +61,13 @@ fn main() {
 
     let parser = cli::parser(pre_flight_settings);
     let cli = parser.get_matches();
-    let default_config_file_path = PathBuf::from(DEFAULT_CONFIG_FILE_PATH);
-    let config_file_path = cli
-        .get_one::<PathBuf>("config_file_path")
-        .cloned()
-        .unwrap_or(PathBuf::from(DEFAULT_CONFIG_FILE_PATH));
-    let uses_default_config_file_path = config_file_path == default_config_file_path;
 
-    // config file entries are historically called nodes
-    let node_alias = cli
-        .get_one::<String>("node_alias")
-        .cloned()
-        .or(Some(DEFAULT_NODE_ALIAS.to_string()));
+    let (common_settings, endpoint) = resolve_run_configuration(&cli);
 
-    let cf_ss = SharedSettings::from_config_file(&config_file_path, node_alias.clone());
-    // If the default config file path is used and the function above
-    // reports that it is not found, continue. Otherwise exit.
-    if cf_ss.is_err() && !uses_default_config_file_path {
-        eprintln!(
-            "Encountered an error when trying to load configuration for node alias '{}' in configuration file '{}'",
-            &node_alias.unwrap(),
-            config_file_path.to_str().unwrap()
-        );
-        eprintln!("Underlying error: {}", cf_ss.unwrap_err());
-        process::exit(ExitCode::DataErr.into())
-    }
-    let common_settings = if let Ok(val) = cf_ss {
-        SharedSettings::from_args_with_defaults(&cli, &val)
-    } else {
-        SharedSettings::from_args(&cli)
-    };
-    let endpoint = common_settings.endpoint();
-
-    let httpc_result = build_http_client(&cli, &common_settings);
-    match httpc_result {
-        Ok(httpc) => {
-            // SharedSettings considers not just one but multiple ways to obtain
-            // the value if it wasn't passed on the command line, so these are
-            // safe to unwrap()
-            let username = common_settings.username.clone().unwrap();
-            let password = common_settings.password.clone().unwrap();
-            let client = build_rabbitmq_http_api_client(httpc, &endpoint, &username, &password);
-
-            if let Some((first_level, first_level_args)) = cli.subcommand() {
-                if let Some((second_level, second_level_args)) = first_level_args.subcommand() {
-                    // this is a Tanzu RabbitMQ-specific command, these are grouped under "tanzu"
-                    if first_level == TANZU_COMMAND_PREFIX {
-                        if let Some((third_level, third_level_args)) =
-                            second_level_args.subcommand()
-                        {
-                            let pair = (second_level, third_level);
-
-                            // let vhost = virtual_host(&common_settings, second_level_args);
-
-                            let mut res_handler =
-                                ResultHandler::new(&common_settings, second_level_args);
-                            let exit_code = dispatch_tanzu_subcommand(
-                                pair,
-                                third_level_args,
-                                client,
-                                &mut res_handler,
-                            );
-
-                            process::exit(exit_code.into())
-                        }
-                    } else {
-                        // this is a common (OSS and Tanzu) command
-                        let pair = (first_level, second_level);
-
-                        let vhost = virtual_host(&common_settings, second_level_args);
-
-                        let mut res_handler =
-                            ResultHandler::new(&common_settings, second_level_args);
-                        let exit_code = dispatch_common_subcommand(
-                            pair,
-                            second_level_args,
-                            client,
-                            common_settings.endpoint(),
-                            vhost,
-                            &mut res_handler,
-                        );
-
-                        process::exit(exit_code.into())
-                    }
-                }
-            }
+    match configure_http_api_client(&cli, &common_settings, &endpoint.clone()) {
+        Ok(client) => {
+            let exit_code = dispatch_command(&cli, client, &common_settings, endpoint);
+            process::exit(exit_code.into())
         }
         Err(err) => {
             let mut res_handler = ResultHandler::new(&common_settings, &cli);
@@ -156,12 +78,105 @@ fn main() {
     }
 }
 
-fn build_rabbitmq_http_api_client<'a>(
-    httpc: HTTPClient,
+fn resolve_run_configuration(cli: &ArgMatches) -> (SharedSettings, String) {
+    let default_config_file_path = PathBuf::from(DEFAULT_CONFIG_FILE_PATH);
+    let config_file_path = cli
+        .get_one::<PathBuf>("config_file_path")
+        .cloned()
+        .unwrap_or(PathBuf::from(DEFAULT_CONFIG_FILE_PATH));
+    let uses_default_config_file_path = config_file_path == default_config_file_path;
+    // config file entries are historically called nodes
+    let node_alias = cli
+        .get_one::<String>("node_alias")
+        .cloned()
+        .or(Some(DEFAULT_NODE_ALIAS.to_string()));
+
+    // If the default config file path is used and the function above
+    // reports that it is not found, continue. Otherwise, exit.
+    let cf_ss = SharedSettings::from_config_file(&config_file_path, node_alias.clone());
+    if cf_ss.is_err() && !uses_default_config_file_path {
+        eprintln!(
+            "Encountered an error when trying to load configuration for node alias '{}' in configuration file '{}'",
+            &node_alias.unwrap(),
+            config_file_path.to_str().unwrap()
+        );
+        eprintln!("Underlying error: {}", cf_ss.unwrap_err());
+        process::exit(ExitCode::DataErr.into())
+    }
+
+    let common_settings = if let Ok(val) = cf_ss {
+        SharedSettings::from_args_with_defaults(cli, &val)
+    } else {
+        SharedSettings::from_args(cli)
+    };
+    let endpoint = common_settings.endpoint();
+
+    (common_settings, endpoint)
+}
+
+fn configure_http_api_client<'a>(
+    cli: &'a ArgMatches,
+    common_settings: &'a SharedSettings,
     endpoint: &'a str,
-    username: &'a str,
-    password: &'a str,
-) -> APIClient<'a> {
+) -> Result<APIClient, CommandRunError> {
+    let httpc = build_http_client(cli, common_settings)?;
+    // Due to how SharedSettings are computed, these should safe to unwrap()
+    let username = common_settings.username.clone().unwrap();
+    let password = common_settings.password.clone().unwrap();
+    let client = build_rabbitmq_http_api_client(
+        httpc,
+        endpoint.to_owned(),
+        username.clone(),
+        password.clone(),
+    );
+    Ok(client)
+}
+
+fn dispatch_command(
+    cli: &ArgMatches,
+    client: APIClient,
+    common_settings: &SharedSettings,
+    endpoint: String,
+) -> ExitCode {
+    if let Some((first_level, first_level_args)) = cli.subcommand() {
+        if let Some((second_level, second_level_args)) = first_level_args.subcommand() {
+            // this is a Tanzu RabbitMQ-specific command, these are grouped under "tanzu"
+            if first_level == TANZU_COMMAND_PREFIX {
+                if let Some((third_level, third_level_args)) = second_level_args.subcommand() {
+                    let pair = (second_level, third_level);
+                    let mut res_handler = ResultHandler::new(common_settings, second_level_args);
+                    return dispatch_tanzu_subcommand(
+                        pair,
+                        third_level_args,
+                        client,
+                        &mut res_handler,
+                    );
+                }
+            } else {
+                // this is a common (OSS and Tanzu) command
+                let pair = (first_level, second_level);
+                let vhost = virtual_host(common_settings, second_level_args);
+                let mut res_handler = ResultHandler::new(common_settings, second_level_args);
+                return dispatch_common_subcommand(
+                    pair,
+                    second_level_args,
+                    client,
+                    endpoint,
+                    vhost,
+                    &mut res_handler,
+                );
+            }
+        }
+    }
+    ExitCode::Usage
+}
+
+fn build_rabbitmq_http_api_client(
+    httpc: HTTPClient,
+    endpoint: String,
+    username: String,
+    password: String,
+) -> APIClient {
     ClientBuilder::new()
         .with_endpoint(endpoint)
         .with_basic_auth_credentials(username, password)
@@ -275,7 +290,7 @@ fn load_private_key(filename: &str) -> Result<PrivateKeyDer<'static>, CommandRun
 fn dispatch_common_subcommand(
     pair: (&str, &str),
     second_level_args: &ArgMatches,
-    client: APIClient<'_>,
+    client: APIClient,
     endpoint: String,
     vhost: String,
     res_handler: &mut ResultHandler,
@@ -957,7 +972,7 @@ fn dispatch_common_subcommand(
 fn dispatch_tanzu_subcommand(
     pair: (&str, &str),
     third_level_args: &ArgMatches,
-    client: APIClient<'_>,
+    client: APIClient,
     res_handler: &mut ResultHandler,
 ) -> ExitCode {
     match &pair {

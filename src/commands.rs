@@ -39,7 +39,7 @@ use std::fs;
 use std::io;
 use std::process;
 
-type APIClient<'a> = Client<&'a str, &'a str, &'a str>;
+type APIClient = Client<String, String, String>;
 
 pub fn show_overview(client: APIClient) -> ClientResult<responses::Overview> {
     client.overview()
