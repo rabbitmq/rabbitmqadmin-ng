@@ -24,6 +24,30 @@ use tabled::settings::Panel;
 use tabled::{Table, Tabled};
 use url::Url;
 
+fn build_table_with_header<T: Tabled>(data: Vec<T>, header: &str) -> Table {
+    let mut table = Table::builder(data).build();
+    table.with(Panel::header(header));
+    table
+}
+
+fn build_simple_table<T: Tabled>(data: Vec<T>) -> Table {
+    Table::builder(data).build()
+}
+
+fn build_request_failure_table(result: &str, reason: &str) -> Table {
+    let data = vec![
+        RowOfTwo {
+            key: "result",
+            value: result,
+        },
+        RowOfTwo {
+            key: "reason",
+            value: reason,
+        },
+    ];
+    build_simple_table(data)
+}
+
 #[derive(Debug, Tabled)]
 struct OverviewRow<'a> {
     key: &'a str,
@@ -144,10 +168,7 @@ pub fn overview(ov: Overview) -> Table {
             value: display_tag_map_option(&ov.node_tags),
         },
     ];
-    let tb = Table::builder(data);
-    let mut t = tb.build();
-    t.with(Panel::header("Overview"));
-    t
+    build_table_with_header(data, "Overview")
 }
 
 pub fn churn_overview(ov: Overview) -> Table {
@@ -181,12 +202,10 @@ pub fn churn_overview(ov: Overview) -> Table {
             value: ov.churn_rates.queue_deleted.to_string(),
         },
     ];
-    let tb = Table::builder(data);
-    let mut t = tb.build();
-    t.with(Panel::header(
+    build_table_with_header(
+        data,
         "Entity (connections, queues, etc) churn over the most recent sampling period",
-    ));
-    t
+    )
 }
 
 pub fn show_salted_and_hashed_value(value: String) -> Table {
@@ -194,10 +213,7 @@ pub fn show_salted_and_hashed_value(value: String) -> Table {
         key: "password hash",
         value: value.as_str(),
     }];
-    let tb = Table::builder(data);
-    let mut t = tb.build();
-    t.with(Panel::header("Result"));
-    t
+    build_table_with_header(data, "Result")
 }
 
 pub fn schema_definition_sync_status(status: SchemaDefinitionSyncStatus) -> Table {
@@ -257,10 +273,7 @@ pub fn schema_definition_sync_status(status: SchemaDefinitionSyncStatus) -> Tabl
         data.push(row)
     }
 
-    let tb = Table::builder(data);
-    let mut t = tb.build();
-    t.with(Panel::header("Schema Definition Sync Status"));
-    t
+    build_table_with_header(data, "Schema Definition Sync Status")
 }
 
 pub fn failure_details(error: &HttpClientError) -> Table {
@@ -365,9 +378,7 @@ pub fn failure_details(error: &HttpClientError) -> Table {
                     value: status_code_s.as_str(),
                 },
             ];
-
-            let tb = Table::builder(data);
-            tb.build()
+            build_simple_table(data)
         }
         HttpClientError::MultipleMatchingBindings => {
             let data = vec![
@@ -384,44 +395,17 @@ pub fn failure_details(error: &HttpClientError) -> Table {
                     value: "multiple bindings found between the source and destination, please specify a --routing-key of the target binding",
                 },
             ];
-
-            let tb = Table::builder(data);
-            tb.build()
+            build_simple_table(data)
         }
         HttpClientError::InvalidHeaderValue { .. } => {
-            let reason = "invalid HTTP request header value";
-            let data = vec![
-                RowOfTwo {
-                    key: "result",
-                    value: "request failed",
-                },
-                RowOfTwo {
-                    key: "reason",
-                    value: reason,
-                },
-            ];
-
-            let tb = Table::builder(data);
-            tb.build()
+            build_request_failure_table("request failed", "invalid HTTP request header value")
         }
         HttpClientError::IncompatibleBody { error, .. } => {
             let reason = format!(
                 "response body is not compatible with the requested data type: {}",
                 error
             );
-            let data = vec![
-                RowOfTwo {
-                    key: "result",
-                    value: "request failed",
-                },
-                RowOfTwo {
-                    key: "reason",
-                    value: &reason,
-                },
-            ];
-
-            let tb = Table::builder(data);
-            tb.build()
+            build_request_failure_table("request failed", &reason)
         }
         HttpClientError::RequestError {
             error,
@@ -493,8 +477,7 @@ pub fn failure_details(error: &HttpClientError) -> Table {
                 },
             ];
 
-            let tb = Table::builder(data);
-            tb.build()
+            build_simple_table(data)
         }
     }
 }
@@ -527,25 +510,20 @@ fn generic_failed_request_details(
         },
     ];
 
-    let tb = Table::builder(data);
-    tb.build()
+    build_simple_table(data)
 }
 
 pub fn hashing_error_details(error: &HashingError) -> Table {
-    let details = format!("{}", error);
-    let data = vec![
+    build_simple_table(vec![
         RowOfTwo {
             key: "result",
             value: "hashing failed",
         },
         RowOfTwo {
             key: "details",
-            value: details.as_str(),
+            value: &error.to_string(),
         },
-    ];
-
-    let tb = Table::builder(data);
-    tb.build()
+    ])
 }
 
 pub fn health_check_failure(
@@ -760,8 +738,7 @@ pub(crate) fn memory_breakdown_in_bytes(breakdown: NodeMemoryBreakdown) -> Table
     ];
     // Note: this is descending ordering
     data.sort_by(|a, b| b.value.cmp(a.value));
-    let tb = Table::builder(data);
-    tb.build()
+    build_simple_table(data)
 }
 
 pub(crate) fn memory_breakdown_in_percent(mut breakdown: NodeMemoryBreakdown) -> Table {
@@ -954,6 +931,5 @@ pub(crate) fn memory_breakdown_in_percent(mut breakdown: NodeMemoryBreakdown) ->
     ];
     // Note: this is descending ordering
     data.sort_by(|a, b| b.comparable.total_cmp(&a.comparable));
-    let tb = Table::builder(data);
-    tb.build()
+    build_simple_table(data)
 }
