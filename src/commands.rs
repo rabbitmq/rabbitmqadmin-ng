@@ -915,7 +915,7 @@ pub fn declare_user(client: APIClient, command_args: &ArgMatches) -> ClientResul
             .unwrap();
         let salt = password_hashing::salt();
         let hash = hashing_algo.salt_and_hash(&salt, password).unwrap();
-        String::from_utf8(hash).unwrap().to_string()
+        String::from_utf8(hash.into()).unwrap().to_string()
     } else {
         provided_hash.to_string()
     };
@@ -937,7 +937,7 @@ pub fn salt_and_hash_password(command_args: &ArgMatches) -> Result<String, Hashi
     let salt = password_hashing::salt();
     let password_hash = hashing_algo.salt_and_hash(&salt, &password)?;
 
-    Ok(String::from_utf8_lossy(password_hash.as_slice()).to_string())
+    Ok(password_hash)
 }
 
 pub fn declare_permissions(
