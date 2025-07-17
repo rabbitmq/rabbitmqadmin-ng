@@ -8,7 +8,16 @@
 
    The tool now properly handles cases where a [CA certificate](https://www.rabbitmq.com/docs/ssl#peer-verification) file path is not provided, making
    CA certificate loading optional rather than required, which prevents crashes when TLS is used
-   without a custom CA certificate bundle.
+   without a custom CA certificate bundle
+
+ * `show overview` could panic when run against a freshly booted RabbitMQ node that did not have certain
+   metrics/rates initialized and available. Now those metrics will use the default values for their types,
+   such as `0` and `0.0` for the counters, gauges, rates
+
+### Upgrades
+
+* RabbitMQ HTTP API client was upgraded to [`0.40.0`](https://github.com/michaelklishin/rabbitmq-http-api-rs/releases/tag/v0.40.0)
+
 
 ## v2.7.0 (Jul 15, 2025)
 
