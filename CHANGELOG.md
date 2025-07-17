@@ -1,6 +1,11 @@
 # rabbitmqadmin-ng Change Log
 
-## v2.7.1 (in development)
+## v2.8.0 (in development)
+
+No changes yet.
+
+
+## v2.7.1 (Jul 17, 2025)
 
 ### Bug Fixes
 
