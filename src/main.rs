@@ -195,10 +195,7 @@ fn build_http_client(
         let maybe_client_cert_pem_file = common_settings.client_certificate_file_path.clone();
         let maybe_client_key_pem_file = common_settings.client_private_key_file_path.clone();
 
-        let ca_certs = ca_cert_pem_file
-            .clone()
-            .map(|path| load_certs(&path.to_string_lossy()))
-            .unwrap()?;
+        let ca_certs_path_opt = ca_cert_pem_file.clone();
 
         let disable_peer_verification = *cli.get_one::<bool>("insecure").unwrap_or(&false);
 
@@ -216,18 +213,22 @@ fn build_http_client(
         // local certificate store
         let mut store = rustls::RootCertStore::empty();
 
-        for c in ca_certs {
-            store.add(c).map_err(|err| {
-                let readable_path = ca_cert_pem_file
-                    .clone()
-                    .unwrap()
-                    .to_string_lossy()
-                    .to_string();
-                CommandRunError::CertificateStoreRejectedCertificate {
-                    local_path: readable_path,
-                    cause: err,
-                }
-            })?;
+        if let Some(ca_certs_path) = ca_certs_path_opt {
+            let ca_certs = load_certs(&ca_certs_path.to_string_lossy())?;
+
+            for c in ca_certs {
+                store.add(c).map_err(|err| {
+                    let readable_path = ca_cert_pem_file
+                        .clone()
+                        .unwrap()
+                        .to_string_lossy()
+                        .to_string();
+                    CommandRunError::CertificateStoreRejectedCertificate {
+                        local_path: readable_path,
+                        cause: err,
+                    }
+                })?;
+            }
         }
 
         // --tls-cert-file, --tls-key-file
@@ -266,15 +267,13 @@ fn build_http_client(
 type CertificateChain = Vec<CertificateDer<'static>>;
 
 fn load_certs(filename: &str) -> Result<CertificateChain, CommandRunError> {
-    let results = CertificateDer::pem_file_iter(filename)
-        .map_err(|err| {
-            let readable_path = filename.to_string();
-            CommandRunError::CertificateFileCouldNotBeLoaded2 {
-                local_path: readable_path,
-                cause: err,
-            }
-        })
-        .unwrap();
+    let results = CertificateDer::pem_file_iter(filename).map_err(|err| {
+        let readable_path = filename.to_string();
+        CommandRunError::CertificateFileCouldNotBeLoaded2 {
+            local_path: readable_path,
+            cause: err,
+        }
+    })?;
     let certs = results.map(|it| it.unwrap()).collect::<CertificateChain>();
     Ok(certs)
 }
