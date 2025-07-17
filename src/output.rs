@@ -379,6 +379,11 @@ impl<'a> ResultHandler<'a> {
             CommandRunError::UnknownCommandTarget { .. } => ExitCode::Usage,
             CommandRunError::CertificateFileCouldNotBeLoaded1 { .. } => ExitCode::DataErr,
             CommandRunError::CertificateFileCouldNotBeLoaded2 { .. } => ExitCode::DataErr,
+            CommandRunError::CertificateFileNotFound { .. } => ExitCode::DataErr,
+            CommandRunError::CertificateFileEmpty { .. } => ExitCode::DataErr,
+            CommandRunError::CertificateFileInvalidPem { .. } => ExitCode::DataErr,
+            CommandRunError::PrivateKeyFileUnsupported { .. } => ExitCode::DataErr,
+            CommandRunError::CertificateKeyMismatch { .. } => ExitCode::DataErr,
             CommandRunError::IoError { .. } => ExitCode::DataErr,
             _ => ExitCode::Usage,
         };

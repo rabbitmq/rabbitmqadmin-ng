@@ -47,6 +47,18 @@ pub enum CommandRunError {
         local_path: String,
         cause: rustls::Error,
     },
+    #[error("TLS certificate file at {local_path} does not exist or is not readable")]
+    CertificateFileNotFound { local_path: String },
+    #[error(
+        "TLS certificate file at {local_path} could not be parsed, is empty or contains no valid certificates"
+    )]
+    CertificateFileEmpty { local_path: String },
+    #[error("TLS certificate file at {local_path} contains invalid PEM data: {details}")]
+    CertificateFileInvalidPem { local_path: String, details: String },
+    #[error("TLS private key file at {local_path} contains an unsupported key type or format")]
+    PrivateKeyFileUnsupported { local_path: String },
+    #[error("TLS certificate and private key files do not match")]
+    CertificateKeyMismatch { cert_path: String, key_path: String },
     #[error("API responded with a client error: status code of {status_code}")]
     ClientError {
         status_code: StatusCode,

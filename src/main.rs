@@ -214,17 +214,50 @@ fn build_http_client(
         let mut store = rustls::RootCertStore::empty();
 
         if let Some(ca_certs_path) = ca_certs_path_opt {
-            let ca_certs = load_certs(&ca_certs_path.to_string_lossy())?;
+            let ca_certs_path_str = ca_certs_path.to_string_lossy();
 
-            for c in ca_certs {
-                store.add(c).map_err(|err| {
+            // Load CA certificates with improved error handling
+            let ca_certs = load_certs(&ca_certs_path_str).map_err(|err| {
+                // Add context about this being a CA certificate bundle
+                match err {
+                    CommandRunError::CertificateFileNotFound { local_path } => {
+                        CommandRunError::CertificateFileNotFound {
+                            local_path: format!("CA certificate bundle at {}", local_path),
+                        }
+                    }
+                    CommandRunError::CertificateFileEmpty { local_path } => {
+                        CommandRunError::CertificateFileEmpty {
+                            local_path: format!("CA certificate bundle at {}", local_path),
+                        }
+                    }
+                    CommandRunError::CertificateFileInvalidPem {
+                        local_path,
+                        details,
+                    } => CommandRunError::CertificateFileInvalidPem {
+                        local_path: format!("CA certificate bundle at {}", local_path),
+                        details,
+                    },
+                    other => other,
+                }
+            })?;
+
+            for (index, cert) in ca_certs.into_iter().enumerate() {
+                store.add(cert).map_err(|err| {
                     let readable_path = ca_cert_pem_file
                         .clone()
                         .unwrap()
                         .to_string_lossy()
                         .to_string();
+
+                    // Provide more context about which certificate failed
+                    let detailed_path = if index == 0 {
+                        readable_path
+                    } else {
+                        format!("{} (certificate #{} in bundle)", readable_path, index + 1)
+                    };
+
                     CommandRunError::CertificateStoreRejectedCertificate {
-                        local_path: readable_path,
+                        local_path: detailed_path,
                         cause: err,
                     }
                 })?;
@@ -236,19 +269,42 @@ fn build_http_client(
             let client_cert_pem_file = maybe_client_cert_pem_file.clone().unwrap();
             let client_key_pem_file = maybe_client_key_pem_file.clone().unwrap();
 
-            let client_cert = fs::read(client_cert_pem_file)?;
-            let client_key = fs::read(client_key_pem_file)?;
+            let cert_path = client_cert_pem_file.to_string_lossy().to_string();
+            let key_path = client_key_pem_file.to_string_lossy().to_string();
+
+            // Validate both files exist and are readable
+            validate_certificate_file(&cert_path)?;
+            validate_certificate_file(&key_path)?;
+
+            let client_cert = fs::read(&client_cert_pem_file).map_err(|err| {
+                CommandRunError::CertificateFileCouldNotBeLoaded2 {
+                    local_path: cert_path.clone(),
+                    cause: rustls::pki_types::pem::Error::Io(err),
+                }
+            })?;
+
+            let client_key = fs::read(&client_key_pem_file).map_err(|err| {
+                CommandRunError::CertificateFileCouldNotBeLoaded2 {
+                    local_path: key_path.clone(),
+                    cause: rustls::pki_types::pem::Error::Io(err),
+                }
+            })?;
 
             let concatenated = [&client_cert[..], &client_key[..]].concat();
             let client_id = Identity::from_pem(&concatenated).map_err(|err| {
-                let readable_path = maybe_client_key_pem_file
-                    .clone()
-                    .unwrap()
-                    .to_string_lossy()
-                    .to_string();
-                CommandRunError::CertificateFileCouldNotBeLoaded1 {
-                    local_path: readable_path,
-                    cause: err,
+                // Try to determine if it's a key/cert mismatch or other issue
+                if err.to_string().contains("private key")
+                    || err.to_string().contains("certificate")
+                {
+                    CommandRunError::CertificateKeyMismatch {
+                        cert_path: cert_path.clone(),
+                        key_path: key_path.clone(),
+                    }
+                } else {
+                    CommandRunError::CertificateFileCouldNotBeLoaded1 {
+                        local_path: cert_path,
+                        cause: err,
+                    }
                 }
             })?;
 
@@ -266,25 +322,97 @@ fn build_http_client(
 
 type CertificateChain = Vec<CertificateDer<'static>>;
 
+fn validate_certificate_file(path: &str) -> Result<(), CommandRunError> {
+    let path_buf = std::path::Path::new(path);
+
+    if !path_buf.exists() {
+        return Err(CommandRunError::CertificateFileNotFound {
+            local_path: path.to_string(),
+        });
+    }
+
+    if !path_buf.is_file() {
+        return Err(CommandRunError::CertificateFileNotFound {
+            local_path: path.to_string(),
+        });
+    }
+
+    // Check if file is readable
+    match fs::metadata(path) {
+        Ok(metadata) => {
+            if metadata.len() == 0 {
+                return Err(CommandRunError::CertificateFileEmpty {
+                    local_path: path.to_string(),
+                });
+            }
+        }
+        Err(_) => {
+            return Err(CommandRunError::CertificateFileNotFound {
+                local_path: path.to_string(),
+            });
+        }
+    }
+
+    Ok(())
+}
+
 fn load_certs(filename: &str) -> Result<CertificateChain, CommandRunError> {
+    validate_certificate_file(filename)?;
+
     let results = CertificateDer::pem_file_iter(filename).map_err(|err| {
         let readable_path = filename.to_string();
-        CommandRunError::CertificateFileCouldNotBeLoaded2 {
+        let details = match err {
+            rustls::pki_types::pem::Error::NoItemsFound => {
+                "Invalid PEM format or structure".to_string()
+            }
+            rustls::pki_types::pem::Error::IllegalSectionStart { .. } => {
+                "Invalid PEM format or structure".to_string()
+            }
+            rustls::pki_types::pem::Error::MissingSectionEnd { .. } => {
+                "Invalid PEM format or structure".to_string()
+            }
+            _ => format!("Failed to load a PEM file at {}: {}", filename, err),
+        };
+        CommandRunError::CertificateFileInvalidPem {
             local_path: readable_path,
-            cause: err,
+            details,
         }
     })?;
-    let certs = results.map(|it| it.unwrap()).collect::<CertificateChain>();
+
+    let certs = results
+        .map(|result| {
+            result.map_err(|err| CommandRunError::CertificateFileInvalidPem {
+                local_path: filename.to_string(),
+                details: format!("Failed to parse certificate: {}", err),
+            })
+        })
+        .collect::<Result<CertificateChain, CommandRunError>>()?;
+
+    if certs.is_empty() {
+        return Err(CommandRunError::CertificateFileEmpty {
+            local_path: filename.to_string(),
+        });
+    }
+
     Ok(certs)
 }
 
 #[allow(dead_code)]
 fn load_private_key(filename: &str) -> Result<PrivateKeyDer<'static>, CommandRunError> {
+    validate_certificate_file(filename)?;
+
     PrivateKeyDer::from_pem_file(filename).map_err(|err| {
         let readable_path = filename.to_string();
-        CommandRunError::CertificateFileCouldNotBeLoaded2 {
-            local_path: readable_path,
-            cause: err,
+        match err {
+            rustls::pki_types::pem::Error::NoItemsFound => {
+                CommandRunError::CertificateFileInvalidPem {
+                    local_path: readable_path,
+                    details: "Invalid PEM format in private key file".to_string(),
+                }
+            }
+            _ => CommandRunError::PrivateKeyFileUnsupported {
+                local_path: readable_path,
+            },
         }
     })
 }
