@@ -1,8 +1,14 @@
 # rabbitmqadmin-ng Change Log
 
-## v2.8.0 (in development)
+## v2.7.1 (in development)
 
-No changes yet.
+### Bug Fixes
+
+ * Improved handling of missing or impossible to load/parse `--tls-ca-cert-file` on the command line.
+
+   The tool now properly handles cases where a [CA certificate](https://www.rabbitmq.com/docs/ssl#peer-verification) file path is not provided, making
+   CA certificate loading optional rather than required, which prevents crashes when TLS is used
+   without a custom CA certificate bundle.
 
 ## v2.7.0 (Jul 15, 2025)
 
