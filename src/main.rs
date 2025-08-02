@@ -50,6 +50,8 @@ use rustls::pki_types::{CertificateDer, PrivateKeyDer};
 
 type APIClient = GenericAPIClient<String, String, String>;
 
+type CertificateChain = Vec<CertificateDer<'static>>;
+
 fn main() {
     let pre_flight_settings = match pre_flight::is_non_interactive() {
         true => PreFlightSettings::non_interactive(),
@@ -276,19 +278,8 @@ fn build_http_client(
             validate_certificate_file(&cert_path)?;
             validate_certificate_file(&key_path)?;
 
-            let client_cert = fs::read(&client_cert_pem_file).map_err(|err| {
-                CommandRunError::CertificateFileCouldNotBeLoaded2 {
-                    local_path: cert_path.clone(),
-                    cause: rustls::pki_types::pem::Error::Io(err),
-                }
-            })?;
-
-            let client_key = fs::read(&client_key_pem_file).map_err(|err| {
-                CommandRunError::CertificateFileCouldNotBeLoaded2 {
-                    local_path: key_path.clone(),
-                    cause: rustls::pki_types::pem::Error::Io(err),
-                }
-            })?;
+            let client_cert = read_pem_file(&client_cert_pem_file, &cert_path)?;
+            let client_key = read_pem_file(&client_key_pem_file, &key_path)?;
 
             let concatenated = [&client_cert[..], &client_key[..]].concat();
             let client_id = Identity::from_pem(&concatenated).map_err(|err| {
@@ -320,7 +311,12 @@ fn build_http_client(
     }
 }
 
-type CertificateChain = Vec<CertificateDer<'static>>;
+fn read_pem_file(buf: &PathBuf, file_path: &String) -> Result<Vec<u8>, CommandRunError> {
+    fs::read(&buf).map_err(|err| CommandRunError::CertificateFileCouldNotBeLoaded2 {
+        local_path: file_path.clone(),
+        cause: rustls::pki_types::pem::Error::Io(err),
+    })
+}
 
 fn validate_certificate_file(path: &str) -> Result<(), CommandRunError> {
     let path_buf = std::path::Path::new(path);
