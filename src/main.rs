@@ -311,9 +311,9 @@ fn build_http_client(
     }
 }
 
-fn read_pem_file(buf: &PathBuf, file_path: &String) -> Result<Vec<u8>, CommandRunError> {
+fn read_pem_file(buf: &PathBuf, file_path: &str) -> Result<Vec<u8>, CommandRunError> {
     fs::read(buf).map_err(|err| CommandRunError::CertificateFileCouldNotBeLoaded2 {
-        local_path: file_path.clone(),
+        local_path: file_path.to_owned(),
         cause: rustls::pki_types::pem::Error::Io(err),
     })
 }
