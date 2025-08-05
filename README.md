@@ -6,7 +6,9 @@ that target the [HTTP API](https://www.rabbitmq.com/docs/management#http-api).
 If you are migrating from the original `rabbitqadmin`, please see [Breaking or Potentially Breaking Changes](#breaking-or-potentially-breaking-changes)
 to learn about the breaking changes in the command line interface.
 
-The general "shape and feel" of the interface is still very similar to `rabbitmqadmin` v1.
+The general "shape and feel" of the interface is still very similar to `rabbitmqadmin` v1. However, this generation
+is significantly more powerful, in particular, when it comes to [Blue-Green Deployment upgrades and migrations](https://www.rabbitmq.com/blog/2025/07/29/latest-benefits-of-rmq-and-migrating-to-qq-along-the-way)
+from RabbitMQ 3.13.x to 4.x.
 
 
 ## Supported RabbitMQ Series
