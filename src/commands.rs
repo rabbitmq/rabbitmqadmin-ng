@@ -378,7 +378,7 @@ pub fn declare_amqp091_shovel(
     let destination_queue: String;
     let destination_exchange: String;
     let destination_params = if destination_queue_opt.is_some() {
-        destination_queue = destination_exchange_opt.unwrap();
+        destination_queue = destination_queue_opt.unwrap();
         if predeclared_destination {
             Amqp091ShovelDestinationParams::predeclared_queue_destination(
                 &destination_uri,
