@@ -4,6 +4,13 @@
 
 No changes yet.
 
+## v2.7.2 (Aug 6, 2025)
+
+### Bug Fixes
+
+ * `shovels declare_amqp091` panicked when the `--source-exchange` argument was not provided,
+   even if `--source-queue` was
+
 
 ## v2.7.1 (Jul 17, 2025)
 
