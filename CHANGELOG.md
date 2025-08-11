@@ -9,7 +9,7 @@ No changes yet.
 
 ### Bug Fixes
 
- * `shovels list_all` panicked when one of the shovels was in `terminated` state
+ * `shovels list_all` panicked when one of the shovels was in the `terminated` state
 
 ### Enhancements
 
