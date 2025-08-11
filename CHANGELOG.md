@@ -1,8 +1,20 @@
 # rabbitmqadmin-ng Change Log
 
-## v2.8.0 (in development)
+## v2.9.0 (in development)
 
 No changes yet.
+
+
+## v2.8.0 (Aug 11, 2025)
+
+### Bug Fixes
+
+ * `shovels list_all`
+
+### Upgrades
+
+* RabbitMQ HTTP API client was upgraded to [`0.41.0`](https://github.com/michaelklishin/rabbitmq-http-api-rs/releases/tag/v0.41.0)
+
 
 ## v2.7.2 (Aug 6, 2025)
 
