@@ -248,6 +248,10 @@ pub fn list_shovels(client: APIClient) -> ClientResult<Vec<responses::Shovel>> {
     client.list_shovels()
 }
 
+pub fn list_shovels_in(client: APIClient, vhost: &str) -> ClientResult<Vec<responses::Shovel>> {
+    client.list_shovels_in(vhost)
+}
+
 pub fn declare_amqp10_shovel(
     client: APIClient,
     vhost: &str,

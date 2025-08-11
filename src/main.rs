@@ -1035,6 +1035,10 @@ fn dispatch_common_subcommand(
             let result = commands::list_shovels(client);
             res_handler.tabular_result(result)
         }
+        ("shovels", "list") => {
+            let result = commands::list_shovels_in(client, &vhost);
+            res_handler.tabular_result(result)
+        }
         ("streams", "declare") => {
             let result = commands::declare_stream(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);

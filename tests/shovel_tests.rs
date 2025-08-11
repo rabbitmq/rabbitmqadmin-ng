@@ -15,6 +15,7 @@
 mod test_helpers;
 
 use crate::test_helpers::*;
+use predicates::boolean::PredicateBooleanExt;
 use predicates::prelude::predicate;
 
 #[test]
@@ -149,6 +150,23 @@ fn test_amqp091_shovel_declaration_and_deletion() -> Result<(), Box<dyn std::err
         "--destination-exchange",
         dest_x,
     ]);
+
+    run_succeeds(["-V", vh, "shovels", "list"]).stdout(
+        predicate::str::contains(vh)
+            .and(predicate::str::contains(src_q))
+            .and(predicate::str::contains("dynamic"))
+            .and(predicate::str::contains("node"))
+            .and(predicate::str::contains("state")),
+    );
+
+    run_succeeds(["-V", vh, "shovels", "list_all"]).stdout(
+        predicate::str::contains(vh)
+            .and(predicate::str::contains(src_q))
+            .and(predicate::str::contains("dynamic"))
+            .and(predicate::str::contains("vhost"))
+            .and(predicate::str::contains("node"))
+            .and(predicate::str::contains("state")),
+    );
 
     run_succeeds(["-V", vh, "shovels", "delete", "--name", name]);
     run_succeeds(["-V", vh, "shovels", "delete", "--name", name]);

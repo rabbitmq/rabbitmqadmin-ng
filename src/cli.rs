@@ -2861,9 +2861,16 @@ pub fn get_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 1] {
         )].map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
 }
 
-pub fn shovel_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 4] {
+pub fn shovel_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 5] {
     let list_all_cmd = Command::new("list_all")
         .long_about("Lists shovels in all virtual hosts")
+        .after_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            SHOVEL_GUIDE_URL
+        ));
+
+    let list_cmd = Command::new("list")
+        .long_about("Lists shovels in a specific virtual host")
         .after_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             SHOVEL_GUIDE_URL
@@ -3003,8 +3010,14 @@ pub fn shovel_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 4
                 .required(true),
         );
 
-    [list_all_cmd, declare_091_cmd, declare_10_cmd, delete_cmd]
-        .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+    [
+        list_all_cmd,
+        list_cmd,
+        declare_091_cmd,
+        declare_10_cmd,
+        delete_cmd,
+    ]
+    .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
 }
 
 fn federation_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 6] {
