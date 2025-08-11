@@ -9,7 +9,11 @@ No changes yet.
 
 ### Bug Fixes
 
- * `shovels list_all`
+ * `shovels list_all` panicked when one of the shovels was in `terminated` state
+
+### Enhancements
+
+ * `shovels list` is a new command that lists shovels in a particular virtual host
 
 ### Upgrades
 
