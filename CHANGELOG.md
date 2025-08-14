@@ -5,6 +5,18 @@
 No changes yet.
 
 
+## v2.8.1 (Aug 14, 2025)
+
+### Bug Fixes
+
+ * `shovels list` and `shovels list_all` panicked when target cluster had at least one
+   static shovel
+
+### Upgrades
+
+ * RabbitMQ HTTP API client was upgraded to [`0.42.0`](https://github.com/michaelklishin/rabbitmq-http-api-rs/releases/tag/v0.42.0)
+
+
 ## v2.8.0 (Aug 11, 2025)
 
 ### Bug Fixes
