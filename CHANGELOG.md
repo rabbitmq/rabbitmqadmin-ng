@@ -5,6 +5,18 @@
 No changes yet.
 
 
+## v2.8.2 (Aug 19, 2025)
+
+### Enhancements
+
+ * `definitions export` is now compatible with RabbitMQ 3.10.0, a series that has 
+   reached end of life (EOL) in late 2023
+
+### Upgrades
+
+ * RabbitMQ HTTP API client was upgraded to [`0.43.0`](https://github.com/michaelklishin/rabbitmq-http-api-rs/releases/tag/v0.43.0)
+
+
 ## v2.8.1 (Aug 14, 2025)
 
 ### Bug Fixes
