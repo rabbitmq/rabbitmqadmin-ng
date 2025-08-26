@@ -1,8 +1,20 @@
 # rabbitmqadmin-ng Change Log
 
-## v2.9.0 (in development)
+## v2.10.0 (in development)
 
 No changes yet.
+
+
+## v2.9.0 (Aug 25, 2025)
+
+### Enhancements
+
+ * RabbitMQ 4.2 forward compatibility: `shovels list_all` and `shovels list` now can render
+   [local shovel](https://github.com/rabbitmq/rabbitmq-server/pull/14256) rows
+
+### Upgrades
+
+* RabbitMQ HTTP API client was upgraded to [`0.44.0`](https://github.com/michaelklishin/rabbitmq-http-api-rs/releases/tag/v0.44.0)
 
 
 ## v2.8.2 (Aug 19, 2025)
