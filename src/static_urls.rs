@@ -15,7 +15,7 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
 
-pub(crate) const RABBITMQADMIN_DOC_GUIDE_URL: &str = "https://www.rabbitmq.com/docs/management-cli";
+pub(crate) const RABBITMQADMIN_DOC_GUIDE_URL: &str = "https://rabbitmq.com/docs/management-cli";
 pub(crate) const RABBITMQ_DOC_GUIDES_URL: &str = "https://rabbitmq.com/docs/";
 pub(crate) const GITHUB_DISCUSSIONS_URL: &str =
     "https://github.com/rabbitmq/rabbitmq-server/discussions";
@@ -42,7 +42,7 @@ pub(crate) const DEPRECATED_FEATURE_GUIDE_URL: &str =
 pub(crate) const ACCESS_CONTROL_GUIDE_URL: &str = "https://rabbitmq.com/docs/access-control";
 pub(crate) const HTTP_API_ACCESS_PERMISSIONS_GUIDE_URL: &str =
     "https://rabbitmq.com/docs/management#permissions";
-pub(crate) const MEMORY_FOOTPRINT_GUIDE_URL: &str = "https://www.rabbitmq.com/docs/memory-use";
+pub(crate) const MEMORY_FOOTPRINT_GUIDE_URL: &str = "https://rabbitmq.com/docs/memory-use";
 pub(crate) const DEFINITION_GUIDE_URL: &str = "https://rabbitmq.com/docs/definitions";
 pub(crate) const CONSUMER_GUIDE_URL: &str = "https://rabbitmq.com/docs/consumers";
 pub(crate) const POLLING_CONSUMER_GUIDE_URL: &str = "https://rabbitmq.com/docs/consumers#polling";
@@ -50,13 +50,13 @@ pub(crate) const PUBLISHER_GUIDE_URL: &str = "https://rabbitmq.com/docs/publishe
 pub(crate) const CLUSTERING_GUIDE_URL: &str = "https://rabbitmq.com/docs/clustering";
 pub(crate) const PEER_DISCOVERY_GUIDE_URL: &str = "https://rabbitmq.com/docs/cluster-formation";
 pub(crate) const VIRTUAL_HOST_GUIDE_URL: &str = "https://rabbitmq.com/docs/vhosts";
-pub(crate) const VIRTUAL_HOST_LIMIT_GUIDE_URL: &str = "https://www.rabbitmq.com/docs/vhosts#limits";
+pub(crate) const VIRTUAL_HOST_LIMIT_GUIDE_URL: &str = "https://rabbitmq.com/docs/vhosts#limits";
 pub(crate) const VIRTUAL_HOST_DEFAULT_QUEUE_TYPE_GUIDE_URL: &str =
-    "https://www.rabbitmq.com/docs/vhosts#default-queue-type";
+    "https://rabbitmq.com/docs/vhosts#default-queue-type";
 pub(crate) const RUNTIME_PARAMETER_GUIDE_URL: &str = "https://rabbitmq.com/docs/parameters";
-pub(crate) const POLICY_GUIDE_URL: &str = "https://www.rabbitmq.com/docs/policies";
+pub(crate) const POLICY_GUIDE_URL: &str = "https://rabbitmq.com/docs/policies";
 pub(crate) const OPERATOR_POLICY_GUIDE_URL: &str =
-    "https://www.rabbitmq.com/docs/parameters#operator-policies";
+    "https://rabbitmq.com/docs/parameters#operator-policies";
 pub(crate) const USER_LIMIT_GUIDE_URL: &str = "https://rabbitmq.com/docs/user-limits";
 pub(crate) const PASSWORD_GUIDE_URL: &str = "https://rabbitmq.com/docs/passwords";
 pub(crate) const SHOVEL_GUIDE_URL: &str = "https://rabbitmq.com/docs/shovel";
@@ -65,4 +65,4 @@ pub(crate) const FEDERATED_QUEUES_GUIDE_URL: &str = "https://rabbitmq.com/docs/f
 pub(crate) const FEDERATED_EXCHANGES_GUIDE_URL: &str =
     "https://rabbitmq.com/docs/federated-exchanges";
 pub(crate) const FEDERATION_REFERENCE_URL: &str = "https://rabbitmq.com/docs/federation-reference";
-pub(crate) const COMMERCIAL_OFFERINGS_GUIDE_URL: &str = "https://www.rabbitmq.com/contact";
+pub(crate) const COMMERCIAL_OFFERINGS_GUIDE_URL: &str = "https://rabbitmq.com/contact";
