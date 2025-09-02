@@ -806,6 +806,214 @@ To list all [federation links](https://www.rabbitmq.com/docs/federation) across 
 rabbitmqadmin federation list_all_links
 ```
 
+### Create a User
+
+```shell
+# Salt and hash a cleartext password value, and output the resultign hash.
+# See https://www.rabbitmq.com/docs/passwords to learn more.
+rabbitmqadmin passwords salt_and_hash "cleartext value"
+```
+
+```shell
+rabbitmqadmin users declare --name "new-user" --password "secure-password" --tags "monitoring,management"
+```
+
+```shell
+# Create user with administrator tag using pre-hashed password
+# (use 'rabbitmqadmin passwords salt_and_hash' to generate the hash)
+rabbitmqadmin users declare --name "admin-user" --password-hash "{value produced by 'rabbitmqadmin passwords salt_and_hash'}" --tags "administrator"
+```
+
+```shell
+# If RabbitMQ nodes are configured to use SHA512 for passwords, add `--hashing-algorithm`.
+# See https://www.rabbitmq.com/docs/passwords to learn more.
+rabbitmqadmin users declare --name "secure-user" --password-hash "{SHA512-hashed-password}" --hashing-algorithm "SHA512" --tags "monitoring"
+```
+
+### Delete a User
+
+```shell
+rabbitmqadmin users delete --name "user-to-delete"
+```
+
+```shell
+# Idempotent deletion (won't fail if user doesn't exist)
+rabbitmqadmin users delete --name "user-to-delete" --idempotently
+```
+
+### Grant Permissions to a User
+
+```shell
+rabbitmqadmin users permissions --name "app-user" --configure ".*" --write ".*" --read ".*"
+```
+
+```shell
+rabbitmqadmin --vhost "production" users permissions --name "app-user" --configure "^amq\.gen.*|^aliveness-test$" --write ".*" --read ".*"
+```
+
+### Create a Binding
+
+```shell
+rabbitmqadmin --vhost "events" bindings declare --source "events.topic" --destination-type "queue" --destination "events.processing" --routing-key "user.created"
+```
+
+```shell
+rabbitmqadmin --vhost "events" bindings declare --source "events.fanout" --destination-type "exchange" --destination "events.archived" --routing-key "" --arguments '{"x-match": "all"}'
+```
+
+### Delete a Binding
+
+```shell
+rabbitmqadmin --vhost "events" bindings delete --source "events.topic" --destination-type "queue" --destination "events.processing" --routing-key "user.created"
+```
+
+### List Connections
+
+```shell
+rabbitmqadmin connections list
+```
+
+```shell
+# List connections for a specific user
+rabbitmqadmin connections list --user "app-user"
+```
+
+### Close Connections
+
+```shell
+# Close a specific connection by name
+rabbitmqadmin connections close --name "connection-name"
+```
+
+```shell
+# Close all connections from a specific user
+rabbitmqadmin connections close --user "problem-user" --reason "Maintenance window"
+```
+
+### List Channels
+
+```shell
+rabbitmqadmin channels list
+```
+
+```shell
+# List channels in a specific virtual host
+rabbitmqadmin --vhost "production" channels list
+```
+
+### Run Health Checks
+
+```shell
+# Check for local alarms
+rabbitmqadmin health_check local_alarms
+```
+
+```shell
+# Check for cluster-wide alarms
+rabbitmqadmin health_check cluster_wide_alarms
+```
+
+```shell
+# Check if node is quorum critical
+rabbitmqadmin health_check node_is_quorum_critical
+```
+
+```shell
+# Check for deprecated features in use
+rabbitmqadmin health_check deprecated_features_in_use
+```
+
+```shell
+# Check if a port listener is running
+rabbitmqadmin health_check port_listener --port 5672
+```
+
+```shell
+# Check if a protocol listener is running
+rabbitmqadmin health_check protocol_listener --protocol "amqp"
+```
+
+### Set Runtime Parameters
+
+```shell
+rabbitmqadmin --vhost "events" parameters declare --component "federation-upstream" --name "upstream-1" --value '{"uri": "amqp://remote-server", "ack-mode": "on-publish"}'
+```
+
+```shell
+rabbitmqadmin parameters delete --component "federation-upstream" --name "upstream-1"
+```
+
+### Set Global Parameters
+
+```shell
+rabbitmqadmin global_parameters declare --name "cluster_name" --value '"production-cluster"'
+```
+
+```shell
+rabbitmqadmin global_parameters delete --name "cluster_name"
+```
+
+### Declare Operator Policies
+
+```shell
+rabbitmqadmin --vhost "production" operator_policies declare --name "ha-policy" --pattern "^ha\." --definition '{"ha-mode": "exactly", "ha-params": 3}' --priority 1 --apply-to "queues"
+```
+
+### List Operator Policies
+
+```shell
+rabbitmqadmin operator_policies list
+```
+
+### Delete Operator Policies
+
+```shell
+rabbitmqadmin --vhost "production" operator_policies delete --name "ha-policy"
+```
+
+### Manage Passwords
+
+```shell
+# Change user password
+rabbitmqadmin passwords change --name "app-user" --new-password "new-secure-password"
+```
+
+### Rebalance Quorum Queue Leaders
+
+```shell
+# Rebalances leader members (replicas) for all quorum queue
+rabbitmqadmin rebalance all
+```
+
+### Stream Operations
+
+```shell
+# List streams
+rabbitmqadmin streams list
+```
+
+```shell
+# Declare a stream
+rabbitmqadmin --vhost "logs" streams declare --name "application.logs" --max-age "7d" --max-length-bytes "10GB"
+```
+
+```shell
+# Delete a stream
+rabbitmqadmin --vhost "logs" streams delete --name "old.stream"
+```
+
+### Node Operations
+
+```shell
+# List cluster nodes
+rabbitmqadmin nodes list
+```
+
+```shell
+# Show node information
+rabbitmqadmin nodes show --name "rabbit@server1"
+```
+
 
 ## Subcommand and Long Option Inference
 
