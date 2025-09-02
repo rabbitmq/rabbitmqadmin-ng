@@ -1456,9 +1456,9 @@ checksum = "69cdb34c158ceb288df11e18b4bd39de994f6657d83847bdffdbd7f346754b0f"
 
 [[package]]
 name = "rabbitmq_http_client"
-version = "0.44.0"
+version = "0.45.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c499b254a994d614a5d25e39b28d86d4012cd648dd3032d2ab3dc5a8a026b05c"
+checksum = "e13e5074ac289e9525fcb423fe564d939e78c16f06c17d4e0da4533f185d224c"
 dependencies = [
  "backtrace",
  "percent-encoding",
