@@ -9,7 +9,7 @@ license = "MIT OR Apache-2.0"
 [dependencies]
 clap = { version = "4", features = ["help", "color", "cargo", "env"] }
 url = "2"
-sysexits = "0.9"
+sysexits = "0.10"
 reqwest = { version = "0.12", features = [
     "blocking",
     "json",
