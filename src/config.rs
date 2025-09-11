@@ -55,15 +55,15 @@ impl PreFlightSettings {
 
 #[derive(Error, Debug)]
 pub enum ConfigFileError {
-    #[error("provided config file at '{0}' does not exist")]
+    #[error("the provided config file at '{0}' does not exist")]
     MissingFile(PathBuf),
     #[error(
-        "provided configuration section (--node) '{0}' was not found in the configuration file"
+        "specified configuration section (--node) '{0}' was not found in the configuration file"
     )]
     MissingConfigSection(String),
     #[error(transparent)]
     IoError(#[from] std::io::Error),
-    #[error("failed to deserialize config file. Make sure it is valid TOML. Details: {0}")]
+    #[error("failed to deserialize the config file. Make sure it is valid TOML. Details: {0}")]
     DeserializationError(#[from] toml::de::Error),
 }
 
