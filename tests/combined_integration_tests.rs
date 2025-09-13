@@ -63,7 +63,7 @@ fn combined_integration_test2() -> Result<(), Box<dyn std::error::Error>> {
             vh,
         ])
         .stderr(
-            predicate::str::contains("provided configuration section (--node)").and(
+            predicate::str::contains("specified configuration section (--node)").and(
                 predicate::str::contains("was not found in the configuration file"),
             ),
         );
