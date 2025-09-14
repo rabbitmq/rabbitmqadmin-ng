@@ -28,21 +28,21 @@ pub fn sds_status_on_node(
 }
 
 pub fn sds_enable_cluster_wide(client: APIClient) -> ClientResult<()> {
-    client.enable_schema_definition_sync()
+    client.enable_schema_definition_sync_on_node(None)
 }
 
 pub fn sds_disable_cluster_wide(client: APIClient) -> ClientResult<()> {
-    client.disable_schema_definition_sync()
+    client.disable_schema_definition_sync_on_node(None)
 }
 
 pub fn sds_enable_on_node(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
     let node = command_args.get_one::<String>("node").unwrap();
-    client.enable_schema_definition_sync_on_node(node)
+    client.enable_schema_definition_sync_on_node(Some(node))
 }
 
 pub fn sds_disable_on_node(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
     let node = command_args.get_one::<String>("node").unwrap();
-    client.disable_schema_definition_sync_on_node(node)
+    client.disable_schema_definition_sync_on_node(Some(node))
 }
 
 pub fn wsr_status(client: APIClient) -> ClientResult<WarmStandbyReplicationStatus> {
