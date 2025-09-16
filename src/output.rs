@@ -156,10 +156,10 @@ impl<'a> ResultHandler<'a> {
     pub fn new(common_args: &'a SharedSettings, command_args: &ArgMatches) -> Self {
         let non_interactive = common_args.non_interactive;
         let quiet = common_args.quiet;
-        let idempotently = match command_args.try_get_one::<bool>("idempotently") {
-            Ok(val) => val.cloned().unwrap_or(false),
-            Err(_) => false,
-        };
+        let idempotently = command_args
+            .try_get_one::<bool>("idempotently")
+            .map(|val| val.cloned().unwrap_or(false))
+            .unwrap_or(false);
 
         let table_styler = TableStyler::new(common_args);
 
@@ -323,26 +323,21 @@ impl<'a> ResultHandler<'a> {
             Ok(_) => {
                 self.exit_code = Some(ExitCode::Ok);
             }
-            Err(error) => match error {
-                ClientError::ClientErrorResponse {
-                    status_code: http_code,
-                    ..
-                } if http_code == StatusCode::NOT_FOUND => {
-                    if self.idempotently {
-                        self.exit_code = Some(ExitCode::Ok)
-                    } else {
-                        self.report_command_run_error(&error)
-                    }
+            Err(error) => {
+                let is_not_found = matches!(
+                    error,
+                    ClientError::ClientErrorResponse {
+                        status_code: StatusCode::NOT_FOUND,
+                        ..
+                    } | ClientError::NotFound
+                );
+
+                if is_not_found && self.idempotently {
+                    self.exit_code = Some(ExitCode::Ok)
+                } else {
+                    self.report_command_run_error(&error)
                 }
-                ClientError::NotFound => {
-                    if self.idempotently {
-                        self.exit_code = Some(ExitCode::Ok)
-                    } else {
-                        self.report_command_run_error(&error)
-                    }
-                }
-                _ => self.report_command_run_error(&error),
-            },
+            }
         }
     }
 

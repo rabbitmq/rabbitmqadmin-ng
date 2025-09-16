@@ -245,32 +245,29 @@ pub fn schema_definition_sync_status(status: SchemaDefinitionSyncStatus) -> Tabl
 
     let last_connection_time_s: String;
     if let Some(stamp) = &status.last_connection_completion_timestamp {
-        last_connection_time_s = stamp.clone().to_string().clone();
-        let row = RowOfTwo {
+        last_connection_time_s = stamp.to_string();
+        data.push(RowOfTwo {
             key: "last connection time time",
             value: &last_connection_time_s,
-        };
-        data.push(row)
+        })
     }
 
     let last_sync_request_s: String;
     if let Some(stamp) = &status.last_sync_request_timestamp {
-        last_sync_request_s = stamp.clone().to_string().clone();
-        let row = RowOfTwo {
+        last_sync_request_s = stamp.to_string();
+        data.push(RowOfTwo {
             key: "last sync request time",
             value: &last_sync_request_s,
-        };
-        data.push(row)
+        })
     }
 
     let sync_duration_s: String;
     if let Some(stamp) = &status.last_sync_duration {
-        sync_duration_s = stamp.clone().to_string().clone();
-        let row = RowOfTwo {
+        sync_duration_s = stamp.to_string();
+        data.push(RowOfTwo {
             key: "last sync duration (in ms)",
             value: &sync_duration_s,
-        };
-        data.push(row)
+        })
     }
 
     build_table_with_header(data, "Schema Definition Sync Status")

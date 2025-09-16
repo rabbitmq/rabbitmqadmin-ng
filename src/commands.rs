@@ -34,6 +34,7 @@ use rabbitmq_http_client::requests::{
 use rabbitmq_http_client::responses::OptionalArgumentSourceOps;
 use rabbitmq_http_client::transformers::TransformationChain;
 use rabbitmq_http_client::{password_hashing, requests, responses};
+use serde::de::DeserializeOwned;
 use serde_json::Value;
 use std::fs;
 use std::io;
@@ -74,8 +75,7 @@ pub fn list_user_limits(
     client: APIClient,
     command_args: &ArgMatches,
 ) -> ClientResult<Vec<responses::UserLimits>> {
-    let user = command_args.get_one::<String>("user");
-    match user {
+    match command_args.get_one::<String>("user") {
         None => client.list_all_user_limits(),
         Some(username) => client.list_user_limits(username),
     }
@@ -119,13 +119,10 @@ pub fn list_policies_in_and_applying_to(
     apply_to: PolicyTarget,
 ) -> ClientResult<Vec<responses::Policy>> {
     let policies = client.list_policies_in(vhost)?;
-    let filtered = policies
-        .iter()
-        .filter(|&pol| apply_to.does_apply_to(pol.apply_to.clone()))
-        .cloned()
-        .collect();
-
-    Ok(filtered)
+    Ok(policies
+        .into_iter()
+        .filter(|pol| apply_to.does_apply_to(pol.apply_to.clone()))
+        .collect())
 }
 
 pub fn list_matching_policies_in(
@@ -135,13 +132,10 @@ pub fn list_matching_policies_in(
     typ: PolicyTarget,
 ) -> ClientResult<Vec<responses::Policy>> {
     let candidates = list_policies_in_and_applying_to(client, vhost, typ.clone())?;
-    let matching = candidates
-        .iter()
-        .filter(|&pol| pol.does_match_name(vhost, name, typ.clone()))
-        .cloned()
-        .collect();
-
-    Ok(matching)
+    Ok(candidates
+        .into_iter()
+        .filter(|pol| pol.does_match_name(vhost, name, typ.clone()))
+        .collect())
 }
 
 pub fn list_operator_policies(client: APIClient) -> ClientResult<Vec<responses::Policy>> {
@@ -161,13 +155,10 @@ pub fn list_operator_policies_in_and_applying_to(
     apply_to: PolicyTarget,
 ) -> ClientResult<Vec<responses::Policy>> {
     let policies = client.list_operator_policies_in(vhost)?;
-    let filtered = policies
-        .iter()
-        .filter(|&pol| apply_to.does_apply_to(pol.apply_to.clone()))
-        .cloned()
-        .collect();
-
-    Ok(filtered)
+    Ok(policies
+        .into_iter()
+        .filter(|pol| apply_to.does_apply_to(pol.apply_to.clone()))
+        .collect())
 }
 
 pub fn list_matching_operator_policies_in(
@@ -177,13 +168,10 @@ pub fn list_matching_operator_policies_in(
     typ: PolicyTarget,
 ) -> ClientResult<Vec<responses::Policy>> {
     let candidates = list_operator_policies_in_and_applying_to(client, vhost, typ.clone())?;
-    let matching = candidates
-        .iter()
-        .filter(|&pol| pol.does_match_name(vhost, name, typ.clone()))
-        .cloned()
-        .collect();
-
-    Ok(matching)
+    Ok(candidates
+        .into_iter()
+        .filter(|pol| pol.does_match_name(vhost, name, typ.clone()))
+        .collect())
 }
 
 pub fn list_queues(client: APIClient, vhost: &str) -> ClientResult<Vec<responses::QueueInfo>> {
@@ -214,8 +202,7 @@ pub fn list_parameters(
     vhost: &str,
     command_args: &ArgMatches,
 ) -> ClientResult<Vec<responses::RuntimeParameter>> {
-    let component = command_args.get_one::<String>("component");
-    match component {
+    match command_args.get_one::<String>("component") {
         None => {
             let mut r = client.list_runtime_parameters()?;
             r.retain(|p| p.vhost == vhost);
@@ -758,10 +745,7 @@ pub fn declare_exchange(
         exchange_type,
         durable,
         auto_delete,
-        arguments: serde_json::from_str::<requests::XArguments>(arguments).unwrap_or_else(|err| {
-            eprintln!("`{}` is not a valid JSON: {}", arguments, err);
-            process::exit(1);
-        }),
+        arguments: parse_json_from_arg(arguments),
     };
 
     client.declare_exchange(vhost, &params)
@@ -779,11 +763,7 @@ pub fn declare_binding(
     let destination = command_args.get_one::<String>("destination").unwrap();
     let routing_key = command_args.get_one::<String>("routing_key").unwrap();
     let arguments = command_args.get_one::<String>("arguments").unwrap();
-    let parsed_arguments =
-        serde_json::from_str::<requests::XArguments>(arguments).unwrap_or_else(|err| {
-            eprintln!("`{}` is not a valid JSON: {}", arguments, err);
-            process::exit(1);
-        });
+    let parsed_arguments = parse_json_from_arg(arguments);
 
     match destination_type {
         BindingDestinationType::Queue => client.bind_queue(
@@ -906,11 +886,17 @@ pub fn declare_user(client: APIClient, command_args: &ArgMatches) -> ClientResul
     let provided_hash = command_args.get_one::<String>("password_hash").unwrap();
     let tags = command_args.get_one::<String>("tags").unwrap();
 
-    if password.is_empty() && provided_hash.is_empty()
-        || !password.is_empty() && !provided_hash.is_empty()
-    {
+    let has_password = !password.is_empty();
+    let has_hash = !provided_hash.is_empty();
+
+    if !has_password && !has_hash {
         eprintln!("Please provide either --password or --password-hash");
-        process::exit(1)
+        process::exit(1);
+    }
+
+    if has_password && has_hash {
+        eprintln!("Please provide either --password or --password-hash");
+        process::exit(1);
     }
 
     let password_hash = if provided_hash.is_empty() {
@@ -919,9 +905,9 @@ pub fn declare_user(client: APIClient, command_args: &ArgMatches) -> ClientResul
             .unwrap();
         let salt = password_hashing::salt();
         let hash = hashing_algo.salt_and_hash(&salt, password).unwrap();
-        String::from_utf8(hash.into()).unwrap().to_string()
+        String::from_utf8(hash.into()).unwrap()
     } else {
-        provided_hash.to_string()
+        provided_hash.to_owned()
     };
 
     let params = requests::UserParams {
@@ -985,11 +971,7 @@ pub fn declare_queue(
         .unwrap_or(false);
     let arguments = command_args.get_one::<String>("arguments").unwrap();
 
-    let parsed_args =
-        serde_json::from_str::<requests::XArguments>(arguments).unwrap_or_else(|err| {
-            eprintln!("`{}` is not a valid JSON: {}", arguments, err);
-            process::exit(1);
-        });
+    let parsed_args = parse_json_from_arg(arguments);
 
     let params = requests::QueueParams::new(name, queue_type, durable, auto_delete, parsed_args);
 
@@ -1008,11 +990,7 @@ pub fn declare_stream(
         .get_one::<u64>("max_segment_length_bytes")
         .cloned();
     let arguments = command_args.get_one::<String>("arguments").unwrap();
-    let parsed_args =
-        serde_json::from_str::<requests::XArguments>(arguments).unwrap_or_else(|err| {
-            eprintln!("`{}` is not a valid JSON: {}", arguments, err);
-            process::exit(1);
-        });
+    let parsed_args = parse_json_from_arg(arguments);
 
     let params = requests::StreamParams {
         name,
@@ -1039,11 +1017,7 @@ pub fn declare_policy(
     let priority = command_args.get_one::<String>("priority").unwrap();
     let definition = command_args.get_one::<String>("definition").unwrap();
 
-    let parsed_definition = serde_json::from_str::<requests::PolicyDefinition>(definition)
-        .unwrap_or_else(|err| {
-            eprintln!("`{}` is not a valid JSON: {}", definition, err);
-            process::exit(1);
-        });
+    let parsed_definition = parse_json_from_arg(definition);
 
     let params = requests::PolicyParams {
         vhost,
@@ -1071,11 +1045,7 @@ pub fn declare_operator_policy(
     let priority = command_args.get_one::<String>("priority").unwrap();
     let definition = command_args.get_one::<String>("definition").unwrap();
 
-    let parsed_definition = serde_json::from_str::<requests::PolicyDefinition>(definition)
-        .unwrap_or_else(|err| {
-            eprintln!("`{}` is not a valid JSON: {}", definition, err);
-            process::exit(1);
-        });
+    let parsed_definition = parse_json_from_arg(definition);
 
     let params = requests::PolicyParams {
         vhost,
@@ -1105,11 +1075,7 @@ pub fn declare_policy_override(
     let new_priority = existing_policy.priority + 100;
     let definition = command_args.get_one::<String>("definition").unwrap();
 
-    let parsed_definition = serde_json::from_str::<responses::PolicyDefinition>(definition)
-        .unwrap_or_else(|err| {
-            eprintln!("`{}` is not a valid JSON: {}", definition, err);
-            process::exit(1);
-        });
+    let parsed_definition = parse_json_from_arg(definition);
 
     let overridden =
         existing_policy.with_overrides(&override_pol_name, new_priority, &parsed_definition);
@@ -1142,11 +1108,7 @@ pub fn declare_blanket_policy(
         .unwrap();
     let definition = command_args.get_one::<String>("definition").unwrap();
 
-    let parsed_definition = serde_json::from_str::<requests::PolicyDefinition>(definition)
-        .unwrap_or_else(|err| {
-            eprintln!("`{}` is not a valid JSON: {}", definition, err);
-            process::exit(1);
-        });
+    let parsed_definition = parse_json_from_arg(definition);
 
     let params = requests::PolicyParams {
         vhost,
@@ -1174,10 +1136,7 @@ pub fn update_policy_definition(
         .get_one::<String>("definition_value")
         .cloned()
         .unwrap();
-    let parsed_value = serde_json::from_str::<serde_json::Value>(&value).unwrap_or_else(|err| {
-        eprintln!("`{}` is not a valid JSON value: {}", value, err);
-        process::exit(1);
-    });
+    let parsed_value = parse_json_from_arg::<serde_json::Value>(&value);
 
     update_policy_definition_with(&client, vhost, &name, &key, &parsed_value)
 }
@@ -1196,10 +1155,7 @@ pub fn update_operator_policy_definition(
         .get_one::<String>("definition_value")
         .cloned()
         .unwrap();
-    let parsed_value = serde_json::from_str::<serde_json::Value>(&value).unwrap_or_else(|err| {
-        eprintln!("`{}` is not a valid JSON value: {}", value, err);
-        process::exit(1);
-    });
+    let parsed_value = parse_json_from_arg::<serde_json::Value>(&value);
 
     update_operator_policy_definition_with(&client, vhost, &name, &key, &parsed_value)
 }
@@ -1214,10 +1170,7 @@ pub fn patch_policy_definition(
         .get_one::<String>("definition")
         .cloned()
         .unwrap();
-    let parsed_value = serde_json::from_str::<serde_json::Value>(&value).unwrap_or_else(|err| {
-        eprintln!("`{}` is not a valid JSON value: {}", value, err);
-        process::exit(1);
-    });
+    let parsed_value = parse_json_from_arg::<serde_json::Value>(&value);
 
     let mut pol = client.get_policy(vhost, &name)?;
     let patch = parsed_value.as_object().unwrap();
@@ -1243,10 +1196,7 @@ pub fn update_all_policy_definitions_in(
         .get_one::<String>("definition_value")
         .cloned()
         .unwrap();
-    let parsed_value = serde_json::from_str::<serde_json::Value>(&value).unwrap_or_else(|err| {
-        eprintln!("`{}` is not a valid JSON value: {}", value, err);
-        process::exit(1);
-    });
+    let parsed_value = parse_json_from_arg::<serde_json::Value>(&value);
 
     for pol in pols {
         update_policy_definition_with(&client, vhost, &pol.name, &key, &parsed_value)?
@@ -1265,10 +1215,7 @@ pub fn patch_operator_policy_definition(
         .get_one::<String>("definition")
         .cloned()
         .unwrap();
-    let parsed_value = serde_json::from_str::<serde_json::Value>(&value).unwrap_or_else(|err| {
-        eprintln!("`{}` is not a valid JSON value: {}", value, err);
-        process::exit(1);
-    });
+    let parsed_value = parse_json_from_arg::<serde_json::Value>(&value);
 
     let mut pol = client.get_operator_policy(vhost, &name)?;
     let patch = parsed_value.as_object().unwrap();
@@ -1294,10 +1241,7 @@ pub fn update_all_operator_policy_definitions_in(
         .get_one::<String>("definition_value")
         .cloned()
         .unwrap();
-    let parsed_value = serde_json::from_str::<serde_json::Value>(&value).unwrap_or_else(|err| {
-        eprintln!("`{}` is not a valid JSON value: {}", value, err);
-        process::exit(1);
-    });
+    let parsed_value = parse_json_from_arg::<serde_json::Value>(&value);
 
     for pol in pols {
         update_operator_policy_definition_with(&client, vhost, &pol.name, &key, &parsed_value)?
@@ -1428,11 +1372,7 @@ pub fn declare_parameter(
     let component = command_args.get_one::<String>("component").unwrap();
     let name = command_args.get_one::<String>("name").unwrap();
     let value = command_args.get_one::<String>("value").unwrap();
-    let parsed_value = serde_json::from_str::<requests::RuntimeParameterValue>(value)
-        .unwrap_or_else(|err| {
-            eprintln!("`{}` is not a valid JSON: {}", value, err);
-            process::exit(1);
-        });
+    let parsed_value = parse_json_from_arg(value);
 
     let params = requests::RuntimeParameterDefinition {
         vhost,
@@ -1449,11 +1389,7 @@ pub fn declare_global_parameter(client: APIClient, command_args: &ArgMatches) ->
     let value = command_args.get_one::<String>("value").unwrap();
     // TODO: global runtime parameter values can be regular strings (not JSON documents)
     //       but we don't support that yet in the HTTP API client.
-    let parsed_value = serde_json::from_str::<requests::RuntimeParameterValue>(value)
-        .unwrap_or_else(|err| {
-            eprintln!("`{}` is not a valid JSON: {}", value, err);
-            process::exit(1);
-        });
+    let parsed_value = parse_json_from_arg(value);
 
     let params = requests::GlobalRuntimeParameterDefinition {
         name,
@@ -1491,11 +1427,7 @@ pub fn delete_binding(
     let destination = command_args.get_one::<String>("destination").unwrap();
     let routing_key = command_args.get_one::<String>("routing_key").unwrap();
     let arguments = command_args.get_one::<String>("arguments").unwrap();
-    let parsed_arguments =
-        serde_json::from_str::<requests::XArguments>(arguments).unwrap_or_else(|err| {
-            eprintln!("`{}` is not a valid JSON: {}", arguments, err);
-            process::exit(1);
-        });
+    let parsed_arguments = parse_json_from_arg(arguments);
 
     client
         .delete_binding(
@@ -1609,10 +1541,7 @@ pub fn export_cluster_wide_definitions(
     if transformations.len() == 0 {
         export_cluster_wide_definitions_without_transformations(client, command_args)
     } else {
-        let transformations = transformations
-            .into_iter()
-            .map(String::from)
-            .collect::<Vec<_>>();
+        let transformations = transformations.map(String::from).collect();
 
         export_and_transform_cluster_wide_definitions(client, command_args, transformations)
     }
@@ -1706,44 +1635,8 @@ pub fn export_vhost_definitions(
 }
 
 pub fn import_definitions(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
-    let path = command_args
-        .get_one::<String>("file")
-        .map(|s| s.trim_ascii().trim_matches('\'').trim_matches('"'));
-    let use_stdin = command_args.get_one::<bool>("stdin").copied();
-    let definitions = read_definitions(path, use_stdin);
-    match definitions {
-        Ok(defs) => {
-            let defs_json = serde_json::from_str(defs.as_str()).unwrap_or_else(|err| {
-                match path {
-                    None => {
-                        eprintln!("could not parse the value read from the standard input: {}", err);
-                    }
-                    Some(val) => {
-                        eprintln!("`{}` does not exist, is not a readable file, or is not a valid JSON file: {}", val, err);
-                    }
-                }
-                process::exit(1)
-            });
-            client.import_definitions(defs_json)
-        }
-        Err(err) => {
-            match path {
-                None => {
-                    eprintln!(
-                        "could not parse the value read from the standard input: {}",
-                        err
-                    );
-                }
-                Some(val) => {
-                    eprintln!(
-                        "`{}` does not exist, is not a readable file, or is not a valid JSON file: {}",
-                        val, err
-                    );
-                }
-            }
-            process::exit(1)
-        }
-    }
+    let defs_json = read_and_parse_definitions(command_args);
+    client.import_definitions(defs_json)
 }
 
 pub fn import_vhost_definitions(
@@ -1751,26 +1644,28 @@ pub fn import_vhost_definitions(
     vhost: &str,
     command_args: &ArgMatches,
 ) -> ClientResult<()> {
+    let defs_json = read_and_parse_definitions(command_args);
+    client.import_vhost_definitions(vhost, defs_json)
+}
+
+fn read_and_parse_definitions(command_args: &ArgMatches) -> Value {
     let path = command_args
         .get_one::<String>("file")
         .map(|s| s.trim_ascii().trim_matches('\'').trim_matches('"'));
     let use_stdin = command_args.get_one::<bool>("stdin").copied();
     let definitions = read_definitions(path, use_stdin);
     match definitions {
-        Ok(defs) => {
-            let defs_json = serde_json::from_str(defs.as_str()).unwrap_or_else(|err| {
-                match path {
-                    None => {
-                        eprintln!("could not parse the value read from the standard input: {}", err);
-                    }
-                    Some(val) => {
-                        eprintln!("`{}` does not exist, is not a readable file, or is not a valid JSON file: {}", val, err);
-                    }
+        Ok(defs) => serde_json::from_str(defs.as_str()).unwrap_or_else(|err| {
+            match path {
+                None => {
+                    eprintln!("could not parse the value read from the standard input: {}", err);
                 }
-                process::exit(1)
-            });
-            client.import_vhost_definitions(vhost, defs_json)
-        }
+                Some(val) => {
+                    eprintln!("`{}` does not exist, is not a readable file, or is not a valid JSON file: {}", val, err);
+                }
+            }
+            process::exit(1)
+        }),
         Err(err) => {
             match path {
                 None => {
@@ -1850,11 +1745,7 @@ pub fn publish_message(
     let routing_key = command_args.get_one::<String>("routing_key").unwrap();
     let payload = command_args.get_one::<String>("payload").unwrap();
     let properties = command_args.get_one::<String>("properties").unwrap();
-    let parsed_properties = serde_json::from_str::<requests::MessageProperties>(properties)
-        .unwrap_or_else(|err| {
-            eprintln!("`{}` is not a valid JSON: {}", properties, err);
-            process::exit(1);
-        });
+    let parsed_properties = parse_json_from_arg(properties);
 
     client.publish_message(vhost, exchange, routing_key, payload, parsed_properties)
 }
@@ -1868,4 +1759,11 @@ pub fn get_messages(
     let count = command_args.get_one::<String>("count").unwrap();
     let ack_mode = command_args.get_one::<String>("ack_mode").unwrap();
     client.get_messages(vhost, queue, count.parse::<u32>().unwrap(), ack_mode)
+}
+
+fn parse_json_from_arg<T: DeserializeOwned>(arg_value: &str) -> T {
+    serde_json::from_str(arg_value).unwrap_or_else(|err| {
+        eprintln!("`{}` is not a valid JSON: {}", arg_value, err);
+        process::exit(1);
+    })
 }

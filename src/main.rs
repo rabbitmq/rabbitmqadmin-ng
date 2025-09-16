@@ -53,12 +53,13 @@ type APIClient = GenericAPIClient<String, String, String>;
 type CertificateChain = Vec<CertificateDer<'static>>;
 
 fn main() {
-    let pre_flight_settings = match pre_flight::is_non_interactive() {
-        true => PreFlightSettings::non_interactive(),
-        false => PreFlightSettings {
+    let pre_flight_settings = if pre_flight::is_non_interactive() {
+        PreFlightSettings::non_interactive()
+    } else {
+        PreFlightSettings {
             infer_subcommands: pre_flight::should_infer_subcommands(),
             infer_long_options: pre_flight::should_infer_long_options(),
-        },
+        }
     };
 
     let parser = cli::parser(pre_flight_settings);
@@ -91,7 +92,7 @@ fn resolve_run_configuration(cli: &ArgMatches) -> (SharedSettings, String) {
     let node_alias = cli
         .get_one::<String>("node_alias")
         .cloned()
-        .or(Some(DEFAULT_NODE_ALIAS.to_string()));
+        .or_else(|| Some(DEFAULT_NODE_ALIAS.to_string()));
 
     // If the default config file path is used and the function above
     // reports that it is not found, continue. Otherwise, exit.
@@ -106,11 +107,9 @@ fn resolve_run_configuration(cli: &ArgMatches) -> (SharedSettings, String) {
         process::exit(ExitCode::DataErr.into())
     }
 
-    let common_settings = if let Ok(val) = cf_ss {
-        SharedSettings::from_args_with_defaults(cli, &val)
-    } else {
-        SharedSettings::from_args(cli)
-    };
+    let common_settings = cf_ss
+        .map(|val| SharedSettings::from_args_with_defaults(cli, &val))
+        .unwrap_or_else(|_| SharedSettings::from_args(cli));
     let endpoint = common_settings.endpoint();
 
     (common_settings, endpoint)
@@ -141,32 +140,29 @@ fn dispatch_command(
 ) -> ExitCode {
     if let Some((first_level, first_level_args)) = cli.subcommand() {
         if let Some((second_level, second_level_args)) = first_level_args.subcommand() {
-            // this is a Tanzu RabbitMQ-specific command, these are grouped under "tanzu"
-            if first_level == TANZU_COMMAND_PREFIX {
+            return if first_level == TANZU_COMMAND_PREFIX {
+                // this is a Tanzu RabbitMQ-specific command, these are grouped under "tanzu"
                 if let Some((third_level, third_level_args)) = second_level_args.subcommand() {
                     let pair = (second_level, third_level);
                     let mut res_handler = ResultHandler::new(merged_settings, second_level_args);
-                    return dispatch_tanzu_subcommand(
-                        pair,
-                        third_level_args,
-                        client,
-                        &mut res_handler,
-                    );
+                    dispatch_tanzu_subcommand(pair, third_level_args, client, &mut res_handler)
+                } else {
+                    ExitCode::Usage
                 }
             } else {
                 // this is a common (OSS and Tanzu) command
                 let pair = (first_level, second_level);
                 let vhost = virtual_host(merged_settings, second_level_args);
                 let mut res_handler = ResultHandler::new(merged_settings, second_level_args);
-                return dispatch_common_subcommand(
+                dispatch_common_subcommand(
                     pair,
                     second_level_args,
                     client,
                     merged_settings.endpoint(),
                     vhost,
                     &mut res_handler,
-                );
-            }
+                )
+            };
         }
     }
     ExitCode::Usage
@@ -1154,23 +1150,23 @@ fn virtual_host(shared_settings: &SharedSettings, command_flags: &ArgMatches) ->
     if command_flags.try_contains_id("vhost").is_ok() {
         // if the command-specific flag is not set to default,
         // use it, otherwise use the global/shared --vhost flag value
-        let fallback = String::from(DEFAULT_VHOST);
-        let command_vhost: &str = command_flags
+        let fallback = DEFAULT_VHOST.to_string();
+        let command_vhost = command_flags
             .get_one::<String>("vhost")
             .unwrap_or(&fallback);
 
         if command_vhost != DEFAULT_VHOST {
-            String::from(command_vhost)
+            command_vhost.clone()
         } else {
             shared_settings
                 .virtual_host
                 .clone()
-                .unwrap_or(DEFAULT_VHOST.to_string())
+                .unwrap_or_else(|| DEFAULT_VHOST.to_string())
         }
     } else {
         shared_settings
             .virtual_host
             .clone()
-            .unwrap_or(DEFAULT_VHOST.to_string())
+            .unwrap_or_else(|| DEFAULT_VHOST.to_string())
     }
 }

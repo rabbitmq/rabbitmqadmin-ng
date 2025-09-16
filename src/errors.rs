@@ -107,34 +107,27 @@ impl From<std::io::Error> for CommandRunError {
 
 impl From<HttpClientError> for CommandRunError {
     fn from(value: HttpClientError) -> Self {
+        use ApiClientError::*;
         match value {
-            ApiClientError::UnsupportedArgumentValue { property } => {
-                        Self::UnsupportedArgumentValue { property }
-                    }
-            ApiClientError::ClientErrorResponse { status_code, url, body, headers, .. } => {
-                        Self::ClientError { status_code, url, body, headers }
-                    },
-            ApiClientError::ServerErrorResponse { status_code, url, body, headers, .. } => {
-                        Self::ServerError { status_code, url, body, headers }
-                    },
-            ApiClientError::HealthCheckFailed { path, details, status_code } => {
-                        Self::HealthCheckFailed { health_check_path: path, details, status_code }
-                    },
-            ApiClientError::NotFound => Self::NotFound,
-            ApiClientError::MultipleMatchingBindings => Self::ConflictingOptions {
-                        message: "multiple bindings match, cannot determine which binding to delete without explicitly provided binding properties".to_owned()
-                    },
-            ApiClientError::InvalidHeaderValue { error } => {
-                        Self::InvalidHeaderValue { error }
-                    },
-            ApiClientError::RequestError { error, .. } => Self::RequestError { error },
-            ApiClientError::Other => Self::Other,
-            ApiClientError::MissingProperty { argument } => {
-                Self::MissingArgumentValue { property: argument }
+            UnsupportedArgumentValue { property } => Self::UnsupportedArgumentValue { property },
+            ClientErrorResponse { status_code, url, body, headers, .. } => {
+                Self::ClientError { status_code, url, body, headers }
+            }
+            ServerErrorResponse { status_code, url, body, headers, .. } => {
+                Self::ServerError { status_code, url, body, headers }
+            }
+            HealthCheckFailed { path, details, status_code } => {
+                Self::HealthCheckFailed { health_check_path: path, details, status_code }
+            }
+            NotFound => Self::NotFound,
+            MultipleMatchingBindings => Self::ConflictingOptions {
+                message: "multiple bindings match, cannot determine which binding to delete without explicitly provided binding properties".to_owned()
             },
-            ApiClientError::IncompatibleBody {  error, .. } => {
-                Self::IncompatibleBody { error }
-            },
+            InvalidHeaderValue { error } => Self::InvalidHeaderValue { error },
+            RequestError { error, .. } => Self::RequestError { error },
+            Other => Self::Other,
+            MissingProperty { argument } => Self::MissingArgumentValue { property: argument },
+            IncompatibleBody { error, .. } => Self::IncompatibleBody { error },
         }
     }
 }
