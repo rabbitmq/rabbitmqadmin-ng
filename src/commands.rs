@@ -14,6 +14,7 @@
 #![allow(clippy::result_large_err)]
 
 use crate::constants::DEFAULT_BLANKET_POLICY_PRIORITY;
+use crate::errors::CommandRunError;
 use clap::ArgMatches;
 use rabbitmq_http_client::blocking_api::Client;
 use rabbitmq_http_client::blocking_api::Result as ClientResult;
@@ -722,7 +723,7 @@ pub fn declare_exchange(
     client: APIClient,
     vhost: &str,
     command_args: &ArgMatches,
-) -> ClientResult<()> {
+) -> Result<(), CommandRunError> {
     // the flag is required
     let name = command_args.get_one::<String>("name").unwrap();
     // these are optional
@@ -745,17 +746,17 @@ pub fn declare_exchange(
         exchange_type,
         durable,
         auto_delete,
-        arguments: parse_json_from_arg(arguments),
+        arguments: parse_json_from_arg(arguments)?,
     };
 
-    client.declare_exchange(vhost, &params)
+    client.declare_exchange(vhost, &params).map_err(Into::into)
 }
 
 pub fn declare_binding(
     client: APIClient,
     vhost: &str,
     command_args: &ArgMatches,
-) -> ClientResult<()> {
+) -> Result<(), CommandRunError> {
     let source = command_args.get_one::<String>("source").unwrap();
     let destination_type = command_args
         .get_one::<BindingDestinationType>("destination_type")
@@ -763,23 +764,27 @@ pub fn declare_binding(
     let destination = command_args.get_one::<String>("destination").unwrap();
     let routing_key = command_args.get_one::<String>("routing_key").unwrap();
     let arguments = command_args.get_one::<String>("arguments").unwrap();
-    let parsed_arguments = parse_json_from_arg(arguments);
+    let parsed_arguments = parse_json_from_arg(arguments)?;
 
     match destination_type {
-        BindingDestinationType::Queue => client.bind_queue(
-            vhost,
-            destination,
-            source,
-            Some(routing_key),
-            parsed_arguments,
-        ),
-        BindingDestinationType::Exchange => client.bind_exchange(
-            vhost,
-            destination,
-            source,
-            Some(routing_key),
-            parsed_arguments,
-        ),
+        BindingDestinationType::Queue => client
+            .bind_queue(
+                vhost,
+                destination,
+                source,
+                Some(routing_key),
+                parsed_arguments,
+            )
+            .map_err(Into::into),
+        BindingDestinationType::Exchange => client
+            .bind_exchange(
+                vhost,
+                destination,
+                source,
+                Some(routing_key),
+                parsed_arguments,
+            )
+            .map_err(Into::into),
     }
 }
 
@@ -955,7 +960,7 @@ pub fn declare_queue(
     client: APIClient,
     vhost: &str,
     command_args: &ArgMatches,
-) -> ClientResult<()> {
+) -> Result<(), CommandRunError> {
     // the flag is required
     let name = command_args.get_one::<String>("name").unwrap();
     let queue_type = command_args.get_one::<QueueType>("type").cloned().unwrap();
@@ -970,19 +975,18 @@ pub fn declare_queue(
         .cloned()
         .unwrap_or(false);
     let arguments = command_args.get_one::<String>("arguments").unwrap();
-
-    let parsed_args = parse_json_from_arg(arguments);
+    let parsed_args = parse_json_from_arg(arguments)?;
 
     let params = requests::QueueParams::new(name, queue_type, durable, auto_delete, parsed_args);
 
-    client.declare_queue(vhost, &params)
+    client.declare_queue(vhost, &params).map_err(Into::into)
 }
 
 pub fn declare_stream(
     client: APIClient,
     vhost: &str,
     command_args: &ArgMatches,
-) -> ClientResult<()> {
+) -> Result<(), CommandRunError> {
     let name = command_args.get_one::<String>("name").unwrap();
     let expiration = command_args.get_one::<String>("expiration").unwrap();
     let max_length_bytes = command_args.get_one::<u64>("max_length_bytes").cloned();
@@ -990,7 +994,7 @@ pub fn declare_stream(
         .get_one::<u64>("max_segment_length_bytes")
         .cloned();
     let arguments = command_args.get_one::<String>("arguments").unwrap();
-    let parsed_args = parse_json_from_arg(arguments);
+    let parsed_args = parse_json_from_arg(arguments)?;
 
     let params = requests::StreamParams {
         name,
@@ -1000,14 +1004,14 @@ pub fn declare_stream(
         arguments: parsed_args,
     };
 
-    client.declare_stream(vhost, &params)
+    client.declare_stream(vhost, &params).map_err(Into::into)
 }
 
 pub fn declare_policy(
     client: APIClient,
     vhost: &str,
     command_args: &ArgMatches,
-) -> ClientResult<()> {
+) -> Result<(), CommandRunError> {
     let name = command_args.get_one::<String>("name").unwrap();
     let pattern = command_args.get_one::<String>("pattern").unwrap();
     let apply_to = command_args
@@ -1017,9 +1021,9 @@ pub fn declare_policy(
     let priority = command_args.get_one::<String>("priority").unwrap();
     let definition = command_args.get_one::<String>("definition").unwrap();
 
-    let parsed_definition = parse_json_from_arg(definition);
+    let parsed_definition = parse_json_from_arg(definition)?;
 
-    let params = requests::PolicyParams {
+    let params = PolicyParams {
         vhost,
         name,
         pattern,
@@ -1028,14 +1032,14 @@ pub fn declare_policy(
         definition: parsed_definition,
     };
 
-    client.declare_policy(&params)
+    client.declare_policy(&params).map_err(Into::into)
 }
 
 pub fn declare_operator_policy(
     client: APIClient,
     vhost: &str,
     command_args: &ArgMatches,
-) -> ClientResult<()> {
+) -> Result<(), CommandRunError> {
     let name = command_args.get_one::<String>("name").cloned().unwrap();
     let pattern = command_args.get_one::<String>("pattern").cloned().unwrap();
     let apply_to = command_args
@@ -1045,9 +1049,9 @@ pub fn declare_operator_policy(
     let priority = command_args.get_one::<String>("priority").unwrap();
     let definition = command_args.get_one::<String>("definition").unwrap();
 
-    let parsed_definition = parse_json_from_arg(definition);
+    let parsed_definition = parse_json_from_arg(definition)?;
 
-    let params = requests::PolicyParams {
+    let params = PolicyParams {
         vhost,
         name: &name,
         pattern: &pattern,
@@ -1056,40 +1060,44 @@ pub fn declare_operator_policy(
         definition: parsed_definition,
     };
 
-    client.declare_operator_policy(&params)
+    client.declare_operator_policy(&params).map_err(Into::into)
 }
 
 pub fn declare_policy_override(
     client: APIClient,
     vhost: &str,
     command_args: &ArgMatches,
-) -> ClientResult<()> {
+) -> Result<(), CommandRunError> {
     let original_pol_name = command_args.get_one::<String>("name").cloned().unwrap();
     let override_pol_name = command_args
         .get_one::<String>("override_name")
         .cloned()
         .unwrap_or(override_policy_name(&original_pol_name));
 
-    let existing_policy = client.get_policy(vhost, &original_pol_name)?;
+    let existing_policy = client
+        .get_policy(vhost, &original_pol_name)
+        .map_err(CommandRunError::from)?;
 
     let new_priority = existing_policy.priority + 100;
     let definition = command_args.get_one::<String>("definition").unwrap();
 
-    let parsed_definition = parse_json_from_arg(definition);
+    let parsed_definition = parse_json_from_arg(definition)?;
 
     let overridden =
         existing_policy.with_overrides(&override_pol_name, new_priority, &parsed_definition);
     let params = PolicyParams::from(&overridden);
-    client.declare_policy(&params)
+    client.declare_policy(&params).map_err(Into::into)
 }
 
 pub fn declare_blanket_policy(
     client: APIClient,
     vhost: &str,
     command_args: &ArgMatches,
-) -> ClientResult<()> {
+) -> Result<(), CommandRunError> {
     // find the lowest policy priority in the target virtual host
-    let existing_policies = client.list_policies_in(vhost)?;
+    let existing_policies = client
+        .list_policies_in(vhost)
+        .map_err(CommandRunError::from)?;
     let min_priority = existing_policies
         .iter()
         .fold(0, |acc, p| if p.priority < acc { p.priority } else { acc });
@@ -1108,9 +1116,9 @@ pub fn declare_blanket_policy(
         .unwrap();
     let definition = command_args.get_one::<String>("definition").unwrap();
 
-    let parsed_definition = parse_json_from_arg(definition);
+    let parsed_definition = parse_json_from_arg(definition)?;
 
-    let params = requests::PolicyParams {
+    let params = PolicyParams {
         vhost,
         name: &name,
         pattern: ".*",
@@ -1119,14 +1127,14 @@ pub fn declare_blanket_policy(
         definition: parsed_definition,
     };
 
-    client.declare_policy(&params)
+    client.declare_policy(&params).map_err(Into::into)
 }
 
 pub fn update_policy_definition(
     client: APIClient,
     vhost: &str,
     command_args: &ArgMatches,
-) -> ClientResult<()> {
+) -> Result<(), CommandRunError> {
     let name = command_args.get_one::<String>("name").cloned().unwrap();
     let key = command_args
         .get_one::<String>("definition_key")
@@ -1136,16 +1144,16 @@ pub fn update_policy_definition(
         .get_one::<String>("definition_value")
         .cloned()
         .unwrap();
-    let parsed_value = parse_json_from_arg::<serde_json::Value>(&value);
+    let parsed_value = parse_json_from_arg::<serde_json::Value>(&value)?;
 
-    update_policy_definition_with(&client, vhost, &name, &key, &parsed_value)
+    update_policy_definition_with(&client, vhost, &name, &key, &parsed_value).map_err(Into::into)
 }
 
 pub fn update_operator_policy_definition(
     client: APIClient,
     vhost: &str,
     command_args: &ArgMatches,
-) -> ClientResult<()> {
+) -> Result<(), CommandRunError> {
     let name = command_args.get_one::<String>("name").cloned().unwrap();
     let key = command_args
         .get_one::<String>("definition_key")
@@ -1155,39 +1163,44 @@ pub fn update_operator_policy_definition(
         .get_one::<String>("definition_value")
         .cloned()
         .unwrap();
-    let parsed_value = parse_json_from_arg::<serde_json::Value>(&value);
+    let parsed_value = parse_json_from_arg::<serde_json::Value>(&value)?;
 
     update_operator_policy_definition_with(&client, vhost, &name, &key, &parsed_value)
+        .map_err(Into::into)
 }
 
 pub fn patch_policy_definition(
     client: APIClient,
     vhost: &str,
     command_args: &ArgMatches,
-) -> ClientResult<()> {
+) -> Result<(), CommandRunError> {
     let name = command_args.get_one::<String>("name").cloned().unwrap();
     let value = command_args
         .get_one::<String>("definition")
         .cloned()
         .unwrap();
-    let parsed_value = parse_json_from_arg::<serde_json::Value>(&value);
+    let parsed_value = parse_json_from_arg::<serde_json::Value>(&value)?;
 
-    let mut pol = client.get_policy(vhost, &name)?;
+    let mut pol = client
+        .get_policy(vhost, &name)
+        .map_err(CommandRunError::from)?;
     let patch = parsed_value.as_object().unwrap();
     for (k, v) in patch.iter() {
         pol.insert_definition_key(k.clone(), v.clone());
     }
 
     let params = PolicyParams::from(&pol);
-    client.declare_policy(&params)
+    client.declare_policy(&params).map_err(Into::into)
 }
 
 pub fn update_all_policy_definitions_in(
     client: APIClient,
     vhost: &str,
     command_args: &ArgMatches,
-) -> ClientResult<()> {
-    let pols = client.list_policies_in(vhost)?;
+) -> Result<(), CommandRunError> {
+    let pols = client
+        .list_policies_in(vhost)
+        .map_err(CommandRunError::from)?;
     let key = command_args
         .get_one::<String>("definition_key")
         .cloned()
@@ -1196,7 +1209,7 @@ pub fn update_all_policy_definitions_in(
         .get_one::<String>("definition_value")
         .cloned()
         .unwrap();
-    let parsed_value = parse_json_from_arg::<serde_json::Value>(&value);
+    let parsed_value = parse_json_from_arg::<serde_json::Value>(&value)?;
 
     for pol in pols {
         update_policy_definition_with(&client, vhost, &pol.name, &key, &parsed_value)?
@@ -1209,30 +1222,34 @@ pub fn patch_operator_policy_definition(
     client: APIClient,
     vhost: &str,
     command_args: &ArgMatches,
-) -> ClientResult<()> {
+) -> Result<(), CommandRunError> {
     let name = command_args.get_one::<String>("name").cloned().unwrap();
     let value = command_args
         .get_one::<String>("definition")
         .cloned()
         .unwrap();
-    let parsed_value = parse_json_from_arg::<serde_json::Value>(&value);
+    let parsed_value = parse_json_from_arg::<serde_json::Value>(&value)?;
 
-    let mut pol = client.get_operator_policy(vhost, &name)?;
+    let mut pol = client
+        .get_operator_policy(vhost, &name)
+        .map_err(CommandRunError::from)?;
     let patch = parsed_value.as_object().unwrap();
     for (k, v) in patch.iter() {
         pol.insert_definition_key(k.clone(), v.clone());
     }
 
     let params = PolicyParams::from(&pol);
-    client.declare_operator_policy(&params)
+    client.declare_operator_policy(&params).map_err(Into::into)
 }
 
 pub fn update_all_operator_policy_definitions_in(
     client: APIClient,
     vhost: &str,
     command_args: &ArgMatches,
-) -> ClientResult<()> {
-    let pols = client.list_operator_policies_in(vhost)?;
+) -> Result<(), CommandRunError> {
+    let pols = client
+        .list_operator_policies_in(vhost)
+        .map_err(CommandRunError::from)?;
     let key = command_args
         .get_one::<String>("definition_key")
         .cloned()
@@ -1241,7 +1258,7 @@ pub fn update_all_operator_policy_definitions_in(
         .get_one::<String>("definition_value")
         .cloned()
         .unwrap();
-    let parsed_value = parse_json_from_arg::<serde_json::Value>(&value);
+    let parsed_value = parse_json_from_arg::<serde_json::Value>(&value)?;
 
     for pol in pols {
         update_operator_policy_definition_with(&client, vhost, &pol.name, &key, &parsed_value)?
@@ -1368,11 +1385,11 @@ pub fn declare_parameter(
     client: APIClient,
     vhost: &str,
     command_args: &ArgMatches,
-) -> ClientResult<()> {
+) -> Result<(), CommandRunError> {
     let component = command_args.get_one::<String>("component").unwrap();
     let name = command_args.get_one::<String>("name").unwrap();
     let value = command_args.get_one::<String>("value").unwrap();
-    let parsed_value = parse_json_from_arg(value);
+    let parsed_value = parse_json_from_arg(value)?;
 
     let params = requests::RuntimeParameterDefinition {
         vhost,
@@ -1381,22 +1398,27 @@ pub fn declare_parameter(
         value: parsed_value,
     };
 
-    client.upsert_runtime_parameter(&params)
+    client.upsert_runtime_parameter(&params).map_err(Into::into)
 }
 
-pub fn declare_global_parameter(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
+pub fn declare_global_parameter(
+    client: APIClient,
+    command_args: &ArgMatches,
+) -> Result<(), CommandRunError> {
     let name = command_args.get_one::<String>("name").unwrap();
     let value = command_args.get_one::<String>("value").unwrap();
     // TODO: global runtime parameter values can be regular strings (not JSON documents)
     //       but we don't support that yet in the HTTP API client.
-    let parsed_value = parse_json_from_arg(value);
+    let parsed_value = parse_json_from_arg(value)?;
 
     let params = requests::GlobalRuntimeParameterDefinition {
         name,
         value: parsed_value,
     };
 
-    client.upsert_global_runtime_parameter(&params)
+    client
+        .upsert_global_runtime_parameter(&params)
+        .map_err(Into::into)
 }
 
 pub fn delete_queue(client: APIClient, vhost: &str, command_args: &ArgMatches) -> ClientResult<()> {
@@ -1421,13 +1443,13 @@ pub fn delete_binding(
     client: APIClient,
     vhost: &str,
     command_args: &ArgMatches,
-) -> ClientResult<()> {
+) -> Result<(), CommandRunError> {
     let source = command_args.get_one::<String>("source").unwrap();
     let destination_type = command_args.get_one::<String>("destination_type").unwrap();
     let destination = command_args.get_one::<String>("destination").unwrap();
     let routing_key = command_args.get_one::<String>("routing_key").unwrap();
     let arguments = command_args.get_one::<String>("arguments").unwrap();
-    let parsed_arguments = parse_json_from_arg(arguments);
+    let parsed_arguments = parse_json_from_arg(arguments)?;
 
     client
         .delete_binding(
@@ -1439,6 +1461,7 @@ pub fn delete_binding(
             parsed_arguments,
         )
         .map(|_| ())
+        .map_err(Into::into)
 }
 
 pub fn delete_exchange(
@@ -1634,56 +1657,45 @@ pub fn export_vhost_definitions(
     }
 }
 
-pub fn import_definitions(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
-    let defs_json = read_and_parse_definitions(command_args);
-    client.import_definitions(defs_json)
+pub fn import_definitions(
+    client: APIClient,
+    command_args: &ArgMatches,
+) -> Result<(), CommandRunError> {
+    let defs_json = read_and_parse_definitions(command_args)?;
+    client.import_definitions(defs_json).map_err(Into::into)
 }
 
 pub fn import_vhost_definitions(
     client: APIClient,
     vhost: &str,
     command_args: &ArgMatches,
-) -> ClientResult<()> {
-    let defs_json = read_and_parse_definitions(command_args);
-    client.import_vhost_definitions(vhost, defs_json)
+) -> Result<(), CommandRunError> {
+    let defs_json = read_and_parse_definitions(command_args)?;
+    client
+        .import_vhost_definitions(vhost, defs_json)
+        .map_err(Into::into)
 }
 
-fn read_and_parse_definitions(command_args: &ArgMatches) -> Value {
+fn read_and_parse_definitions(command_args: &ArgMatches) -> Result<Value, CommandRunError> {
     let path = command_args
         .get_one::<String>("file")
         .map(|s| s.trim_ascii().trim_matches('\'').trim_matches('"'));
     let use_stdin = command_args.get_one::<bool>("stdin").copied();
-    let definitions = read_definitions(path, use_stdin);
-    match definitions {
-        Ok(defs) => serde_json::from_str(defs.as_str()).unwrap_or_else(|err| {
-            match path {
-                None => {
-                    eprintln!("could not parse the value read from the standard input: {}", err);
-                }
-                Some(val) => {
-                    eprintln!("`{}` does not exist, is not a readable file, or is not a valid JSON file: {}", val, err);
-                }
-            }
-            process::exit(1)
-        }),
-        Err(err) => {
-            match path {
-                None => {
-                    eprintln!(
-                        "could not parse the value read from the standard input: {}",
-                        err
-                    );
-                }
-                Some(val) => {
-                    eprintln!(
-                        "`{}` does not exist, is not a readable file, or is not a valid JSON file: {}",
-                        val, err
-                    );
-                }
-            }
-            process::exit(1)
-        }
-    }
+    let definitions = read_definitions(path, use_stdin).map_err(|err| {
+        let message = match path {
+            None => format!("could not read from standard input: {}", err),
+            Some(val) => format!("`{}` does not exist or is not readable: {}", val, err),
+        };
+        CommandRunError::DefinitionsFileLoadingError { message }
+    })?;
+
+    serde_json::from_str(definitions.as_str()).map_err(|err| {
+        let message = match path {
+            None => format!("could not parse JSON from standard input: {}", err),
+            Some(val) => format!("`{}` is not a valid JSON file: {}", val, err),
+        };
+        CommandRunError::DefinitionsFileLoadingError { message }
+    })
 }
 
 const POLICY_LENGTH_LIMIT: usize = 255;
@@ -1740,14 +1752,16 @@ pub fn publish_message(
     client: APIClient,
     vhost: &str,
     command_args: &ArgMatches,
-) -> ClientResult<responses::MessageRouted> {
+) -> Result<responses::MessageRouted, CommandRunError> {
     let exchange = command_args.get_one::<String>("exchange").unwrap();
     let routing_key = command_args.get_one::<String>("routing_key").unwrap();
     let payload = command_args.get_one::<String>("payload").unwrap();
     let properties = command_args.get_one::<String>("properties").unwrap();
-    let parsed_properties = parse_json_from_arg(properties);
+    let parsed_properties = parse_json_from_arg(properties)?;
 
-    client.publish_message(vhost, exchange, routing_key, payload, parsed_properties)
+    client
+        .publish_message(vhost, exchange, routing_key, payload, parsed_properties)
+        .map_err(Into::into)
 }
 
 pub fn get_messages(
@@ -1761,9 +1775,8 @@ pub fn get_messages(
     client.get_messages(vhost, queue, count.parse::<u32>().unwrap(), ack_mode)
 }
 
-fn parse_json_from_arg<T: DeserializeOwned>(arg_value: &str) -> T {
-    serde_json::from_str(arg_value).unwrap_or_else(|err| {
-        eprintln!("`{}` is not a valid JSON: {}", arg_value, err);
-        process::exit(1);
+fn parse_json_from_arg<T: DeserializeOwned>(input: &str) -> Result<T, CommandRunError> {
+    serde_json::from_str(input).map_err(|err| CommandRunError::JsonParseError {
+        message: format!("`{}` is not a valid JSON: {}", input, err),
     })
 }

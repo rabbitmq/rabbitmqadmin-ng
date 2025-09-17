@@ -232,13 +232,16 @@ impl<'a> ResultHandler<'a> {
         }
     }
 
-    pub fn single_value_result<T: fmt::Display>(&mut self, result: ClientResult<T>) {
+    pub fn single_value_output_with_result<T: fmt::Display>(
+        &mut self,
+        result: Result<T, crate::errors::CommandRunError>,
+    ) {
         match result {
             Ok(output) => {
                 self.exit_code = Some(ExitCode::Ok);
                 println!("{}", output)
             }
-            Err(error) => self.report_command_run_error(&error),
+            Err(error) => self.report_pre_command_run_error(&error),
         }
     }
 
@@ -309,12 +312,12 @@ impl<'a> ResultHandler<'a> {
         }
     }
 
-    pub fn no_output_on_success<T>(&mut self, result: ClientResult<T>) {
+    pub fn no_output_on_success<T>(&mut self, result: Result<T, CommandRunError>) {
         match result {
             Ok(_) => {
                 self.exit_code = Some(ExitCode::Ok);
             }
-            Err(error) => self.report_command_run_error(&error),
+            Err(error) => self.report_pre_command_run_error(&error),
         }
     }
 

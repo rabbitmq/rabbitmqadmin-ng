@@ -435,19 +435,21 @@ fn dispatch_common_subcommand(
             res_handler.tabular_result(result)
         }
         ("close", "connection") => {
-            let result = commands::close_connection(client, second_level_args);
+            let result = commands::close_connection(client, second_level_args).map_err(Into::into);
             res_handler.no_output_on_success(result);
         }
         ("close", "user_connections") => {
-            let result = commands::close_user_connections(client, second_level_args);
+            let result =
+                commands::close_user_connections(client, second_level_args).map_err(Into::into);
             res_handler.no_output_on_success(result);
         }
         ("connections", "close") => {
-            let result = commands::close_connection(client, second_level_args);
+            let result = commands::close_connection(client, second_level_args).map_err(Into::into);
             res_handler.no_output_on_success(result);
         }
         ("connections", "close_of_user") => {
-            let result = commands::close_user_connections(client, second_level_args);
+            let result =
+                commands::close_user_connections(client, second_level_args).map_err(Into::into);
             res_handler.no_output_on_success(result);
         }
         ("connections", "list") => {
@@ -475,7 +477,8 @@ fn dispatch_common_subcommand(
             res_handler.no_output_on_success(result);
         }
         ("declare", "permissions") => {
-            let result = commands::declare_permissions(client, &vhost, second_level_args);
+            let result = commands::declare_permissions(client, &vhost, second_level_args)
+                .map_err(Into::into);
             res_handler.no_output_on_success(result);
         }
         ("declare", "policy") => {
@@ -491,27 +494,31 @@ fn dispatch_common_subcommand(
             res_handler.no_output_on_success(result);
         }
         ("declare", "user") => {
-            let result = commands::declare_user(client, second_level_args);
+            let result = commands::declare_user(client, second_level_args).map_err(Into::into);
             res_handler.no_output_on_success(result);
         }
         ("declare", "user_limit") => {
-            let result = commands::declare_user_limit(client, second_level_args);
+            let result =
+                commands::declare_user_limit(client, second_level_args).map_err(Into::into);
             res_handler.no_output_on_success(result);
         }
         ("declare", "vhost") => {
-            let result = commands::declare_vhost(client, second_level_args);
+            let result = commands::declare_vhost(client, second_level_args).map_err(Into::into);
             res_handler.no_output_on_success(result);
         }
         ("declare", "vhost_limit") => {
-            let result = commands::declare_vhost_limit(client, &vhost, second_level_args);
+            let result = commands::declare_vhost_limit(client, &vhost, second_level_args)
+                .map_err(Into::into);
             res_handler.no_output_on_success(result);
         }
         ("definitions", "export") => {
-            let result = commands::export_cluster_wide_definitions(client, second_level_args);
+            let result = commands::export_cluster_wide_definitions(client, second_level_args)
+                .map_err(Into::into);
             res_handler.no_output_on_success(result);
         }
         ("definitions", "export_from_vhost") => {
-            let result = commands::export_vhost_definitions(client, &vhost, second_level_args);
+            let result = commands::export_vhost_definitions(client, &vhost, second_level_args)
+                .map_err(Into::into);
             res_handler.no_output_on_success(result);
         }
         ("definitions", "import") => {
@@ -531,19 +538,23 @@ fn dispatch_common_subcommand(
             res_handler.delete_operation_result(result);
         }
         ("delete", "operator_policy") => {
-            let result = commands::delete_operator_policy(client, &vhost, second_level_args);
+            let result = commands::delete_operator_policy(client, &vhost, second_level_args)
+                .map_err(Into::into);
             res_handler.no_output_on_success(result);
         }
         ("delete", "parameter") => {
-            let result = commands::delete_parameter(client, &vhost, second_level_args);
+            let result =
+                commands::delete_parameter(client, &vhost, second_level_args).map_err(Into::into);
             res_handler.no_output_on_success(result);
         }
         ("delete", "permissions") => {
-            let result = commands::delete_permissions(client, &vhost, second_level_args);
+            let result =
+                commands::delete_permissions(client, &vhost, second_level_args).map_err(Into::into);
             res_handler.no_output_on_success(result);
         }
         ("delete", "policy") => {
-            let result = commands::delete_policy(client, &vhost, second_level_args);
+            let result =
+                commands::delete_policy(client, &vhost, second_level_args).map_err(Into::into);
             res_handler.no_output_on_success(result);
         }
         ("delete", "queue") => {
@@ -551,7 +562,8 @@ fn dispatch_common_subcommand(
             res_handler.delete_operation_result(result);
         }
         ("delete", "shovel") => {
-            let result = commands::delete_shovel(client, &vhost, second_level_args);
+            let result =
+                commands::delete_shovel(client, &vhost, second_level_args).map_err(Into::into);
             res_handler.no_output_on_success(result);
         }
         ("delete", "stream") => {
@@ -563,7 +575,7 @@ fn dispatch_common_subcommand(
             res_handler.delete_operation_result(result);
         }
         ("delete", "user_limit") => {
-            let result = commands::delete_user_limit(client, second_level_args);
+            let result = commands::delete_user_limit(client, second_level_args).map_err(Into::into);
             res_handler.no_output_on_success(result);
         }
         ("delete", "vhost") => {
@@ -571,7 +583,8 @@ fn dispatch_common_subcommand(
             res_handler.delete_operation_result(result);
         }
         ("delete", "vhost_limit") => {
-            let result = commands::delete_vhost_limit(client, &vhost, second_level_args);
+            let result =
+                commands::delete_vhost_limit(client, &vhost, second_level_args).map_err(Into::into);
             res_handler.no_output_on_success(result);
         }
         ("deprecated_features", "list") => {
@@ -583,7 +596,8 @@ fn dispatch_common_subcommand(
             res_handler.tabular_result(result.map(|val| val.0))
         }
         ("export", "definitions") => {
-            let result = commands::export_cluster_wide_definitions(client, second_level_args);
+            let result = commands::export_cluster_wide_definitions(client, second_level_args)
+                .map_err(Into::into);
             res_handler.no_output_on_success(result);
         }
         ("exchanges", "bind") => {
@@ -607,11 +621,12 @@ fn dispatch_common_subcommand(
             res_handler.no_output_on_success(result);
         }
         ("feature_flags", "enable") => {
-            let result = commands::enable_feature_flag(client, second_level_args);
+            let result =
+                commands::enable_feature_flag(client, second_level_args).map_err(Into::into);
             res_handler.no_output_on_success(result);
         }
         ("feature_flags", "enable_all") => {
-            let result = commands::enable_all_stable_feature_flags(client);
+            let result = commands::enable_all_stable_feature_flags(client).map_err(Into::into);
             res_handler.no_output_on_success(result);
         }
         ("feature_flags", "list") => {
@@ -619,7 +634,8 @@ fn dispatch_common_subcommand(
             res_handler.tabular_result(result.map(|val| val.0))
         }
         ("federation", "declare_upstream") => {
-            let result = commands::declare_federation_upstream(client, &vhost, second_level_args);
+            let result = commands::declare_federation_upstream(client, &vhost, second_level_args)
+                .map_err(Into::into);
             res_handler.no_output_on_success(result);
         }
         ("federation", "declare_upstream_for_exchanges") => {
@@ -627,7 +643,8 @@ fn dispatch_common_subcommand(
                 client,
                 &vhost,
                 second_level_args,
-            );
+            )
+            .map_err(Into::into);
             res_handler.no_output_on_success(result);
         }
         ("federation", "declare_upstream_for_queues") => {
@@ -635,11 +652,13 @@ fn dispatch_common_subcommand(
                 client,
                 &vhost,
                 second_level_args,
-            );
+            )
+            .map_err(Into::into);
             res_handler.no_output_on_success(result);
         }
         ("federation", "delete_upstream") => {
-            let result = commands::delete_federation_upstream(client, &vhost, second_level_args);
+            let result = commands::delete_federation_upstream(client, &vhost, second_level_args)
+                .map_err(Into::into);
             res_handler.no_output_on_success(result);
         }
         ("federation", "list_all_links") => {
@@ -655,7 +674,8 @@ fn dispatch_common_subcommand(
             res_handler.tabular_result(result)
         }
         ("global_parameters", "clear") => {
-            let result = commands::delete_global_parameter(client, second_level_args);
+            let result =
+                commands::delete_global_parameter(client, second_level_args).map_err(Into::into);
             res_handler.no_output_on_success(result);
         }
         ("global_parameters", "list") => {
@@ -783,12 +803,14 @@ fn dispatch_common_subcommand(
             res_handler.no_output_on_success(result);
         }
         ("operator_policies", "delete") => {
-            let result = commands::delete_operator_policy(client, &vhost, second_level_args);
+            let result = commands::delete_operator_policy(client, &vhost, second_level_args)
+                .map_err(Into::into);
             res_handler.no_output_on_success(result);
         }
         ("operator_policies", "delete_definition_keys") => {
             let result =
-                commands::delete_operator_policy_definition_keys(client, &vhost, second_level_args);
+                commands::delete_operator_policy_definition_keys(client, &vhost, second_level_args)
+                    .map_err(Into::into);
             res_handler.no_output_on_success(result);
         }
         ("operator_policies", "delete_definition_keys_from_all_in") => {
@@ -796,7 +818,8 @@ fn dispatch_common_subcommand(
                 client,
                 &vhost,
                 second_level_args,
-            );
+            )
+            .map_err(Into::into);
             res_handler.no_output_on_success(result);
         }
         ("operator_policies", "list") => {
@@ -846,7 +869,8 @@ fn dispatch_common_subcommand(
             res_handler.no_output_on_success(result);
         }
         ("parameters", "clear") => {
-            let result = commands::delete_parameter(client, &vhost, second_level_args);
+            let result =
+                commands::delete_parameter(client, &vhost, second_level_args).map_err(Into::into);
             res_handler.no_output_on_success(result);
         }
         ("parameters", "list_all") => {
@@ -883,16 +907,19 @@ fn dispatch_common_subcommand(
             res_handler.no_output_on_success(result);
         }
         ("policies", "delete") => {
-            let result = commands::delete_policy(client, &vhost, second_level_args);
+            let result =
+                commands::delete_policy(client, &vhost, second_level_args).map_err(Into::into);
             res_handler.no_output_on_success(result);
         }
         ("policies", "delete_definition_keys") => {
-            let result = commands::delete_policy_definition_keys(client, &vhost, second_level_args);
+            let result = commands::delete_policy_definition_keys(client, &vhost, second_level_args)
+                .map_err(Into::into);
             res_handler.no_output_on_success(result);
         }
         ("policies", "delete_definition_keys_from_all_in") => {
             let result =
-                commands::delete_policy_definition_keys_in(client, &vhost, second_level_args);
+                commands::delete_policy_definition_keys_in(client, &vhost, second_level_args)
+                    .map_err(Into::into);
             res_handler.no_output_on_success(result);
         }
         ("policies", "list") => {
@@ -936,10 +963,11 @@ fn dispatch_common_subcommand(
         }
         ("publish", "message") => {
             let result = commands::publish_message(client, &vhost, second_level_args);
-            res_handler.single_value_result(result)
+            res_handler.single_value_output_with_result(result)
         }
         ("purge", "queue") => {
-            let result = commands::purge_queue(client, &vhost, second_level_args);
+            let result =
+                commands::purge_queue(client, &vhost, second_level_args).map_err(Into::into);
             res_handler.no_output_on_success(result);
         }
         ("queues", "declare") => {
@@ -955,15 +983,16 @@ fn dispatch_common_subcommand(
             res_handler.tabular_result(result)
         }
         ("queues", "purge") => {
-            let result = commands::purge_queue(client, &vhost, second_level_args);
+            let result =
+                commands::purge_queue(client, &vhost, second_level_args).map_err(Into::into);
             res_handler.no_output_on_success(result);
         }
         ("queues", "rebalance") => {
-            let result = commands::rebalance_queues(client);
+            let result = commands::rebalance_queues(client).map_err(Into::into);
             res_handler.no_output_on_success(result);
         }
         ("rebalance", "queues") => {
-            let result = commands::rebalance_queues(client);
+            let result = commands::rebalance_queues(client).map_err(Into::into);
             res_handler.no_output_on_success(result);
         }
         ("show", "churn") => {
@@ -1015,16 +1044,19 @@ fn dispatch_common_subcommand(
 
                 res_handler.report_pre_command_run_error(&err)
             } else {
-                let result = commands::declare_amqp091_shovel(client, &vhost, second_level_args);
+                let result = commands::declare_amqp091_shovel(client, &vhost, second_level_args)
+                    .map_err(Into::into);
                 res_handler.no_output_on_success(result);
             }
         }
         ("shovels", "declare_amqp10") => {
-            let result = commands::declare_amqp10_shovel(client, &vhost, second_level_args);
+            let result = commands::declare_amqp10_shovel(client, &vhost, second_level_args)
+                .map_err(Into::into);
             res_handler.no_output_on_success(result);
         }
         ("shovels", "delete") => {
-            let result = commands::delete_shovel(client, &vhost, second_level_args);
+            let result =
+                commands::delete_shovel(client, &vhost, second_level_args).map_err(Into::into);
             res_handler.no_output_on_success(result);
         }
         ("shovels", "list_all") => {
@@ -1052,7 +1084,7 @@ fn dispatch_common_subcommand(
             res_handler.tabular_result(result)
         }
         ("users", "declare") => {
-            let result = commands::declare_user(client, second_level_args);
+            let result = commands::declare_user(client, second_level_args).map_err(Into::into);
             res_handler.no_output_on_success(result);
         }
         ("users", "delete") => {
@@ -1072,7 +1104,7 @@ fn dispatch_common_subcommand(
             res_handler.tabular_result(result)
         }
         ("vhosts", "declare") => {
-            let result = commands::declare_vhost(client, second_level_args);
+            let result = commands::declare_vhost(client, second_level_args).map_err(Into::into);
             res_handler.no_output_on_success(result);
         }
         ("vhosts", "delete") => {
@@ -1107,19 +1139,21 @@ fn dispatch_tanzu_subcommand(
             res_handler.schema_definition_sync_status_result(result)
         }
         ("sds", "enable_cluster_wide") => {
-            let result = tanzu_commands::sds_enable_cluster_wide(client);
+            let result = tanzu_commands::sds_enable_cluster_wide(client).map_err(Into::into);
             res_handler.no_output_on_success(result)
         }
         ("sds", "disable_cluster_wide") => {
-            let result = tanzu_commands::sds_disable_cluster_wide(client);
+            let result = tanzu_commands::sds_disable_cluster_wide(client).map_err(Into::into);
             res_handler.no_output_on_success(result)
         }
         ("sds", "enable_on_node") => {
-            let result = tanzu_commands::sds_enable_on_node(client, third_level_args);
+            let result =
+                tanzu_commands::sds_enable_on_node(client, third_level_args).map_err(Into::into);
             res_handler.no_output_on_success(result)
         }
         ("sds", "disable_on_node") => {
-            let result = tanzu_commands::sds_disable_on_node(client, third_level_args);
+            let result =
+                tanzu_commands::sds_disable_on_node(client, third_level_args).map_err(Into::into);
             res_handler.no_output_on_success(result)
         }
         ("wsr", "status") => {

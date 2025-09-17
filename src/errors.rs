@@ -95,6 +95,10 @@ pub enum CommandRunError {
     IncompatibleBody { error: ConversionError },
     #[error("encountered an error when performing an HTTP request")]
     RequestError { error: reqwest::Error },
+    #[error("Failed to parse JSON argument: {message}")]
+    JsonParseError { message: String },
+    #[error("Failed to read definitions file: {message}")]
+    DefinitionsFileLoadingError { message: String },
     #[error("an unspecified error")]
     Other,
 }
