@@ -1448,7 +1448,7 @@ dependencies = [
 
 [[package]]
 name = "rabbitmqadmin"
-version = "2.10.0"
+version = "2.11.0"
 dependencies = [
  "assert_cmd",
  "clap",
