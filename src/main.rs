@@ -517,8 +517,7 @@ fn dispatch_common_subcommand(
             res_handler.no_output_on_success(result);
         }
         ("definitions", "export_from_vhost") => {
-            let result = commands::export_vhost_definitions(client, &vhost, second_level_args)
-                .map_err(Into::into);
+            let result = commands::export_vhost_definitions(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);
         }
         ("definitions", "import") => {

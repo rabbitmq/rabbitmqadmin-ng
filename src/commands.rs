@@ -33,7 +33,7 @@ use rabbitmq_http_client::requests::{
     RuntimeParameterDefinition,
 };
 use rabbitmq_http_client::responses::OptionalArgumentSourceOps;
-use rabbitmq_http_client::transformers::TransformationChain;
+use rabbitmq_http_client::transformers::{TransformationChain, VirtualHostTransformationChain};
 use rabbitmq_http_client::{password_hashing, requests, responses};
 use serde::de::DeserializeOwned;
 use serde_json::Value;
@@ -1638,7 +1638,54 @@ pub fn export_vhost_definitions(
     client: APIClient,
     vhost: &str,
     command_args: &ArgMatches,
-) -> ClientResult<()> {
+) -> Result<(), CommandRunError> {
+    let transformations = command_args
+        .get_many::<String>("transformations")
+        .unwrap_or_default();
+
+    if transformations.len() == 0 {
+        export_vhost_definitions_without_transformations(client, vhost, command_args)
+    } else {
+        let transformations = transformations.map(String::from).collect();
+
+        export_and_transform_vhost_definitions(client, vhost, command_args, transformations)
+    }
+}
+
+fn export_and_transform_vhost_definitions(
+    client: APIClient,
+    vhost: &str,
+    command_args: &ArgMatches,
+    transformations: Vec<String>,
+) -> Result<(), CommandRunError> {
+    match client.export_vhost_definitions_as_data(vhost) {
+        Ok(mut defs0) => {
+            let chain = VirtualHostTransformationChain::from(transformations);
+            chain.apply(&mut defs0);
+
+            let json = serde_json::to_string_pretty(&defs0).unwrap();
+
+            let path = command_args.get_one::<String>("file").unwrap();
+            match path.as_str() {
+                "-" => {
+                    println!("{}", &json);
+                    Ok(())
+                }
+                file => {
+                    fs::write(file, &json)?;
+                    Ok(())
+                }
+            }
+        }
+        Err(err) => Err(err.into()),
+    }
+}
+
+fn export_vhost_definitions_without_transformations(
+    client: APIClient,
+    vhost: &str,
+    command_args: &ArgMatches,
+) -> Result<(), CommandRunError> {
     match client.export_vhost_definitions(vhost) {
         Ok(definitions) => {
             let path = command_args.get_one::<String>("file").unwrap();
@@ -1648,12 +1695,12 @@ pub fn export_vhost_definitions(
                     Ok(())
                 }
                 file => {
-                    _ = fs::write(file, &definitions);
+                    fs::write(file, &definitions)?;
                     Ok(())
                 }
             }
         }
-        Err(err) => Err(err),
+        Err(err) => Err(err.into()),
     }
 }
 
