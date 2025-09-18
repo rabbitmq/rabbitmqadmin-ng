@@ -2,9 +2,25 @@
 
 ## v2.10.0 (in development)
 
+### Enhancements
+
+* `definitions export_from_vhost` now supports `--transformations`:
+
+  ```shell
+  # previously only 'definitions export' supported --transformations
+  rabbitmqadmin --vhost "my-vhost" definitions export_from_vhost \
+                --transformations prepare_for_quorum_queue_migration,drop_empty_policies \
+                --file "my-vhost.definitions.json"
+  ```
+
+### Bug Fixes
+
+ * The `prepare_for_quorum_queue_migration` transformation did not remove CMQ-related keys
+   such as `x-ha-mode` from [optional queue arguments](https://www.rabbitmq.com/docs/queues#optional-arguments)
+
 ### Upgrades
 
-* RabbitMQ HTTP API client was upgraded to [`0.51.0`](https://github.com/michaelklishin/rabbitmq-http-api-rs/releases/tag/v0.51.0)
+* RabbitMQ HTTP API client was upgraded to [`0.52.0`](https://github.com/michaelklishin/rabbitmq-http-api-rs/releases/tag/v0.52.0)
 
 
 ## v2.9.0 (Aug 25, 2025)
