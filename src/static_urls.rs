@@ -30,6 +30,7 @@ pub(crate) const STREAM_GUIDE_URL: &str = "https://rabbitmq.com/docs/streams";
 pub(crate) const QUORUM_QUEUE_GUIDE_URL: &str = "https://rabbitmq.com/docs/quorum-queues";
 pub(crate) const QUORUM_QUEUE_FAILURE_HANDLING_GUIDE_URL: &str =
     "https://rabbitmq.com/docs/quorum-queues#leader-election";
+pub(crate) const TLS_GUIDE_URL: &str = "https://rabbitmq.com/docs/ssl";
 pub(crate) const UPGRADE_GUIDE_URL: &str = "https://rabbitmq.com/docs/upgrade";
 pub(crate) const BLUE_GREEN_UPGRADE_GUIDE_URL: &str =
     "https://rabbitmq.com/docs/blue-green-upgrade";

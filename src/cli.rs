@@ -19,10 +19,7 @@ use super::tanzu_cli::tanzu_subcommands;
 use crate::config::PreFlightSettings;
 use crate::output::TableStyle;
 use clap::{Arg, ArgAction, ArgGroup, Command, value_parser};
-use rabbitmq_http_client::commons::{
-    BindingDestinationType, ExchangeType, MessageTransferAcknowledgementMode, PolicyTarget,
-    QueueType, SupportedProtocol,
-};
+use rabbitmq_http_client::commons::{BindingDestinationType, ChannelUseMode, ExchangeType, MessageTransferAcknowledgementMode, PolicyTarget, QueueType, SupportedProtocol};
 use rabbitmq_http_client::password_hashing::HashingAlgorithm;
 use rabbitmq_http_client::requests::FederationResourceCleanupMode;
 
@@ -3051,7 +3048,7 @@ pub fn shovel_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 5
     .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
 }
 
-fn federation_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 6] {
+fn federation_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 7] {
     let list_all_upstreams = Command::new("list_all_upstreams")
         .long_about("Lists federation upstreams in all virtual hosts")
         .after_help(color_print::cformat!(
@@ -3267,7 +3264,7 @@ fn federation_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 6
             Arg::new("reconnect_delay")
                 .long("reconnect-delay")
                 .default_value("5")
-                .value_parser(value_parser!(u16))
+                .value_parser(value_parser!(u32))
                 .help("Reconnection delay in seconds")
         )
         .arg(
@@ -3281,9 +3278,8 @@ fn federation_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 6
             Arg::new("prefetch_count")
                 .long("prefetch-count")
                 .default_value("1000")
-                .value_parser(value_parser!(u16))
+                .value_parser(value_parser!(u32))
                 .help("The prefetch value to use with internal consumers")
-                .value_parser(value_parser!(u16))
         )
         .arg(
             Arg::new("ack_mode")
@@ -3315,6 +3311,12 @@ fn federation_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 6
                 .long("resource-cleanup-mode")
                 .default_value("default")
                 .value_parser(value_parser!(FederationResourceCleanupMode))
+        )
+        .arg(
+            Arg::new("channel_use_mode")
+                .long("channel-use-mode")
+                .default_value("multiple")
+                .value_parser(value_parser!(ChannelUseMode))
         )
         .arg(
             Arg::new("bind_nowait")
@@ -3363,6 +3365,23 @@ fn federation_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 6
             FEDERATION_REFERENCE_URL
         ));
 
+    let disable_tls_peer_verification_cmd = Command::new("disable_tls_peer_verification_for_all_upstreams")
+        // shorter, displayed in the federation group's help
+        .about(color_print::cstr!("<bold><red>Use only to undo incorrect URI changes</red></bold>. Disables TLS peer verification for all federation upstreams."))
+        // longer, displayed in the command's help
+        .long_about(color_print::cstr!("<bold><red>Use only to undo incorrect URI changes</red></bold>. Disables TLS peer verification for all federation upstreams by updating their 'verify' parameter."))
+
+        .after_help(color_print::cformat!(
+            r#"<bold>Doc guides</bold>:
+
+ * {}
+ * {}
+ * {}"#,
+            FEDERATION_GUIDE_URL,
+            TLS_GUIDE_URL,
+            "https://www.rabbitmq.com/docs/federation#tls-connections"
+        ));
+
     [
         list_all_upstreams,
         declare_upstream,
@@ -3370,6 +3389,7 @@ fn federation_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 6
         declare_upstream_for_queue_federation,
         delete_upstream,
         list_all_links,
+        disable_tls_peer_verification_cmd,
     ]
     .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
 }

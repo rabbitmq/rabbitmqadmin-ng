@@ -19,19 +19,13 @@ use clap::ArgMatches;
 use rabbitmq_http_client::blocking_api::Client;
 use rabbitmq_http_client::blocking_api::Result as ClientResult;
 use rabbitmq_http_client::commons;
-use rabbitmq_http_client::commons::BindingDestinationType;
+use rabbitmq_http_client::commons::{BindingDestinationType, ChannelUseMode, TlsPeerVerificationMode};
 use rabbitmq_http_client::commons::QueueType;
 use rabbitmq_http_client::commons::{ExchangeType, SupportedProtocol};
 use rabbitmq_http_client::commons::{MessageTransferAcknowledgementMode, UserLimitTarget};
 use rabbitmq_http_client::commons::{PolicyTarget, VirtualHostLimitTarget};
 use rabbitmq_http_client::password_hashing::{HashingAlgorithm, HashingError};
-use rabbitmq_http_client::requests::{
-    Amqp10ShovelDestinationParams, Amqp10ShovelParams, Amqp10ShovelSourceParams,
-    Amqp091ShovelDestinationParams, Amqp091ShovelParams, Amqp091ShovelSourceParams,
-    EnforcedLimitParams, ExchangeFederationParams, FEDERATION_UPSTREAM_COMPONENT,
-    FederationResourceCleanupMode, FederationUpstreamParams, PolicyParams, QueueFederationParams,
-    RuntimeParameterDefinition,
-};
+use rabbitmq_http_client::requests::{Amqp10ShovelDestinationParams, Amqp10ShovelParams, Amqp10ShovelSourceParams, Amqp091ShovelDestinationParams, Amqp091ShovelParams, Amqp091ShovelSourceParams, EnforcedLimitParams, ExchangeFederationParams, FEDERATION_UPSTREAM_COMPONENT, FederationResourceCleanupMode, FederationUpstreamParams, PolicyParams, QueueFederationParams, RuntimeParameterDefinition, DEFAULT_FEDERATION_PREFETCH};
 use rabbitmq_http_client::responses::OptionalArgumentSourceOps;
 use rabbitmq_http_client::transformers::{TransformationChain, VirtualHostTransformationChain};
 use rabbitmq_http_client::{password_hashing, requests, responses};
@@ -269,7 +263,7 @@ pub fn declare_amqp10_shovel(
         .cloned()
         .unwrap();
     let reconnect_delay = command_args
-        .get_one::<u16>("reconnect_delay")
+        .get_one::<u32>("reconnect_delay")
         .cloned()
         .or(Some(5));
 
@@ -315,7 +309,7 @@ pub fn declare_amqp091_shovel(
         .cloned()
         .unwrap();
     let reconnect_delay = command_args
-        .get_one::<u16>("reconnect_delay")
+        .get_one::<u32>("reconnect_delay")
         .cloned()
         .or(Some(5));
 
@@ -440,7 +434,7 @@ pub fn declare_federation_upstream(
     let name = command_args.get_one::<String>("name").cloned().unwrap();
     let uri = command_args.get_one::<String>("uri").cloned().unwrap();
     let reconnect_delay = command_args
-        .get_one::<u16>("reconnect_delay")
+        .get_one::<u32>("reconnect_delay")
         .cloned()
         .unwrap();
     let trust_user_id = command_args
@@ -448,7 +442,7 @@ pub fn declare_federation_upstream(
         .cloned()
         .unwrap();
     let prefetch_count = command_args
-        .get_one::<u16>("prefetch_count")
+        .get_one::<u32>("prefetch_count")
         .cloned()
         .unwrap();
     let ack_mode = command_args
@@ -494,6 +488,10 @@ pub fn declare_federation_upstream(
         .get_one::<bool>("bind_nowait")
         .cloned()
         .unwrap_or_default();
+    let channel_use_mode = command_args
+        .get_one::<ChannelUseMode>("channel_use_mode")
+        .cloned()
+        .unwrap_or_default();
     let ttl = command_args.get_one::<u32>("ttl").cloned();
     let message_ttl = command_args.get_one::<u32>("message_ttl").cloned();
     let efp = Some(ExchangeFederationParams {
@@ -515,6 +513,7 @@ pub fn declare_federation_upstream(
         prefetch_count,
         ack_mode,
         bind_using_nowait,
+        channel_use_mode,
         queue_federation: qfp,
         exchange_federation: efp,
     };
@@ -530,7 +529,7 @@ pub fn declare_federation_upstream_for_exchange_federation(
     let name = command_args.get_one::<String>("name").cloned().unwrap();
     let uri = command_args.get_one::<String>("uri").cloned().unwrap();
     let reconnect_delay = command_args
-        .get_one::<u16>("reconnect_delay")
+        .get_one::<u32>("reconnect_delay")
         .cloned()
         .unwrap();
     let trust_user_id = command_args
@@ -538,7 +537,7 @@ pub fn declare_federation_upstream_for_exchange_federation(
         .cloned()
         .unwrap();
     let prefetch_count = command_args
-        .get_one::<u16>("prefetch_count")
+        .get_one::<u32>("prefetch_count")
         .cloned()
         .unwrap();
     let ack_mode = command_args
@@ -562,6 +561,10 @@ pub fn declare_federation_upstream_for_exchange_federation(
         .get_one::<bool>("bind_nowait")
         .cloned()
         .unwrap_or_default();
+    let channel_use_mode = command_args
+        .get_one::<ChannelUseMode>("channel_use_mode")
+        .cloned()
+        .unwrap_or_default();
     let ttl = command_args.get_one::<u32>("ttl").cloned();
     let message_ttl = command_args.get_one::<u32>("message_ttl").cloned();
     let efp = Some(ExchangeFederationParams {
@@ -583,6 +586,7 @@ pub fn declare_federation_upstream_for_exchange_federation(
         prefetch_count,
         ack_mode,
         bind_using_nowait,
+        channel_use_mode,
         queue_federation: None,
         exchange_federation: efp,
     };
@@ -598,7 +602,7 @@ pub fn declare_federation_upstream_for_queue_federation(
     let name = command_args.get_one::<String>("name").cloned().unwrap();
     let uri = command_args.get_one::<String>("uri").cloned().unwrap();
     let reconnect_delay = command_args
-        .get_one::<u16>("reconnect_delay")
+        .get_one::<u32>("reconnect_delay")
         .cloned()
         .unwrap();
     let trust_user_id = command_args
@@ -606,13 +610,21 @@ pub fn declare_federation_upstream_for_queue_federation(
         .cloned()
         .unwrap();
     let prefetch_count = command_args
-        .get_one::<u16>("prefetch_count")
+        .get_one::<u32>("prefetch_count")
         .cloned()
         .unwrap();
     let ack_mode = command_args
         .get_one::<MessageTransferAcknowledgementMode>("ack_mode")
         .cloned()
         .unwrap();
+    let bind_using_nowait = command_args
+        .get_one::<bool>("bind_nowait")
+        .cloned()
+        .unwrap_or_default();
+    let channel_use_mode = command_args
+        .get_one::<ChannelUseMode>("channel_use_mode")
+        .cloned()
+        .unwrap_or_default();
 
     let queue_name = command_args.get_one::<String>("queue_name").cloned();
     let consumer_tag = command_args.get_one::<String>("consumer_tag").cloned();
@@ -642,7 +654,8 @@ pub fn declare_federation_upstream_for_queue_federation(
         trust_user_id,
         prefetch_count,
         ack_mode,
-        bind_using_nowait: false,
+        bind_using_nowait,
+        channel_use_mode,
         queue_federation: qfp,
         exchange_federation: None,
     };
@@ -657,6 +670,56 @@ pub fn delete_federation_upstream(
 ) -> ClientResult<()> {
     let name = command_args.get_one::<String>("name").cloned().unwrap();
     client.clear_runtime_parameter(FEDERATION_UPSTREAM_COMPONENT, vhost, &name)
+}
+
+pub fn disable_tls_peer_verification_for_all_federation_upstreams(
+    client: APIClient,
+) -> Result<(), CommandRunError> {
+    let upstreams = client.list_federation_upstreams()?;
+
+    for upstream in upstreams {
+        let original_uri = &upstream.uri;
+        let updated_uri = disable_tls_peer_verification(original_uri)?;
+
+        if original_uri != &updated_uri {
+            let upstream_params = FederationUpstreamParams {
+                name: &upstream.name,
+                vhost: &upstream.vhost,
+                uri: &updated_uri,
+                prefetch_count: upstream.prefetch_count.unwrap_or(DEFAULT_FEDERATION_PREFETCH),
+                reconnect_delay: upstream.reconnect_delay.unwrap_or(5),
+                ack_mode: upstream.ack_mode,
+                trust_user_id: upstream.trust_user_id.unwrap_or_default(),
+                bind_using_nowait: upstream.bind_using_nowait,
+                channel_use_mode: upstream.channel_use_mode,
+                queue_federation: if upstream.queue.is_some() {
+                    Some(QueueFederationParams {
+                        queue: upstream.queue.as_deref(),
+                        consumer_tag: upstream.consumer_tag.as_deref(),
+                    })
+                } else {
+                    None
+                },
+                exchange_federation: if upstream.exchange.is_some() {
+                    Some(ExchangeFederationParams {
+                        exchange: upstream.exchange.as_deref(),
+                        max_hops: upstream.max_hops.map(|h| h as u8),
+                        queue_type: upstream.queue_type.unwrap_or(QueueType::Classic),
+                        ttl: upstream.expires,
+                        message_ttl: upstream.message_ttl,
+                        resource_cleanup_mode: upstream.resource_cleanup_mode,
+                    })
+                } else {
+                    None
+                },
+            };
+
+            let param = RuntimeParameterDefinition::from(upstream_params);
+            client.upsert_runtime_parameter(&param)?;
+        }
+    }
+
+    Ok(())
 }
 
 //
@@ -1733,7 +1796,7 @@ fn read_and_parse_definitions(command_args: &ArgMatches) -> Result<Value, Comman
             None => format!("could not read from standard input: {}", err),
             Some(val) => format!("`{}` does not exist or is not readable: {}", val, err),
         };
-        CommandRunError::DefinitionsFileLoadingError { message }
+        CommandRunError::FailureDuringExecution { message }
     })?;
 
     serde_json::from_str(definitions.as_str()).map_err(|err| {
@@ -1741,7 +1804,7 @@ fn read_and_parse_definitions(command_args: &ArgMatches) -> Result<Value, Comman
             None => format!("could not parse JSON from standard input: {}", err),
             Some(val) => format!("`{}` is not a valid JSON file: {}", val, err),
         };
-        CommandRunError::DefinitionsFileLoadingError { message }
+        CommandRunError::FailureDuringExecution { message }
     })
 }
 
@@ -1826,4 +1889,16 @@ fn parse_json_from_arg<T: DeserializeOwned>(input: &str) -> Result<T, CommandRun
     serde_json::from_str(input).map_err(|err| CommandRunError::JsonParseError {
         message: format!("`{}` is not a valid JSON: {}", input, err),
     })
+}
+
+fn disable_tls_peer_verification(uri: &str) -> Result<String, CommandRunError> {
+    use rabbitmq_http_client::uris::UriBuilder;
+
+    let ub = UriBuilder::new(uri)
+        .map_err(|e| CommandRunError::FailureDuringExecution { message: format!("Could not parse a value as a URI '{}': {}", uri, e) })?
+        .with_tls_peer_verification(TlsPeerVerificationMode::Disabled);
+
+
+    ub.build()
+        .map_err(|e| CommandRunError::FailureDuringExecution { message: format!("Failed to reconstruct (modify) a URI: {}", e) })
 }

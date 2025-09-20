@@ -15,8 +15,8 @@
 use rabbitmq_http_client::error::{ConversionError, Error as ApiClientError};
 use rabbitmq_http_client::{blocking_api::HttpClientError, responses::HealthCheckFailureDetails};
 use reqwest::{
-    StatusCode,
     header::{HeaderMap, InvalidHeaderValue},
+    StatusCode,
 };
 use url::Url;
 
@@ -97,8 +97,8 @@ pub enum CommandRunError {
     RequestError { error: reqwest::Error },
     #[error("Failed to parse JSON argument: {message}")]
     JsonParseError { message: String },
-    #[error("Failed to read definitions file: {message}")]
-    DefinitionsFileLoadingError { message: String },
+    #[error("Command execution failed: {message}")]
+    FailureDuringExecution { message: String },
     #[error("an unspecified error")]
     Other,
 }
@@ -132,6 +132,7 @@ impl From<HttpClientError> for CommandRunError {
             Other => Self::Other,
             MissingProperty { argument } => Self::MissingArgumentValue { property: argument },
             IncompatibleBody { error, .. } => Self::IncompatibleBody { error },
+            ParsingError { message } => Self::FailureDuringExecution { message },
         }
     }
 }

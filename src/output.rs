@@ -420,6 +420,7 @@ pub(crate) fn client_error_to_exit_code(error: &HttpClientError) -> ExitCode {
         ClientError::MultipleMatchingBindings => ExitCode::DataErr,
         ClientError::InvalidHeaderValue { error: _ } => ExitCode::DataErr,
         ClientError::IncompatibleBody { .. } => ExitCode::DataErr,
+        ClientError::ParsingError { .. } => ExitCode::DataErr,
         ClientError::RequestError { .. } => ExitCode::IoErr,
         ClientError::Other => ExitCode::Usage,
     }

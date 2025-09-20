@@ -1,4 +1,3 @@
-use std::error::Error;
 // Copyright (C) 2023-2025 RabbitMQ Core Team (teamrabbitmq@gmail.com)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,6 +18,7 @@ use rabbitmq_http_client::responses::{
     ClusterAlarmCheckDetails, HealthCheckFailureDetails, NodeMemoryBreakdown, Overview,
     QuorumCriticalityCheckDetails, SchemaDefinitionSyncStatus,
 };
+use std::error::Error;
 use reqwest::StatusCode;
 use tabled::settings::Panel;
 use tabled::{Table, Tabled};
@@ -403,6 +403,19 @@ pub fn failure_details(error: &HttpClientError) -> Table {
                 error
             );
             build_request_failure_table("request failed", &reason)
+        }
+        HttpClientError::ParsingError { message } => {
+            let data = vec![
+                RowOfTwo {
+                    key: "result",
+                    value: "request failed",
+                },
+                RowOfTwo {
+                    key: "reason",
+                    value: message.as_str(),
+                },
+            ];
+            build_simple_table(data)
         }
         HttpClientError::RequestError {
             error,

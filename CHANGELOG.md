@@ -2,7 +2,14 @@
 
 ## v2.11.0 (in development)
 
-No changes yet.
+### Enhancements
+
+* `'federation disable_tls_peer_verification_for_all_upstreams'` 
+
+### Upgrades
+
+* RabbitMQ HTTP API client was upgraded to [`0.55.0`](https://github.com/michaelklishin/rabbitmq-http-api-rs/releases/tag/v0.55.0)
+
 
 
 ## v2.10.0 (Sep 18, 2025)
