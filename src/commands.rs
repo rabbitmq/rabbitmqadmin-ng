@@ -713,7 +713,7 @@ pub fn disable_tls_peer_verification_for_all_federation_upstreams(
                 exchange_federation: if upstream.exchange.is_some() {
                     Some(ExchangeFederationParams {
                         exchange: upstream.exchange.as_deref(),
-                        max_hops: upstream.max_hops.map(|h| h as u8),
+                        max_hops: upstream.max_hops,
                         queue_type: upstream.queue_type.unwrap_or(QueueType::Classic),
                         ttl: upstream.expires,
                         message_ttl: upstream.message_ttl,
