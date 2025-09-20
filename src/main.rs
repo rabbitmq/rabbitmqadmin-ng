@@ -669,7 +669,8 @@ fn dispatch_common_subcommand(
             res_handler.tabular_result(result)
         }
         ("federation", "disable_tls_peer_verification_for_all_upstreams") => {
-            let result = commands::disable_tls_peer_verification_for_all_federation_upstreams(client);
+            let result =
+                commands::disable_tls_peer_verification_for_all_federation_upstreams(client);
             res_handler.no_output_on_success(result);
         }
         ("get", "messages") => {

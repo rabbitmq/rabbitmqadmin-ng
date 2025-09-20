@@ -19,13 +19,21 @@ use clap::ArgMatches;
 use rabbitmq_http_client::blocking_api::Client;
 use rabbitmq_http_client::blocking_api::Result as ClientResult;
 use rabbitmq_http_client::commons;
-use rabbitmq_http_client::commons::{BindingDestinationType, ChannelUseMode, TlsPeerVerificationMode};
 use rabbitmq_http_client::commons::QueueType;
+use rabbitmq_http_client::commons::{
+    BindingDestinationType, ChannelUseMode, TlsPeerVerificationMode,
+};
 use rabbitmq_http_client::commons::{ExchangeType, SupportedProtocol};
 use rabbitmq_http_client::commons::{MessageTransferAcknowledgementMode, UserLimitTarget};
 use rabbitmq_http_client::commons::{PolicyTarget, VirtualHostLimitTarget};
 use rabbitmq_http_client::password_hashing::{HashingAlgorithm, HashingError};
-use rabbitmq_http_client::requests::{Amqp10ShovelDestinationParams, Amqp10ShovelParams, Amqp10ShovelSourceParams, Amqp091ShovelDestinationParams, Amqp091ShovelParams, Amqp091ShovelSourceParams, EnforcedLimitParams, ExchangeFederationParams, FEDERATION_UPSTREAM_COMPONENT, FederationResourceCleanupMode, FederationUpstreamParams, PolicyParams, QueueFederationParams, RuntimeParameterDefinition, DEFAULT_FEDERATION_PREFETCH};
+use rabbitmq_http_client::requests::{
+    Amqp10ShovelDestinationParams, Amqp10ShovelParams, Amqp10ShovelSourceParams,
+    Amqp091ShovelDestinationParams, Amqp091ShovelParams, Amqp091ShovelSourceParams,
+    DEFAULT_FEDERATION_PREFETCH, EnforcedLimitParams, ExchangeFederationParams,
+    FEDERATION_UPSTREAM_COMPONENT, FederationResourceCleanupMode, FederationUpstreamParams,
+    PolicyParams, QueueFederationParams, RuntimeParameterDefinition,
+};
 use rabbitmq_http_client::responses::OptionalArgumentSourceOps;
 use rabbitmq_http_client::transformers::{TransformationChain, VirtualHostTransformationChain};
 use rabbitmq_http_client::{password_hashing, requests, responses};
@@ -686,7 +694,9 @@ pub fn disable_tls_peer_verification_for_all_federation_upstreams(
                 name: &upstream.name,
                 vhost: &upstream.vhost,
                 uri: &updated_uri,
-                prefetch_count: upstream.prefetch_count.unwrap_or(DEFAULT_FEDERATION_PREFETCH),
+                prefetch_count: upstream
+                    .prefetch_count
+                    .unwrap_or(DEFAULT_FEDERATION_PREFETCH),
                 reconnect_delay: upstream.reconnect_delay.unwrap_or(5),
                 ack_mode: upstream.ack_mode,
                 trust_user_id: upstream.trust_user_id.unwrap_or_default(),
@@ -1895,10 +1905,13 @@ fn disable_tls_peer_verification(uri: &str) -> Result<String, CommandRunError> {
     use rabbitmq_http_client::uris::UriBuilder;
 
     let ub = UriBuilder::new(uri)
-        .map_err(|e| CommandRunError::FailureDuringExecution { message: format!("Could not parse a value as a URI '{}': {}", uri, e) })?
+        .map_err(|e| CommandRunError::FailureDuringExecution {
+            message: format!("Could not parse a value as a URI '{}': {}", uri, e),
+        })?
         .with_tls_peer_verification(TlsPeerVerificationMode::Disabled);
 
-
     ub.build()
-        .map_err(|e| CommandRunError::FailureDuringExecution { message: format!("Failed to reconstruct (modify) a URI: {}", e) })
+        .map_err(|e| CommandRunError::FailureDuringExecution {
+            message: format!("Failed to reconstruct (modify) a URI: {}", e),
+        })
 }

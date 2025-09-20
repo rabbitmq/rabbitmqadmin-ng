@@ -15,8 +15,8 @@
 use rabbitmq_http_client::error::{ConversionError, Error as ApiClientError};
 use rabbitmq_http_client::{blocking_api::HttpClientError, responses::HealthCheckFailureDetails};
 use reqwest::{
-    header::{HeaderMap, InvalidHeaderValue},
     StatusCode,
+    header::{HeaderMap, InvalidHeaderValue},
 };
 use url::Url;
 

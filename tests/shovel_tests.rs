@@ -19,7 +19,6 @@ use predicates::boolean::PredicateBooleanExt;
 use predicates::prelude::predicate;
 
 #[test]
-#[ignore]
 fn test_shovel_declaration_without_source_uri() -> Result<(), Box<dyn std::error::Error>> {
     let vh = "rust.shovels.0";
     let name = "shovels.test_shovel_declaration_without_source_uri";

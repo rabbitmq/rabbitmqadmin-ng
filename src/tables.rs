@@ -18,8 +18,8 @@ use rabbitmq_http_client::responses::{
     ClusterAlarmCheckDetails, HealthCheckFailureDetails, NodeMemoryBreakdown, Overview,
     QuorumCriticalityCheckDetails, SchemaDefinitionSyncStatus,
 };
-use std::error::Error;
 use reqwest::StatusCode;
+use std::error::Error;
 use tabled::settings::Panel;
 use tabled::{Table, Tabled};
 use url::Url;

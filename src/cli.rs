@@ -19,7 +19,10 @@ use super::tanzu_cli::tanzu_subcommands;
 use crate::config::PreFlightSettings;
 use crate::output::TableStyle;
 use clap::{Arg, ArgAction, ArgGroup, Command, value_parser};
-use rabbitmq_http_client::commons::{BindingDestinationType, ChannelUseMode, ExchangeType, MessageTransferAcknowledgementMode, PolicyTarget, QueueType, SupportedProtocol};
+use rabbitmq_http_client::commons::{
+    BindingDestinationType, ChannelUseMode, ExchangeType, MessageTransferAcknowledgementMode,
+    PolicyTarget, QueueType, SupportedProtocol,
+};
 use rabbitmq_http_client::password_hashing::HashingAlgorithm;
 use rabbitmq_http_client::requests::FederationResourceCleanupMode;
 
@@ -2980,7 +2983,7 @@ pub fn shovel_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 5
             Arg::new("reconnect_delay")
                 .long("reconnect-delay")
                 .default_value("5")
-                .value_parser(value_parser!(u16)),
+                .value_parser(value_parser!(u32)),
         )
         .group(
             ArgGroup::new("destination")
@@ -3022,7 +3025,7 @@ pub fn shovel_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 5
             Arg::new("reconnect_delay")
                 .long("reconnect-delay")
                 .default_value("5")
-                .value_parser(value_parser!(u16)),
+                .value_parser(value_parser!(u32)),
         );
 
     let delete_cmd = Command::new("delete")
@@ -3092,7 +3095,7 @@ fn federation_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 7
             Arg::new("reconnect_delay")
                 .long("reconnect-delay")
                 .default_value("5")
-                .value_parser(value_parser!(u16))
+                .value_parser(value_parser!(u32))
                 .help("Reconnection delay in seconds")
         )
         .arg(
@@ -3106,9 +3109,9 @@ fn federation_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 7
             Arg::new("prefetch_count")
                 .long("prefetch-count")
                 .default_value("1000")
-                .value_parser(value_parser!(u16))
+                .value_parser(value_parser!(u32))
                 .help("The prefetch value to use with internal consumers")
-                .value_parser(value_parser!(u16))
+                .value_parser(value_parser!(u32))
         )
         .arg(
             Arg::new("ack_mode")
@@ -3159,6 +3162,12 @@ fn federation_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 7
                 .value_parser(value_parser!(FederationResourceCleanupMode))
         )
         .arg(
+            Arg::new("channel_use_mode")
+                .long("channel-use-mode")
+                .default_value("multiple")
+                .value_parser(value_parser!(ChannelUseMode))
+        )
+        .arg(
             Arg::new("ttl")
                 .long("ttl")
                 .long_help("exchange federation: the TTL to apply to the internal queue")
@@ -3199,7 +3208,7 @@ fn federation_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 7
             Arg::new("reconnect_delay")
                 .long("reconnect-delay")
                 .default_value("5")
-                .value_parser(value_parser!(u16))
+                .value_parser(value_parser!(u32))
                 .help("Reconnection delay in seconds")
         )
         .arg(
@@ -3213,9 +3222,8 @@ fn federation_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 7
             Arg::new("prefetch_count")
                 .long("prefetch-count")
                 .default_value("1000")
-                .value_parser(value_parser!(u16))
+                .value_parser(value_parser!(u32))
                 .help("The prefetch value to use with internal consumers")
-                .value_parser(value_parser!(u16))
         )
         .arg(
             Arg::new("ack_mode")
@@ -3223,6 +3231,18 @@ fn federation_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 7
                 .value_parser(value_parser!(MessageTransferAcknowledgementMode))
                 .help("Accepted values are: on-confirm, on-publish, no-ack")
                 .default_value("on-confirm"),
+        )
+        .arg(
+            Arg::new("bind_nowait")
+                .long("bind-using-nowait")
+                .default_value("false")
+                .value_parser(value_parser!(bool))
+        )
+        .arg(
+            Arg::new("channel_use_mode")
+                .long("channel-use-mode")
+                .default_value("multiple")
+                .value_parser(value_parser!(ChannelUseMode))
         )
         .arg(
             Arg::new("queue_name")
