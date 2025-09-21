@@ -34,7 +34,7 @@ use rabbitmq_http_client::requests::{
     FEDERATION_UPSTREAM_COMPONENT, FederationResourceCleanupMode, FederationUpstreamParams,
     PolicyParams, QueueFederationParams, RuntimeParameterDefinition,
 };
-use rabbitmq_http_client::responses::OptionalArgumentSourceOps;
+
 use rabbitmq_http_client::transformers::{TransformationChain, VirtualHostTransformationChain};
 use rabbitmq_http_client::{password_hashing, requests, responses};
 use serde::de::DeserializeOwned;

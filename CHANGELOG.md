@@ -8,7 +8,7 @@
 
 ### Upgrades
 
-* RabbitMQ HTTP API client was upgraded to [`0.55.0`](https://github.com/michaelklishin/rabbitmq-http-api-rs/releases/tag/v0.55.0)
+* RabbitMQ HTTP API client was upgraded to [`0.56.0`](https://github.com/michaelklishin/rabbitmq-http-api-rs/releases/tag/v0.56.0)
 
 
 
