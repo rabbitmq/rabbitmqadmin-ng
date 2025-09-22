@@ -4,11 +4,15 @@
 
 ### Enhancements
 
-* `'federation disable_tls_peer_verification_for_all_upstreams'` 
+* `federation disable_tls_peer_verification_for_all_upstreams` is a new command that disables TLS peer verification
+  for all federation upstreams. 
+
+  **Important**: this command should **only** be used to undo incorrect federation upstream URI, for example,
+  if [peer verification](https://www.rabbitmq.com/docs/ssl#peer-verification) was enabled prematurely.
 
 ### Upgrades
 
-* RabbitMQ HTTP API client was upgraded to [`0.56.0`](https://github.com/michaelklishin/rabbitmq-http-api-rs/releases/tag/v0.56.0)
+* RabbitMQ HTTP API client was upgraded to [`0.57.0`](https://github.com/michaelklishin/rabbitmq-http-api-rs/releases/tag/v0.57.0)
 
 
 
