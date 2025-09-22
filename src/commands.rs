@@ -736,7 +736,6 @@ pub fn disable_tls_peer_verification_for_all_federation_upstreams(
 pub fn disable_tls_peer_verification_for_all_shovels(
     client: APIClient,
 ) -> Result<(), CommandRunError> {
-    // Get all runtime parameters of "shovel" component
     let all_params = client.list_runtime_parameters()?;
     let shovel_params: Vec<_> = all_params
         .into_iter()
@@ -744,26 +743,56 @@ pub fn disable_tls_peer_verification_for_all_shovels(
         .collect();
 
     for param in shovel_params {
-        // Convert the runtime parameter to OwnedShovelParams for easier manipulation
         let owned_params = match OwnedShovelParams::try_from(param.clone()) {
             Ok(params) => params,
-            Err(_) => continue, // Skip malformed shovel parameters
+            Err(_) => continue,
         };
 
         let original_source_uri = &owned_params.source_uri;
-        let original_destination_uri = &owned_params.destination_uri;
 
-        // Skip shovels with empty URIs
-        if original_source_uri.is_empty() || original_destination_uri.is_empty() {
+        if original_source_uri.is_empty() {
             continue;
         }
 
         let updated_source_uri = disable_tls_peer_verification(original_source_uri)?;
-        let updated_destination_uri = disable_tls_peer_verification(original_destination_uri)?;
 
-        if original_source_uri != &updated_source_uri || original_destination_uri != &updated_destination_uri {
+        if original_source_uri != &updated_source_uri {
             let mut updated_params = owned_params;
             updated_params.source_uri = updated_source_uri;
+
+            let param = RuntimeParameterDefinition::from(&updated_params);
+            client.upsert_runtime_parameter(&param)?;
+        }
+    }
+
+    Ok(())
+}
+
+pub fn disable_tls_peer_verification_for_all_destination_uris(
+    client: APIClient,
+) -> Result<(), CommandRunError> {
+    let all_params = client.list_runtime_parameters()?;
+    let shovel_params: Vec<_> = all_params
+        .into_iter()
+        .filter(|p| p.component == "shovel")
+        .collect();
+
+    for param in shovel_params {
+        let owned_params = match OwnedShovelParams::try_from(param.clone()) {
+            Ok(params) => params,
+            Err(_) => continue,
+        };
+
+        let original_destination_uri = &owned_params.destination_uri;
+
+        if original_destination_uri.is_empty() {
+            continue;
+        }
+
+        let updated_destination_uri = disable_tls_peer_verification(original_destination_uri)?;
+
+        if original_destination_uri != &updated_destination_uri {
+            let mut updated_params = owned_params;
             updated_params.destination_uri = updated_destination_uri;
 
             let param = RuntimeParameterDefinition::from(&updated_params);

@@ -1,5 +1,21 @@
 # rabbitmqadmin-ng Change Log
 
+## v2.12.0 (in development)
+
+### Enhancements
+
+ * `shovel disable_tls_peer_verification_for_all_source_uris` is a new command that disables TLS peer verification
+   for all shovel source URIs.
+
+   **Important**: this command should **only** be used to undo incorrect shovel source URIs, after a bad deployment, for example,
+   if [peer verification](https://www.rabbitmq.com/docs/ssl#peer-verification) was enabled before certificates and keys were
+   deployed.
+
+  * `shovel disable_tls_peer_verification_for_all_source_uris` is a new command that disables TLS peer verification
+    for all shovel source URIs.
+
+    **Important**: this command should **only** be used to undo incorrect shovel destination URIs (see above).
+
 ## v2.11.0 (Sep 22, 2025)
 
 ### Enhancements
@@ -7,8 +23,9 @@
 * `federation disable_tls_peer_verification_for_all_upstreams` is a new command that disables TLS peer verification
   for all federation upstreams. 
 
-  **Important**: this command should **only** be used to undo incorrect federation upstream URI, for example,
-  if [peer verification](https://www.rabbitmq.com/docs/ssl#peer-verification) was enabled prematurely.
+  **Important**: this command should **only** be used to correct federation upstream URI after a bad deployment, for example,
+  if [peer verification](https://www.rabbitmq.com/docs/ssl#peer-verification) was enabled before certificates and keys were
+  deployed.
 
 ### Upgrades
 

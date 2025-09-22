@@ -16,6 +16,7 @@ mod test_helpers;
 
 use crate::test_helpers::*;
 use predicates::prelude::*;
+use std::str;
 
 #[test]
 fn test_disable_tls_peer_verification_for_all_shovels_basic() -> Result<(), Box<dyn std::error::Error>> {
@@ -129,7 +130,7 @@ fn test_disable_tls_peer_verification_for_all_shovels_with_existing_verify_param
         .stdout(predicate::str::contains("another_dest_param=def"))
         .stdout(predicate::str::contains("heartbeat=30"));
 
-    let output_str = std::str::from_utf8(&stdout.get_output().stdout).unwrap();
+    let output_str = str::from_utf8(&stdout.get_output().stdout).unwrap();
     let lines: Vec<&str> = output_str.lines().collect();
     let mut shovel_section = String::new();
     let mut in_our_shovel = false;
@@ -358,7 +359,7 @@ fn test_disable_tls_peer_verification_for_all_shovels_with_dummy_query_params()
         .stdout(predicate::str::contains("channel_max=100"))
         .stdout(predicate::str::contains("another_dummy=example"));
 
-    let output_str = std::str::from_utf8(&stdout.get_output().stdout).unwrap();
+    let output_str = str::from_utf8(&stdout.get_output().stdout).unwrap();
     let lines: Vec<&str> = output_str.lines().collect();
     let mut shovel_section = String::new();
     let mut in_our_shovel = false;
