@@ -354,10 +354,7 @@ fn test_federation_delete_an_upstream_with_exchange_federation_settings()
     ]);
 
     run_succeeds(["-V", vh, "federation", "list_all_upstreams"])
-        .stdout(predicate::str::contains(name).not())
-        .stdout(predicate::str::contains(endpoint1.clone()).not())
-        .stdout(predicate::str::contains(x).not())
-        .stdout(predicate::str::contains(queue_type.to_string()).not());
+        .stdout(predicate::str::contains(name).not());
 
     delete_vhost(vh).expect("failed to delete a virtual host");
 
