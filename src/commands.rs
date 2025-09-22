@@ -27,6 +27,7 @@ use rabbitmq_http_client::commons::{ExchangeType, SupportedProtocol};
 use rabbitmq_http_client::commons::{MessageTransferAcknowledgementMode, UserLimitTarget};
 use rabbitmq_http_client::commons::{PolicyTarget, VirtualHostLimitTarget};
 use rabbitmq_http_client::password_hashing::{HashingAlgorithm, HashingError};
+use rabbitmq_http_client::requests::shovels::OwnedShovelParams;
 use rabbitmq_http_client::requests::{
     Amqp10ShovelDestinationParams, Amqp10ShovelParams, Amqp10ShovelSourceParams,
     Amqp091ShovelDestinationParams, Amqp091ShovelParams, Amqp091ShovelSourceParams,
@@ -34,7 +35,6 @@ use rabbitmq_http_client::requests::{
     FEDERATION_UPSTREAM_COMPONENT, FederationResourceCleanupMode, FederationUpstreamParams,
     PolicyParams, QueueFederationParams, RuntimeParameterDefinition,
 };
-use rabbitmq_http_client::requests::shovels::OwnedShovelParams;
 
 use rabbitmq_http_client::transformers::{TransformationChain, VirtualHostTransformationChain};
 use rabbitmq_http_client::{password_hashing, requests, responses};

@@ -19,7 +19,8 @@ use predicates::prelude::*;
 use std::str;
 
 #[test]
-fn test_disable_tls_peer_verification_for_all_shovels_basic() -> Result<(), Box<dyn std::error::Error>> {
+fn test_disable_tls_peer_verification_for_all_shovels_basic()
+-> Result<(), Box<dyn std::error::Error>> {
     let vh = "test_disable_tls_peer_verification_for_all_shovels_basic";
     let shovel_name = "test_basic_shovel";
 
@@ -109,23 +110,32 @@ fn test_disable_tls_peer_verification_for_all_shovels_with_existing_verify_param
     ]);
 
     let output = run_succeeds(["parameters", "list_all"]);
-    let stdout = output.stdout(predicate::str::contains(shovel_name))
+    let stdout = output
+        .stdout(predicate::str::contains(shovel_name))
         .stdout(predicate::str::contains("verify=verify_none"))
         .stdout(predicate::str::contains("key1=abc"))
         .stdout(predicate::str::contains("key2=def"))
-        .stdout(predicate::str::contains("cacertfile=/path/to/ca_bundle.pem"))
+        .stdout(predicate::str::contains(
+            "cacertfile=/path/to/ca_bundle.pem",
+        ))
         .stdout(predicate::str::contains("certfile=/path/to/client.pem"))
         .stdout(predicate::str::contains("keyfile=/path/to/client.key"))
-        .stdout(predicate::str::contains("server_name_indication=example.com"))
+        .stdout(predicate::str::contains(
+            "server_name_indication=example.com",
+        ))
         .stdout(predicate::str::contains("custom_param=value123"))
         .stdout(predicate::str::contains("another_param=xyz"))
         .stdout(predicate::str::contains("heartbeat=60"))
         .stdout(predicate::str::contains("dest_key1=xyz"))
         .stdout(predicate::str::contains("dest_key2=abc"))
         .stdout(predicate::str::contains("cacertfile=/path/to/dest_ca.pem"))
-        .stdout(predicate::str::contains("certfile=/path/to/dest_client.pem"))
+        .stdout(predicate::str::contains(
+            "certfile=/path/to/dest_client.pem",
+        ))
         .stdout(predicate::str::contains("keyfile=/path/to/dest_client.key"))
-        .stdout(predicate::str::contains("server_name_indication=dest.example.com"))
+        .stdout(predicate::str::contains(
+            "server_name_indication=dest.example.com",
+        ))
         .stdout(predicate::str::contains("dest_param=value456"))
         .stdout(predicate::str::contains("another_dest_param=def"))
         .stdout(predicate::str::contains("heartbeat=30"));
@@ -142,23 +152,39 @@ fn test_disable_tls_peer_verification_for_all_shovels_with_existing_verify_param
         if in_our_shovel {
             shovel_section.push_str(line);
             shovel_section.push('\n');
-            if line.contains("└─") || (in_our_shovel && line.contains("├─") && !line.contains(&shovel_name)) {
+            if line.contains("└─")
+                || (in_our_shovel && line.contains("├─") && !line.contains(&shovel_name))
+            {
                 break;
             }
         }
     }
 
-    let src_uri_lines: Vec<&str> = shovel_section.lines()
+    let src_uri_lines: Vec<&str> = shovel_section
+        .lines()
         .filter(|line| line.contains("src-uri"))
         .collect();
-    assert!(!src_uri_lines.is_empty(), "Could not find src-uri in shovel section");
+    assert!(
+        !src_uri_lines.is_empty(),
+        "Could not find src-uri in shovel section"
+    );
 
     let src_uri_content = src_uri_lines[0];
     let src_verify_count = src_uri_content.matches("verify=").count();
-    assert_eq!(src_verify_count, 1, "Expected exactly 1 verify parameter in source URI, found {}", src_verify_count);
+    assert_eq!(
+        src_verify_count, 1,
+        "Expected exactly 1 verify parameter in source URI, found {}",
+        src_verify_count
+    );
 
-    assert!(src_uri_content.contains("verify=verify_none"), "Source URI should contain verify=verify_none");
-    assert!(!src_uri_content.contains("verify=verify_peer"), "Source URI should not contain verify=verify_peer");
+    assert!(
+        src_uri_content.contains("verify=verify_none"),
+        "Source URI should contain verify=verify_none"
+    );
+    assert!(
+        !src_uri_content.contains("verify=verify_peer"),
+        "Source URI should not contain verify=verify_peer"
+    );
 
     delete_vhost(vh).expect("failed to delete a virtual host");
 
@@ -166,15 +192,22 @@ fn test_disable_tls_peer_verification_for_all_shovels_with_existing_verify_param
 }
 
 #[test]
-fn test_disable_tls_peer_verification_for_all_shovels_amqp10() -> Result<(), Box<dyn std::error::Error>> {
+fn test_disable_tls_peer_verification_for_all_shovels_amqp10()
+-> Result<(), Box<dyn std::error::Error>> {
     let vh = "test_disable_tls_peer_verification_for_all_shovels_amqp10";
     let shovel_name = "test_amqp10_shovel";
 
     delete_vhost(vh).ok();
     run_succeeds(["declare", "vhost", "--name", vh]);
 
-    let amqps_source = format!("amqps://localhost:5671/{}?verify=verify_peer&cacertfile=/path/to/ca.pem", vh);
-    let amqps_destination = format!("amqps://localhost:5671/{}?verify=verify_peer&certfile=/path/to/client.pem", vh);
+    let amqps_source = format!(
+        "amqps://localhost:5671/{}?verify=verify_peer&cacertfile=/path/to/ca.pem",
+        vh
+    );
+    let amqps_destination = format!(
+        "amqps://localhost:5671/{}?verify=verify_peer&certfile=/path/to/client.pem",
+        vh
+    );
 
     run_succeeds([
         "-V",
@@ -224,10 +257,22 @@ fn test_disable_tls_peer_verification_for_all_shovels_mixed_protocols()
     run_succeeds(["declare", "vhost", "--name", vh]);
 
     let amqps_base = format!("amqps://localhost:5671/{}", vh);
-    let uri_091_source = format!("{}?protocol_param=091&verify=verify_peer&certfile=/path/to/091.pem", amqps_base);
-    let uri_091_dest = format!("{}?protocol_param=091_dest&verify=verify_peer&keyfile=/path/to/091.key", amqps_base);
-    let uri_10_source = format!("{}?protocol_param=10&verify=verify_peer&cacertfile=/path/to/10.pem", amqps_base);
-    let uri_10_dest = format!("{}?protocol_param=10_dest&verify=verify_peer&server_name_indication=amqp10.example.com", amqps_base);
+    let uri_091_source = format!(
+        "{}?protocol_param=091&verify=verify_peer&certfile=/path/to/091.pem",
+        amqps_base
+    );
+    let uri_091_dest = format!(
+        "{}?protocol_param=091_dest&verify=verify_peer&keyfile=/path/to/091.key",
+        amqps_base
+    );
+    let uri_10_source = format!(
+        "{}?protocol_param=10&verify=verify_peer&cacertfile=/path/to/10.pem",
+        amqps_base
+    );
+    let uri_10_dest = format!(
+        "{}?protocol_param=10_dest&verify=verify_peer&server_name_indication=amqp10.example.com",
+        amqps_base
+    );
 
     run_succeeds([
         "-V",
@@ -283,7 +328,9 @@ fn test_disable_tls_peer_verification_for_all_shovels_mixed_protocols()
         .stdout(predicate::str::contains("certfile=/path/to/091.pem"))
         .stdout(predicate::str::contains("keyfile=/path/to/091.key"))
         .stdout(predicate::str::contains("cacertfile=/path/to/10.pem"))
-        .stdout(predicate::str::contains("server_name_indication=amqp10.example.com"))
+        .stdout(predicate::str::contains(
+            "server_name_indication=amqp10.example.com",
+        ))
         .stdout(predicate::str::contains("verify=verify_none"));
 
     delete_vhost(vh).expect("failed to delete a virtual host");
@@ -319,8 +366,14 @@ fn test_disable_tls_peer_verification_for_all_shovels_with_dummy_query_params()
     run_succeeds(["declare", "vhost", "--name", vh]);
 
     let amqps_base = format!("amqps://localhost:5671/{}", vh);
-    let source_uri = format!("{}?abc=123&heartbeat=5&connection_timeout=30&dummy_param=test_value", amqps_base);
-    let dest_uri = format!("{}?xyz=456&heartbeat=10&channel_max=100&another_dummy=example", amqps_base);
+    let source_uri = format!(
+        "{}?abc=123&heartbeat=5&connection_timeout=30&dummy_param=test_value",
+        amqps_base
+    );
+    let dest_uri = format!(
+        "{}?xyz=456&heartbeat=10&channel_max=100&another_dummy=example",
+        amqps_base
+    );
 
     run_succeeds([
         "-V",
@@ -348,7 +401,8 @@ fn test_disable_tls_peer_verification_for_all_shovels_with_dummy_query_params()
     ]);
 
     let output = run_succeeds(["parameters", "list_all"]);
-    let stdout = output.stdout(predicate::str::contains(shovel_name))
+    let stdout = output
+        .stdout(predicate::str::contains(shovel_name))
         .stdout(predicate::str::contains("verify=verify_none"))
         .stdout(predicate::str::contains("abc=123"))
         .stdout(predicate::str::contains("heartbeat=5"))
@@ -371,23 +425,39 @@ fn test_disable_tls_peer_verification_for_all_shovels_with_dummy_query_params()
         if in_our_shovel {
             shovel_section.push_str(line);
             shovel_section.push('\n');
-            if line.contains("└─") || (in_our_shovel && line.contains("├─") && !line.contains(&shovel_name)) {
+            if line.contains("└─")
+                || (in_our_shovel && line.contains("├─") && !line.contains(&shovel_name))
+            {
                 break;
             }
         }
     }
 
-    let src_uri_lines: Vec<&str> = shovel_section.lines()
+    let src_uri_lines: Vec<&str> = shovel_section
+        .lines()
         .filter(|line| line.contains("src-uri"))
         .collect();
-    assert!(!src_uri_lines.is_empty(), "Could not find src-uri in shovel section");
+    assert!(
+        !src_uri_lines.is_empty(),
+        "Could not find src-uri in shovel section"
+    );
 
     let src_uri_content = src_uri_lines[0];
     let src_verify_count = src_uri_content.matches("verify=").count();
-    assert_eq!(src_verify_count, 1, "Expected exactly 1 verify parameter in source URI, found {}", src_verify_count);
+    assert_eq!(
+        src_verify_count, 1,
+        "Expected exactly 1 verify parameter in source URI, found {}",
+        src_verify_count
+    );
 
-    assert!(src_uri_content.contains("verify=verify_none"), "Source URI should contain verify=verify_none");
-    assert!(!src_uri_content.contains("verify=verify_peer"), "Source URI should not contain verify=verify_peer");
+    assert!(
+        src_uri_content.contains("verify=verify_none"),
+        "Source URI should contain verify=verify_none"
+    );
+    assert!(
+        !src_uri_content.contains("verify=verify_peer"),
+        "Source URI should not contain verify=verify_peer"
+    );
 
     delete_vhost(vh).expect("failed to delete a virtual host");
 
