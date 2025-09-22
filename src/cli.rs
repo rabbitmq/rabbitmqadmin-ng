@@ -2892,7 +2892,7 @@ pub fn get_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 1] {
         )].map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
 }
 
-pub fn shovel_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 5] {
+pub fn shovel_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 6] {
     let list_all_cmd = Command::new("list_all")
         .long_about("Lists shovels in all virtual hosts")
         .after_help(color_print::cformat!(
@@ -3041,12 +3041,29 @@ pub fn shovel_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 5
                 .required(true),
         );
 
+    let disable_tls_peer_verification_cmd = Command::new("disable_tls_peer_verification_for_all_source_uris")
+        // shorter, displayed in the shovels group's help
+        .about(color_print::cstr!("<bold><red>Use only in emergency cases</red></bold>. Disables TLS peer verification for all shovels."))
+        // longer, displayed in the command's help
+        .long_about(color_print::cstr!("<bold><red>Use only in emergency cases</red></bold>. Disables TLS peer verification for all shovels by updating their source and destination URIs' 'verify' parameter."))
+        .after_help(color_print::cformat!(
+            r#"<bold>Doc guides</bold>:
+
+ * {}
+ * {}
+ * {}"#,
+            SHOVEL_GUIDE_URL,
+            TLS_GUIDE_URL,
+            "https://www.rabbitmq.com/docs/shovel#tls-connections"
+        ));
+
     [
         list_all_cmd,
         list_cmd,
         declare_091_cmd,
         declare_10_cmd,
         delete_cmd,
+        disable_tls_peer_verification_cmd,
     ]
     .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
 }
@@ -3387,9 +3404,9 @@ fn federation_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 7
 
     let disable_tls_peer_verification_cmd = Command::new("disable_tls_peer_verification_for_all_upstreams")
         // shorter, displayed in the federation group's help
-        .about(color_print::cstr!("<bold><red>Use only to undo incorrect URI changes</red></bold>. Disables TLS peer verification for all federation upstreams."))
+        .about(color_print::cstr!("<bold><red>Use only in emergency cases</red></bold>. Disables TLS peer verification for all federation upstreams."))
         // longer, displayed in the command's help
-        .long_about(color_print::cstr!("<bold><red>Use only to undo incorrect URI changes</red></bold>. Disables TLS peer verification for all federation upstreams by updating their 'verify' parameter."))
+        .long_about(color_print::cstr!("<bold><red>Use only in emergency cases</red></bold>. Disables TLS peer verification for all federation upstreams by updating their 'verify' parameter."))
 
         .after_help(color_print::cformat!(
             r#"<bold>Doc guides</bold>:

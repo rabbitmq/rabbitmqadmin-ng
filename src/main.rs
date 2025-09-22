@@ -1071,6 +1071,10 @@ fn dispatch_common_subcommand(
             let result = commands::list_shovels_in(client, &vhost);
             res_handler.tabular_result(result)
         }
+        ("shovels", "disable_tls_peer_verification_for_all_source_uris") => {
+            let result = commands::disable_tls_peer_verification_for_all_shovels(client);
+            res_handler.no_output_on_success(result);
+        }
         ("streams", "declare") => {
             let result = commands::declare_stream(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);
