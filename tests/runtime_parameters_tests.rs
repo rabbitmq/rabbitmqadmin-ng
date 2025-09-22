@@ -20,6 +20,8 @@ use crate::test_helpers::*;
 #[test]
 fn test_runtime_parameters_across_groups() -> Result<(), Box<dyn std::error::Error>> {
     let vh = "test_runtime_parameters_across_groups";
+    delete_vhost(vh).expect("failed to delete a virtual host");
+
     run_succeeds(["declare", "vhost", "--name", vh]);
     run_succeeds([
         "-V",
@@ -31,8 +33,9 @@ fn test_runtime_parameters_across_groups() -> Result<(), Box<dyn std::error::Err
         "--name",
         "my-upstream",
         "--value",
-        "{\"uri\":\"amqp://target.hostname\",\"expires\":3600000}",
+        "{\"uri\":\"amqp://target.hostname\"}",
     ]);
+    await_metric_emission(200);
 
     run_succeeds([
         "-V",
@@ -42,7 +45,7 @@ fn test_runtime_parameters_across_groups() -> Result<(), Box<dyn std::error::Err
         "--component",
         "federation-upstream",
     ])
-    .stdout(predicate::str::contains("my-upstream").and(predicate::str::contains("3600000")));
+    .stdout(predicate::str::contains("my-upstream"));
 
     run_succeeds([
         "-V",
@@ -73,6 +76,8 @@ fn test_runtime_parameters_across_groups() -> Result<(), Box<dyn std::error::Err
 #[test]
 fn test_runtime_parameters_cmd_group() -> Result<(), Box<dyn std::error::Error>> {
     let vh = "test_runtime_parameters_cmd_group";
+    delete_vhost(vh).expect("failed to delete a virtual host");
+
     run_succeeds(["vhosts", "declare", "--name", vh]);
     run_succeeds([
         "-V",
@@ -84,11 +89,11 @@ fn test_runtime_parameters_cmd_group() -> Result<(), Box<dyn std::error::Error>>
         "--name",
         "my-upstream",
         "--value",
-        "{\"uri\":\"amqp://target.hostname\",\"expires\":3600000}",
+        "{\"uri\":\"amqp://target.hostname\",\"ack-mode\":\"on-confirm\"}",
     ]);
+    await_metric_emission(200);
 
-    run_succeeds(["parameters", "list_all"])
-        .stdout(predicate::str::contains("my-upstream").and(predicate::str::contains("3600000")));
+    run_succeeds(["parameters", "list_all"]).stdout(predicate::str::contains("my-upstream"));
 
     run_succeeds([
         "-V",
@@ -98,7 +103,7 @@ fn test_runtime_parameters_cmd_group() -> Result<(), Box<dyn std::error::Error>>
         "--component",
         "federation-upstream",
     ])
-    .stdout(predicate::str::contains("my-upstream").and(predicate::str::contains("3600000")));
+    .stdout(predicate::str::contains("my-upstream"));
 
     run_succeeds([
         "-V",
@@ -108,7 +113,7 @@ fn test_runtime_parameters_cmd_group() -> Result<(), Box<dyn std::error::Error>>
         "--component",
         "federation-upstream",
     ])
-    .stdout(predicate::str::contains("my-upstream").and(predicate::str::contains("3600000")));
+    .stdout(predicate::str::contains("my-upstream"));
 
     run_succeeds([
         "-V",

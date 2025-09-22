@@ -127,6 +127,8 @@ fn test_shovel_declaration_with_overlapping_destination_types()
 #[test]
 fn test_amqp091_shovel_declaration_and_deletion() -> Result<(), Box<dyn std::error::Error>> {
     let vh = "rust.shovels.2";
+    delete_vhost(vh).expect("failed to delete a virtual host");
+
     let name = "shovels.test_amqp091_shovel_declaration_and_deletion";
 
     let amqp_endpoint = amqp_endpoint_with_vhost(vh);
@@ -150,6 +152,7 @@ fn test_amqp091_shovel_declaration_and_deletion() -> Result<(), Box<dyn std::err
         "--destination-exchange",
         dest_x,
     ]);
+    await_metric_emission(200);
 
     run_succeeds(["-V", vh, "shovels", "list"]).stdout(
         predicate::str::contains(vh)
