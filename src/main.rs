@@ -1072,7 +1072,7 @@ fn dispatch_common_subcommand(
             res_handler.tabular_result(result)
         }
         ("shovels", "disable_tls_peer_verification_for_all_source_uris") => {
-            let result = commands::disable_tls_peer_verification_for_all_shovels(client);
+            let result = commands::disable_tls_peer_verification_for_all_source_uris(client);
             res_handler.no_output_on_success(result);
         }
         ("shovels", "disable_tls_peer_verification_for_all_destination_uris") => {

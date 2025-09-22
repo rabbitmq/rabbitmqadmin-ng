@@ -733,7 +733,7 @@ pub fn disable_tls_peer_verification_for_all_federation_upstreams(
     Ok(())
 }
 
-pub fn disable_tls_peer_verification_for_all_shovels(
+pub fn disable_tls_peer_verification_for_all_source_uris(
     client: APIClient,
 ) -> Result<(), CommandRunError> {
     let all_params = client.list_runtime_parameters()?;
