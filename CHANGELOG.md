@@ -4,6 +4,26 @@
 
 ### Enhancements
 
+* `federation enable_tls_peer_verification_for_all_upstreams` is a new command that enables TLS peer verification
+  for all federation upstreams:
+
+  ```shell
+  # Note that the certificate and private key paths below refer
+  # to the files deployed to the target RabbitMQ node(s), not to the
+  # local files.
+  #
+  # As such, these arguments are command-specific and should not be confused
+  # with the global `--tls-ca-cert-file`, `--tls-cert-file`, and `--tls-key-file`
+  # arguments that are used by `rabbitmqadmin` itself to connect to the target node
+  # over the HTTP API.
+  rabbitmqadmin federation enable_tls_peer_verification_for_all_upstreams \
+      --node-local-ca-certificate-bundle-path /path/to/node/local/ca_bundle.pem \
+      --node-local-client-certificate-file-path /path/to/node/local/client_certificate.pem \
+      --node-local-client-private-key-file-path /path/to/node/local/client_private_key.pem
+  ```
+
+   See [TLS guide](https://www.rabbitmq.com/docs/ssl#peer-verification) and [Federation guide](https://www.rabbitmq.com/docs/federation#tls-connections) to learn more.
+
  * `shovel disable_tls_peer_verification_for_all_source_uris` is a new command that disables TLS peer verification
    for all shovel source URIs.
 

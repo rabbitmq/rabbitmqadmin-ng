@@ -43,14 +43,15 @@ fn test_disable_tls_peer_verification_for_all_upstreams_basic()
         "classic",
     ]);
 
-    run_succeeds(["parameters", "list_all"]).stdout(predicate::str::contains(upstream_name));
+    run_succeeds(["federation", "list_all_upstreams"])
+        .stdout(predicate::str::contains(upstream_name));
 
     run_succeeds([
         "federation",
         "disable_tls_peer_verification_for_all_upstreams",
     ]);
 
-    run_succeeds(["parameters", "list_all"])
+    run_succeeds(["federation", "list_all_upstreams"])
         .stdout(predicate::str::contains(upstream_name))
         .stdout(predicate::str::contains("verify=verify_none"));
 
@@ -95,7 +96,7 @@ fn test_disable_tls_peer_verification_for_all_upstreams_with_existing_verify_par
         "disable_tls_peer_verification_for_all_upstreams",
     ]);
 
-    run_succeeds(["parameters", "list_all"])
+    run_succeeds(["federation", "list_all_upstreams"])
         .stdout(predicate::str::contains(upstream_name))
         .stdout(predicate::str::contains("verify=verify_none"))
         .stdout(predicate::str::contains("key1=abc"))
@@ -143,14 +144,15 @@ fn test_disable_tls_peer_verification_for_all_upstreams_queue_federation_basic()
         "test-consumer",
     ]);
 
-    run_succeeds(["parameters", "list_all"]).stdout(predicate::str::contains(upstream_name));
+    run_succeeds(["federation", "list_all_upstreams"])
+        .stdout(predicate::str::contains(upstream_name));
 
     run_succeeds([
         "federation",
         "disable_tls_peer_verification_for_all_upstreams",
     ]);
 
-    run_succeeds(["parameters", "list_all"])
+    run_succeeds(["federation", "list_all_upstreams"])
         .stdout(predicate::str::contains(upstream_name))
         .stdout(predicate::str::contains("verify=verify_none"));
 
@@ -195,7 +197,7 @@ fn test_disable_tls_peer_verification_for_all_upstreams_queue_federation_with_pa
         "disable_tls_peer_verification_for_all_upstreams",
     ]);
 
-    run_succeeds(["parameters", "list_all"])
+    run_succeeds(["federation", "list_all_upstreams"])
         .stdout(predicate::str::contains(upstream_name))
         .stdout(predicate::str::contains("verify=verify_none"))
         .stdout(predicate::str::contains("queue_param=test123"))
@@ -265,7 +267,7 @@ fn test_disable_tls_peer_verification_for_all_upstreams_mixed_federation()
         "disable_tls_peer_verification_for_all_upstreams",
     ]);
 
-    run_succeeds(["parameters", "list_all"])
+    run_succeeds(["federation", "list_all_upstreams"])
         .stdout(predicate::str::contains(exchange_upstream_name))
         .stdout(predicate::str::contains(queue_upstream_name))
         .stdout(predicate::str::contains("exchange_param=value1"))
@@ -273,6 +275,257 @@ fn test_disable_tls_peer_verification_for_all_upstreams_mixed_federation()
         .stdout(predicate::str::contains("certfile=/path/to/client.pem"))
         .stdout(predicate::str::contains("keyfile=/path/to/client.key"))
         .stdout(predicate::str::contains("verify=verify_none"));
+
+    delete_vhost(vh).expect("failed to delete a virtual host");
+
+    Ok(())
+}
+
+#[test]
+fn test_enable_tls_peer_verification_for_all_upstreams_basic()
+-> Result<(), Box<dyn std::error::Error>> {
+    let vh = "test_enable_tls_peer_verification_for_all_upstreams_basic";
+    let upstream_name = "test_enable_basic_upstream";
+
+    delete_vhost(vh).ok();
+    run_succeeds(["declare", "vhost", "--name", vh]);
+
+    let amqps_endpoint = format!("amqps://localhost:5671/{}", vh);
+
+    run_succeeds([
+        "-V",
+        vh,
+        "federation",
+        "declare_upstream_for_exchanges",
+        "--name",
+        upstream_name,
+        "--uri",
+        &amqps_endpoint,
+        "--exchange-name",
+        "x.fanout",
+        "--queue-type",
+        "classic",
+    ]);
+
+    run_succeeds(["federation", "list_all_upstreams"])
+        .stdout(predicate::str::contains(upstream_name));
+
+    run_succeeds([
+        "federation",
+        "enable_tls_peer_verification_for_all_upstreams",
+        "--node-local-ca-certificate-bundle-path",
+        "/etc/ssl/certs/ca_bundle.pem",
+        "--node-local-client-certificate-file-path",
+        "/etc/ssl/certs/client.pem",
+        "--node-local-client-private-key-file-path",
+        "/etc/ssl/private/client.key",
+    ]);
+
+    run_succeeds(["federation", "list_all_upstreams"])
+        .stdout(predicate::str::contains(upstream_name))
+        .stdout(predicate::str::contains("verify=verify_peer"))
+        .stdout(predicate::str::contains(
+            "cacertfile=/etc/ssl/certs/ca_bundle.pem",
+        ))
+        .stdout(predicate::str::contains(
+            "certfile=/etc/ssl/certs/client.pem",
+        ))
+        .stdout(predicate::str::contains(
+            "keyfile=/etc/ssl/private/client.key",
+        ));
+
+    delete_vhost(vh).expect("failed to delete a virtual host");
+
+    Ok(())
+}
+
+#[test]
+fn test_enable_tls_peer_verification_for_all_upstreams_with_existing_params()
+-> Result<(), Box<dyn std::error::Error>> {
+    let vh = "test_enable_tls_peer_verification_for_all_upstreams_with_existing_params";
+    let upstream_name = "test_enable_existing_upstream";
+
+    delete_vhost(vh).ok();
+    run_succeeds(["declare", "vhost", "--name", vh]);
+
+    let amqps_endpoint = format!("amqps://localhost:5671/{}", vh);
+    let source_uri = format!(
+        "{}?key1=abc&verify=verify_none&cacertfile=/old/path/ca.pem&key2=def&certfile=/old/path/client.pem&keyfile=/old/path/client.key&server_name_indication=example.com&custom_param=value123&another_param=xyz&heartbeat=60",
+        amqps_endpoint
+    );
+
+    run_succeeds([
+        "-V",
+        vh,
+        "federation",
+        "declare_upstream_for_exchanges",
+        "--name",
+        upstream_name,
+        "--uri",
+        &source_uri,
+        "--exchange-name",
+        "x.fanout",
+        "--queue-type",
+        "classic",
+    ]);
+    await_metric_emission(500);
+
+    run_succeeds([
+        "federation",
+        "enable_tls_peer_verification_for_all_upstreams",
+        "--node-local-ca-certificate-bundle-path",
+        "/new/path/ca_bundle.pem",
+        "--node-local-client-certificate-file-path",
+        "/new/path/client.pem",
+        "--node-local-client-private-key-file-path",
+        "/new/path/client.key",
+    ]);
+
+    run_succeeds(["federation", "list_all_upstreams"])
+        .stdout(predicate::str::contains(upstream_name))
+        .stdout(predicate::str::contains("verify=verify_peer"))
+        .stdout(predicate::str::contains("key1=abc"))
+        .stdout(predicate::str::contains("key2=def"))
+        .stdout(predicate::str::contains(
+            "cacertfile=/new/path/ca_bundle.pem",
+        ))
+        .stdout(predicate::str::contains("certfile=/new/path/client.pem"))
+        .stdout(predicate::str::contains("keyfile=/new/path/client.key"))
+        .stdout(predicate::str::contains(
+            "server_name_indication=example.com",
+        ))
+        .stdout(predicate::str::contains("custom_param=value123"))
+        .stdout(predicate::str::contains("another_param=xyz"))
+        .stdout(predicate::str::contains("heartbeat=60"));
+
+    delete_vhost(vh).expect("failed to delete a virtual host");
+
+    Ok(())
+}
+
+#[test]
+fn test_enable_tls_peer_verification_for_all_upstreams_queue_federation()
+-> Result<(), Box<dyn std::error::Error>> {
+    let vh = "test_enable_tls_peer_verification_for_all_upstreams_queue_federation";
+    let upstream_name = "test_enable_queue_upstream";
+
+    delete_vhost(vh).ok();
+    run_succeeds(["declare", "vhost", "--name", vh]);
+
+    let amqps_endpoint = format!("amqps://localhost:5671/{}", vh);
+
+    run_succeeds([
+        "-V",
+        vh,
+        "federation",
+        "declare_upstream_for_queues",
+        "--name",
+        upstream_name,
+        "--uri",
+        &amqps_endpoint,
+        "--queue-name",
+        "test.queue",
+        "--consumer-tag",
+        "test-consumer",
+    ]);
+
+    run_succeeds(["federation", "list_all_upstreams"])
+        .stdout(predicate::str::contains(upstream_name));
+
+    run_succeeds([
+        "federation",
+        "enable_tls_peer_verification_for_all_upstreams",
+        "--node-local-ca-certificate-bundle-path",
+        "/etc/ssl/ca.pem",
+        "--node-local-client-certificate-file-path",
+        "/etc/ssl/client.pem",
+        "--node-local-client-private-key-file-path",
+        "/etc/ssl/client.key",
+    ]);
+
+    run_succeeds(["federation", "list_all_upstreams"])
+        .stdout(predicate::str::contains(upstream_name))
+        .stdout(predicate::str::contains("verify=verify_peer"))
+        .stdout(predicate::str::contains("cacertfile=/etc/ssl/ca.pem"))
+        .stdout(predicate::str::contains("certfile=/etc/ssl/client.pem"))
+        .stdout(predicate::str::contains("keyfile=/etc/ssl/client.key"));
+
+    delete_vhost(vh).expect("failed to delete a virtual host");
+
+    Ok(())
+}
+
+#[test]
+fn test_enable_tls_peer_verification_for_all_upstreams_mixed_federation()
+-> Result<(), Box<dyn std::error::Error>> {
+    let vh = "test_enable_tls_peer_verification_for_all_upstreams_mixed_federation";
+    let exchange_upstream_name = "enable_exchange_upstream";
+    let queue_upstream_name = "enable_queue_upstream";
+
+    delete_vhost(vh).ok();
+    run_succeeds(["declare", "vhost", "--name", vh]);
+
+    let amqps_endpoint = format!("amqps://localhost:5671/{}", vh);
+    let exchange_uri = format!(
+        "{}?exchange_param=value1&verify=verify_none&old_cert=/old/path.pem",
+        amqps_endpoint
+    );
+    let queue_uri = format!(
+        "{}?queue_param=value2&verify=verify_none&old_key=/old/key.pem",
+        amqps_endpoint
+    );
+
+    run_succeeds([
+        "-V",
+        vh,
+        "federation",
+        "declare_upstream_for_exchanges",
+        "--name",
+        exchange_upstream_name,
+        "--uri",
+        &exchange_uri,
+        "--exchange-name",
+        "x.federated",
+        "--queue-type",
+        "classic",
+    ]);
+
+    run_succeeds([
+        "-V",
+        vh,
+        "federation",
+        "declare_upstream_for_queues",
+        "--name",
+        queue_upstream_name,
+        "--uri",
+        &queue_uri,
+        "--queue-name",
+        "q.federated",
+        "--consumer-tag",
+        "mixed-consumer",
+    ]);
+    await_metric_emission(500);
+
+    run_succeeds([
+        "federation",
+        "enable_tls_peer_verification_for_all_upstreams",
+        "--node-local-ca-certificate-bundle-path",
+        "/path/to/ca.pem",
+        "--node-local-client-certificate-file-path",
+        "/path/to/client.pem",
+        "--node-local-client-private-key-file-path",
+        "/path/to/client.key",
+    ]);
+
+    run_succeeds(["federation", "list_all_upstreams"])
+        .stdout(predicate::str::contains(exchange_upstream_name))
+        .stdout(predicate::str::contains(queue_upstream_name))
+        .stdout(predicate::str::contains("exchange_param=value1"))
+        .stdout(predicate::str::contains("queue_param=value2"))
+        .stdout(predicate::str::contains("cacertfile=/path/to/ca.pem"))
+        .stdout(predicate::str::contains("certfile=/path/to/client.pem"))
+        .stdout(predicate::str::contains("keyfile=/path/to/client.key"))
+        .stdout(predicate::str::contains("verify=verify_peer"));
 
     delete_vhost(vh).expect("failed to delete a virtual host");
 

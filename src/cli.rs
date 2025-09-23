@@ -3083,7 +3083,7 @@ pub fn shovel_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 7
     .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
 }
 
-fn federation_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 7] {
+fn federation_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 8] {
     let list_all_upstreams = Command::new("list_all_upstreams")
         .long_about("Lists federation upstreams in all virtual hosts")
         .after_help(color_print::cformat!(
@@ -3434,6 +3434,41 @@ fn federation_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 7
             "https://www.rabbitmq.com/docs/federation#tls-connections"
         ));
 
+    let enable_tls_peer_verification_cmd = Command::new("enable_tls_peer_verification_for_all_upstreams")
+        .about("Enables TLS peer verification for all federation upstreams with provided [RabbitMQ node-local] certificate paths.")
+        .long_about("Enables TLS peer verification for all federation upstreams by updating their 'verify' parameter and adding [RabbitMQ node-local] certificate and private key file paths.")
+        .arg(
+            Arg::new("node_local_ca_certificate_bundle_path")
+                .long("node-local-ca-certificate-bundle-path")
+                .help("Path to the CA certificate bundle file on the target RabbitMQ node(s)")
+                .required(true)
+                .value_name("PATH")
+        )
+        .arg(
+            Arg::new("node_local_client_certificate_file_path")
+                .long("node-local-client-certificate-file-path")
+                .help("Path to the client certificate file on the target RabbitMQ node(s)")
+                .required(true)
+                .value_name("PATH")
+        )
+        .arg(
+            Arg::new("node_local_client_private_key_file_path")
+                .long("node-local-client-private-key-file-path")
+                .help("Path to the client private key file on the target RabbitMQ node(s)")
+                .required(true)
+                .value_name("PATH")
+        )
+        .after_help(color_print::cformat!(
+            r#"<bold>Doc guides</bold>:
+
+ * {}
+ * {}
+ * {}"#,
+            FEDERATION_GUIDE_URL,
+            TLS_GUIDE_URL,
+            "https://www.rabbitmq.com/docs/federation#tls-connections"
+        ));
+
     [
         list_all_upstreams,
         declare_upstream,
@@ -3442,6 +3477,7 @@ fn federation_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 7
         delete_upstream,
         list_all_links,
         disable_tls_peer_verification_cmd,
+        enable_tls_peer_verification_cmd,
     ]
     .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
 }

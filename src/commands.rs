@@ -733,6 +733,80 @@ pub fn disable_tls_peer_verification_for_all_federation_upstreams(
     Ok(())
 }
 
+pub fn enable_tls_peer_verification_for_all_federation_upstreams(
+    client: APIClient,
+    args: &ArgMatches,
+) -> Result<(), CommandRunError> {
+    let ca_cert_path = args
+        .get_one::<String>("node_local_ca_certificate_bundle_path")
+        .ok_or_else(|| CommandRunError::MissingArgumentValue {
+            property: "node_local_ca_certificate_bundle_path".to_string(),
+        })?;
+    let client_cert_path = args
+        .get_one::<String>("node_local_client_certificate_file_path")
+        .ok_or_else(|| CommandRunError::MissingArgumentValue {
+            property: "node_local_client_certificate_file_path".to_string(),
+        })?;
+    let client_key_path = args
+        .get_one::<String>("node_local_client_private_key_file_path")
+        .ok_or_else(|| CommandRunError::MissingArgumentValue {
+            property: "node_local_client_private_key_file_path".to_string(),
+        })?;
+
+    let upstreams = client.list_federation_upstreams()?;
+
+    for upstream in upstreams {
+        let original_uri = &upstream.uri;
+        let updated_uri = enable_tls_peer_verification(
+            original_uri,
+            ca_cert_path,
+            client_cert_path,
+            client_key_path,
+        )?;
+
+        if original_uri != &updated_uri {
+            let upstream_params = FederationUpstreamParams {
+                name: &upstream.name,
+                vhost: &upstream.vhost,
+                uri: &updated_uri,
+                prefetch_count: upstream
+                    .prefetch_count
+                    .unwrap_or(DEFAULT_FEDERATION_PREFETCH),
+                reconnect_delay: upstream.reconnect_delay.unwrap_or(5),
+                ack_mode: upstream.ack_mode,
+                trust_user_id: upstream.trust_user_id.unwrap_or_default(),
+                bind_using_nowait: upstream.bind_using_nowait,
+                channel_use_mode: upstream.channel_use_mode,
+                queue_federation: if upstream.queue.is_some() {
+                    Some(QueueFederationParams {
+                        queue: upstream.queue.as_deref(),
+                        consumer_tag: upstream.consumer_tag.as_deref(),
+                    })
+                } else {
+                    None
+                },
+                exchange_federation: if upstream.exchange.is_some() {
+                    Some(ExchangeFederationParams {
+                        exchange: upstream.exchange.as_deref(),
+                        max_hops: upstream.max_hops,
+                        queue_type: upstream.queue_type.unwrap_or(QueueType::Classic),
+                        ttl: upstream.expires,
+                        message_ttl: upstream.message_ttl,
+                        resource_cleanup_mode: upstream.resource_cleanup_mode,
+                    })
+                } else {
+                    None
+                },
+            };
+
+            let param = RuntimeParameterDefinition::from(upstream_params);
+            client.upsert_runtime_parameter(&param)?;
+        }
+    }
+
+    Ok(())
+}
+
 pub fn disable_tls_peer_verification_for_all_source_uris(
     client: APIClient,
 ) -> Result<(), CommandRunError> {
@@ -1980,6 +2054,29 @@ fn disable_tls_peer_verification(uri: &str) -> Result<String, CommandRunError> {
             message: format!("Could not parse a value as a URI '{}': {}", uri, e),
         })?
         .with_tls_peer_verification(TlsPeerVerificationMode::Disabled);
+
+    ub.build()
+        .map_err(|e| CommandRunError::FailureDuringExecution {
+            message: format!("Failed to reconstruct (modify) a URI: {}", e),
+        })
+}
+
+fn enable_tls_peer_verification(
+    uri: &str,
+    ca_cert_path: &str,
+    client_cert_path: &str,
+    client_key_path: &str,
+) -> Result<String, CommandRunError> {
+    use rabbitmq_http_client::uris::UriBuilder;
+
+    let ub = UriBuilder::new(uri)
+        .map_err(|e| CommandRunError::FailureDuringExecution {
+            message: format!("Could not parse a value as a URI '{}': {}", uri, e),
+        })?
+        .with_tls_peer_verification(TlsPeerVerificationMode::Enabled)
+        .with_ca_cert_file(ca_cert_path)
+        .with_client_cert_file(client_cert_path)
+        .with_client_key_file(client_key_path);
 
     ub.build()
         .map_err(|e| CommandRunError::FailureDuringExecution {
