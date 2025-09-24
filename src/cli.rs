@@ -1206,7 +1206,8 @@ fn delete_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 13] {
                 .required(false)
                 .default_value("{}")
                 .value_parser(value_parser!(String)),
-        );
+        )
+        .arg(idempotently_arg.clone());
     let parameter_cmd = Command::new("parameter")
         .about("Clears a runtime parameter")
         .arg(
@@ -1220,13 +1221,17 @@ fn delete_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 13] {
                 .long("component")
                 .help("component (eg. federation-upstream)")
                 .required(true),
-        );
-    let policy_cmd = Command::new("policy").about("Deletes a policy").arg(
-        Arg::new("name")
-            .long("name")
-            .help("policy name")
-            .required(true),
-    );
+        )
+        .arg(idempotently_arg.clone());
+    let policy_cmd = Command::new("policy")
+        .about("Deletes a policy")
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("policy name")
+                .required(true),
+        )
+        .arg(idempotently_arg.clone());
     let operator_policy_cmd = Command::new("operator_policy")
         .about("Deletes an operator policy")
         .arg(
@@ -1234,7 +1239,8 @@ fn delete_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 13] {
                 .long("name")
                 .help("operator policy name")
                 .required(true),
-        );
+        )
+        .arg(idempotently_arg.clone());
     let vhost_limit_cmd = Command::new("vhost_limit")
         .about("delete a vhost limit")
         .arg(
@@ -1297,6 +1303,13 @@ fn purge_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 1] {
 }
 
 fn binding_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 3] {
+    let idempotently_arg = Arg::new("idempotently")
+        .long("idempotently")
+        .value_parser(value_parser!(bool))
+        .action(ArgAction::SetTrue)
+        .help("do not consider 404 Not Found API responses to be errors")
+        .required(false);
+
     let declare_cmd = Command::new("declare")
         .about("Creates a binding between a source exchange and a destination (a queue or an exchange)")
         .arg(
@@ -1365,7 +1378,8 @@ fn binding_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 3] {
                 .required(false)
                 .default_value("{}")
                 .value_parser(value_parser!(String)),
-        );
+        )
+        .arg(idempotently_arg.clone());
     let list_cmd = Command::new("list").long_about("Lists bindings");
 
     [declare_cmd, delete_cmd, list_cmd]
@@ -1507,6 +1521,13 @@ fn streams_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 3] {
 }
 
 fn parameters_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 5] {
+    let idempotently_arg = Arg::new("idempotently")
+        .long("idempotently")
+        .value_parser(value_parser!(bool))
+        .action(ArgAction::SetTrue)
+        .help("do not consider 404 Not Found API responses to be errors")
+        .required(false);
+
     let list_all_cmd = Command::new("list_all")
         .long_about("Lists all runtime parameters across all virtual hosts")
         .after_help(color_print::cformat!(
@@ -1578,13 +1599,21 @@ fn parameters_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 5
                 .long("component")
                 .help("component (eg. federation-upstream)")
                 .required(true),
-        );
+        )
+        .arg(idempotently_arg.clone());
 
     [clear_cmd, list_all_cmd, list_cmd, list_in_cmd, set_cmd]
         .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
 }
 
 fn global_parameters_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 3] {
+    let idempotently_arg = Arg::new("idempotently")
+        .long("idempotently")
+        .value_parser(value_parser!(bool))
+        .action(ArgAction::SetTrue)
+        .help("do not consider 404 Not Found API responses to be errors")
+        .required(false);
+
     let list_cmd = Command::new("list")
         .long_about("Lists global runtime parameters")
         .after_help(color_print::cformat!(
@@ -1620,13 +1649,21 @@ fn global_parameters_subcommands(pre_flight_settings: PreFlightSettings) -> [Com
                 .long("name")
                 .help("parameter's name")
                 .required(true),
-        );
+        )
+        .arg(idempotently_arg.clone());
 
     [clear_cmd, list_cmd, set_cmd]
         .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
 }
 
 fn operator_policies_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 10] {
+    let idempotently_arg = Arg::new("idempotently")
+        .long("idempotently")
+        .value_parser(value_parser!(bool))
+        .action(ArgAction::SetTrue)
+        .help("do not consider 404 Not Found API responses to be errors")
+        .required(false);
+
     let declare_cmd = Command::new("declare")
         .visible_aliases(vec!["update", "set"])
         .about("Creates or updates an operator policy")
@@ -1679,7 +1716,8 @@ fn operator_policies_subcommands(pre_flight_settings: PreFlightSettings) -> [Com
                 .long("name")
                 .help("policy name")
                 .required(true),
-        );
+        )
+        .arg(idempotently_arg.clone());
 
     let delete_definition_key_cmd = Command::new("delete_definition_keys")
         .about("Deletes definition keys from an operator policy, unless it is the only key")
@@ -1800,6 +1838,13 @@ fn operator_policies_subcommands(pre_flight_settings: PreFlightSettings) -> [Com
 }
 
 fn policies_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 12] {
+    let idempotently_arg = Arg::new("idempotently")
+        .long("idempotently")
+        .value_parser(value_parser!(bool))
+        .action(ArgAction::SetTrue)
+        .help("do not consider 404 Not Found API responses to be errors")
+        .required(false);
+
     let declare_cmd = Command::new("declare")
         .visible_aliases(vec!["update", "set"])
         .about("Creates or updates a policy")
@@ -1889,12 +1934,15 @@ fn policies_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 12]
             POLICY_GUIDE_URL
         ));
 
-    let delete_cmd = Command::new("delete").about("Deletes a policy").arg(
-        Arg::new("name")
-            .long("name")
-            .help("policy name")
-            .required(true),
-    );
+    let delete_cmd = Command::new("delete")
+        .about("Deletes a policy")
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("policy name")
+                .required(true),
+        )
+        .arg(idempotently_arg.clone());
 
     let delete_definition_keys_cmd = Command::new("delete_definition_keys")
         .about("Deletes a definition key from a policy, unless it is the only key")
@@ -2088,6 +2136,13 @@ fn rebalance_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 1]
 }
 
 fn close_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 2] {
+    let idempotently_arg = Arg::new("idempotently")
+        .long("idempotently")
+        .value_parser(value_parser!(bool))
+        .action(ArgAction::SetTrue)
+        .help("do not consider 404 Not Found API responses to be errors")
+        .required(false);
+
     let close_connection = Command::new("connection")
         .about("Closes a client connection")
         .arg(
@@ -2095,7 +2150,8 @@ fn close_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 2] {
                 .long("name")
                 .help("connection name (identifying string)")
                 .required(true),
-        );
+        )
+        .arg(idempotently_arg.clone());
     let close_user_connections = Command::new("user_connections")
         .about("Closes all connections that authenticated with a specific username")
         .arg(
@@ -2104,7 +2160,8 @@ fn close_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 2] {
                 .long("username")
                 .help("Name of the user whose connections to close")
                 .required(true),
-        );
+        )
+        .arg(idempotently_arg.clone());
     [close_connection, close_user_connections]
         .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
 }
@@ -2121,6 +2178,13 @@ fn channels_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 1] 
 }
 
 fn connections_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 4] {
+    let idempotently_arg = Arg::new("idempotently")
+        .long("idempotently")
+        .value_parser(value_parser!(bool))
+        .action(ArgAction::SetTrue)
+        .help("do not consider 404 Not Found API responses to be errors")
+        .required(false);
+
     let close_connection = Command::new("close")
         .about("Closes a client connection")
         .arg(
@@ -2128,7 +2192,8 @@ fn connections_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 
                 .long("name")
                 .help("connection name (identifying string)")
                 .required(true),
-        );
+        )
+        .arg(idempotently_arg.clone());
     let close_user_connections = Command::new("close_of_user")
         .about("Closes all connections that are authenticated with a specific username")
         .arg(
@@ -2137,7 +2202,8 @@ fn connections_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 
                 .long("username")
                 .help("Name of the user whose connections should be closed")
                 .required(true),
-        );
+        )
+        .arg(idempotently_arg.clone());
     let list_cmd = Command::new("list")
         .long_about("Lists client connections")
         .after_help(color_print::cformat!(
@@ -2467,7 +2533,8 @@ fn exchanges_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 5]
                 .required(false)
                 .default_value("{}")
                 .value_parser(value_parser!(String)),
-        );
+        )
+        .arg(idempotently_arg.clone());
     [bind_cmd, declare_cmd, delete_cmd, list_cmd, unbind_cmd]
         .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
 }
@@ -2893,6 +2960,13 @@ pub fn get_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 1] {
 }
 
 pub fn shovel_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 7] {
+    let idempotently_arg = Arg::new("idempotently")
+        .long("idempotently")
+        .value_parser(value_parser!(bool))
+        .action(ArgAction::SetTrue)
+        .help("do not consider 404 Not Found API responses to be errors")
+        .required(false);
+
     let list_all_cmd = Command::new("list_all")
         .long_about("Lists shovels in all virtual hosts")
         .after_help(color_print::cformat!(
@@ -3039,7 +3113,8 @@ pub fn shovel_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 7
                 .long("name")
                 .help("shovel name (identifier)")
                 .required(true),
-        );
+        )
+        .arg(idempotently_arg.clone());
 
     let disable_tls_peer_verification_cmd = Command::new("disable_tls_peer_verification_for_all_source_uris")
         // shorter, displayed in the shovels group's help
@@ -3084,6 +3159,13 @@ pub fn shovel_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 7
 }
 
 fn federation_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 8] {
+    let idempotently_arg = Arg::new("idempotently")
+        .long("idempotently")
+        .value_parser(value_parser!(bool))
+        .action(ArgAction::SetTrue)
+        .help("do not consider 404 Not Found API responses to be errors")
+        .required(false);
+
     let list_all_upstreams = Command::new("list_all_upstreams")
         .long_about("Lists federation upstreams in all virtual hosts")
         .after_help(color_print::cformat!(
@@ -3400,7 +3482,8 @@ fn federation_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 8
                 .long("name")
                 .help("upstream name (identifier)")
                 .required(true),
-        );
+        )
+        .arg(idempotently_arg.clone());
 
     let list_all_links = Command::new("list_all_links")
         .long_about("List federation links in all virtual hosts")

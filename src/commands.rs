@@ -31,9 +31,9 @@ use rabbitmq_http_client::requests::shovels::OwnedShovelParams;
 use rabbitmq_http_client::requests::{
     Amqp10ShovelDestinationParams, Amqp10ShovelParams, Amqp10ShovelSourceParams,
     Amqp091ShovelDestinationParams, Amqp091ShovelParams, Amqp091ShovelSourceParams,
-    DEFAULT_FEDERATION_PREFETCH, EnforcedLimitParams, ExchangeFederationParams,
-    FEDERATION_UPSTREAM_COMPONENT, FederationResourceCleanupMode, FederationUpstreamParams,
-    PolicyParams, QueueFederationParams, RuntimeParameterDefinition,
+    BindingDeletionParams, DEFAULT_FEDERATION_PREFETCH, EnforcedLimitParams,
+    ExchangeFederationParams, FEDERATION_UPSTREAM_COMPONENT, FederationResourceCleanupMode,
+    FederationUpstreamParams, PolicyParams, QueueFederationParams, RuntimeParameterDefinition,
 };
 
 use rabbitmq_http_client::transformers::{TransformationChain, VirtualHostTransformationChain};
@@ -416,8 +416,12 @@ pub fn delete_shovel(
     command_args: &ArgMatches,
 ) -> ClientResult<()> {
     let name = command_args.get_one::<String>("name").cloned().unwrap();
+    let idempotently = command_args
+        .get_one::<bool>("idempotently")
+        .cloned()
+        .unwrap_or(false);
 
-    client.delete_shovel(vhost, &name, true)
+    client.delete_shovel(vhost, &name, idempotently)
 }
 
 //
@@ -678,7 +682,11 @@ pub fn delete_federation_upstream(
     command_args: &ArgMatches,
 ) -> ClientResult<()> {
     let name = command_args.get_one::<String>("name").cloned().unwrap();
-    client.clear_runtime_parameter(FEDERATION_UPSTREAM_COMPONENT, vhost, &name)
+    let idempotently = command_args
+        .get_one::<bool>("idempotently")
+        .cloned()
+        .unwrap_or(false);
+    client.clear_runtime_parameter(FEDERATION_UPSTREAM_COMPONENT, vhost, &name, idempotently)
 }
 
 pub fn disable_tls_peer_verification_for_all_federation_upstreams(
@@ -1059,8 +1067,12 @@ pub fn delete_parameter(
 ) -> ClientResult<()> {
     let component = command_args.get_one::<String>("component").unwrap();
     let name = command_args.get_one::<String>("name").unwrap();
+    let idempotently = command_args
+        .get_one::<bool>("idempotently")
+        .cloned()
+        .unwrap_or(false);
 
-    client.clear_runtime_parameter(component, vhost, name)
+    client.clear_runtime_parameter(component, vhost, name, idempotently)
 }
 
 pub fn delete_global_parameter(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
@@ -1669,15 +1681,21 @@ pub fn delete_binding(
     let arguments = command_args.get_one::<String>("arguments").unwrap();
     let parsed_arguments = parse_json_from_arg(arguments)?;
 
+    let params = BindingDeletionParams {
+        virtual_host: vhost,
+        source,
+        destination,
+        destination_type: BindingDestinationType::from(destination_type.clone()),
+        routing_key,
+        arguments: parsed_arguments,
+    };
+    let idempotently = command_args
+        .get_one::<bool>("idempotently")
+        .cloned()
+        .unwrap_or(false);
+
     client
-        .delete_binding(
-            vhost,
-            source,
-            destination,
-            BindingDestinationType::from(destination_type.clone()),
-            routing_key,
-            parsed_arguments,
-        )
+        .delete_binding(&params, idempotently)
         .map(|_| ())
         .map_err(Into::into)
 }
@@ -1703,7 +1721,11 @@ pub fn delete_policy(
 ) -> ClientResult<()> {
     // the flag is required
     let name = command_args.get_one::<String>("name").unwrap();
-    client.delete_policy(vhost, name)
+    let idempotently = command_args
+        .get_one::<bool>("idempotently")
+        .cloned()
+        .unwrap_or(false);
+    client.delete_policy(vhost, name, idempotently)
 }
 
 pub fn delete_operator_policy(
@@ -1713,7 +1735,11 @@ pub fn delete_operator_policy(
 ) -> ClientResult<()> {
     // the flag is required
     let name = command_args.get_one::<String>("name").unwrap();
-    client.delete_operator_policy(vhost, name)
+    let idempotently = command_args
+        .get_one::<bool>("idempotently")
+        .cloned()
+        .unwrap_or(false);
+    client.delete_operator_policy(vhost, name, idempotently)
 }
 
 pub fn purge_queue(client: APIClient, vhost: &str, command_args: &ArgMatches) -> ClientResult<()> {
@@ -1758,13 +1784,21 @@ pub fn health_check_protocol_listener(
 pub fn close_connection(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
     // the flag is required
     let name = command_args.get_one::<String>("name").unwrap();
-    client.close_connection(name, Some("closed via rabbitmqadmin v2"))
+    let idempotently = command_args
+        .get_one::<bool>("idempotently")
+        .cloned()
+        .unwrap_or(false);
+    client.close_connection(name, Some("closed via rabbitmqadmin v2"), idempotently)
 }
 
 pub fn close_user_connections(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
     // the flag is required
     let username = command_args.get_one::<String>("username").unwrap();
-    client.close_user_connections(username, Some("closed via rabbitmqadmin v2"))
+    let idempotently = command_args
+        .get_one::<bool>("idempotently")
+        .cloned()
+        .unwrap_or(false);
+    client.close_user_connections(username, Some("closed via rabbitmqadmin v2"), idempotently)
 }
 
 pub fn rebalance_queues(client: APIClient) -> ClientResult<()> {

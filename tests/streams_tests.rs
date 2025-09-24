@@ -132,3 +132,46 @@ fn streams_list() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
+
+#[test]
+fn test_streams_delete_idempotently() -> Result<(), Box<dyn std::error::Error>> {
+    let vh = "streams.delete.idempotently.1";
+    let s = "test_stream_delete_idempotently";
+
+    delete_vhost(vh).expect("failed to delete a virtual host");
+    run_succeeds(["declare", "vhost", "--name", vh]);
+
+    run_succeeds(["-V", vh, "streams", "delete", "--name", s, "--idempotently"]);
+
+    run_succeeds([
+        "-V",
+        vh,
+        "declare",
+        "stream",
+        "--name",
+        s,
+        "--expiration",
+        "2D",
+    ]);
+
+    run_succeeds(["-V", vh, "streams", "delete", "--name", s]);
+
+    run_succeeds(["-V", vh, "streams", "delete", "--name", s, "--idempotently"]);
+
+    run_succeeds([
+        "declare",
+        "stream",
+        "-V",
+        vh,
+        "--name",
+        s,
+        "--expiration",
+        "2D",
+    ]);
+    run_succeeds(["delete", "stream", "-V", vh, "--name", s]);
+    run_succeeds(["delete", "stream", "-V", vh, "--name", s, "--idempotently"]);
+
+    delete_vhost(vh).expect("failed to delete a virtual host");
+
+    Ok(())
+}

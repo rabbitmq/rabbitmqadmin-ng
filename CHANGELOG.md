@@ -36,6 +36,27 @@
 
     **Important**: this command should **only** be used to undo incorrect shovel destination URIs (see above).
 
+* All `delete_*` and `clear_*` commands now support the `--idempotently` flag (previously it was just a few):
+  - `bindings delete`
+  - `close connection`
+  - `close user_connections`
+  - `connections close`
+  - `connections close_of_user`
+  - `exchanges delete`
+  - `exchanges unbind`
+  - `federation delete_upstream`
+  - `global_parameters clear`
+  - `operator_policies delete`
+  - `parameters clear`
+  - `policies delete`
+  - `queues delete`
+  - `shovels delete`
+  - `streams delete`
+  - `users delete`
+  - `vhosts delete`
+
+* Updated `delete_binding` to use the new `BindingDeletionParams` struct API
+
 ## v2.11.0 (Sep 22, 2025)
 
 ### Enhancements

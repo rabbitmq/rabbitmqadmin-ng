@@ -115,9 +115,25 @@ fn test_shovel_declaration_with_overlapping_destination_types()
     ])
     .stderr(predicate::str::contains("cannot be used with"));
 
-    run_succeeds(["-V", vh, "shovels", "delete", "--name", name]);
+    run_succeeds([
+        "-V",
+        vh,
+        "shovels",
+        "delete",
+        "--name",
+        name,
+        "--idempotently",
+    ]);
 
-    run_succeeds(["-V", vh, "shovels", "delete", "--name", name]);
+    run_succeeds([
+        "-V",
+        vh,
+        "shovels",
+        "delete",
+        "--name",
+        name,
+        "--idempotently",
+    ]);
 
     delete_vhost(vh).expect("failed to delete a virtual host");
 
@@ -172,7 +188,15 @@ fn test_amqp091_shovel_declaration_and_deletion() -> Result<(), Box<dyn std::err
     );
 
     run_succeeds(["-V", vh, "shovels", "delete", "--name", name]);
-    run_succeeds(["-V", vh, "shovels", "delete", "--name", name]);
+    run_succeeds([
+        "-V",
+        vh,
+        "shovels",
+        "delete",
+        "--name",
+        name,
+        "--idempotently",
+    ]);
 
     delete_vhost(vh).expect("failed to delete a virtual host");
 
@@ -214,7 +238,88 @@ fn test_amqp10_shovel_declaration_and_deletion() -> Result<(), Box<dyn std::erro
     ]);
 
     run_succeeds(["-V", vh, "shovels", "delete", "--name", name]);
-    run_succeeds(["-V", vh, "shovels", "delete", "--name", name]);
+    run_succeeds([
+        "-V",
+        vh,
+        "shovels",
+        "delete",
+        "--name",
+        name,
+        "--idempotently",
+    ]);
+
+    delete_vhost(vh).expect("failed to delete a virtual host");
+
+    Ok(())
+}
+
+#[test]
+fn test_shovels_delete_idempotently() -> Result<(), Box<dyn std::error::Error>> {
+    let vh = "shovels.delete.idempotently.1";
+    let shovel_name = "test_shovel_delete_idempotently";
+
+    delete_vhost(vh).expect("failed to delete a virtual host");
+    run_succeeds(["declare", "vhost", "--name", vh]);
+
+    run_succeeds([
+        "-V",
+        vh,
+        "shovels",
+        "delete",
+        "--name",
+        shovel_name,
+        "--idempotently",
+    ]);
+
+    let amqp_endpoint = amqp_endpoint_with_vhost(vh);
+    let src_q = "test_src_queue";
+    let dest_q = "test_dest_queue";
+
+    run_succeeds([
+        "-V", vh, "declare", "queue", "--name", src_q, "--type", "classic",
+    ]);
+    run_succeeds([
+        "-V", vh, "declare", "queue", "--name", dest_q, "--type", "classic",
+    ]);
+
+    run_succeeds([
+        "-V",
+        vh,
+        "shovels",
+        "declare_amqp091",
+        "--name",
+        shovel_name,
+        "--source-uri",
+        &amqp_endpoint,
+        "--destination-uri",
+        &amqp_endpoint,
+        "--source-queue",
+        src_q,
+        "--destination-queue",
+        dest_q,
+    ]);
+
+    run_succeeds(["-V", vh, "shovels", "delete", "--name", shovel_name]);
+
+    run_succeeds([
+        "-V",
+        vh,
+        "shovels",
+        "delete",
+        "--name",
+        shovel_name,
+        "--idempotently",
+    ]);
+
+    run_succeeds([
+        "-V",
+        vh,
+        "delete",
+        "shovel",
+        "--name",
+        shovel_name,
+        "--idempotently",
+    ]);
 
     delete_vhost(vh).expect("failed to delete a virtual host");
 

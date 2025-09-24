@@ -360,3 +360,56 @@ fn test_federation_delete_an_upstream_with_exchange_federation_settings()
 
     Ok(())
 }
+
+#[test]
+fn test_federation_delete_upstream_idempotently() -> Result<(), Box<dyn std::error::Error>> {
+    let vh = "federation.delete.upstream.idempotently.1";
+    let upstream_name = "test_upstream_delete_idempotently";
+
+    delete_vhost(vh).expect("failed to delete a virtual host");
+    run_succeeds(["declare", "vhost", "--name", vh]);
+
+    run_succeeds([
+        "-V",
+        vh,
+        "federation",
+        "delete_upstream",
+        "--name",
+        upstream_name,
+        "--idempotently",
+    ]);
+
+    run_succeeds([
+        "-V",
+        vh,
+        "federation",
+        "declare_upstream",
+        "--name",
+        upstream_name,
+        "--uri",
+        "amqp://guest@localhost",
+    ]);
+
+    run_succeeds([
+        "-V",
+        vh,
+        "federation",
+        "delete_upstream",
+        "--name",
+        upstream_name,
+    ]);
+
+    run_succeeds([
+        "-V",
+        vh,
+        "federation",
+        "delete_upstream",
+        "--name",
+        upstream_name,
+        "--idempotently",
+    ]);
+
+    delete_vhost(vh).expect("failed to delete a virtual host");
+
+    Ok(())
+}

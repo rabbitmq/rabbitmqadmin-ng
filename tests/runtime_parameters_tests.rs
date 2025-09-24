@@ -162,3 +162,109 @@ fn test_global_runtime_parameters_cmd_group() -> Result<(), Box<dyn std::error::
 
     Ok(())
 }
+
+#[test]
+fn test_parameters_clear_idempotently() -> Result<(), Box<dyn std::error::Error>> {
+    let vh = "parameters.clear.idempotently.1";
+    let param_name = "test_param_delete_idempotently";
+    let component = "federation-upstream";
+
+    // Create vhost
+    delete_vhost(vh).expect("failed to delete a virtual host");
+    run_succeeds(["declare", "vhost", "--name", vh]);
+
+    // Try clearing a non-existent parameter with --idempotently (should succeed)
+    run_succeeds([
+        "-V",
+        vh,
+        "parameters",
+        "clear",
+        "--name",
+        param_name,
+        "--component",
+        component,
+        "--idempotently",
+    ]);
+
+    // Set the parameter
+    run_succeeds([
+        "-V",
+        vh,
+        "parameters",
+        "set",
+        "--name",
+        param_name,
+        "--component",
+        component,
+        "--value",
+        r#"{"uri": "amqp://localhost"}"#,
+    ]);
+
+    // Clear it normally
+    run_succeeds([
+        "-V",
+        vh,
+        "parameters",
+        "clear",
+        "--name",
+        param_name,
+        "--component",
+        component,
+    ]);
+
+    // Try clearing it again with --idempotently (should succeed)
+    run_succeeds([
+        "-V",
+        vh,
+        "parameters",
+        "clear",
+        "--name",
+        param_name,
+        "--component",
+        component,
+        "--idempotently",
+    ]);
+
+    delete_vhost(vh).expect("failed to delete a virtual host");
+
+    Ok(())
+}
+
+#[test]
+fn test_global_parameters_clear_idempotently() -> Result<(), Box<dyn std::error::Error>> {
+    let param_name = "test_global_param_delete_idempotently";
+
+    // Set the global parameter first
+    run_succeeds([
+        "global_parameters",
+        "set",
+        "--name",
+        param_name,
+        "--value",
+        r#"{"test": "value"}"#,
+    ]);
+
+    // Clear it normally
+    run_succeeds(["global_parameters", "clear", "--name", param_name]);
+
+    // Set it again
+    run_succeeds([
+        "global_parameters",
+        "set",
+        "--name",
+        param_name,
+        "--value",
+        r#"{"test": "value2"}"#,
+    ]);
+
+    // Clear it with --idempotently (should succeed)
+    run_succeeds([
+        "global_parameters",
+        "clear",
+        "--name",
+        param_name,
+        "--idempotently",
+    ]);
+
+    Ok(())
+}

@@ -110,3 +110,32 @@ fn queues_lists() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
+
+#[test]
+fn test_queues_delete_idempotently() -> Result<(), Box<dyn std::error::Error>> {
+    let vh = "queues.delete.idempotently.1";
+    let q = "test_queue_delete_idempotently";
+
+    delete_vhost(vh).expect("failed to delete a virtual host");
+    run_succeeds(["declare", "vhost", "--name", vh]);
+
+    run_succeeds(["-V", vh, "queues", "delete", "--name", q, "--idempotently"]);
+
+    run_succeeds([
+        "-V", vh, "declare", "queue", "--name", q, "--type", "classic",
+    ]);
+
+    run_succeeds(["-V", vh, "queues", "delete", "--name", q]);
+
+    run_succeeds(["-V", vh, "queues", "delete", "--name", q, "--idempotently"]);
+
+    run_succeeds([
+        "declare", "queue", "-V", vh, "--name", q, "--type", "classic",
+    ]);
+    run_succeeds(["delete", "queue", "-V", vh, "--name", q]);
+    run_succeeds(["delete", "queue", "-V", vh, "--name", q, "--idempotently"]);
+
+    delete_vhost(vh).expect("failed to delete a virtual host");
+
+    Ok(())
+}

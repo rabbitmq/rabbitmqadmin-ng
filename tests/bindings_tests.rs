@@ -199,3 +199,131 @@ fn test_bindings_list() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
+
+#[test]
+fn test_bindings_delete_idempotently() -> Result<(), Box<dyn std::error::Error>> {
+    let vh = "bindings.delete.idempotently.1";
+    let source_ex = "test_source_exchange";
+    let dest_queue = "test_dest_queue";
+    let routing_key = "test.routing.key";
+
+    delete_vhost(vh).expect("failed to delete a virtual host");
+    run_succeeds(["declare", "vhost", "--name", vh]);
+
+    run_succeeds([
+        "-V",
+        vh,
+        "bindings",
+        "delete",
+        "--source",
+        source_ex,
+        "--destination-type",
+        "queue",
+        "--destination",
+        dest_queue,
+        "--routing-key",
+        routing_key,
+        "--idempotently",
+    ]);
+
+    run_succeeds([
+        "-V", vh, "declare", "exchange", "--name", source_ex, "--type", "direct",
+    ]);
+    run_succeeds([
+        "-V", vh, "declare", "queue", "--name", dest_queue, "--type", "classic",
+    ]);
+
+    run_succeeds([
+        "-V",
+        vh,
+        "bindings",
+        "declare",
+        "--source",
+        source_ex,
+        "--destination-type",
+        "queue",
+        "--destination",
+        dest_queue,
+        "--routing-key",
+        routing_key,
+    ]);
+
+    run_succeeds([
+        "-V",
+        vh,
+        "bindings",
+        "delete",
+        "--source",
+        source_ex,
+        "--destination-type",
+        "queue",
+        "--destination",
+        dest_queue,
+        "--routing-key",
+        routing_key,
+    ]);
+
+    run_succeeds([
+        "-V",
+        vh,
+        "bindings",
+        "delete",
+        "--source",
+        source_ex,
+        "--destination-type",
+        "queue",
+        "--destination",
+        dest_queue,
+        "--routing-key",
+        routing_key,
+        "--idempotently",
+    ]);
+
+    run_succeeds([
+        "-V",
+        vh,
+        "bindings",
+        "declare",
+        "--source",
+        source_ex,
+        "--destination-type",
+        "queue",
+        "--destination",
+        dest_queue,
+        "--routing-key",
+        routing_key,
+    ]);
+    run_succeeds([
+        "-V",
+        vh,
+        "delete",
+        "binding",
+        "--source",
+        source_ex,
+        "--destination-type",
+        "queue",
+        "--destination",
+        dest_queue,
+        "--routing-key",
+        routing_key,
+    ]);
+    run_succeeds([
+        "-V",
+        vh,
+        "delete",
+        "binding",
+        "--source",
+        source_ex,
+        "--destination-type",
+        "queue",
+        "--destination",
+        dest_queue,
+        "--routing-key",
+        routing_key,
+        "--idempotently",
+    ]);
+
+    delete_vhost(vh).expect("failed to delete a virtual host");
+
+    Ok(())
+}

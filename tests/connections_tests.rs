@@ -63,3 +63,24 @@ fn test_list_user_connections2() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
+
+#[test]
+fn test_connections_close_idempotently() -> Result<(), Box<dyn std::error::Error>> {
+    run_succeeds([
+        "connections",
+        "close",
+        "--name",
+        "non-existent-connection-12345",
+        "--idempotently",
+    ]);
+
+    run_succeeds([
+        "connections",
+        "close_of_user",
+        "--username",
+        "non-existent-user-12345",
+        "--idempotently",
+    ]);
+
+    Ok(())
+}
