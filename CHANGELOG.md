@@ -2,7 +2,40 @@
 
 ## v2.13.0 (in development)
 
-No changes yet.
+### Enhancements
+
+* `shovel enable_tls_peer_verification_for_all_source_uris` is a new command that enables TLS peer verification
+  for all shovel source URIs:
+
+  ```shell
+  # The certificate and private key paths below refer
+  # to the files deployed to the target RabbitMQ node(s), not to the
+  # local files.
+  #
+  # As such, these arguments are command-specific and should not be confused
+  # with the global `--tls-ca-cert-file`, `--tls-cert-file`, and `--tls-key-file`
+  # arguments that are used by `rabbitmqadmin` itself to connect to the target node
+  # over the HTTP API.
+  rabbitmqadmin shovels enable_tls_peer_verification_for_all_source_uris \
+      --node-local-ca-certificate-bundle-path /path/to/node/local/ca_bundle.pem \
+      --node-local-client-certificate-file-path /path/to/node/local/client_certificate.pem \
+      --node-local-client-private-key-file-path /path/to/node/local/client_private_key.pem
+  ```
+
+  See [TLS guide](https://www.rabbitmq.com/docs/ssl#peer-verification) and [Shovel guide](https://www.rabbitmq.com/docs/shovel#tls) to learn more.
+
+* `shovel enable_tls_peer_verification_for_all_destination_uris` is a new command that enables TLS peer verification
+  for all shovel destination URIs:
+
+  ```shell
+  # Ditto, the certificate and private key paths below refer
+  # to the files deployed to the target RabbitMQ node(s), not to the
+  # local files.
+  rabbitmqadmin shovels enable_tls_peer_verification_for_all_destination_uris \
+      --node-local-ca-certificate-bundle-path /path/to/node/local/ca_bundle.pem \
+      --node-local-client-certificate-file-path /path/to/node/local/client_certificate.pem \
+      --node-local-client-private-key-file-path /path/to/node/local/client_private_key.pem
+  ```
 
 ## v2.12.0 (Sep 23, 2025)
 
