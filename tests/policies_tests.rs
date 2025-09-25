@@ -143,7 +143,7 @@ fn test_policies_in() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn test_policies_in_with_entity_type() -> Result<(), Box<dyn std::error::Error>> {
-    let vh = "rabbitmqadmin.vh.policies.2";
+    let vh = "rabbitmqadmin.policies.test1";
     run_succeeds(["delete", "vhost", "--name", vh, "--idempotently"]);
     run_succeeds(["declare", "vhost", "--name", vh]);
 

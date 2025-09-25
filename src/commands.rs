@@ -885,6 +885,118 @@ pub fn disable_tls_peer_verification_for_all_destination_uris(
     Ok(())
 }
 
+pub fn enable_tls_peer_verification_for_all_source_uris(
+    client: APIClient,
+    args: &ArgMatches,
+) -> Result<(), CommandRunError> {
+    let ca_cert_path = args
+        .get_one::<String>("node_local_ca_certificate_bundle_path")
+        .ok_or_else(|| CommandRunError::MissingArgumentValue {
+            property: "node_local_ca_certificate_bundle_path".to_string(),
+        })?;
+    let client_cert_path = args
+        .get_one::<String>("node_local_client_certificate_file_path")
+        .ok_or_else(|| CommandRunError::MissingArgumentValue {
+            property: "node_local_client_certificate_file_path".to_string(),
+        })?;
+    let client_key_path = args
+        .get_one::<String>("node_local_client_private_key_file_path")
+        .ok_or_else(|| CommandRunError::MissingArgumentValue {
+            property: "node_local_client_private_key_file_path".to_string(),
+        })?;
+
+    let all_params = client.list_runtime_parameters()?;
+    let shovel_params: Vec<_> = all_params
+        .into_iter()
+        .filter(|p| p.component == "shovel")
+        .collect();
+
+    for param in shovel_params {
+        let owned_params = match OwnedShovelParams::try_from(param.clone()) {
+            Ok(params) => params,
+            Err(_) => continue,
+        };
+
+        let original_source_uri = &owned_params.source_uri;
+        if original_source_uri.is_empty() {
+            continue;
+        }
+
+        let updated_source_uri = enable_tls_peer_verification(
+            original_source_uri,
+            ca_cert_path,
+            client_cert_path,
+            client_key_path,
+        )?;
+
+        if original_source_uri != &updated_source_uri {
+            let mut updated_params = owned_params;
+            updated_params.source_uri = updated_source_uri;
+
+            let param = RuntimeParameterDefinition::from(&updated_params);
+            client.upsert_runtime_parameter(&param)?;
+        }
+    }
+
+    Ok(())
+}
+
+pub fn enable_tls_peer_verification_for_all_destination_uris(
+    client: APIClient,
+    args: &ArgMatches,
+) -> Result<(), CommandRunError> {
+    let ca_cert_path = args
+        .get_one::<String>("node_local_ca_certificate_bundle_path")
+        .ok_or_else(|| CommandRunError::MissingArgumentValue {
+            property: "node_local_ca_certificate_bundle_path".to_string(),
+        })?;
+    let client_cert_path = args
+        .get_one::<String>("node_local_client_certificate_file_path")
+        .ok_or_else(|| CommandRunError::MissingArgumentValue {
+            property: "node_local_client_certificate_file_path".to_string(),
+        })?;
+    let client_key_path = args
+        .get_one::<String>("node_local_client_private_key_file_path")
+        .ok_or_else(|| CommandRunError::MissingArgumentValue {
+            property: "node_local_client_private_key_file_path".to_string(),
+        })?;
+
+    let all_params = client.list_runtime_parameters()?;
+    let shovel_params: Vec<_> = all_params
+        .into_iter()
+        .filter(|p| p.component == "shovel")
+        .collect();
+
+    for param in shovel_params {
+        let owned_params = match OwnedShovelParams::try_from(param.clone()) {
+            Ok(params) => params,
+            Err(_) => continue,
+        };
+
+        let original_destination_uri = &owned_params.destination_uri;
+        if original_destination_uri.is_empty() {
+            continue;
+        }
+
+        let updated_destination_uri = enable_tls_peer_verification(
+            original_destination_uri,
+            ca_cert_path,
+            client_cert_path,
+            client_key_path,
+        )?;
+
+        if original_destination_uri != &updated_destination_uri {
+            let mut updated_params = owned_params;
+            updated_params.destination_uri = updated_destination_uri;
+
+            let param = RuntimeParameterDefinition::from(&updated_params);
+            client.upsert_runtime_parameter(&param)?;
+        }
+    }
+
+    Ok(())
+}
+
 //
 // Feature flags
 //

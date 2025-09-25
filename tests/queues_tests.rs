@@ -113,7 +113,7 @@ fn queues_lists() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn test_queues_delete_idempotently() -> Result<(), Box<dyn std::error::Error>> {
-    let vh = "queues.delete.idempotently.1";
+    let vh = "rabbitmqadmin.queues.test1";
     let q = "test_queue_delete_idempotently";
 
     delete_vhost(vh).expect("failed to delete a virtual host");

@@ -35,7 +35,7 @@ fn test_import_cluster_definitions() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn test_import_vhost_definitions() -> Result<(), Box<dyn std::error::Error>> {
-    let vh = "test_import_vhost_definitions.1";
+    let vh = "rabbitmqadmin.definitions_import.test1";
 
     delete_vhost(vh).expect("failed to delete a virtual host");
     run_succeeds(["declare", "vhost", "--name", vh]);

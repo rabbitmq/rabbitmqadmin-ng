@@ -1086,6 +1086,20 @@ fn dispatch_common_subcommand(
             let result = commands::disable_tls_peer_verification_for_all_destination_uris(client);
             res_handler.no_output_on_success(result);
         }
+        ("shovels", "enable_tls_peer_verification_for_all_source_uris") => {
+            let result = commands::enable_tls_peer_verification_for_all_source_uris(
+                client,
+                second_level_args,
+            );
+            res_handler.no_output_on_success(result);
+        }
+        ("shovels", "enable_tls_peer_verification_for_all_destination_uris") => {
+            let result = commands::enable_tls_peer_verification_for_all_destination_uris(
+                client,
+                second_level_args,
+            );
+            res_handler.no_output_on_success(result);
+        }
         ("streams", "declare") => {
             let result = commands::declare_stream(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);

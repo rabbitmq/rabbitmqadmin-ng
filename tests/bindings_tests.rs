@@ -202,7 +202,7 @@ fn test_bindings_list() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn test_bindings_delete_idempotently() -> Result<(), Box<dyn std::error::Error>> {
-    let vh = "bindings.delete.idempotently.1";
+    let vh = "rabbitmqadmin.bindings.test1";
     let source_ex = "test_source_exchange";
     let dest_queue = "test_dest_queue";
     let routing_key = "test.routing.key";

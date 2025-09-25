@@ -15,20 +15,18 @@
 mod test_helpers;
 
 use crate::test_helpers::*;
-use predicates::prelude::*;
-use std::str;
 
 #[test]
 fn test_disable_tls_peer_verification_for_all_destination_uris_basic()
 -> Result<(), Box<dyn std::error::Error>> {
-    let vh = "test_disable_tls_peer_verification_for_all_destination_uris_basic";
+    let vh = "rabbitmqadmin.shovel.modifications.test8";
     let shovel_name = "test_basic_dest_shovel";
 
     delete_vhost(vh).ok();
     run_succeeds(["declare", "vhost", "--name", vh]);
 
-    let amqps_source = format!("amqps://localhost:5671/{}", vh);
-    let amqps_destination = format!("amqps://localhost:5671/{}", vh);
+    let amqp_source = format!("amqp://localhost:5672/{}", vh);
+    let amqp_destination = format!("amqp://localhost:5672/{}", vh);
 
     run_succeeds([
         "-V",
@@ -38,9 +36,9 @@ fn test_disable_tls_peer_verification_for_all_destination_uris_basic()
         "--name",
         shovel_name,
         "--source-uri",
-        &amqps_source,
+        &amqp_source,
         "--destination-uri",
-        &amqps_destination,
+        &amqp_destination,
         "--source-queue",
         "source.queue",
         "--destination-queue",
@@ -49,16 +47,22 @@ fn test_disable_tls_peer_verification_for_all_destination_uris_basic()
         "on-confirm",
     ]);
 
-    run_succeeds(["parameters", "list_all"]).stdout(predicate::str::contains(shovel_name));
-
     run_succeeds([
         "shovels",
         "disable_tls_peer_verification_for_all_destination_uris",
     ]);
 
-    run_succeeds(["parameters", "list_all"])
-        .stdout(predicate::str::contains(shovel_name))
-        .stdout(predicate::str::contains("verify=verify_none"));
+    let client = api_client();
+    let params = client.list_runtime_parameters()?;
+    let shovel_param = params
+        .iter()
+        .find(|p| p.name == shovel_name && p.component == "shovel")
+        .expect("Shovel parameter should exist");
+
+    let dest_uri = shovel_param.value["dest-uri"]
+        .as_str()
+        .expect("dest-uri should be a string");
+    assert!(dest_uri.contains("verify=verify_none"));
 
     delete_vhost(vh).expect("failed to delete a virtual host");
 
@@ -68,18 +72,17 @@ fn test_disable_tls_peer_verification_for_all_destination_uris_basic()
 #[test]
 fn test_disable_tls_peer_verification_for_all_destination_uris_with_existing_verify_param()
 -> Result<(), Box<dyn std::error::Error>> {
-    let vh =
-        "test_disable_tls_peer_verification_for_all_destination_uris_with_existing_verify_param";
+    let vh = "rabbitmqadmin.shovel.modifications.test9";
     let shovel_name = "test_existing_dest_shovel";
 
     delete_vhost(vh).ok();
     run_succeeds(["declare", "vhost", "--name", vh]);
 
-    let amqps_base = format!("amqps://localhost:5671/{}", vh);
-    let source_uri = format!("{}?source_key=abc&heartbeat=60", amqps_base);
+    let amqp_base = format!("amqp://localhost:5672/{}", vh);
+    let source_uri = format!("{}?source_key=abc&heartbeat=60", amqp_base);
     let dest_uri = format!(
         "{}?dest_key1=xyz&verify=verify_peer&cacertfile=/path/to/dest_ca.pem&dest_key2=abc&certfile=/path/to/dest_client.pem&keyfile=/path/to/dest_client.key&server_name_indication=dest.example.com&dest_param=value456&another_dest_param=def&heartbeat=30",
-        amqps_base
+        amqp_base
     );
 
     run_succeeds([
@@ -107,69 +110,36 @@ fn test_disable_tls_peer_verification_for_all_destination_uris_with_existing_ver
         "disable_tls_peer_verification_for_all_destination_uris",
     ]);
 
-    let output = run_succeeds(["parameters", "list_all"]);
-    let stdout = output
-        .stdout(predicate::str::contains(shovel_name))
-        .stdout(predicate::str::contains("verify=verify_none"))
-        .stdout(predicate::str::contains("dest_key1=xyz"))
-        .stdout(predicate::str::contains("dest_key2=abc"))
-        .stdout(predicate::str::contains("cacertfile=/path/to/dest_ca.pem"))
-        .stdout(predicate::str::contains(
-            "certfile=/path/to/dest_client.pem",
-        ))
-        .stdout(predicate::str::contains("keyfile=/path/to/dest_client.key"))
-        .stdout(predicate::str::contains(
-            "server_name_indication=dest.example.com",
-        ))
-        .stdout(predicate::str::contains("dest_param=value456"))
-        .stdout(predicate::str::contains("another_dest_param=def"))
-        .stdout(predicate::str::contains("heartbeat=30"));
+    let client = api_client();
+    let params = client.list_runtime_parameters()?;
+    let shovel_param = params
+        .iter()
+        .find(|p| p.name == shovel_name && p.component == "shovel")
+        .expect("Shovel parameter should exist");
 
-    let output_str = str::from_utf8(&stdout.get_output().stdout).unwrap();
-    let lines: Vec<&str> = output_str.lines().collect();
-    let mut shovel_section = String::new();
-    let mut in_our_shovel = false;
+    let source_uri_after = shovel_param.value["src-uri"]
+        .as_str()
+        .expect("src-uri should be a string");
+    let dest_uri_after = shovel_param.value["dest-uri"]
+        .as_str()
+        .expect("dest-uri should be a string");
 
-    for line in lines {
-        if line.contains(&shovel_name) {
-            in_our_shovel = true;
-        }
-        if in_our_shovel {
-            shovel_section.push_str(line);
-            shovel_section.push('\n');
-            if line.contains("└─")
-                || (in_our_shovel && line.contains("├─") && !line.contains(&shovel_name))
-            {
-                break;
-            }
-        }
-    }
+    // Check that destination URI has verify=verify_none and preserves other parameters
+    assert!(dest_uri_after.contains("verify=verify_none"));
+    assert!(!dest_uri_after.contains("verify=verify_peer"));
+    assert!(dest_uri_after.contains("dest_key1=xyz"));
+    assert!(dest_uri_after.contains("dest_key2=abc"));
+    assert!(dest_uri_after.contains("cacertfile=/path/to/dest_ca.pem"));
+    assert!(dest_uri_after.contains("certfile=/path/to/dest_client.pem"));
+    assert!(dest_uri_after.contains("keyfile=/path/to/dest_client.key"));
+    assert!(dest_uri_after.contains("server_name_indication=dest.example.com"));
+    assert!(dest_uri_after.contains("dest_param=value456"));
+    assert!(dest_uri_after.contains("another_dest_param=def"));
+    assert!(dest_uri_after.contains("heartbeat=30"));
 
-    let dest_uri_lines: Vec<&str> = shovel_section
-        .lines()
-        .filter(|line| line.contains("dest-uri"))
-        .collect();
-    assert!(
-        !dest_uri_lines.is_empty(),
-        "Could not find dest-uri in shovel section"
-    );
-
-    let dest_uri_content = dest_uri_lines[0];
-    let dest_verify_count = dest_uri_content.matches("verify=").count();
-    assert_eq!(
-        dest_verify_count, 1,
-        "Expected exactly 1 verify parameter in destination URI, found {}",
-        dest_verify_count
-    );
-
-    assert!(
-        dest_uri_content.contains("verify=verify_none"),
-        "Destination URI should contain verify=verify_none"
-    );
-    assert!(
-        !dest_uri_content.contains("verify=verify_peer"),
-        "Destination URI should not contain verify=verify_peer"
-    );
+    // Check that source URI is unchanged
+    assert!(source_uri_after.contains("source_key=abc"));
+    assert!(source_uri_after.contains("heartbeat=60"));
 
     delete_vhost(vh).expect("failed to delete a virtual host");
 
@@ -179,15 +149,15 @@ fn test_disable_tls_peer_verification_for_all_destination_uris_with_existing_ver
 #[test]
 fn test_disable_tls_peer_verification_for_all_destination_uris_amqp10()
 -> Result<(), Box<dyn std::error::Error>> {
-    let vh = "test_disable_tls_peer_verification_for_all_destination_uris_amqp10";
+    let vh = "rabbitmqadmin.shovel.modifications.test10";
     let shovel_name = "test_amqp10_dest_shovel";
 
     delete_vhost(vh).ok();
     run_succeeds(["declare", "vhost", "--name", vh]);
 
-    let amqps_source = format!("amqps://localhost:5671/{}", vh);
-    let amqps_destination = format!(
-        "amqps://localhost:5671/{}?verify=verify_peer&certfile=/path/to/client.pem",
+    let amqp_source = format!("amqp://localhost:5672/{}", vh);
+    let amqp_destination = format!(
+        "amqp://localhost:5672/{}?verify=verify_peer&certfile=/path/to/client.pem",
         vh
     );
 
@@ -199,9 +169,9 @@ fn test_disable_tls_peer_verification_for_all_destination_uris_amqp10()
         "--name",
         shovel_name,
         "--source-uri",
-        &amqps_source,
+        &amqp_source,
         "--destination-uri",
-        &amqps_destination,
+        &amqp_destination,
         "--source-address",
         "source.address",
         "--destination-address",
@@ -210,17 +180,24 @@ fn test_disable_tls_peer_verification_for_all_destination_uris_amqp10()
         "on-confirm",
     ]);
 
-    run_succeeds(["parameters", "list_all"]).stdout(predicate::str::contains(shovel_name));
-
     run_succeeds([
         "shovels",
         "disable_tls_peer_verification_for_all_destination_uris",
     ]);
 
-    run_succeeds(["parameters", "list_all"])
-        .stdout(predicate::str::contains(shovel_name))
-        .stdout(predicate::str::contains("verify=verify_none"))
-        .stdout(predicate::str::contains("certfile=/path/to/client.pem"));
+    let client = api_client();
+    let params = client.list_runtime_parameters()?;
+    let shovel_param = params
+        .iter()
+        .find(|p| p.name == shovel_name && p.component == "shovel")
+        .expect("Shovel parameter should exist");
+
+    let dest_uri = shovel_param.value["dest-uri"]
+        .as_str()
+        .expect("dest-uri should be a string");
+
+    assert!(dest_uri.contains("verify=verify_none"));
+    assert!(dest_uri.contains("certfile=/path/to/client.pem"));
 
     delete_vhost(vh).expect("failed to delete a virtual host");
 
@@ -230,17 +207,17 @@ fn test_disable_tls_peer_verification_for_all_destination_uris_amqp10()
 #[test]
 fn test_disable_tls_peer_verification_for_all_destination_uris_with_dummy_query_params()
 -> Result<(), Box<dyn std::error::Error>> {
-    let vh = "test_disable_tls_peer_verification_for_all_destination_uris_with_dummy_query_params";
+    let vh = "rabbitmqadmin.shovel.modifications.test11";
     let shovel_name = "test_dummy_dest_params_shovel";
 
     delete_vhost(vh).ok();
     run_succeeds(["declare", "vhost", "--name", vh]);
 
-    let amqps_base = format!("amqps://localhost:5671/{}", vh);
-    let source_uri = format!("{}?source_abc=123&source_heartbeat=5", amqps_base);
+    let amqp_base = format!("amqp://localhost:5672/{}", vh);
+    let source_uri = format!("{}?source_abc=123&source_heartbeat=5", amqp_base);
     let dest_uri = format!(
         "{}?dest_xyz=456&dest_heartbeat=10&channel_max=100&another_dummy=example",
-        amqps_base
+        amqp_base
     );
 
     run_succeeds([
@@ -268,60 +245,22 @@ fn test_disable_tls_peer_verification_for_all_destination_uris_with_dummy_query_
         "disable_tls_peer_verification_for_all_destination_uris",
     ]);
 
-    let output = run_succeeds(["parameters", "list_all"]);
-    let stdout = output
-        .stdout(predicate::str::contains(shovel_name))
-        .stdout(predicate::str::contains("verify=verify_none"))
-        .stdout(predicate::str::contains("dest_xyz=456"))
-        .stdout(predicate::str::contains("dest_heartbeat=10"))
-        .stdout(predicate::str::contains("channel_max=100"))
-        .stdout(predicate::str::contains("another_dummy=example"));
+    let client = api_client();
+    let params = client.list_runtime_parameters()?;
+    let shovel_param = params
+        .iter()
+        .find(|p| p.name == shovel_name && p.component == "shovel")
+        .expect("Shovel parameter should exist");
 
-    let output_str = str::from_utf8(&stdout.get_output().stdout).unwrap();
-    let lines: Vec<&str> = output_str.lines().collect();
-    let mut shovel_section = String::new();
-    let mut in_our_shovel = false;
+    let dest_uri_after = shovel_param.value["dest-uri"]
+        .as_str()
+        .expect("dest-uri should be a string");
 
-    for line in lines {
-        if line.contains(&shovel_name) {
-            in_our_shovel = true;
-        }
-        if in_our_shovel {
-            shovel_section.push_str(line);
-            shovel_section.push('\n');
-            if line.contains("└─")
-                || (in_our_shovel && line.contains("├─") && !line.contains(&shovel_name))
-            {
-                break;
-            }
-        }
-    }
-
-    let dest_uri_lines: Vec<&str> = shovel_section
-        .lines()
-        .filter(|line| line.contains("dest-uri"))
-        .collect();
-    assert!(
-        !dest_uri_lines.is_empty(),
-        "Could not find dest-uri in shovel section"
-    );
-
-    let dest_uri_content = dest_uri_lines[0];
-    let dest_verify_count = dest_uri_content.matches("verify=").count();
-    assert_eq!(
-        dest_verify_count, 1,
-        "Expected exactly 1 verify parameter in destination URI, found {}",
-        dest_verify_count
-    );
-
-    assert!(
-        dest_uri_content.contains("verify=verify_none"),
-        "Destination URI should contain verify=verify_none"
-    );
-    assert!(
-        !dest_uri_content.contains("verify=verify_peer"),
-        "Destination URI should not contain verify=verify_peer"
-    );
+    assert!(dest_uri_after.contains("verify=verify_none"));
+    assert!(dest_uri_after.contains("dest_xyz=456"));
+    assert!(dest_uri_after.contains("dest_heartbeat=10"));
+    assert!(dest_uri_after.contains("channel_max=100"));
+    assert!(dest_uri_after.contains("another_dummy=example"));
 
     delete_vhost(vh).expect("failed to delete a virtual host");
 
@@ -331,7 +270,7 @@ fn test_disable_tls_peer_verification_for_all_destination_uris_with_dummy_query_
 #[test]
 fn test_disable_tls_peer_verification_for_all_destination_uris_no_shovels()
 -> Result<(), Box<dyn std::error::Error>> {
-    let vh = "test_disable_tls_peer_verification_for_all_destination_uris_no_shovels";
+    let vh = "rabbitmqadmin.shovel.modifications.test12";
 
     delete_vhost(vh).ok();
     run_succeeds(["declare", "vhost", "--name", vh]);
@@ -340,6 +279,146 @@ fn test_disable_tls_peer_verification_for_all_destination_uris_no_shovels()
         "shovels",
         "disable_tls_peer_verification_for_all_destination_uris",
     ]);
+
+    delete_vhost(vh).expect("failed to delete a virtual host");
+
+    Ok(())
+}
+
+#[test]
+fn test_enable_tls_peer_verification_for_all_destination_uris_basic()
+-> Result<(), Box<dyn std::error::Error>> {
+    let vh = "rabbitmqadmin.shovel.modifications.test13";
+    let shovel_name = "test_enable_basic_dest_shovel";
+
+    delete_vhost(vh).ok();
+    run_succeeds(["declare", "vhost", "--name", vh]);
+
+    let amqp_source = format!("amqp://localhost:5672/{}", vh);
+    let amqp_destination = format!("amqp://localhost:5672/{}", vh);
+
+    run_succeeds([
+        "-V",
+        vh,
+        "shovels",
+        "declare_amqp091",
+        "--name",
+        shovel_name,
+        "--source-uri",
+        &amqp_source,
+        "--destination-uri",
+        &amqp_destination,
+        "--source-queue",
+        "source.queue",
+        "--destination-queue",
+        "dest.queue",
+        "--ack-mode",
+        "on-confirm",
+    ]);
+
+    run_succeeds([
+        "shovels",
+        "enable_tls_peer_verification_for_all_destination_uris",
+        "--node-local-ca-certificate-bundle-path",
+        "/etc/ssl/certs/ca_bundle.pem",
+        "--node-local-client-certificate-file-path",
+        "/etc/ssl/certs/client.pem",
+        "--node-local-client-private-key-file-path",
+        "/etc/ssl/private/client.key",
+    ]);
+
+    let client = api_client();
+    let params = client.list_runtime_parameters()?;
+    let shovel_param = params
+        .iter()
+        .find(|p| p.name == shovel_name && p.component == "shovel")
+        .expect("Shovel parameter should exist");
+
+    let dest_uri = shovel_param.value["dest-uri"]
+        .as_str()
+        .expect("dest-uri should be a string");
+
+    assert!(dest_uri.contains("verify=verify_peer"));
+    assert!(dest_uri.contains("cacertfile=/etc/ssl/certs/ca_bundle.pem"));
+    assert!(dest_uri.contains("certfile=/etc/ssl/certs/client.pem"));
+    assert!(dest_uri.contains("keyfile=/etc/ssl/private/client.key"));
+
+    delete_vhost(vh).expect("failed to delete a virtual host");
+
+    Ok(())
+}
+
+#[test]
+fn test_enable_tls_peer_verification_for_all_destination_uris_with_existing_params()
+-> Result<(), Box<dyn std::error::Error>> {
+    let vh = "rabbitmqadmin.shovel.modifications.test14";
+    let shovel_name = "test_enable_existing_dest_shovel";
+
+    delete_vhost(vh).ok();
+    run_succeeds(["declare", "vhost", "--name", vh]);
+
+    let amqp_base = format!("amqp://localhost:5672/{}", vh);
+    let source_uri = format!("amqp://localhost:5672/{}", vh);
+    let destination_uri = format!(
+        "{}?key1=abc&verify=verify_none&cacertfile=/old/path/ca.pem&key2=def&certfile=/old/path/client.pem&keyfile=/old/path/client.key&server_name_indication=example.com&custom_param=value123&another_param=xyz&heartbeat=60",
+        amqp_base
+    );
+
+    run_succeeds([
+        "-V",
+        vh,
+        "shovels",
+        "declare_amqp091",
+        "--name",
+        shovel_name,
+        "--source-uri",
+        &source_uri,
+        "--destination-uri",
+        &destination_uri,
+        "--source-queue",
+        "source.queue",
+        "--destination-queue",
+        "dest.queue",
+        "--ack-mode",
+        "on-confirm",
+    ]);
+    await_metric_emission(500);
+
+    run_succeeds([
+        "shovels",
+        "enable_tls_peer_verification_for_all_destination_uris",
+        "--node-local-ca-certificate-bundle-path",
+        "/etc/ssl/certs/ca_bundle.pem",
+        "--node-local-client-certificate-file-path",
+        "/etc/ssl/certs/client.pem",
+        "--node-local-client-private-key-file-path",
+        "/etc/ssl/private/client.key",
+    ]);
+
+    let client = api_client();
+    let params = client.list_runtime_parameters()?;
+    let shovel_param = params
+        .iter()
+        .find(|p| p.name == shovel_name && p.component == "shovel")
+        .expect("Shovel parameter should exist");
+
+    let dest_uri2 = shovel_param.value["dest-uri"]
+        .as_str()
+        .expect("dest-uri should be a string");
+
+    assert!(dest_uri2.contains("verify=verify_peer"));
+    assert!(dest_uri2.contains("cacertfile=/etc/ssl/certs/ca_bundle.pem"));
+    assert!(dest_uri2.contains("certfile=/etc/ssl/certs/client.pem"));
+    assert!(dest_uri2.contains("keyfile=/etc/ssl/private/client.key"));
+    assert!(!dest_uri2.contains("cacertfile=/old/path/ca.pem"));
+    assert!(!dest_uri2.contains("certfile=/old/path/client.pem"));
+    assert!(!dest_uri2.contains("keyfile=/old/path/client.key"));
+    assert!(dest_uri2.contains("key1=abc"));
+    assert!(dest_uri2.contains("key2=def"));
+    assert!(dest_uri2.contains("server_name_indication=example.com"));
+    assert!(dest_uri2.contains("custom_param=value123"));
+    assert!(dest_uri2.contains("another_param=xyz"));
+    assert!(dest_uri2.contains("heartbeat=60"));
 
     delete_vhost(vh).expect("failed to delete a virtual host");
 

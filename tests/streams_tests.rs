@@ -135,7 +135,7 @@ fn streams_list() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn test_streams_delete_idempotently() -> Result<(), Box<dyn std::error::Error>> {
-    let vh = "streams.delete.idempotently.1";
+    let vh = "rabbitmqadmin.streams.test1";
     let s = "test_stream_delete_idempotently";
 
     delete_vhost(vh).expect("failed to delete a virtual host");

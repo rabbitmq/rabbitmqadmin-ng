@@ -21,7 +21,7 @@ use test_helpers::{run_fails, run_succeeds};
 #[test]
 fn test_federation_upstream_declaration_for_queue_federation_case0()
 -> Result<(), Box<dyn std::error::Error>> {
-    let vh = "rust.federation.0";
+    let vh = "rabbitmqadmin.federation.queue.test1";
     let name = "up.for_queue_federation";
 
     let amqp_endpoint = amqp_endpoint_with_vhost(vh);
@@ -58,7 +58,7 @@ fn test_federation_upstream_declaration_for_queue_federation_case0()
 #[test]
 fn test_federation_upstream_declaration_for_queue_federation_case1a()
 -> Result<(), Box<dyn std::error::Error>> {
-    let vh = "rust.federation.1a";
+    let vh = "rabbitmqadmin.federation.queue.test2";
     let name = "up.for_queue_federation.a";
 
     let amqp_endpoint = amqp_endpoint_with_vhost(vh);
@@ -97,7 +97,7 @@ fn test_federation_upstream_declaration_for_queue_federation_case1a()
 #[test]
 fn test_federation_upstream_declaration_for_queue_federation_case1b()
 -> Result<(), Box<dyn std::error::Error>> {
-    let vh = "rust.federation.1b";
+    let vh = "rabbitmqadmin.federation.queue.test3";
     let name = "up.for_queue_federation.b";
 
     let amqp_endpoint = amqp_endpoint_with_vhost(vh);
@@ -139,7 +139,7 @@ fn test_federation_upstream_declaration_for_queue_federation_case1b()
 #[test]
 fn test_federation_upstream_declaration_for_queue_federation_case2()
 -> Result<(), Box<dyn std::error::Error>> {
-    let vh = "rust.federation.2";
+    let vh = "rabbitmqadmin.federation.queue.test4";
     let name = "up.for_queue_federation";
 
     let amqp_endpoint = amqp_endpoint_with_vhost(vh);
@@ -173,7 +173,7 @@ fn test_federation_upstream_declaration_for_queue_federation_case2()
 #[test]
 fn test_federation_upstream_declaration_for_queue_federation_case3()
 -> Result<(), Box<dyn std::error::Error>> {
-    let vh = "rust.federation.3";
+    let vh = "rabbitmqadmin.federation.queue.test5";
     let name = "up.for_queue_federation";
 
     let amqp_endpoint = amqp_endpoint_with_vhost(vh);
@@ -207,7 +207,7 @@ fn test_federation_upstream_declaration_for_queue_federation_case3()
 #[test]
 fn test_federation_upstream_declaration_for_queue_federation_case4()
 -> Result<(), Box<dyn std::error::Error>> {
-    let vh = "rust.federation.4";
+    let vh = "rabbitmqadmin.federation.queue.test6";
     let name = "up.for_queue_federation";
 
     let amqp_endpoint = amqp_endpoint_with_vhost(vh);
@@ -243,7 +243,7 @@ fn test_federation_upstream_declaration_for_queue_federation_case4()
 #[test]
 fn test_federation_list_all_upstreams_with_queue_federation()
 -> Result<(), Box<dyn std::error::Error>> {
-    let vh = "rust.federation.5";
+    let vh = "rabbitmqadmin.federation.queue.test7";
     let name = "up.for_queue_federation/5";
 
     let amqp_endpoint = amqp_endpoint_with_vhost(vh);
@@ -286,7 +286,7 @@ fn test_federation_list_all_upstreams_with_queue_federation()
 #[test]
 fn test_federation_delete_an_upstream_with_queue_federation_settings()
 -> Result<(), Box<dyn std::error::Error>> {
-    let vh = "rust.federation.6";
+    let vh = "rabbitmqadmin.federation.queue.test8";
     let name = "up.for_queue_federation.6";
 
     let amqp_endpoint = amqp_endpoint_with_vhost(vh);

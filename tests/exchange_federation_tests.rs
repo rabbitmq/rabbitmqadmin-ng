@@ -22,7 +22,7 @@ use test_helpers::{run_fails, run_succeeds};
 #[test]
 fn test_federation_upstream_declaration_for_exchange_federation_case0()
 -> Result<(), Box<dyn std::error::Error>> {
-    let vh = "rust.federation.0";
+    let vh = "rabbitmqadmin.federation.exchange.test1";
     let name = "up.for_exchange_federation.0";
 
     let amqp_endpoint = amqp_endpoint_with_vhost(vh);
@@ -53,7 +53,7 @@ fn test_federation_upstream_declaration_for_exchange_federation_case0()
 #[test]
 fn test_federation_upstream_declaration_for_exchange_federation_case1a()
 -> Result<(), Box<dyn std::error::Error>> {
-    let vh = "rust.federation.1a";
+    let vh = "rabbitmqadmin.federation.exchange.test2";
     let name = "up.for_exchange_federation.1a";
 
     let amqp_endpoint = amqp_endpoint_with_vhost(vh);
@@ -90,7 +90,7 @@ fn test_federation_upstream_declaration_for_exchange_federation_case1a()
 #[test]
 fn test_federation_upstream_declaration_for_exchange_federation_case1b()
 -> Result<(), Box<dyn std::error::Error>> {
-    let vh = "rust.federation.1b";
+    let vh = "rabbitmqadmin.federation.exchange.test3";
     let name = "up.for_exchange_federation.1b";
 
     let amqp_endpoint = amqp_endpoint_with_vhost(vh);
@@ -130,7 +130,7 @@ fn test_federation_upstream_declaration_for_exchange_federation_case1b()
 #[test]
 fn test_federation_upstream_declaration_for_exchange_federation_case2()
 -> Result<(), Box<dyn std::error::Error>> {
-    let vh = "rust.federation.2";
+    let vh = "rabbitmqadmin.federation.exchange.test4";
     let name = "up.for_exchange_federation.2";
 
     let amqp_endpoint = amqp_endpoint_with_vhost(vh);
@@ -173,7 +173,7 @@ fn test_federation_upstream_declaration_for_exchange_federation_case2()
 #[test]
 fn test_federation_upstream_declaration_for_exchange_federation_case3()
 -> Result<(), Box<dyn std::error::Error>> {
-    let vh = "rust.federation.3";
+    let vh = "rabbitmqadmin.federation.exchange.test5";
     let name = "up.for_exchange_federation.3";
 
     let amqp_endpoint = amqp_endpoint_with_vhost(vh);
@@ -212,7 +212,7 @@ fn test_federation_upstream_declaration_for_exchange_federation_case3()
 #[test]
 fn test_federation_upstream_declaration_for_exchange_federation_case4()
 -> Result<(), Box<dyn std::error::Error>> {
-    let vh = "rust.federation.4";
+    let vh = "rabbitmqadmin.federation.exchange.test6";
     let name = "up.for_exchange_federation.4";
 
     let amqp_endpoint = amqp_endpoint_with_vhost(vh);
@@ -254,7 +254,7 @@ fn test_federation_upstream_declaration_for_exchange_federation_case4()
 #[test]
 fn test_federation_list_all_upstreams_with_exchange_federation()
 -> Result<(), Box<dyn std::error::Error>> {
-    let vh = "rust.federation.5";
+    let vh = "rabbitmqadmin.federation.exchange.test7";
     let name = "up.for_exchange_federation.5";
 
     let amqp_endpoint = amqp_endpoint_with_vhost(vh);
@@ -303,7 +303,7 @@ fn test_federation_list_all_upstreams_with_exchange_federation()
 #[test]
 fn test_federation_delete_an_upstream_with_exchange_federation_settings()
 -> Result<(), Box<dyn std::error::Error>> {
-    let vh = "rust.federation.6";
+    let vh = "rabbitmqadmin.federation.exchange.test8";
     let name = "up.for_exchange_federation.6";
 
     let amqp_endpoint = amqp_endpoint_with_vhost(vh);
@@ -363,7 +363,7 @@ fn test_federation_delete_an_upstream_with_exchange_federation_settings()
 
 #[test]
 fn test_federation_delete_upstream_idempotently() -> Result<(), Box<dyn std::error::Error>> {
-    let vh = "federation.delete.upstream.idempotently.1";
+    let vh = "rabbitmqadmin.federation.exchange.test9";
     let upstream_name = "test_upstream_delete_idempotently";
 
     delete_vhost(vh).expect("failed to delete a virtual host");

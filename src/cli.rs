@@ -2959,7 +2959,7 @@ pub fn get_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 1] {
         )].map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
 }
 
-pub fn shovel_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 7] {
+pub fn shovel_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 9] {
     let idempotently_arg = Arg::new("idempotently")
         .long("idempotently")
         .value_parser(value_parser!(bool))
@@ -3146,6 +3146,76 @@ pub fn shovel_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 7
             "https://www.rabbitmq.com/docs/shovel#tls-connections"
         ));
 
+    let enable_tls_peer_verification_source_cmd = Command::new("enable_tls_peer_verification_for_all_source_uris")
+        .about("Enables TLS peer verification for all shovel source URIs with provided [RabbitMQ node-local] certificate paths.")
+        .long_about("Enables TLS peer verification for all shovel source URIs by updating their 'verify' parameter and adding [RabbitMQ node-local] certificate and private key file paths.")
+        .arg(
+            Arg::new("node_local_ca_certificate_bundle_path")
+                .long("node-local-ca-certificate-bundle-path")
+                .help("Path to the CA certificate bundle file on the target RabbitMQ node(s)")
+                .required(true)
+                .value_name("PATH")
+        )
+        .arg(
+            Arg::new("node_local_client_certificate_file_path")
+                .long("node-local-client-certificate-file-path")
+                .help("Path to the client certificate file on the target RabbitMQ node(s)")
+                .required(true)
+                .value_name("PATH")
+        )
+        .arg(
+            Arg::new("node_local_client_private_key_file_path")
+                .long("node-local-client-private-key-file-path")
+                .help("Path to the client private key file on the target RabbitMQ node(s)")
+                .required(true)
+                .value_name("PATH")
+        )
+        .after_help(color_print::cformat!(
+            r#"<bold>Doc guides</bold>:
+
+ * {}
+ * {}
+ * {}"#,
+            SHOVEL_GUIDE_URL,
+            TLS_GUIDE_URL,
+            "https://www.rabbitmq.com/docs/shovel#tls-connections"
+        ));
+
+    let enable_tls_peer_verification_dest_cmd = Command::new("enable_tls_peer_verification_for_all_destination_uris")
+        .about("Enables TLS peer verification for all shovel destination URIs with provided [RabbitMQ node-local] certificate paths.")
+        .long_about("Enables TLS peer verification for all shovel destination URIs by updating their 'verify' parameter and adding [RabbitMQ node-local] certificate and private key file paths.")
+        .arg(
+            Arg::new("node_local_ca_certificate_bundle_path")
+                .long("node-local-ca-certificate-bundle-path")
+                .help("Path to the CA certificate bundle file on the target RabbitMQ node(s)")
+                .required(true)
+                .value_name("PATH")
+        )
+        .arg(
+            Arg::new("node_local_client_certificate_file_path")
+                .long("node-local-client-certificate-file-path")
+                .help("Path to the client certificate file on the target RabbitMQ node(s)")
+                .required(true)
+                .value_name("PATH")
+        )
+        .arg(
+            Arg::new("node_local_client_private_key_file_path")
+                .long("node-local-client-private-key-file-path")
+                .help("Path to the client private key file on the target RabbitMQ node(s)")
+                .required(true)
+                .value_name("PATH")
+        )
+        .after_help(color_print::cformat!(
+            r#"<bold>Doc guides</bold>:
+
+ * {}
+ * {}
+ * {}"#,
+            SHOVEL_GUIDE_URL,
+            TLS_GUIDE_URL,
+            "https://www.rabbitmq.com/docs/shovel#tls-connections"
+        ));
+
     [
         list_all_cmd,
         list_cmd,
@@ -3154,6 +3224,8 @@ pub fn shovel_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 7
         delete_cmd,
         disable_tls_peer_verification_cmd,
         disable_tls_peer_verification_dest_cmd,
+        enable_tls_peer_verification_source_cmd,
+        enable_tls_peer_verification_dest_cmd,
     ]
     .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
 }

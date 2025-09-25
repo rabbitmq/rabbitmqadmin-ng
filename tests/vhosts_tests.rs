@@ -18,7 +18,7 @@ use crate::test_helpers::*;
 
 #[test]
 fn test_list_vhosts() -> Result<(), Box<dyn std::error::Error>> {
-    let vh = "list_vhosts.1";
+    let vh = "rabbitmqadmin.vhosts.test1";
     delete_vhost(vh).expect("failed to delete a virtual host");
 
     run_succeeds(["declare", "vhost", "--name", vh]);
@@ -34,7 +34,7 @@ fn test_list_vhosts() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn test_vhosts_list() -> Result<(), Box<dyn std::error::Error>> {
-    let vh = "list_vhosts.2";
+    let vh = "rabbitmqadmin.vhosts.test2";
     delete_vhost(vh).expect("failed to delete a virtual host");
 
     run_succeeds(["vhosts", "declare", "--name", vh]);
@@ -50,7 +50,7 @@ fn test_vhosts_list() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn test_vhosts_create() -> Result<(), Box<dyn std::error::Error>> {
-    let vh = "vhosts.create.1";
+    let vh = "rabbitmqadmin.vhosts.test3";
     delete_vhost(vh).expect("failed to delete a virtual host");
 
     run_succeeds([
@@ -72,7 +72,7 @@ fn test_vhosts_create() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn test_vhosts_delete() -> Result<(), Box<dyn std::error::Error>> {
-    let vh = "vhosts.delete.1";
+    let vh = "rabbitmqadmin.vhosts.test4";
     run_succeeds(["vhosts", "delete", "--name", vh, "--idempotently"]);
 
     run_succeeds(["vhosts", "declare", "--name", vh]);

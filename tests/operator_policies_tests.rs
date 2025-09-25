@@ -150,7 +150,7 @@ fn test_operator_policies_in() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn test_operator_policies_in_with_entity_type() -> Result<(), Box<dyn std::error::Error>> {
-    let vh = "rabbitmqadmin.vh.operator_policies.2";
+    let vh = "rabbitmqadmin.operator_policies.test1";
     run_succeeds(["delete", "vhost", "--name", vh, "--idempotently"]);
     run_succeeds(["declare", "vhost", "--name", vh]);
 
@@ -226,7 +226,7 @@ fn test_operator_policies_in_with_entity_type() -> Result<(), Box<dyn std::error
 
 #[test]
 fn test_operator_policies_matching_objects() -> Result<(), Box<dyn std::error::Error>> {
-    let vh = "rabbitmqadmin.vh.operator_policies.11";
+    let vh = "rabbitmqadmin.operator_policies.test2";
 
     run_succeeds(["delete", "vhost", "--name", vh, "--idempotently"]);
     run_succeeds(["declare", "vhost", "--name", vh]);
@@ -494,7 +494,7 @@ fn test_operator_policies_bulk_policy_keys_manipulation() -> Result<(), Box<dyn 
 
 #[test]
 fn test_operator_policies_patch_definition() -> Result<(), Box<dyn std::error::Error>> {
-    let vh = "rabbitmqadmin.test_operator_policies_patch_definition.1";
+    let vh = "rabbitmqadmin.operator_policies.test3";
     run_succeeds(["delete", "vhost", "--name", vh, "--idempotently"]);
     run_succeeds(["declare", "vhost", "--name", vh]);
 

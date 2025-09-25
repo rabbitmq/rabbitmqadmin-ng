@@ -19,7 +19,7 @@ use crate::test_helpers::*;
 
 #[test]
 fn test_runtime_parameters_across_groups() -> Result<(), Box<dyn std::error::Error>> {
-    let vh = "test_runtime_parameters_across_groups";
+    let vh = "rabbitmqadmin.runtime_parameters.test1";
     delete_vhost(vh).expect("failed to delete a virtual host");
 
     run_succeeds(["declare", "vhost", "--name", vh]);
@@ -75,7 +75,7 @@ fn test_runtime_parameters_across_groups() -> Result<(), Box<dyn std::error::Err
 
 #[test]
 fn test_runtime_parameters_cmd_group() -> Result<(), Box<dyn std::error::Error>> {
-    let vh = "test_runtime_parameters_cmd_group";
+    let vh = "rabbitmqadmin.runtime_parameters.test2";
     delete_vhost(vh).expect("failed to delete a virtual host");
 
     run_succeeds(["vhosts", "declare", "--name", vh]);
@@ -165,7 +165,7 @@ fn test_global_runtime_parameters_cmd_group() -> Result<(), Box<dyn std::error::
 
 #[test]
 fn test_parameters_clear_idempotently() -> Result<(), Box<dyn std::error::Error>> {
-    let vh = "parameters.clear.idempotently.1";
+    let vh = "rabbitmqadmin.runtime_parameters.test3";
     let param_name = "test_param_delete_idempotently";
     let component = "federation-upstream";
 

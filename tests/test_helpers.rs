@@ -100,3 +100,22 @@ pub fn delete_user(username: &str) -> CommandRunResult {
     cmd.assert().success();
     Ok(())
 }
+
+pub fn delete_all_test_vhosts() -> CommandRunResult {
+    let client = api_client();
+    match client.list_vhosts() {
+        Ok(vhosts) => {
+            for vhost in vhosts {
+                if vhost.name.starts_with("rabbitmqadmin.") {
+                    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+                    cmd.args(["vhosts", "delete", "--name", &vhost.name, "--idempotently"]);
+                    let _ = cmd.assert().success();
+                }
+            }
+        }
+        Err(_) => {
+            // If we can't list vhosts, continue anyway
+        }
+    }
+    Ok(())
+}

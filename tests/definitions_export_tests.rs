@@ -27,7 +27,7 @@ fn test_export_cluster_wide_definitions() -> Result<(), Box<dyn std::error::Erro
 
 #[test]
 fn test_export_vhost_definitions() -> Result<(), Box<dyn std::error::Error>> {
-    let vh = "test_export_vhost_definitions.1";
+    let vh = "rabbitmqadmin.definitions_export.test1";
     delete_vhost(vh).expect("failed to delete a virtual host");
     run_succeeds(["declare", "vhost", "--name", vh]);
 
@@ -49,7 +49,7 @@ fn test_export_vhost_definitions() -> Result<(), Box<dyn std::error::Error>> {
 #[test]
 fn test_export_cluster_wide_definitions_with_transformations_case1()
 -> Result<(), Box<dyn std::error::Error>> {
-    let vh = "test_export_cluster_definitions.transformations.1";
+    let vh = "rabbitmqadmin.definitions_export.test2";
     delete_vhost(vh).expect("failed to delete a virtual host");
     run_succeeds(["declare", "vhost", "--name", vh]);
 
@@ -98,7 +98,7 @@ fn test_export_cluster_wide_definitions_with_transformations_case1()
 #[test]
 fn test_export_vhost_definitions_with_transformations_case1()
 -> Result<(), Box<dyn std::error::Error>> {
-    let vh = "test_export_vhost_definitions.transformations.1";
+    let vh = "rabbitmqadmin.definitions_export.test3";
     delete_vhost(vh).expect("failed to delete a virtual host");
     run_succeeds(["declare", "vhost", "--name", vh]);
 

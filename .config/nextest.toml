@@ -51,3 +51,18 @@ test-group = 'sequential'
 filter = 'test(deprecated_features)'
 priority = 10
 test-group = 'sequential'
+
+[[profile.default.overrides]]
+filter = 'binary(federation_upstream_uri_modification_tests)'
+priority = 25
+test-group = 'sequential'
+
+[[profile.default.overrides]]
+filter = 'binary(shovel_source_uri_modification_tests)'
+priority = 24
+test-group = 'sequential'
+
+[[profile.default.overrides]]
+filter = 'binary(shovel_destination_uri_modification_tests)'
+priority = 23
+test-group = 'sequential'

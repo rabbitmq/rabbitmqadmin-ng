@@ -20,7 +20,7 @@ use test_helpers::{run_fails, run_succeeds};
 
 #[test]
 fn combined_integration_test1() -> Result<(), Box<dyn std::error::Error>> {
-    let vh = "combined_integration_test1";
+    let vh = "rabbitmqadmin.combined_integration.test1";
     let config_path = path::absolute("./tests/fixtures/config_files/config_file1.conf")
         .expect("failed to compute an absolute version for a ./test/fixtures path");
 
@@ -45,7 +45,7 @@ fn combined_integration_test1() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn combined_integration_test2() -> Result<(), Box<dyn std::error::Error>> {
-    let vh = "combined_integration_test2";
+    let vh = "rabbitmqadmin.combined_integration.test2";
 
     // Uses a node alias that does not exist in the file
     let config_path = path::absolute("tests/fixtures/config_files/config_file1.conf")
@@ -77,7 +77,7 @@ fn combined_integration_test2() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn combined_integration_test3() -> Result<(), Box<dyn std::error::Error>> {
-    let vh = "combined_integration_test3";
+    let vh = "rabbitmqadmin.combined_integration.test3";
 
     // Uses a node alias that does not exist in the file
     let config_path = path::absolute("tests/fixtures/config_files/non_exis7ent_c0nfig_f1le.conf")
@@ -99,7 +99,7 @@ fn combined_integration_test3() -> Result<(), Box<dyn std::error::Error>> {
 fn combined_integration_test4() -> Result<(), Box<dyn std::error::Error>> {
     // This test uses administrative credentials to create a new user
     // and set up a topology using those new credentials
-    let vh = "combined_integration_test4";
+    let vh = "rabbitmqadmin.combined_integration.test4";
     let new_user = "user_from_combined_integration_test4";
     let new_pass = "p4$$w0rd_from_combined_integration_test4";
     let x = "fanout_combined_integration_test4";

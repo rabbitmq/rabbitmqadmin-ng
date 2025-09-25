@@ -129,7 +129,7 @@ fn exchanges_list() -> Result<(), Box<dyn std::error::Error>> {
 #[test]
 fn delete_an_existing_exchange_using_original_command_group()
 -> Result<(), Box<dyn std::error::Error>> {
-    let vh = "delete_exchange_vhost_1";
+    let vh = "rabbitmqadmin.exchanges.test1";
     let x = "exchange_1_to_delete";
 
     // create a vhost
@@ -156,7 +156,7 @@ fn delete_an_existing_exchange_using_original_command_group()
 #[test]
 fn delete_an_existing_exchange_using_exchanges_command_group()
 -> Result<(), Box<dyn std::error::Error>> {
-    let vh = "delete_an_existing_exchange_using_exchanges_command_group_1";
+    let vh = "rabbitmqadmin.exchanges.test2";
     let x = "exchange_1_to_delete";
 
     // create a vhost
@@ -182,7 +182,7 @@ fn delete_an_existing_exchange_using_exchanges_command_group()
 
 #[test]
 fn delete_a_non_existing_exchange() -> Result<(), Box<dyn std::error::Error>> {
-    let vh = "delete_a_non_existing_exchange_1";
+    let vh = "rabbitmqadmin.exchanges.test3";
 
     // declare a vhost
     create_vhost(vh)?;
