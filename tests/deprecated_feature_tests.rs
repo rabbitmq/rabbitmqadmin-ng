@@ -12,21 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use predicates::prelude::*;
-
 mod test_helpers;
 use crate::test_helpers::*;
 
 #[test]
 fn test_list_all_deprecated_features() -> Result<(), Box<dyn std::error::Error>> {
-    run_succeeds(["deprecated_features", "list"]).stdout(predicate::str::contains("ram_node_type"));
+    run_succeeds(["deprecated_features", "list"]).stdout(output_includes("ram_node_type"));
 
     Ok(())
 }
 
 #[test]
 fn test_list_all_deprecated_features_via_alias() -> Result<(), Box<dyn std::error::Error>> {
-    run_succeeds(["list", "deprecated_features"]).stdout(predicate::str::contains("ram_node_type"));
+    run_succeeds(["list", "deprecated_features"]).stdout(output_includes("ram_node_type"));
 
     Ok(())
 }

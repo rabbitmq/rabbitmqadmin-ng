@@ -30,11 +30,11 @@ fn test_list_users() -> Result<(), Box<dyn std::error::Error>> {
         password,
     ]);
 
-    run_succeeds(["list", "users"]).stdout(predicate::str::contains(username));
+    run_succeeds(["list", "users"]).stdout(output_includes(username));
     run_succeeds(["delete", "user", "--name", username]);
     run_succeeds(["delete", "user", "--name", username, "--idempotently"]);
 
-    run_succeeds(["list", "users"]).stdout(predicate::str::contains(username).not());
+    run_succeeds(["list", "users"]).stdout(output_includes(username).not());
 
     Ok(())
 }
@@ -52,11 +52,11 @@ fn test_users_list() -> Result<(), Box<dyn std::error::Error>> {
         password,
     ]);
 
-    run_succeeds(["users", "list"]).stdout(predicate::str::contains(username));
+    run_succeeds(["users", "list"]).stdout(output_includes(username));
     run_succeeds(["users", "delete", "--name", username]);
     run_succeeds(["users", "delete", "--name", username, "--idempotently"]);
 
-    run_succeeds(["users", "list"]).stdout(predicate::str::contains(username).not());
+    run_succeeds(["users", "list"]).stdout(output_includes(username).not());
 
     Ok(())
 }
@@ -74,13 +74,12 @@ fn test_list_users_with_table_styles() -> Result<(), Box<dyn std::error::Error>>
         password,
     ]);
 
-    run_succeeds(["--table-style", "markdown", "list", "users"])
-        .stdout(predicate::str::contains(username));
+    run_succeeds(["--table-style", "markdown", "list", "users"]).stdout(output_includes(username));
     run_succeeds(["delete", "user", "--name", username]);
     run_succeeds(["delete", "user", "--name", username, "--idempotently"]);
 
     run_succeeds(["--table-style", "borderless", "list", "users"])
-        .stdout(predicate::str::contains(username).not());
+        .stdout(output_includes(username).not());
 
     Ok(())
 }
@@ -113,10 +112,10 @@ fn test_create_user_using_sha256_for_hashing() -> Result<(), Box<dyn std::error:
         "users",
         "list",
     ])
-    .stdout(predicate::str::contains(username));
+    .stdout(output_includes(username));
     run_succeeds(["users", "delete", "--name", username]);
 
-    run_succeeds(["list", "users"]).stdout(predicate::str::contains(username).not());
+    run_succeeds(["list", "users"]).stdout(output_includes(username).not());
 
     Ok(())
 }
@@ -144,7 +143,7 @@ fn test_create_user_using_sha512_for_hashing() -> Result<(), Box<dyn std::error:
     // password the same way we do in the SHA-256 version, by passing in --username and --password
     run_succeeds(["users", "delete", "--name", username]);
 
-    run_succeeds(["list", "users"]).stdout(predicate::str::contains(username).not());
+    run_succeeds(["list", "users"]).stdout(output_includes(username).not());
 
     Ok(())
 }

@@ -16,7 +16,7 @@ use rabbitmq_http_client::commons::QueueType;
 use rabbitmq_http_client::requests::{ExchangeFederationParams, FederationUpstreamParams};
 
 mod test_helpers;
-use crate::test_helpers::{amqp_endpoint_with_vhost, delete_vhost};
+use crate::test_helpers::{amqp_endpoint_with_vhost, delete_vhost, output_includes};
 use test_helpers::{run_fails, run_succeeds};
 
 #[test]
@@ -200,9 +200,7 @@ fn test_federation_upstream_declaration_for_exchange_federation_case3()
         "--queue-type",
         &xfp.queue_type.to_string(),
     ])
-    .stderr(predicate::str::contains(
-        "required arguments were not provided",
-    ));
+    .stderr(output_includes("required arguments were not provided"));
 
     delete_vhost(vh).expect("failed to delete a virtual host");
 
@@ -290,10 +288,10 @@ fn test_federation_list_all_upstreams_with_exchange_federation()
     ]);
 
     run_succeeds(["-V", vh, "federation", "list_all_upstreams"])
-        .stdout(predicate::str::contains(name))
-        .stdout(predicate::str::contains(endpoint1.clone()))
-        .stdout(predicate::str::contains(x))
-        .stdout(predicate::str::contains(queue_type.to_string()));
+        .stdout(output_includes(name))
+        .stdout(output_includes(&endpoint1))
+        .stdout(output_includes(x))
+        .stdout(output_includes(&queue_type.to_string()));
 
     delete_vhost(vh).expect("failed to delete a virtual host");
 
@@ -339,10 +337,10 @@ fn test_federation_delete_an_upstream_with_exchange_federation_settings()
     ]);
 
     run_succeeds(["-V", vh, "federation", "list_all_upstreams"])
-        .stdout(predicate::str::contains(name))
-        .stdout(predicate::str::contains(endpoint1.clone()))
-        .stdout(predicate::str::contains(x))
-        .stdout(predicate::str::contains(queue_type.to_string()));
+        .stdout(output_includes(name))
+        .stdout(output_includes(&endpoint1))
+        .stdout(output_includes(x))
+        .stdout(output_includes(&queue_type.to_string()));
 
     run_succeeds([
         "-V",
@@ -354,7 +352,7 @@ fn test_federation_delete_an_upstream_with_exchange_federation_settings()
     ]);
 
     run_succeeds(["-V", vh, "federation", "list_all_upstreams"])
-        .stdout(predicate::str::contains(name).not());
+        .stdout(output_includes(name).not());
 
     delete_vhost(vh).expect("failed to delete a virtual host");
 

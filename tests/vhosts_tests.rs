@@ -11,6 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 use predicates::prelude::*;
 
 mod test_helpers;
@@ -22,12 +23,10 @@ fn test_list_vhosts() -> Result<(), Box<dyn std::error::Error>> {
     delete_vhost(vh).expect("failed to delete a virtual host");
 
     run_succeeds(["declare", "vhost", "--name", vh]);
-    run_succeeds(["list", "vhosts"])
-        .stdout(predicate::str::contains("/").and(predicate::str::contains(vh)));
+    run_succeeds(["list", "vhosts"]).stdout(output_includes("/").and(output_includes(vh)));
 
     delete_vhost(vh).expect("failed to delete a virtual host");
-    run_succeeds(["list", "vhosts"])
-        .stdout(predicate::str::contains("/").and(predicate::str::contains(vh).not()));
+    run_succeeds(["list", "vhosts"]).stdout(output_includes("/").and(output_includes(vh).not()));
 
     Ok(())
 }
@@ -38,12 +37,10 @@ fn test_vhosts_list() -> Result<(), Box<dyn std::error::Error>> {
     delete_vhost(vh).expect("failed to delete a virtual host");
 
     run_succeeds(["vhosts", "declare", "--name", vh]);
-    run_succeeds(["vhosts", "list"])
-        .stdout(predicate::str::contains("/").and(predicate::str::contains(vh)));
+    run_succeeds(["vhosts", "list"]).stdout(output_includes("/").and(output_includes(vh)));
 
     delete_vhost(vh).expect("failed to delete a virtual host");
-    run_succeeds(["vhosts", "list"])
-        .stdout(predicate::str::contains("/").and(predicate::str::contains(vh).not()));
+    run_succeeds(["vhosts", "list"]).stdout(output_includes("/").and(output_includes(vh).not()));
 
     Ok(())
 }

@@ -15,12 +15,12 @@
 use predicates::prelude::*;
 
 mod test_helpers;
-use crate::test_helpers::delete_vhost;
+use crate::test_helpers::{delete_vhost, output_includes};
 use test_helpers::run_succeeds;
 
 #[test]
 fn test_export_cluster_wide_definitions() -> Result<(), Box<dyn std::error::Error>> {
-    run_succeeds(["definitions", "export"]).stdout(predicate::str::contains("guest"));
+    run_succeeds(["definitions", "export"]).stdout(output_includes("guest"));
 
     Ok(())
 }
@@ -36,10 +36,9 @@ fn test_export_vhost_definitions() -> Result<(), Box<dyn std::error::Error>> {
         "-V", vh, "declare", "queue", "--name", q, "--type", "quorum",
     ]);
 
-    run_succeeds(["--vhost", vh, "definitions", "export_from_vhost"])
-        .stdout(predicate::str::contains(q));
+    run_succeeds(["--vhost", vh, "definitions", "export_from_vhost"]).stdout(output_includes(q));
     run_succeeds(["--vhost", "/", "definitions", "export_from_vhost"])
-        .stdout(predicate::str::contains(q).not());
+        .stdout(output_includes(q).not());
 
     delete_vhost(vh).expect("failed to delete a virtual host");
 
@@ -76,7 +75,7 @@ fn test_export_cluster_wide_definitions_with_transformations_case1()
         "-V", vh, "declare", "queue", "--name", q, "--type", "quorum",
     ]);
 
-    run_succeeds(["--vhost", vh, "definitions", "export"]).stdout(predicate::str::contains(p1));
+    run_succeeds(["--vhost", vh, "definitions", "export"]).stdout(output_includes(p1));
     // These two cannot be tested on 4.x: empty definitions will be rejected
     // by validation, and CMQ keys are no longer recognized as known/valid.
     // But at least we can test the code path this way.
@@ -88,7 +87,7 @@ fn test_export_cluster_wide_definitions_with_transformations_case1()
         "--transformations",
         "prepare_for_quorum_queue_migration,strip_cmq_keys_from_policies,drop_empty_policies",
     ])
-    .stdout(predicate::str::contains(p1));
+    .stdout(output_includes(p1));
 
     delete_vhost(vh).expect("failed to delete a virtual host");
 
@@ -125,8 +124,7 @@ fn test_export_vhost_definitions_with_transformations_case1()
         "-V", vh, "declare", "queue", "--name", q, "--type", "quorum",
     ]);
 
-    run_succeeds(["--vhost", vh, "definitions", "export_from_vhost"])
-        .stdout(predicate::str::contains(p1));
+    run_succeeds(["--vhost", vh, "definitions", "export_from_vhost"]).stdout(output_includes(p1));
     run_succeeds([
         "--vhost",
         vh,
@@ -135,7 +133,7 @@ fn test_export_vhost_definitions_with_transformations_case1()
         "--transformations",
         "prepare_for_quorum_queue_migration,strip_cmq_keys_from_policies,drop_empty_policies",
     ])
-    .stdout(predicate::str::contains(p1));
+    .stdout(output_includes(p1));
 
     delete_vhost(vh).expect("failed to delete a virtual host");
 

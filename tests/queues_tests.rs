@@ -47,7 +47,7 @@ fn list_queues() -> Result<(), Box<dyn std::error::Error>> {
 
     // list queues in vhost 1
     run_succeeds(["-V", vh1, "list", "queues"])
-        .stdout(predicate::str::contains(q1).and(predicate::str::contains("new_queue2").not()));
+        .stdout(output_includes(q1).and(output_includes("new_queue2").not()));
 
     // purge a queue in vhost 1
     run_succeeds(["-V", vh1, "purge", "queue", "--name", q1]);
@@ -56,7 +56,7 @@ fn list_queues() -> Result<(), Box<dyn std::error::Error>> {
     run_succeeds(["-V", vh1, "delete", "queue", "--name", q1]);
 
     // list queues in vhost 1
-    run_succeeds(["-V", vh1, "list", "queues"]).stdout(predicate::str::contains(q1).not());
+    run_succeeds(["-V", vh1, "list", "queues"]).stdout(output_includes(q1).not());
 
     delete_vhost(vh1).expect("failed to delete a virtual host");
     delete_vhost(vh2).expect("failed to delete a virtual host");
@@ -94,7 +94,7 @@ fn queues_lists() -> Result<(), Box<dyn std::error::Error>> {
 
     // list queues in vhost 1
     run_succeeds(["-V", vh1, "queues", "list"])
-        .stdout(predicate::str::contains(q1).and(predicate::str::contains("new_queue2").not()));
+        .stdout(output_includes(q1).and(output_includes("new_queue2").not()));
 
     // purge a queue in vhost 1
     run_succeeds(["-V", vh1, "queues", "purge", "--name", q1]);
@@ -103,7 +103,7 @@ fn queues_lists() -> Result<(), Box<dyn std::error::Error>> {
     run_succeeds(["-V", vh1, "queues", "delete", "--name", q1]);
 
     // list queues in vhost 1
-    run_succeeds(["-V", vh1, "queues", "list"]).stdout(predicate::str::contains(q1).not());
+    run_succeeds(["-V", vh1, "queues", "list"]).stdout(output_includes(q1).not());
 
     delete_vhost(vh1).expect("failed to delete a virtual host");
     delete_vhost(vh2).expect("failed to delete a virtual host");

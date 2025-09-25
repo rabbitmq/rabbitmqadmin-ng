@@ -19,9 +19,8 @@ use crate::test_helpers::*;
 
 #[test]
 fn test_list_feature_flags() -> Result<(), Box<dyn std::error::Error>> {
-    run_succeeds(["list", "feature_flags"]).stdout(
-        predicate::str::contains("rabbitmq_4.0.0").and(predicate::str::contains("khepri_db")),
-    );
+    run_succeeds(["list", "feature_flags"])
+        .stdout(output_includes("rabbitmq_4.0.0").and(output_includes("khepri_db")));
 
     Ok(())
 }

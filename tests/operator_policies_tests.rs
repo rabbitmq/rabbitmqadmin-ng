@@ -11,6 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 use predicates::prelude::*;
 
 mod test_helpers;
@@ -36,9 +37,9 @@ fn test_list_operator_policies() -> Result<(), Box<dyn std::error::Error>> {
     ]);
 
     run_succeeds(["operator_policies", "list"])
-        .stdout(predicate::str::contains(policy_name).and(predicate::str::contains("12345")));
+        .stdout(output_includes(policy_name).and(output_includes("12345")));
     run_succeeds(["delete", "operator_policy", "--name", policy_name]);
-    run_succeeds(["operator_policies", "list"]).stdout(predicate::str::contains(policy_name).not());
+    run_succeeds(["operator_policies", "list"]).stdout(output_includes(policy_name).not());
 
     Ok(())
 }
@@ -62,12 +63,10 @@ fn test_operator_policies() -> Result<(), Box<dyn std::error::Error>> {
         "{\"max-length\": 12345}",
     ]);
 
-    run_succeeds(["list", "operator_policies"]).stdout(
-        predicate::str::contains(operator_policy_name).and(predicate::str::contains("op-foo")),
-    );
-    run_succeeds(["delete", "operator_policy", "--name", operator_policy_name]);
     run_succeeds(["list", "operator_policies"])
-        .stdout(predicate::str::contains(operator_policy_name).not());
+        .stdout(output_includes(operator_policy_name).and(output_includes("op-foo")));
+    run_succeeds(["delete", "operator_policy", "--name", operator_policy_name]);
+    run_succeeds(["list", "operator_policies"]).stdout(output_includes(operator_policy_name).not());
 
     Ok(())
 }
@@ -92,9 +91,9 @@ fn test_operator_policies_declare_list_and_delete() -> Result<(), Box<dyn std::e
     ]);
 
     run_succeeds(["operator_policies", "list"])
-        .stdout(predicate::str::contains(policy_name).and(predicate::str::contains("20")));
+        .stdout(output_includes(policy_name).and(output_includes("20")));
     run_succeeds(["operator_policies", "delete", "--name", policy_name]);
-    run_succeeds(["operator_policies", "list"]).stdout(predicate::str::contains(policy_name).not());
+    run_succeeds(["operator_policies", "list"]).stdout(output_includes(policy_name).not());
 
     Ok(())
 }
@@ -128,9 +127,9 @@ fn test_operator_policies_in() -> Result<(), Box<dyn std::error::Error>> {
     ]);
 
     run_succeeds(["--vhost", vh1, "operator_policies", "list_in"])
-        .stdout(predicate::str::contains(policy_name).and(predicate::str::contains("98")));
+        .stdout(output_includes(policy_name).and(output_includes("98")));
     run_succeeds(["--vhost", vh2, "operator_policies", "list_in"])
-        .stdout(predicate::str::contains(policy_name).not());
+        .stdout(output_includes(policy_name).not());
     run_succeeds([
         "--vhost",
         vh1,
@@ -140,7 +139,7 @@ fn test_operator_policies_in() -> Result<(), Box<dyn std::error::Error>> {
         policy_name,
     ]);
     run_succeeds(["--vhost", vh1, "operator_policies", "list_in"])
-        .stdout(predicate::str::contains(policy_name).not());
+        .stdout(output_includes(policy_name).not());
 
     run_succeeds(["delete", "vhost", "--name", vh1]);
     run_succeeds(["delete", "vhost", "--name", vh2]);
@@ -180,7 +179,7 @@ fn test_operator_policies_in_with_entity_type() -> Result<(), Box<dyn std::error
         "--apply-to",
         "queues",
     ])
-    .stdout(predicate::str::contains(policy_name).and(predicate::str::contains("98")));
+    .stdout(output_includes(policy_name).and(output_includes("98")));
     run_succeeds([
         "--vhost",
         vh,
@@ -189,7 +188,7 @@ fn test_operator_policies_in_with_entity_type() -> Result<(), Box<dyn std::error
         "--apply-to",
         "exchanges",
     ])
-    .stdout(predicate::str::contains(policy_name).not());
+    .stdout(output_includes(policy_name).not());
     run_succeeds([
         "--vhost",
         vh,
@@ -198,7 +197,7 @@ fn test_operator_policies_in_with_entity_type() -> Result<(), Box<dyn std::error
         "--apply-to",
         "streams",
     ])
-    .stdout(predicate::str::contains(policy_name).not());
+    .stdout(output_includes(policy_name).not());
     run_succeeds([
         "--vhost",
         "/",
@@ -207,7 +206,7 @@ fn test_operator_policies_in_with_entity_type() -> Result<(), Box<dyn std::error
         "--apply-to",
         "queues",
     ])
-    .stdout(predicate::str::contains(policy_name).not());
+    .stdout(output_includes(policy_name).not());
     run_succeeds([
         "--vhost",
         vh,
@@ -217,7 +216,7 @@ fn test_operator_policies_in_with_entity_type() -> Result<(), Box<dyn std::error
         policy_name,
     ]);
     run_succeeds(["--vhost", vh, "operator_policies", "list_in"])
-        .stdout(predicate::str::contains(policy_name).not());
+        .stdout(output_includes(policy_name).not());
 
     run_succeeds(["delete", "vhost", "--name", vh]);
 
@@ -259,7 +258,7 @@ fn test_operator_policies_matching_objects() -> Result<(), Box<dyn std::error::E
         "--type",
         "queues",
     ])
-    .stdout(predicate::str::contains(policy_name).and(predicate::str::contains("20")));
+    .stdout(output_includes(policy_name).and(output_includes("20")));
     run_succeeds([
         "--vhost",
         vh,
@@ -270,7 +269,7 @@ fn test_operator_policies_matching_objects() -> Result<(), Box<dyn std::error::E
         "--type",
         "exchanges",
     ])
-    .stdout(predicate::str::contains(policy_name).not());
+    .stdout(output_includes(policy_name).not());
 
     run_succeeds(["delete", "vhost", "--name", vh, "--idempotently"]);
 
@@ -297,7 +296,7 @@ fn test_operator_policies_declare_list_update_definition_and_delete()
         "{\"max-length\": 20}",
     ]);
     run_succeeds(["operator_policies", "list"])
-        .stdout(predicate::str::contains(policy_name).and(predicate::str::contains("20")));
+        .stdout(output_includes(policy_name).and(output_includes("20")));
 
     run_succeeds([
         "operator_policies",
@@ -311,10 +310,10 @@ fn test_operator_policies_declare_list_update_definition_and_delete()
     ]);
 
     run_succeeds(["operator_policies", "list"])
-        .stdout(predicate::str::contains(policy_name).and(predicate::str::contains("131")));
+        .stdout(output_includes(policy_name).and(output_includes("131")));
 
     run_succeeds(["operator_policies", "delete", "--name", policy_name]);
-    run_succeeds(["operator_policies", "list"]).stdout(predicate::str::contains(policy_name).not());
+    run_succeeds(["operator_policies", "list"]).stdout(output_includes(policy_name).not());
 
     Ok(())
 }
@@ -339,7 +338,7 @@ fn test_operator_policies_individual_policy_key_manipulation()
         "{\"max-length\": 20, \"max-length-bytes\": 128372836172}",
     ]);
     run_succeeds(["operator_policies", "list"])
-        .stdout(predicate::str::contains(policy_name).and(predicate::str::contains("20")));
+        .stdout(output_includes(policy_name).and(output_includes("20")));
 
     run_succeeds([
         "operator_policies",
@@ -353,7 +352,7 @@ fn test_operator_policies_individual_policy_key_manipulation()
     ]);
 
     run_succeeds(["operator_policies", "list"])
-        .stdout(predicate::str::contains(policy_name).and(predicate::str::contains("131")));
+        .stdout(output_includes(policy_name).and(output_includes("131")));
 
     run_succeeds([
         "operator_policies",
@@ -364,14 +363,13 @@ fn test_operator_policies_individual_policy_key_manipulation()
         "max-length,abc,def",
     ]);
 
-    run_succeeds(["operator_policies", "list"]).stdout(
-        predicate::str::contains(policy_name).and(predicate::str::contains("128372836172")),
-    );
+    run_succeeds(["operator_policies", "list"])
+        .stdout(output_includes(policy_name).and(output_includes("128372836172")));
 
-    run_succeeds(["operator_policies", "list"]).stdout(predicate::str::contains("131").not());
+    run_succeeds(["operator_policies", "list"]).stdout(output_includes("131").not());
 
     run_succeeds(["operator_policies", "delete", "--name", policy_name]);
-    run_succeeds(["operator_policies", "list"]).stdout(predicate::str::contains(policy_name).not());
+    run_succeeds(["operator_policies", "list"]).stdout(output_includes(policy_name).not());
 
     Ok(())
 }
@@ -423,9 +421,9 @@ fn test_operator_policies_bulk_policy_keys_manipulation() -> Result<(), Box<dyn 
         "{\"max-length\": 120, \"max-length-bytes\": 333333333}",
     ]);
     run_succeeds(["operator_policies", "list"])
-        .stdout(predicate::str::contains(policy1_name).and(predicate::str::contains("20")));
+        .stdout(output_includes(policy1_name).and(output_includes("20")));
     run_succeeds(["operator_policies", "list"])
-        .stdout(predicate::str::contains(policy1_name).and(predicate::str::contains("333333333")));
+        .stdout(output_includes(policy1_name).and(output_includes("333333333")));
 
     run_succeeds([
         "--vhost",
@@ -439,9 +437,9 @@ fn test_operator_policies_bulk_policy_keys_manipulation() -> Result<(), Box<dyn 
     ]);
 
     run_succeeds(["operator_policies", "list"]).stdout(
-        predicate::str::contains(policy1_name)
-            .and(predicate::str::contains("272"))
-            .and(predicate::str::contains("120").not()),
+        output_includes(policy1_name)
+            .and(output_includes("272"))
+            .and(output_includes("120").not()),
     );
 
     run_succeeds([
@@ -463,9 +461,9 @@ fn test_operator_policies_bulk_policy_keys_manipulation() -> Result<(), Box<dyn 
     ]);
 
     run_succeeds(["operator_policies", "list"])
-        .stdout(predicate::str::contains(policy1_name).and(predicate::str::contains("333333333")));
+        .stdout(output_includes(policy1_name).and(output_includes("333333333")));
 
-    run_succeeds(["operator_policies", "list"]).stdout(predicate::str::contains("272").not());
+    run_succeeds(["operator_policies", "list"]).stdout(output_includes("272").not());
 
     run_succeeds([
         "--vhost",
@@ -484,9 +482,9 @@ fn test_operator_policies_bulk_policy_keys_manipulation() -> Result<(), Box<dyn 
         policy2_name,
     ]);
     run_succeeds(["operator_policies", "list"]).stdout(
-        predicate::str::contains(policy1_name)
+        output_includes(policy1_name)
             .not()
-            .and(predicate::str::contains(policy2_name).not()),
+            .and(output_includes(policy2_name).not()),
     );
 
     Ok(())
@@ -517,7 +515,7 @@ fn test_operator_policies_patch_definition() -> Result<(), Box<dyn std::error::E
         "{\"max-length\": 923, \"max-length-bytes\": 287237182378237}",
     ]);
     run_succeeds(["--vhost", vh, "operator_policies", "list"])
-        .stdout(predicate::str::contains(policy_name).and(predicate::str::contains("923")));
+        .stdout(output_includes(policy_name).and(output_includes("923")));
 
     run_succeeds([
         "--vhost",
@@ -531,13 +529,12 @@ fn test_operator_policies_patch_definition() -> Result<(), Box<dyn std::error::E
     ]);
 
     run_succeeds(["operator_policies", "list"]).stdout(
-        predicate::str::contains(policy_name)
-            .and(predicate::str::contains("12355242124"))
-            .and(predicate::str::contains("875")),
+        output_includes(policy_name)
+            .and(output_includes("12355242124"))
+            .and(output_includes("875")),
     );
 
-    run_succeeds(["operator_policies", "list"])
-        .stdout(predicate::str::contains("287237182378237").not());
+    run_succeeds(["operator_policies", "list"]).stdout(output_includes("287237182378237").not());
 
     run_succeeds([
         "--vhost",
@@ -547,7 +544,7 @@ fn test_operator_policies_patch_definition() -> Result<(), Box<dyn std::error::E
         "--name",
         policy_name,
     ]);
-    run_succeeds(["operator_policies", "list"]).stdout(predicate::str::contains(policy_name).not());
+    run_succeeds(["operator_policies", "list"]).stdout(output_includes(policy_name).not());
 
     run_succeeds(["delete", "vhost", "--name", vh, "--idempotently"]);
 

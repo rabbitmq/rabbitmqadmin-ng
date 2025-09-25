@@ -11,6 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 use predicates::prelude::*;
 
 mod test_helpers;
@@ -78,9 +79,9 @@ fn test_list_bindings() -> Result<(), Box<dyn std::error::Error>> {
 
     // list bindings in vhost 1
     run_succeeds(["-V", "bindings_vhost_1", "list", "bindings"]).stdout(
-        predicate::str::contains("new_queue_1")
-            .and(predicate::str::contains("routing_key_queue"))
-            .and(predicate::str::contains("routing_key_exchange")),
+        output_includes("new_queue_1")
+            .and(output_includes("routing_key_queue"))
+            .and(output_includes("routing_key_exchange")),
     );
 
     // delete the queue from vhost 1
@@ -88,11 +89,11 @@ fn test_list_bindings() -> Result<(), Box<dyn std::error::Error>> {
 
     // these bindings were deleted with the queue
     run_succeeds(["-V", "bindings_vhost_1", "list", "bindings"]).stdout(
-        predicate::str::contains("new_queue_1")
+        output_includes("new_queue_1")
             .not()
-            .and(predicate::str::contains("routing_key_queue"))
+            .and(output_includes("routing_key_queue"))
             .not()
-            .and(predicate::str::contains("routing_key_exchange")),
+            .and(output_includes("routing_key_exchange")),
     );
 
     delete_vhost(vh1).expect("failed to delete a virtual host");
@@ -163,9 +164,9 @@ fn test_bindings_list() -> Result<(), Box<dyn std::error::Error>> {
 
     // list bindings in vhost 1
     run_succeeds(["-V", vh1, "list", "bindings"]).stdout(
-        predicate::str::contains("new_queue_1")
-            .and(predicate::str::contains("routing_key_queue"))
-            .and(predicate::str::contains("routing_key_exchange")),
+        output_includes("new_queue_1")
+            .and(output_includes("routing_key_queue"))
+            .and(output_includes("routing_key_exchange")),
     );
 
     // delete a binding
@@ -187,11 +188,11 @@ fn test_bindings_list() -> Result<(), Box<dyn std::error::Error>> {
 
     // ensure that the deleted binding is no longer listed
     run_succeeds(["-V", vh1, "list", "bindings"]).stdout(
-        predicate::str::contains("new_queue_1")
+        output_includes("new_queue_1")
             .not()
-            .and(predicate::str::contains("routing_key_queue"))
+            .and(output_includes("routing_key_queue"))
             .not()
-            .and(predicate::str::contains("routing_key_exchange")),
+            .and(output_includes("routing_key_exchange")),
     );
 
     delete_vhost(vh1).expect("failed to delete a virtual host");

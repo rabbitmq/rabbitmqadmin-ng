@@ -11,7 +11,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-use predicates::prelude::*;
 
 mod test_helpers;
 use crate::test_helpers::*;
@@ -36,7 +35,7 @@ fn test_messages() -> Result<(), Box<dyn std::error::Error>> {
     ]);
 
     // consume a message
-    run_succeeds(["get", "messages", "--queue", q]).stdout(predicate::str::contains(payload));
+    run_succeeds(["get", "messages", "--queue", q]).stdout(output_includes(payload));
 
     // delete the test queue
     run_succeeds(["delete", "queue", "--name", q]);

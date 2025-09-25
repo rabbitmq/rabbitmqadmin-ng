@@ -15,7 +15,7 @@ use predicates::prelude::*;
 use rabbitmq_http_client::requests::{FederationUpstreamParams, QueueFederationParams};
 
 mod test_helpers;
-use crate::test_helpers::{amqp_endpoint_with_vhost, await_ms, delete_vhost};
+use crate::test_helpers::{amqp_endpoint_with_vhost, await_ms, delete_vhost, output_includes};
 use test_helpers::{run_fails, run_succeeds};
 
 #[test]
@@ -30,7 +30,7 @@ fn test_federation_upstream_declaration_for_queue_federation_case0()
     let qfp = QueueFederationParams::new_with_consumer_tag(q, ctag);
     let endpoint1 = amqp_endpoint.clone();
     let upstream =
-        FederationUpstreamParams::new_queue_federation_upstream(vh, name, &endpoint1, qfp);
+        FederationUpstreamParams::new_queue_federation_upstream(vh, name, endpoint1.as_str(), qfp);
 
     run_succeeds(["declare", "vhost", "--name", vh]);
     let qfp = upstream.queue_federation.unwrap();
@@ -67,7 +67,7 @@ fn test_federation_upstream_declaration_for_queue_federation_case1a()
     let qfp = QueueFederationParams::new_with_consumer_tag(q, ctag);
     let endpoint1 = amqp_endpoint.clone();
     let upstream =
-        FederationUpstreamParams::new_queue_federation_upstream(vh, name, &endpoint1, qfp);
+        FederationUpstreamParams::new_queue_federation_upstream(vh, name, endpoint1.as_str(), qfp);
 
     run_succeeds(["declare", "vhost", "--name", vh]);
     let qfp = upstream.queue_federation.unwrap();
@@ -106,7 +106,7 @@ fn test_federation_upstream_declaration_for_queue_federation_case1b()
     let qfp = QueueFederationParams::new_with_consumer_tag(q, ctag);
     let endpoint1 = amqp_endpoint.clone();
     let upstream =
-        FederationUpstreamParams::new_queue_federation_upstream(vh, name, &endpoint1, qfp);
+        FederationUpstreamParams::new_queue_federation_upstream(vh, name, endpoint1.as_str(), qfp);
 
     run_succeeds(["declare", "vhost", "--name", vh]);
     let qfp = upstream.queue_federation.unwrap();
@@ -148,7 +148,7 @@ fn test_federation_upstream_declaration_for_queue_federation_case2()
     let qfp = QueueFederationParams::new_with_consumer_tag(q, ctag);
     let endpoint1 = amqp_endpoint.clone();
     let upstream =
-        FederationUpstreamParams::new_queue_federation_upstream(vh, name, &endpoint1, qfp);
+        FederationUpstreamParams::new_queue_federation_upstream(vh, name, endpoint1.as_str(), qfp);
 
     run_succeeds(["declare", "vhost", "--name", vh]);
 
@@ -182,7 +182,7 @@ fn test_federation_upstream_declaration_for_queue_federation_case3()
     let qfp = QueueFederationParams::new_with_consumer_tag(q, ctag);
     let endpoint1 = amqp_endpoint.clone();
     let upstream =
-        FederationUpstreamParams::new_queue_federation_upstream(vh, name, &endpoint1, qfp);
+        FederationUpstreamParams::new_queue_federation_upstream(vh, name, endpoint1.as_str(), qfp);
 
     run_succeeds(["declare", "vhost", "--name", vh]);
 
@@ -195,9 +195,7 @@ fn test_federation_upstream_declaration_for_queue_federation_case3()
         "--name",
         upstream.name,
     ])
-    .stderr(predicate::str::contains(
-        "required arguments were not provided",
-    ));
+    .stderr(output_includes("required arguments were not provided"));
 
     delete_vhost(vh).expect("failed to delete a virtual host");
 
@@ -216,7 +214,7 @@ fn test_federation_upstream_declaration_for_queue_federation_case4()
     let qfp = QueueFederationParams::new_with_consumer_tag(q, ctag);
     let endpoint1 = amqp_endpoint.clone();
     let upstream =
-        FederationUpstreamParams::new_queue_federation_upstream(vh, name, &endpoint1, qfp);
+        FederationUpstreamParams::new_queue_federation_upstream(vh, name, endpoint1.as_str(), qfp);
 
     run_succeeds(["declare", "vhost", "--name", vh]);
 
@@ -231,9 +229,7 @@ fn test_federation_upstream_declaration_for_queue_federation_case4()
         "--ack-mode",
         "on-publish",
     ])
-    .stderr(predicate::str::contains(
-        "required arguments were not provided",
-    ));
+    .stderr(output_includes("required arguments were not provided"));
 
     delete_vhost(vh).expect("failed to delete a virtual host");
 
@@ -252,7 +248,7 @@ fn test_federation_list_all_upstreams_with_queue_federation()
     let qfp = QueueFederationParams::new_with_consumer_tag(q, ctag);
     let endpoint1 = amqp_endpoint.clone();
     let upstream =
-        FederationUpstreamParams::new_queue_federation_upstream(vh, name, &endpoint1, qfp);
+        FederationUpstreamParams::new_queue_federation_upstream(vh, name, endpoint1.as_str(), qfp);
 
     run_succeeds(["declare", "vhost", "--name", vh]);
     let qfp = upstream.queue_federation.unwrap();
@@ -273,10 +269,10 @@ fn test_federation_list_all_upstreams_with_queue_federation()
     ]);
 
     run_succeeds(["-V", vh, "federation", "list_all_upstreams"])
-        .stdout(predicate::str::contains(name))
-        .stdout(predicate::str::contains(endpoint1.clone()))
-        .stdout(predicate::str::contains(q))
-        .stdout(predicate::str::contains(ctag));
+        .stdout(output_includes(name))
+        .stdout(output_includes(endpoint1.as_str()))
+        .stdout(output_includes(q))
+        .stdout(output_includes(ctag));
 
     delete_vhost(vh).expect("failed to delete a virtual host");
 
@@ -295,7 +291,7 @@ fn test_federation_delete_an_upstream_with_queue_federation_settings()
     let qfp = QueueFederationParams::new_with_consumer_tag(q, ctag);
     let endpoint1 = amqp_endpoint.clone();
     let upstream =
-        FederationUpstreamParams::new_queue_federation_upstream(vh, name, &endpoint1, qfp);
+        FederationUpstreamParams::new_queue_federation_upstream(vh, name, endpoint1.as_str(), qfp);
 
     run_succeeds(["declare", "vhost", "--name", vh]);
     let qfp = upstream.queue_federation.unwrap();
@@ -316,8 +312,8 @@ fn test_federation_delete_an_upstream_with_queue_federation_settings()
     ]);
 
     run_succeeds(["federation", "list_all_upstreams"])
-        .stdout(predicate::str::contains(name))
-        .stdout(predicate::str::contains(endpoint1.clone()));
+        .stdout(output_includes(name))
+        .stdout(output_includes(endpoint1.as_str()));
 
     run_succeeds([
         "-V",
@@ -329,8 +325,8 @@ fn test_federation_delete_an_upstream_with_queue_federation_settings()
     ]);
 
     run_succeeds(["federation", "list_all_upstreams"])
-        .stdout(predicate::str::contains(name).not())
-        .stdout(predicate::str::contains(endpoint1.clone()).not());
+        .stdout(output_includes(name).not())
+        .stdout(output_includes(endpoint1.as_str()).not());
 
     delete_vhost(vh).expect("failed to delete a virtual host");
 
@@ -350,7 +346,7 @@ fn test_federation_list_all_links_with_queue_federation_settings()
     let qfp = QueueFederationParams::new_with_consumer_tag(q, ctag);
     let endpoint1 = amqp_endpoint.clone();
     let upstream =
-        FederationUpstreamParams::new_queue_federation_upstream(vh1, name, &endpoint1, qfp);
+        FederationUpstreamParams::new_queue_federation_upstream(vh1, name, endpoint1.as_str(), qfp);
 
     run_succeeds(["declare", "vhost", "--name", vh1]);
     run_succeeds(["declare", "vhost", "--name", vh2]);
@@ -397,9 +393,9 @@ fn test_federation_list_all_links_with_queue_federation_settings()
     await_ms(1000);
 
     run_succeeds(["federation", "list_all_links"])
-        .stdout(predicate::str::contains(name))
-        .stdout(predicate::str::contains(vh1))
-        .stdout(predicate::str::contains(ctag));
+        .stdout(output_includes(name))
+        .stdout(output_includes(vh1))
+        .stdout(output_includes(ctag));
 
     delete_vhost(vh1).expect("failed to delete a virtual host");
     delete_vhost(vh2).expect("failed to delete a virtual host");

@@ -11,11 +11,13 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-use predicates::prelude::*;
 use std::path;
 use std::path::PathBuf;
 
+use predicates::prelude::*;
+
 mod test_helpers;
+use crate::test_helpers::output_includes;
 use test_helpers::{run_fails, run_succeeds};
 
 #[test]
@@ -63,9 +65,8 @@ fn combined_integration_test2() -> Result<(), Box<dyn std::error::Error>> {
             vh,
         ])
         .stderr(
-            predicate::str::contains("specified configuration section (--node)").and(
-                predicate::str::contains("was not found in the configuration file"),
-            ),
+            output_includes("specified configuration section (--node)")
+                .and(output_includes("was not found in the configuration file")),
         );
 
         test_helpers::delete_vhost(vh)
@@ -90,7 +91,7 @@ fn combined_integration_test3() -> Result<(), Box<dyn std::error::Error>> {
         "--name",
         vh,
     ])
-    .stderr(predicate::str::contains("does not exist"));
+    .stderr(output_includes("does not exist"));
 
     test_helpers::delete_vhost(vh)
 }

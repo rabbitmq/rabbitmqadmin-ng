@@ -11,6 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 use predicates::prelude::*;
 
 mod test_helpers;
@@ -41,10 +42,10 @@ fn list_exchanges() -> Result<(), Box<dyn std::error::Error>> {
 
     // list exchanges in vhost 1
     run_succeeds(["-V", vh1, "list", "exchanges"]).stdout(
-        predicate::str::contains("amq.direct")
-            .and(predicate::str::contains("amq.fanout"))
-            .and(predicate::str::contains(x1))
-            .and(predicate::str::contains(x2).not()),
+        output_includes("amq.direct")
+            .and(output_includes("amq.fanout"))
+            .and(output_includes(x1))
+            .and(output_includes(x2).not()),
     );
 
     // delete the exchanges from vhost 1
@@ -52,17 +53,17 @@ fn list_exchanges() -> Result<(), Box<dyn std::error::Error>> {
 
     // list exchange in vhost 1
     run_succeeds(["-V", vh1, "list", "exchanges"]).stdout(
-        predicate::str::contains("amq.direct")
-            .and(predicate::str::contains("amq.topic"))
-            .and(predicate::str::contains(x1).not()),
+        output_includes("amq.direct")
+            .and(output_includes("amq.topic"))
+            .and(output_includes(x1).not()),
     );
 
     // list exchange in vhost 2
     run_succeeds(["-V", vh2, "list", "exchanges"]).stdout(
-        predicate::str::contains("amq.direct")
-            .and(predicate::str::contains("amq.headers"))
-            .and(predicate::str::contains(x2))
-            .and(predicate::str::contains(x1).not()),
+        output_includes("amq.direct")
+            .and(output_includes("amq.headers"))
+            .and(output_includes(x2))
+            .and(output_includes(x1).not()),
     );
 
     delete_vhost(vh1).expect("failed to delete a virtual host");
@@ -96,10 +97,10 @@ fn exchanges_list() -> Result<(), Box<dyn std::error::Error>> {
 
     // list exchanges in vhost 1
     run_succeeds(["-V", vh1, "exchanges", "list"]).stdout(
-        predicate::str::contains("amq.direct")
-            .and(predicate::str::contains("amq.fanout"))
-            .and(predicate::str::contains(x1))
-            .and(predicate::str::contains(x2).not()),
+        output_includes("amq.direct")
+            .and(output_includes("amq.fanout"))
+            .and(output_includes(x1))
+            .and(output_includes(x2).not()),
     );
 
     // delete the exchanges from vhost 1
@@ -107,17 +108,17 @@ fn exchanges_list() -> Result<(), Box<dyn std::error::Error>> {
 
     // list exchange in vhost 1
     run_succeeds(["-V", vh1, "exchanges", "list"]).stdout(
-        predicate::str::contains("amq.direct")
-            .and(predicate::str::contains("amq.topic"))
-            .and(predicate::str::contains(x1).not()),
+        output_includes("amq.direct")
+            .and(output_includes("amq.topic"))
+            .and(output_includes(x1).not()),
     );
 
     // list exchange in vhost 2
     run_succeeds(["-V", vh2, "exchanges", "list"]).stdout(
-        predicate::str::contains("amq.direct")
-            .and(predicate::str::contains("amq.headers"))
-            .and(predicate::str::contains(x2))
-            .and(predicate::str::contains(x1).not()),
+        output_includes("amq.direct")
+            .and(output_includes("amq.headers"))
+            .and(output_includes(x2))
+            .and(output_includes(x1).not()),
     );
 
     delete_vhost(vh1).expect("failed to delete a virtual host");
@@ -139,13 +140,13 @@ fn delete_an_existing_exchange_using_original_command_group()
     run_succeeds(["-V", vh, "declare", "exchange", "--name", x]);
 
     // list exchanges in vhost 1
-    run_succeeds(["-V", vh, "list", "exchanges"]).stdout(predicate::str::contains(x));
+    run_succeeds(["-V", vh, "list", "exchanges"]).stdout(output_includes(x));
 
     // delete the exchange
     run_succeeds(["-V", vh, "delete", "exchange", "--name", x]);
 
     // list exchange in vhost 1
-    run_succeeds(["-V", vh, "list", "exchanges"]).stdout(predicate::str::contains(x).not());
+    run_succeeds(["-V", vh, "list", "exchanges"]).stdout(output_includes(x).not());
 
     // delete the vhost
     delete_vhost(vh)?;
@@ -166,13 +167,13 @@ fn delete_an_existing_exchange_using_exchanges_command_group()
     run_succeeds(["-V", vh, "exchanges", "declare", "--name", x]);
 
     // list exchanges in vhost 1
-    run_succeeds(["-V", vh, "exchanges", "list"]).stdout(predicate::str::contains(x));
+    run_succeeds(["-V", vh, "exchanges", "list"]).stdout(output_includes(x));
 
     // delete the exchange
     run_succeeds(["-V", vh, "exchanges", "delete", "--name", x]);
 
     // list exchange in vhost 1
-    run_succeeds(["-V", vh, "exchanges", "list"]).stdout(predicate::str::contains(x).not());
+    run_succeeds(["-V", vh, "exchanges", "list"]).stdout(output_includes(x).not());
 
     // delete the vhost
     delete_vhost(vh)?;
@@ -207,7 +208,7 @@ fn delete_a_non_existing_exchange() -> Result<(), Box<dyn std::error::Error>> {
         "--name",
         "7s98df7s79df-non-existent",
     ])
-    .stderr(predicate::str::contains("Not Found"));
+    .stderr(output_includes("Not Found"));
 
     // delete the vhost
     delete_vhost(vh)?;
@@ -277,9 +278,9 @@ fn test_exchanges_bind_and_unbind() -> Result<(), Box<dyn std::error::Error>> {
 
     // list bindings in vhost 1
     run_succeeds(["-V", vh2, "list", "bindings"]).stdout(
-        predicate::str::contains("new_queue_1")
-            .and(predicate::str::contains("routing_key_queue"))
-            .and(predicate::str::contains("routing_key_exchange")),
+        output_includes("new_queue_1")
+            .and(output_includes("routing_key_queue"))
+            .and(output_includes("routing_key_exchange")),
     );
 
     // unbind
@@ -299,11 +300,11 @@ fn test_exchanges_bind_and_unbind() -> Result<(), Box<dyn std::error::Error>> {
     ]);
 
     run_succeeds(["-V", vh1, "list", "bindings"]).stdout(
-        predicate::str::contains("new_queue_1")
+        output_includes("new_queue_1")
             .not()
-            .and(predicate::str::contains("routing_key_queue"))
+            .and(output_includes("routing_key_queue"))
             .not()
-            .and(predicate::str::contains("routing_key_exchange")),
+            .and(output_includes("routing_key_exchange")),
     );
 
     delete_vhost(vh1).expect("failed to delete a virtual host");

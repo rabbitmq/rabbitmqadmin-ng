@@ -11,6 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 use predicates::prelude::*;
 
 mod test_helpers;
@@ -18,9 +19,9 @@ use crate::test_helpers::*;
 
 #[test]
 fn test_list_nodes() -> Result<(), Box<dyn std::error::Error>> {
-    run_succeeds(["list", "nodes"]).stdout(predicate::str::contains("rabbit@"));
+    run_succeeds(["list", "nodes"]).stdout(output_includes("rabbit@"));
 
-    run_succeeds(["nodes", "list"]).stdout(predicate::str::contains("rabbit@"));
+    run_succeeds(["nodes", "list"]).stdout(output_includes("rabbit@"));
 
     Ok(())
 }
@@ -38,10 +39,10 @@ fn test_nodes_memory_breakdown_in_bytes_succeeds() -> Result<(), Box<dyn std::er
         first.name.as_str(),
     ])
     .stdout(
-        predicates::str::contains("Allocated but unused")
-            .and(predicates::str::contains("Quorum queue ETS tables"))
-            .and(predicates::str::contains("Client connections"))
-            .and(predicates::str::contains("Metadata store")),
+        output_includes("Allocated but unused")
+            .and(output_includes("Quorum queue ETS tables"))
+            .and(output_includes("Client connections"))
+            .and(output_includes("Metadata store")),
     );
 
     Ok(())
@@ -60,10 +61,10 @@ fn test_nodes_memory_breakdown_in_percent_succeeds() -> Result<(), Box<dyn std::
         first.name.as_str(),
     ])
     .stdout(
-        predicates::str::contains("Allocated but unused")
-            .and(predicates::str::contains("Quorum queue ETS tables"))
-            .and(predicates::str::contains("Client connections"))
-            .and(predicates::str::contains("Metadata store")),
+        output_includes("Allocated but unused")
+            .and(output_includes("Quorum queue ETS tables"))
+            .and(output_includes("Client connections"))
+            .and(output_includes("Metadata store")),
     );
 
     Ok(())

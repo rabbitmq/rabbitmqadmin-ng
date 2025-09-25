@@ -11,15 +11,15 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-use predicates::prelude::*;
 
 mod test_helpers;
+use crate::test_helpers::output_includes;
 use test_helpers::{run_fails, run_succeeds};
 
 #[test]
 fn show_help_with_no_arguments() -> Result<(), Box<dyn std::error::Error>> {
     let args: [&str; 0] = [];
-    run_fails(args).stderr(predicate::str::contains(
+    run_fails(args).stderr(output_includes(
         "requires a subcommand but one was not provided",
     ));
 
@@ -29,7 +29,7 @@ fn show_help_with_no_arguments() -> Result<(), Box<dyn std::error::Error>> {
 #[test]
 fn show_subcommands_with_no_arguments() -> Result<(), Box<dyn std::error::Error>> {
     let args: [&str; 0] = [];
-    run_fails(args).stderr(predicate::str::contains("subcommands:"));
+    run_fails(args).stderr(output_includes("subcommands:"));
 
     Ok(())
 }
@@ -37,7 +37,7 @@ fn show_subcommands_with_no_arguments() -> Result<(), Box<dyn std::error::Error>
 #[test]
 fn show_subcommands_with_category_name_and_help() -> Result<(), Box<dyn std::error::Error>> {
     let args = ["declare", "--help"];
-    run_succeeds(args).stdout(predicate::str::contains("Commands:"));
+    run_succeeds(args).stdout(output_includes("Commands:"));
 
     Ok(())
 }
@@ -45,7 +45,7 @@ fn show_subcommands_with_category_name_and_help() -> Result<(), Box<dyn std::err
 #[test]
 fn shows_subcommand_specific_info_with_help() -> Result<(), Box<dyn std::error::Error>> {
     let args = ["declare", "queue", "--help"];
-    run_succeeds(args).stdout(predicate::str::contains("Usage:"));
+    run_succeeds(args).stdout(output_includes("Usage:"));
 
     Ok(())
 }

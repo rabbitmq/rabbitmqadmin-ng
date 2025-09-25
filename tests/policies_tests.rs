@@ -11,6 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 use predicates::prelude::*;
 
 mod test_helpers;
@@ -36,9 +37,9 @@ fn test_list_policies() -> Result<(), Box<dyn std::error::Error>> {
     ]);
 
     run_succeeds(["list", "policies"])
-        .stdout(predicate::str::contains(policy_name).and(predicate::str::contains("12345")));
+        .stdout(output_includes(policy_name).and(output_includes("12345")));
     run_succeeds(["delete", "policy", "--name", policy_name]);
-    run_succeeds(["list", "policies"]).stdout(predicate::str::contains(policy_name).not());
+    run_succeeds(["list", "policies"]).stdout(output_includes(policy_name).not());
 
     Ok(())
 }
@@ -62,12 +63,10 @@ fn test_operator_policies() -> Result<(), Box<dyn std::error::Error>> {
         "{\"max-length\": 12345}",
     ]);
 
-    run_succeeds(["list", "operator_policies"]).stdout(
-        predicate::str::contains(operator_policy_name).and(predicate::str::contains("op-foo")),
-    );
-    run_succeeds(["delete", "operator_policy", "--name", operator_policy_name]);
     run_succeeds(["list", "operator_policies"])
-        .stdout(predicate::str::contains(operator_policy_name).not());
+        .stdout(output_includes(operator_policy_name).and(output_includes("op-foo")));
+    run_succeeds(["delete", "operator_policy", "--name", operator_policy_name]);
+    run_succeeds(["list", "operator_policies"]).stdout(output_includes(operator_policy_name).not());
 
     Ok(())
 }
@@ -92,9 +91,9 @@ fn test_policies_declare_list_and_delete() -> Result<(), Box<dyn std::error::Err
     ]);
 
     run_succeeds(["policies", "list"])
-        .stdout(predicate::str::contains(policy_name).and(predicate::str::contains("20")));
+        .stdout(output_includes(policy_name).and(output_includes("20")));
     run_succeeds(["policies", "delete", "--name", policy_name]);
-    run_succeeds(["policies", "list"]).stdout(predicate::str::contains(policy_name).not());
+    run_succeeds(["policies", "list"]).stdout(output_includes(policy_name).not());
 
     Ok(())
 }
@@ -128,12 +127,12 @@ fn test_policies_in() -> Result<(), Box<dyn std::error::Error>> {
     ]);
 
     run_succeeds(["--vhost", vh1, "policies", "list_in"])
-        .stdout(predicate::str::contains(policy_name).and(predicate::str::contains("98")));
+        .stdout(output_includes(policy_name).and(output_includes("98")));
     run_succeeds(["--vhost", vh2, "policies", "list_in"])
-        .stdout(predicate::str::contains(policy_name).not());
+        .stdout(output_includes(policy_name).not());
     run_succeeds(["--vhost", vh1, "policies", "delete", "--name", policy_name]);
     run_succeeds(["--vhost", vh1, "policies", "list_in"])
-        .stdout(predicate::str::contains(policy_name).not());
+        .stdout(output_includes(policy_name).not());
 
     run_succeeds(["delete", "vhost", "--name", vh1]);
     run_succeeds(["delete", "vhost", "--name", vh2]);
@@ -166,7 +165,7 @@ fn test_policies_in_with_entity_type() -> Result<(), Box<dyn std::error::Error>>
     ]);
 
     run_succeeds(["--vhost", vh, "policies", "list_in", "--apply-to", "queues"])
-        .stdout(predicate::str::contains(policy_name).and(predicate::str::contains("98")));
+        .stdout(output_includes(policy_name).and(output_includes("98")));
     run_succeeds([
         "--vhost",
         vh,
@@ -175,7 +174,7 @@ fn test_policies_in_with_entity_type() -> Result<(), Box<dyn std::error::Error>>
         "--apply-to",
         "exchanges",
     ])
-    .stdout(predicate::str::contains(policy_name).not());
+    .stdout(output_includes(policy_name).not());
     run_succeeds([
         "--vhost",
         vh,
@@ -184,7 +183,7 @@ fn test_policies_in_with_entity_type() -> Result<(), Box<dyn std::error::Error>>
         "--apply-to",
         "streams",
     ])
-    .stdout(predicate::str::contains(policy_name).not());
+    .stdout(output_includes(policy_name).not());
     run_succeeds([
         "--vhost",
         "/",
@@ -193,10 +192,9 @@ fn test_policies_in_with_entity_type() -> Result<(), Box<dyn std::error::Error>>
         "--apply-to",
         "queues",
     ])
-    .stdout(predicate::str::contains(policy_name).not());
+    .stdout(output_includes(policy_name).not());
     run_succeeds(["--vhost", vh, "policies", "delete", "--name", policy_name]);
-    run_succeeds(["--vhost", vh, "policies", "list_in"])
-        .stdout(predicate::str::contains(policy_name).not());
+    run_succeeds(["--vhost", vh, "policies", "list_in"]).stdout(output_includes(policy_name).not());
 
     run_succeeds(["delete", "vhost", "--name", vh]);
 
@@ -280,7 +278,7 @@ fn test_policies_matching_objects() -> Result<(), Box<dyn std::error::Error>> {
         "--type",
         "queues",
     ])
-    .stdout(predicate::str::contains(policy1).and(predicate::str::contains("20")));
+    .stdout(output_includes(policy1).and(output_includes("20")));
     run_succeeds([
         "--vhost",
         vh1,
@@ -291,7 +289,7 @@ fn test_policies_matching_objects() -> Result<(), Box<dyn std::error::Error>> {
         "--type",
         "exchanges",
     ])
-    .stdout(predicate::str::contains(policy1).not());
+    .stdout(output_includes(policy1).not());
 
     run_succeeds([
         "--vhost",
@@ -303,7 +301,7 @@ fn test_policies_matching_objects() -> Result<(), Box<dyn std::error::Error>> {
         "--type",
         "exchanges",
     ])
-    .stdout(predicate::str::contains(policy2));
+    .stdout(output_includes(policy2));
     run_succeeds([
         "--vhost",
         vh2,
@@ -314,7 +312,7 @@ fn test_policies_matching_objects() -> Result<(), Box<dyn std::error::Error>> {
         "--type",
         "streams",
     ])
-    .stdout(predicate::str::contains(policy2).not());
+    .stdout(output_includes(policy2).not());
 
     run_succeeds([
         "--vhost",
@@ -326,7 +324,7 @@ fn test_policies_matching_objects() -> Result<(), Box<dyn std::error::Error>> {
         "--type",
         "streams",
     ])
-    .stdout(predicate::str::contains(policy3).and(predicate::str::contains("1D")));
+    .stdout(output_includes(policy3).and(output_includes("1D")));
     run_succeeds([
         "--vhost",
         vh3,
@@ -337,7 +335,7 @@ fn test_policies_matching_objects() -> Result<(), Box<dyn std::error::Error>> {
         "--type",
         "exchanges",
     ])
-    .stdout(predicate::str::contains(policy3).not());
+    .stdout(output_includes(policy3).not());
 
     run_succeeds(["delete", "vhost", "--name", vh1, "--idempotently"]);
     run_succeeds(["delete", "vhost", "--name", vh2, "--idempotently"]);
@@ -366,7 +364,7 @@ fn test_policies_declare_list_update_definition_and_delete()
         "{\"max-length\": 20}",
     ]);
     run_succeeds(["policies", "list"])
-        .stdout(predicate::str::contains(policy_name).and(predicate::str::contains("20")));
+        .stdout(output_includes(policy_name).and(output_includes("20")));
 
     run_succeeds([
         "policies",
@@ -380,10 +378,10 @@ fn test_policies_declare_list_update_definition_and_delete()
     ]);
 
     run_succeeds(["policies", "list"])
-        .stdout(predicate::str::contains(policy_name).and(predicate::str::contains("131")));
+        .stdout(output_includes(policy_name).and(output_includes("131")));
 
     run_succeeds(["policies", "delete", "--name", policy_name]);
-    run_succeeds(["policies", "list"]).stdout(predicate::str::contains(policy_name).not());
+    run_succeeds(["policies", "list"]).stdout(output_includes(policy_name).not());
 
     Ok(())
 }
@@ -407,7 +405,7 @@ fn test_policies_individual_policy_key_manipulation() -> Result<(), Box<dyn std:
         "{\"max-length\": 20, \"max-length-bytes\": 99999999}",
     ]);
     run_succeeds(["policies", "list"])
-        .stdout(predicate::str::contains(policy_name).and(predicate::str::contains("20")));
+        .stdout(output_includes(policy_name).and(output_includes("20")));
 
     run_succeeds([
         "policies",
@@ -421,7 +419,7 @@ fn test_policies_individual_policy_key_manipulation() -> Result<(), Box<dyn std:
     ]);
 
     run_succeeds(["policies", "list"])
-        .stdout(predicate::str::contains(policy_name).and(predicate::str::contains("131")));
+        .stdout(output_includes(policy_name).and(output_includes("131")));
 
     run_succeeds([
         "policies",
@@ -433,12 +431,12 @@ fn test_policies_individual_policy_key_manipulation() -> Result<(), Box<dyn std:
     ]);
 
     run_succeeds(["policies", "list"])
-        .stdout(predicate::str::contains(policy_name).and(predicate::str::contains("99999999")));
+        .stdout(output_includes(policy_name).and(output_includes("99999999")));
 
-    run_succeeds(["policies", "list"]).stdout(predicate::str::contains("131").not());
+    run_succeeds(["policies", "list"]).stdout(output_includes("131").not());
 
     run_succeeds(["policies", "delete", "--name", policy_name]);
-    run_succeeds(["policies", "list"]).stdout(predicate::str::contains(policy_name).not());
+    run_succeeds(["policies", "list"]).stdout(output_includes(policy_name).not());
 
     Ok(())
 }
@@ -489,9 +487,9 @@ fn test_policies_bulk_policy_key_manipulation() -> Result<(), Box<dyn std::error
         "{\"max-length\": 120, \"max-length-bytes\": 333333333}",
     ]);
     run_succeeds(["policies", "list"])
-        .stdout(predicate::str::contains(policy1_name).and(predicate::str::contains("20")));
+        .stdout(output_includes(policy1_name).and(output_includes("20")));
     run_succeeds(["policies", "list"])
-        .stdout(predicate::str::contains(policy1_name).and(predicate::str::contains("333333333")));
+        .stdout(output_includes(policy1_name).and(output_includes("333333333")));
 
     run_succeeds([
         "--vhost",
@@ -505,9 +503,9 @@ fn test_policies_bulk_policy_key_manipulation() -> Result<(), Box<dyn std::error
     ]);
 
     run_succeeds(["policies", "list"]).stdout(
-        predicate::str::contains(policy1_name)
-            .and(predicate::str::contains("272"))
-            .and(predicate::str::contains("120").not()),
+        output_includes(policy1_name)
+            .and(output_includes("272"))
+            .and(output_includes("120").not()),
     );
 
     run_succeeds([
@@ -529,16 +527,16 @@ fn test_policies_bulk_policy_key_manipulation() -> Result<(), Box<dyn std::error
     ]);
 
     run_succeeds(["policies", "list"])
-        .stdout(predicate::str::contains(policy1_name).and(predicate::str::contains("333333333")));
+        .stdout(output_includes(policy1_name).and(output_includes("333333333")));
 
-    run_succeeds(["policies", "list"]).stdout(predicate::str::contains("272").not());
+    run_succeeds(["policies", "list"]).stdout(output_includes("272").not());
 
     run_succeeds(["--vhost", vh1, "policies", "delete", "--name", policy1_name]);
     run_succeeds(["--vhost", vh2, "policies", "delete", "--name", policy2_name]);
     run_succeeds(["policies", "list"]).stdout(
-        predicate::str::contains(policy1_name)
+        output_includes(policy1_name)
             .not()
-            .and(predicate::str::contains(policy2_name).not()),
+            .and(output_includes(policy2_name).not()),
     );
 
     Ok(())
@@ -569,7 +567,7 @@ fn test_policies_patch_definition() -> Result<(), Box<dyn std::error::Error>> {
         "{\"max-length\": 20, \"max-length-bytes\": 4823748374}",
     ]);
     run_succeeds(["--vhost", vh1, "policies", "list"])
-        .stdout(predicate::str::contains(policy_name).and(predicate::str::contains("20")));
+        .stdout(output_includes(policy_name).and(output_includes("20")));
 
     run_succeeds([
         "--vhost",
@@ -583,15 +581,15 @@ fn test_policies_patch_definition() -> Result<(), Box<dyn std::error::Error>> {
     ]);
 
     run_succeeds(["policies", "list"]).stdout(
-        predicate::str::contains(policy_name)
-            .and(predicate::str::contains("8888888888"))
-            .and(predicate::str::contains("29")),
+        output_includes(policy_name)
+            .and(output_includes("8888888888"))
+            .and(output_includes("29")),
     );
 
-    run_succeeds(["policies", "list"]).stdout(predicate::str::contains("4823748374").not());
+    run_succeeds(["policies", "list"]).stdout(output_includes("4823748374").not());
 
     run_succeeds(["--vhost", vh1, "policies", "delete", "--name", policy_name]);
-    run_succeeds(["policies", "list"]).stdout(predicate::str::contains(policy_name).not());
+    run_succeeds(["policies", "list"]).stdout(output_includes(policy_name).not());
 
     run_succeeds(["delete", "vhost", "--name", vh1, "--idempotently"]);
 
@@ -630,19 +628,19 @@ fn test_policies_declare_override() -> Result<(), Box<dyn std::error::Error>> {
     ]);
 
     run_succeeds(["policies", "list"])
-        .stdout(predicate::str::contains(policy_name).and(predicate::str::contains("12345")));
+        .stdout(output_includes(policy_name).and(output_includes("12345")));
     run_succeeds(["policies", "list"]).stdout(
-        predicate::str::contains(override_name)
-            .and(predicate::str::contains("23456"))
-            .and(predicate::str::contains("112"))
-            .and(predicate::str::contains("99999999")),
+        output_includes(override_name)
+            .and(output_includes("23456"))
+            .and(output_includes("112"))
+            .and(output_includes("99999999")),
     );
 
     run_succeeds(["delete", "policy", "--name", policy_name]);
-    run_succeeds(["policies", "list"]).stdout(predicate::str::contains(policy_name).not());
+    run_succeeds(["policies", "list"]).stdout(output_includes(policy_name).not());
 
     run_succeeds(["policies", "delete", "--name", override_name]);
-    run_succeeds(["policies", "list"]).stdout(predicate::str::contains(override_name).not());
+    run_succeeds(["policies", "list"]).stdout(output_includes(override_name).not());
 
     Ok(())
 }
@@ -663,9 +661,9 @@ fn test_policies_declare_blanket() -> Result<(), Box<dyn std::error::Error>> {
     ]);
 
     run_succeeds(["policies", "list"]).stdout(
-        predicate::str::contains(policy_name)
+        output_includes(policy_name)
             // default blanket policy priority
-            .and(predicate::str::contains("787876")),
+            .and(output_includes("787876")),
     );
 
     let client = api_client();
@@ -675,7 +673,7 @@ fn test_policies_declare_blanket() -> Result<(), Box<dyn std::error::Error>> {
     assert!(pol.priority < 0);
 
     run_succeeds(["delete", "policy", "--name", policy_name]);
-    run_succeeds(["policies", "list"]).stdout(predicate::str::contains(policy_name).not());
+    run_succeeds(["policies", "list"]).stdout(output_includes(policy_name).not());
 
     Ok(())
 }

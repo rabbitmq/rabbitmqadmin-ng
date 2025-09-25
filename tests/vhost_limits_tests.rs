@@ -11,6 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 use predicates::prelude::*;
 
 mod test_helpers;
@@ -29,9 +30,9 @@ fn test_vhost_limits() -> Result<(), Box<dyn std::error::Error>> {
     ]);
 
     run_succeeds(["list", "vhost_limits"])
-        .stdout(predicate::str::contains(limit_name).and(predicate::str::contains("1234")));
+        .stdout(output_includes(limit_name).and(output_includes("1234")));
     run_succeeds(["delete", "vhost_limit", "--name", limit_name]);
-    run_succeeds(["list", "vhost_limits"]).stdout(predicate::str::contains(limit_name).not());
+    run_succeeds(["list", "vhost_limits"]).stdout(output_includes(limit_name).not());
 
     Ok(())
 }

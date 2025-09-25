@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use predicates::prelude::*;
-
 mod test_helpers;
 use crate::test_helpers::*;
 
@@ -22,7 +20,7 @@ fn test_enable_a_feature_flag() -> Result<(), Box<dyn std::error::Error>> {
     let ff_name = "detailed_queues_endpoint";
 
     run_succeeds(["feature_flags", "enable", "--name", ff_name]);
-    run_succeeds(["feature_flags", "list"]).stdout(predicate::str::contains(ff_name));
+    run_succeeds(["feature_flags", "list"]).stdout(output_includes(ff_name));
 
     Ok(())
 }
@@ -32,7 +30,7 @@ fn test_enable_all_stable_feature_flags() -> Result<(), Box<dyn std::error::Erro
     let ff_name = "rabbitmq_4.0.0";
 
     run_succeeds(["feature_flags", "enable_all"]);
-    run_succeeds(["feature_flags", "list"]).stdout(predicate::str::contains(ff_name));
+    run_succeeds(["feature_flags", "list"]).stdout(output_includes(ff_name));
 
     Ok(())
 }

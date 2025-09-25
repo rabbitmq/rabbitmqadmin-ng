@@ -45,7 +45,7 @@ fn test_runtime_parameters_across_groups() -> Result<(), Box<dyn std::error::Err
         "--component",
         "federation-upstream",
     ])
-    .stdout(predicate::str::contains("my-upstream"));
+    .stdout(output_includes("my-upstream"));
 
     run_succeeds([
         "-V",
@@ -66,7 +66,7 @@ fn test_runtime_parameters_across_groups() -> Result<(), Box<dyn std::error::Err
         "--component",
         "federation-upstream",
     ])
-    .stdout(predicate::str::contains("my-upstream").not());
+    .stdout(output_includes("my-upstream").not());
 
     delete_vhost(vh).expect("failed to delete a virtual host");
 
@@ -93,7 +93,7 @@ fn test_runtime_parameters_cmd_group() -> Result<(), Box<dyn std::error::Error>>
     ]);
     await_metric_emission(200);
 
-    run_succeeds(["parameters", "list_all"]).stdout(predicate::str::contains("my-upstream"));
+    run_succeeds(["parameters", "list_all"]).stdout(output_includes("my-upstream"));
 
     run_succeeds([
         "-V",
@@ -103,7 +103,7 @@ fn test_runtime_parameters_cmd_group() -> Result<(), Box<dyn std::error::Error>>
         "--component",
         "federation-upstream",
     ])
-    .stdout(predicate::str::contains("my-upstream"));
+    .stdout(output_includes("my-upstream"));
 
     run_succeeds([
         "-V",
@@ -113,7 +113,7 @@ fn test_runtime_parameters_cmd_group() -> Result<(), Box<dyn std::error::Error>>
         "--component",
         "federation-upstream",
     ])
-    .stdout(predicate::str::contains("my-upstream"));
+    .stdout(output_includes("my-upstream"));
 
     run_succeeds([
         "-V",
@@ -134,7 +134,7 @@ fn test_runtime_parameters_cmd_group() -> Result<(), Box<dyn std::error::Error>>
         "--component",
         "federation-upstream",
     ])
-    .stdout(predicate::str::contains("my-upstream").not());
+    .stdout(output_includes("my-upstream").not());
 
     delete_vhost(vh).expect("failed to delete a virtual host");
 
@@ -153,12 +153,11 @@ fn test_global_runtime_parameters_cmd_group() -> Result<(), Box<dyn std::error::
     ]);
 
     run_succeeds(["global_parameters", "list"])
-        .stdout(predicate::str::contains("region").and(predicate::str::contains("ca-central-1")));
+        .stdout(output_includes("region").and(output_includes("ca-central-1")));
 
     run_succeeds(["global_parameters", "delete", "--name", "cluster_tags"]);
 
-    run_succeeds(["global_parameters", "list"])
-        .stdout(predicate::str::contains("cluster_tags").not());
+    run_succeeds(["global_parameters", "list"]).stdout(output_includes("cluster_tags").not());
 
     Ok(())
 }

@@ -19,6 +19,7 @@ use std::time::Duration;
 
 use assert_cmd::assert::Assert;
 use assert_cmd::prelude::*;
+use predicates::prelude::predicate;
 use std::process::Command;
 
 use rabbitmq_http_client::blocking_api::Client as GenericAPIClient;
@@ -118,4 +119,8 @@ pub fn delete_all_test_vhosts() -> CommandRunResult {
         }
     }
     Ok(())
+}
+
+pub fn output_includes(content: &str) -> predicates::str::ContainsPredicate {
+    predicate::str::contains(content)
 }

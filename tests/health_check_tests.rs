@@ -11,22 +11,21 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-use predicates::prelude::*;
 
 mod test_helpers;
+use crate::test_helpers::output_includes;
 use test_helpers::{run_fails, run_succeeds};
 
 #[test]
 fn test_health_check_local_alarms() -> Result<(), Box<dyn std::error::Error>> {
-    run_succeeds(["health_check", "local_alarms"]).stdout(predicate::str::contains("passed"));
+    run_succeeds(["health_check", "local_alarms"]).stdout(output_includes("passed"));
 
     Ok(())
 }
 
 #[test]
 fn test_health_check_cluster_wide_alarms() -> Result<(), Box<dyn std::error::Error>> {
-    run_succeeds(["health_check", "cluster_wide_alarms"])
-        .stdout(predicate::str::contains("passed"));
+    run_succeeds(["health_check", "cluster_wide_alarms"]).stdout(output_includes("passed"));
 
     Ok(())
 }
@@ -34,7 +33,7 @@ fn test_health_check_cluster_wide_alarms() -> Result<(), Box<dyn std::error::Err
 #[test]
 fn test_health_check_port_listener_succeeds() -> Result<(), Box<dyn std::error::Error>> {
     run_succeeds(["health_check", "port_listener", "--port", "15672"])
-        .stdout(predicate::str::contains("passed"));
+        .stdout(output_includes("passed"));
 
     Ok(())
 }
@@ -42,7 +41,7 @@ fn test_health_check_port_listener_succeeds() -> Result<(), Box<dyn std::error::
 #[test]
 fn test_health_check_port_listener_fails() -> Result<(), Box<dyn std::error::Error>> {
     run_fails(["health_check", "port_listener", "--port", "15679"])
-        .stdout(predicate::str::contains("failed"));
+        .stdout(output_includes("failed"));
 
     Ok(())
 }
@@ -50,7 +49,7 @@ fn test_health_check_port_listener_fails() -> Result<(), Box<dyn std::error::Err
 #[test]
 fn test_health_check_protocol_listener_succeeds() -> Result<(), Box<dyn std::error::Error>> {
     run_succeeds(["health_check", "protocol_listener", "--protocol", "amqp"])
-        .stdout(predicate::str::contains("passed"));
+        .stdout(output_includes("passed"));
 
     Ok(())
 }
@@ -63,14 +62,14 @@ fn test_health_check_protocol_listener_fails() -> Result<(), Box<dyn std::error:
         "--protocol",
         "https/prometheus",
     ])
-    .stdout(predicate::str::contains("failed"));
+    .stdout(output_includes("failed"));
     run_fails([
         "health_check",
         "protocol_listener",
         "--protocol",
         "unknown/proto",
     ])
-    .stdout(predicate::str::contains("failed"));
+    .stdout(output_includes("failed"));
 
     Ok(())
 }

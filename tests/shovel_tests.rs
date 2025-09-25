@@ -16,7 +16,6 @@ mod test_helpers;
 
 use crate::test_helpers::*;
 use predicates::boolean::PredicateBooleanExt;
-use predicates::prelude::predicate;
 
 #[test]
 fn test_shovel_declaration_without_source_uri() -> Result<(), Box<dyn std::error::Error>> {
@@ -42,9 +41,7 @@ fn test_shovel_declaration_without_source_uri() -> Result<(), Box<dyn std::error
         "--destination-exchange",
         dest_x,
     ])
-    .stderr(predicate::str::contains(
-        "required arguments were not provided",
-    ));
+    .stderr(output_includes("required arguments were not provided"));
 
     delete_vhost(vh).expect("failed to delete a virtual host");
 
@@ -75,9 +72,7 @@ fn test_shovel_declaration_without_destination_uri() -> Result<(), Box<dyn std::
         "--destination-exchange",
         dest_x,
     ])
-    .stderr(predicate::str::contains(
-        "required arguments were not provided",
-    ));
+    .stderr(output_includes("required arguments were not provided"));
 
     delete_vhost(vh).expect("failed to delete a virtual host");
 
@@ -113,7 +108,7 @@ fn test_shovel_declaration_with_overlapping_destination_types()
         "--destination-exchange",
         dest_x,
     ])
-    .stderr(predicate::str::contains("cannot be used with"));
+    .stderr(output_includes("cannot be used with"));
 
     run_succeeds([
         "-V",
@@ -171,20 +166,20 @@ fn test_amqp091_shovel_declaration_and_deletion() -> Result<(), Box<dyn std::err
     await_metric_emission(200);
 
     run_succeeds(["-V", vh, "shovels", "list"]).stdout(
-        predicate::str::contains(vh)
-            .and(predicate::str::contains(src_q))
-            .and(predicate::str::contains("dynamic"))
-            .and(predicate::str::contains("node"))
-            .and(predicate::str::contains("state")),
+        output_includes(vh)
+            .and(output_includes(src_q))
+            .and(output_includes("dynamic"))
+            .and(output_includes("node"))
+            .and(output_includes("state")),
     );
 
     run_succeeds(["-V", vh, "shovels", "list_all"]).stdout(
-        predicate::str::contains(vh)
-            .and(predicate::str::contains(src_q))
-            .and(predicate::str::contains("dynamic"))
-            .and(predicate::str::contains("vhost"))
-            .and(predicate::str::contains("node"))
-            .and(predicate::str::contains("state")),
+        output_includes(vh)
+            .and(output_includes(src_q))
+            .and(output_includes("dynamic"))
+            .and(output_includes("vhost"))
+            .and(output_includes("node"))
+            .and(output_includes("state")),
     );
 
     run_succeeds(["-V", vh, "shovels", "delete", "--name", name]);

@@ -11,6 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 use predicates::prelude::*;
 
 mod test_helpers;
@@ -43,13 +44,13 @@ fn test_list_permissions() -> Result<(), Box<dyn std::error::Error>> {
     ]);
 
     run_succeeds(["list", "permissions"]).stdout(
-        predicate::str::contains("foo")
-            .and(predicate::str::contains("bar"))
-            .and(predicate::str::contains("baz")),
+        output_includes("foo")
+            .and(output_includes("bar"))
+            .and(output_includes("baz")),
     );
 
     run_succeeds(["delete", "permissions", "--user", username]);
-    run_succeeds(["list", "permissions"]).stdout(predicate::str::contains(username).not());
+    run_succeeds(["list", "permissions"]).stdout(output_includes(username).not());
     run_succeeds(["delete", "user", "--name", username]);
 
     Ok(())
