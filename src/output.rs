@@ -245,12 +245,20 @@ impl<'a> ResultHandler<'a> {
         }
     }
 
-    pub fn memory_breakdown_in_bytes_result(&mut self, result: ClientResult<NodeMemoryBreakdown>) {
+    pub fn memory_breakdown_in_bytes_result(&mut self, result: ClientResult<Option<NodeMemoryBreakdown>>) {
         match result {
-            Ok(output) => {
+            Ok(Some(output)) => {
                 self.exit_code = Some(ExitCode::Ok);
 
                 let mut table = tables::memory_breakdown_in_bytes(output);
+                self.table_styler.apply(&mut table);
+
+                println!("{}", table);
+            }
+            Ok(None) => {
+                self.exit_code = Some(ExitCode::Ok);
+
+                let mut table = tables::memory_breakdown_not_available();
                 self.table_styler.apply(&mut table);
 
                 println!("{}", table);
@@ -261,13 +269,21 @@ impl<'a> ResultHandler<'a> {
 
     pub fn memory_breakdown_in_percent_result(
         &mut self,
-        result: ClientResult<NodeMemoryBreakdown>,
+        result: ClientResult<Option<NodeMemoryBreakdown>>,
     ) {
         match result {
-            Ok(output) => {
+            Ok(Some(output)) => {
                 self.exit_code = Some(ExitCode::Ok);
 
                 let mut table = tables::memory_breakdown_in_percent(output);
+                self.table_styler.apply(&mut table);
+
+                println!("{}", table);
+            }
+            Ok(None) => {
+                self.exit_code = Some(ExitCode::Ok);
+
+                let mut table = tables::memory_breakdown_not_available();
                 self.table_styler.apply(&mut table);
 
                 println!("{}", table);

@@ -53,7 +53,7 @@ pub fn show_overview(client: APIClient) -> ClientResult<responses::Overview> {
 pub fn show_memory_breakdown(
     client: APIClient,
     command_args: &ArgMatches,
-) -> ClientResult<responses::NodeMemoryBreakdown> {
+) -> ClientResult<Option<responses::NodeMemoryBreakdown>> {
     let node = command_args.get_one::<String>("node").unwrap();
     client
         .get_node_memory_footprint(node)

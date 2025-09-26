@@ -4,6 +4,9 @@
 
 ### Enhancements
 
+* Memory breakdown commands (`show memory_breakdown_in_bytes` and `show memory_breakdown_in_percent`) now gracefully handle
+  cases where memory breakdown stats are not yet available on the target node
+
 * `shovel enable_tls_peer_verification_for_all_source_uris` is a new command that enables TLS peer verification
   for all shovel source URIs:
 
@@ -36,6 +39,11 @@
       --node-local-client-certificate-file-path /path/to/node/local/client_certificate.pem \
       --node-local-client-private-key-file-path /path/to/node/local/client_private_key.pem
   ```
+
+### Upgrades
+
+* RabbitMQ HTTP API client was upgraded to [`0.59.0`](https://github.com/michaelklishin/rabbitmq-http-api-rs/releases/tag/v0.59.0)
+
 
 ## v2.12.0 (Sep 23, 2025)
 

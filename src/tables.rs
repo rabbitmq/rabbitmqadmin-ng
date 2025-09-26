@@ -943,3 +943,17 @@ pub(crate) fn memory_breakdown_in_percent(mut breakdown: NodeMemoryBreakdown) ->
     data.sort_by(|a, b| b.comparable.total_cmp(&a.comparable));
     build_simple_table(data)
 }
+
+pub(crate) fn memory_breakdown_not_available() -> Table {
+    let data = vec![
+        RowOfTwo {
+            key: "result",
+            value: "not available",
+        },
+        RowOfTwo {
+            key: "reason",
+            value: "memory breakdown is not available (yet) on target node",
+        },
+    ];
+    build_table_with_header(data, "Memory Breakdown")
+}

@@ -56,7 +56,7 @@ fn test_nodes_memory_breakdown_in_percent_succeeds() -> Result<(), Box<dyn std::
 
     run_succeeds([
         "nodes",
-        "memory_breakdown_in_bytes",
+        "memory_breakdown_in_percent",
         "--node",
         first.name.as_str(),
     ])
