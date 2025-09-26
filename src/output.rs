@@ -245,7 +245,10 @@ impl<'a> ResultHandler<'a> {
         }
     }
 
-    pub fn memory_breakdown_in_bytes_result(&mut self, result: ClientResult<Option<NodeMemoryBreakdown>>) {
+    pub fn memory_breakdown_in_bytes_result(
+        &mut self,
+        result: ClientResult<Option<NodeMemoryBreakdown>>,
+    ) {
         match result {
             Ok(Some(output)) => {
                 self.exit_code = Some(ExitCode::Ok);
