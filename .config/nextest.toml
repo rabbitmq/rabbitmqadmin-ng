@@ -9,7 +9,15 @@ final-status-level = "pass"
 failure-output = "immediate"
 
 [test-groups]
-parallel_safe = { max-threads = 8 }
+# Read-only tests that can run with high parallelism
+read_only = { max-threads = 16 }
+# Tests that create isolated virtual hosts
+isolated_vhosts = { max-threads = 8 }
+# Tests that modify users/permissions (global state)
+user_management = { max-threads = 1 }
+# Tests that modify runtime parameters
+runtime_params = { max-threads = 1 }
+# Tests requiring complete isolation
 sequential = { max-threads = 1 }
 
 [[profile.default.overrides]]
@@ -66,3 +74,45 @@ test-group = 'sequential'
 filter = 'binary(shovel_destination_uri_modification_tests)'
 priority = 23
 test-group = 'sequential'
+
+# Read-only tests that can run with high parallelism
+[[profile.default.overrides]]
+filter = 'binary(help_tests) or binary(health_check_tests) or binary(nodes_tests) or binary(feature_flag_tests)'
+priority = 80
+test-group = 'read_only'
+
+# Tests that create isolated virtual hosts
+[[profile.default.overrides]]
+filter = 'binary(queues_tests) or binary(exchanges_tests) or binary(bindings_tests) or binary(streams_tests) or binary(vhost_limits_tests) or binary(channels_tests) or binary(connections_tests)'
+priority = 70
+test-group = 'isolated_vhosts'
+
+# User management tests (global state)
+[[profile.default.overrides]]
+filter = 'binary(users_tests) or binary(permissions_tests) or binary(user_limits_tests)'
+priority = 65
+test-group = 'user_management'
+
+# Runtime parameter tests (excluding already sequential ones)
+[[profile.default.overrides]]
+filter = 'binary(runtime_parameters_tests)'
+priority = 26
+test-group = 'runtime_params'
+
+# Virtual host management (global vhost operations)
+[[profile.default.overrides]]
+filter = 'binary(vhosts_tests)'
+priority = 62
+test-group = 'user_management'
+
+# Combined integration tests (creates global users)
+[[profile.default.overrides]]
+filter = 'binary(combined_integration_tests)'
+priority = 61
+test-group = 'user_management'
+
+# Tests that can run with moderate parallelism (no major conflicts)
+[[profile.default.overrides]]
+filter = 'binary(deprecated_feature_tests) or binary(test_commands_recommended_against_tests) or binary(feature_flag_management_tests)'
+priority = 75
+test-group = 'isolated_vhosts'
