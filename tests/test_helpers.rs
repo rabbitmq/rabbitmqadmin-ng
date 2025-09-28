@@ -23,6 +23,7 @@ use predicates::prelude::predicate;
 use std::process::Command;
 
 use rabbitmq_http_client::blocking_api::Client as GenericAPIClient;
+use rabbitmqadmin::pre_flight::InteractivityMode;
 
 type APIClient<'a> = GenericAPIClient<&'a str, &'a str, &'a str>;
 
@@ -79,6 +80,36 @@ where
 {
     let mut cmd = Command::cargo_bin("rabbitmqadmin").unwrap();
     cmd.args(args).assert().failure()
+}
+
+pub fn run_succeeds_with_interactivity_mode<I, S>(args: I, mode: InteractivityMode) -> Assert
+where
+    I: IntoIterator<Item = S>,
+    S: AsRef<OsStr>,
+{
+    match mode {
+        InteractivityMode::NonInteractive => {
+            let mut cmd = Command::cargo_bin("rabbitmqadmin").unwrap();
+            cmd.env("RABBITMQADMIN_NON_INTERACTIVE_MODE", "true");
+            cmd.args(args).assert().success()
+        }
+        InteractivityMode::Interactive => run_succeeds(args),
+    }
+}
+
+pub fn run_fails_with_interactivity_mode<I, S>(args: I, mode: InteractivityMode) -> Assert
+where
+    I: IntoIterator<Item = S>,
+    S: AsRef<OsStr>,
+{
+    match mode {
+        InteractivityMode::NonInteractive => {
+            let mut cmd = Command::cargo_bin("rabbitmqadmin").unwrap();
+            cmd.env("RABBITMQADMIN_NON_INTERACTIVE_MODE", "true");
+            cmd.args(args).assert().failure()
+        }
+        InteractivityMode::Interactive => run_fails(args),
+    }
 }
 
 pub fn create_vhost(vhost: &str) -> CommandRunResult {

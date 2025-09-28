@@ -15,6 +15,7 @@
 
 use crate::constants::DEFAULT_BLANKET_POLICY_PRIORITY;
 use crate::errors::CommandRunError;
+use crate::output::ProgressReporter;
 use clap::ArgMatches;
 use rabbitmq_http_client::blocking_api::Client;
 use rabbitmq_http_client::blocking_api::Result as ClientResult;
@@ -691,52 +692,59 @@ pub fn delete_federation_upstream(
 
 pub fn disable_tls_peer_verification_for_all_federation_upstreams(
     client: APIClient,
+    prog_rep: &mut dyn ProgressReporter,
 ) -> Result<(), CommandRunError> {
     let upstreams = client.list_federation_upstreams()?;
+    let total = upstreams.len();
+    prog_rep.start_operation(total, "Updating federation upstream URIs");
 
-    for upstream in upstreams {
+    for (index, upstream) in upstreams.into_iter().enumerate() {
+        let upstream_name = &upstream.name;
+        prog_rep.report_progress(index + 1, total, upstream_name);
+
         let original_uri = &upstream.uri;
         let updated_uri = disable_tls_peer_verification(original_uri)?;
 
-        if original_uri != &updated_uri {
-            let upstream_params = FederationUpstreamParams {
-                name: &upstream.name,
-                vhost: &upstream.vhost,
-                uri: &updated_uri,
-                prefetch_count: upstream
-                    .prefetch_count
-                    .unwrap_or(DEFAULT_FEDERATION_PREFETCH),
-                reconnect_delay: upstream.reconnect_delay.unwrap_or(5),
-                ack_mode: upstream.ack_mode,
-                trust_user_id: upstream.trust_user_id.unwrap_or_default(),
-                bind_using_nowait: upstream.bind_using_nowait,
-                channel_use_mode: upstream.channel_use_mode,
-                queue_federation: if upstream.queue.is_some() {
-                    Some(QueueFederationParams {
-                        queue: upstream.queue.as_deref(),
-                        consumer_tag: upstream.consumer_tag.as_deref(),
-                    })
-                } else {
-                    None
-                },
-                exchange_federation: if upstream.exchange.is_some() {
-                    Some(ExchangeFederationParams {
-                        exchange: upstream.exchange.as_deref(),
-                        max_hops: upstream.max_hops,
-                        queue_type: upstream.queue_type.unwrap_or(QueueType::Classic),
-                        ttl: upstream.expires,
-                        message_ttl: upstream.message_ttl,
-                        resource_cleanup_mode: upstream.resource_cleanup_mode,
-                    })
-                } else {
-                    None
-                },
-            };
+        let upstream_params = FederationUpstreamParams {
+            name: &upstream.name,
+            vhost: &upstream.vhost,
+            uri: &updated_uri,
+            prefetch_count: upstream
+                .prefetch_count
+                .unwrap_or(DEFAULT_FEDERATION_PREFETCH),
+            reconnect_delay: upstream.reconnect_delay.unwrap_or(5),
+            ack_mode: upstream.ack_mode,
+            trust_user_id: upstream.trust_user_id.unwrap_or_default(),
+            bind_using_nowait: upstream.bind_using_nowait,
+            channel_use_mode: upstream.channel_use_mode,
+            queue_federation: if upstream.queue.is_some() {
+                Some(QueueFederationParams {
+                    queue: upstream.queue.as_deref(),
+                    consumer_tag: upstream.consumer_tag.as_deref(),
+                })
+            } else {
+                None
+            },
+            exchange_federation: if upstream.exchange.is_some() {
+                Some(ExchangeFederationParams {
+                    exchange: upstream.exchange.as_deref(),
+                    max_hops: upstream.max_hops,
+                    queue_type: upstream.queue_type.unwrap_or(QueueType::Classic),
+                    ttl: upstream.expires,
+                    message_ttl: upstream.message_ttl,
+                    resource_cleanup_mode: upstream.resource_cleanup_mode,
+                })
+            } else {
+                None
+            },
+        };
 
-            let param = RuntimeParameterDefinition::from(upstream_params);
-            client.upsert_runtime_parameter(&param)?;
-        }
+        let param = RuntimeParameterDefinition::from(upstream_params);
+        client.upsert_runtime_parameter(&param)?;
+        prog_rep.report_success(upstream_name);
     }
+
+    prog_rep.finish_operation(total, total);
 
     Ok(())
 }
@@ -744,6 +752,7 @@ pub fn disable_tls_peer_verification_for_all_federation_upstreams(
 pub fn enable_tls_peer_verification_for_all_federation_upstreams(
     client: APIClient,
     args: &ArgMatches,
+    prog_rep: &mut dyn ProgressReporter,
 ) -> Result<(), CommandRunError> {
     let ca_cert_path = args
         .get_one::<String>("node_local_ca_certificate_bundle_path")
@@ -762,8 +771,13 @@ pub fn enable_tls_peer_verification_for_all_federation_upstreams(
         })?;
 
     let upstreams = client.list_federation_upstreams()?;
+    let total = upstreams.len();
+    prog_rep.start_operation(total, "Updating federation upstream URIs");
 
-    for upstream in upstreams {
+    for (index, upstream) in upstreams.into_iter().enumerate() {
+        let upstream_name = &upstream.name;
+        prog_rep.report_progress(index + 1, total, upstream_name);
+
         let original_uri = &upstream.uri;
         let updated_uri = enable_tls_peer_verification(
             original_uri,
@@ -772,51 +786,52 @@ pub fn enable_tls_peer_verification_for_all_federation_upstreams(
             client_key_path,
         )?;
 
-        if original_uri != &updated_uri {
-            let upstream_params = FederationUpstreamParams {
-                name: &upstream.name,
-                vhost: &upstream.vhost,
-                uri: &updated_uri,
-                prefetch_count: upstream
-                    .prefetch_count
-                    .unwrap_or(DEFAULT_FEDERATION_PREFETCH),
-                reconnect_delay: upstream.reconnect_delay.unwrap_or(5),
-                ack_mode: upstream.ack_mode,
-                trust_user_id: upstream.trust_user_id.unwrap_or_default(),
-                bind_using_nowait: upstream.bind_using_nowait,
-                channel_use_mode: upstream.channel_use_mode,
-                queue_federation: if upstream.queue.is_some() {
-                    Some(QueueFederationParams {
-                        queue: upstream.queue.as_deref(),
-                        consumer_tag: upstream.consumer_tag.as_deref(),
-                    })
-                } else {
-                    None
-                },
-                exchange_federation: if upstream.exchange.is_some() {
-                    Some(ExchangeFederationParams {
-                        exchange: upstream.exchange.as_deref(),
-                        max_hops: upstream.max_hops,
-                        queue_type: upstream.queue_type.unwrap_or(QueueType::Classic),
-                        ttl: upstream.expires,
-                        message_ttl: upstream.message_ttl,
-                        resource_cleanup_mode: upstream.resource_cleanup_mode,
-                    })
-                } else {
-                    None
-                },
-            };
+        let upstream_params = FederationUpstreamParams {
+            name: &upstream.name,
+            vhost: &upstream.vhost,
+            uri: &updated_uri,
+            prefetch_count: upstream
+                .prefetch_count
+                .unwrap_or(DEFAULT_FEDERATION_PREFETCH),
+            reconnect_delay: upstream.reconnect_delay.unwrap_or(5),
+            ack_mode: upstream.ack_mode,
+            trust_user_id: upstream.trust_user_id.unwrap_or_default(),
+            bind_using_nowait: upstream.bind_using_nowait,
+            channel_use_mode: upstream.channel_use_mode,
+            queue_federation: if upstream.queue.is_some() {
+                Some(QueueFederationParams {
+                    queue: upstream.queue.as_deref(),
+                    consumer_tag: upstream.consumer_tag.as_deref(),
+                })
+            } else {
+                None
+            },
+            exchange_federation: if upstream.exchange.is_some() {
+                Some(ExchangeFederationParams {
+                    exchange: upstream.exchange.as_deref(),
+                    max_hops: upstream.max_hops,
+                    queue_type: upstream.queue_type.unwrap_or(QueueType::Classic),
+                    ttl: upstream.expires,
+                    message_ttl: upstream.message_ttl,
+                    resource_cleanup_mode: upstream.resource_cleanup_mode,
+                })
+            } else {
+                None
+            },
+        };
 
-            let param = RuntimeParameterDefinition::from(upstream_params);
-            client.upsert_runtime_parameter(&param)?;
-        }
+        let param = RuntimeParameterDefinition::from(upstream_params);
+        client.upsert_runtime_parameter(&param)?;
+        prog_rep.report_success(upstream_name);
     }
 
+    prog_rep.finish_operation(total, total);
     Ok(())
 }
 
 pub fn disable_tls_peer_verification_for_all_source_uris(
     client: APIClient,
+    prog_rep: &mut dyn ProgressReporter,
 ) -> Result<(), CommandRunError> {
     let all_params = client.list_runtime_parameters()?;
     let shovel_params: Vec<_> = all_params
@@ -824,34 +839,46 @@ pub fn disable_tls_peer_verification_for_all_source_uris(
         .filter(|p| p.component == "shovel")
         .collect();
 
-    for param in shovel_params {
+    let total = shovel_params.len();
+    prog_rep.start_operation(total, "Updating shovel source URIs");
+
+    for (index, param) in shovel_params.into_iter().enumerate() {
+        let param_name = &param.name;
+        prog_rep.report_progress(index + 1, total, param_name);
+
         let owned_params = match OwnedShovelParams::try_from(param.clone()) {
             Ok(params) => params,
-            Err(_) => continue,
+            Err(_) => {
+                prog_rep.report_skip(param_name, "invalid shovel parameters");
+                continue;
+            }
         };
 
         let original_source_uri = &owned_params.source_uri;
 
         if original_source_uri.is_empty() {
+            prog_rep.report_skip(param_name, "empty source URI");
             continue;
         }
 
         let updated_source_uri = disable_tls_peer_verification(original_source_uri)?;
 
-        if original_source_uri != &updated_source_uri {
-            let mut updated_params = owned_params;
-            updated_params.source_uri = updated_source_uri;
+        let mut updated_params = owned_params;
+        updated_params.source_uri = updated_source_uri;
 
-            let param = RuntimeParameterDefinition::from(&updated_params);
-            client.upsert_runtime_parameter(&param)?;
-        }
+        let param = RuntimeParameterDefinition::from(&updated_params);
+        client.upsert_runtime_parameter(&param)?;
+        prog_rep.report_success(param_name);
     }
+
+    prog_rep.finish_operation(total, total);
 
     Ok(())
 }
 
 pub fn disable_tls_peer_verification_for_all_destination_uris(
     client: APIClient,
+    _prog_rep: &mut dyn ProgressReporter,
 ) -> Result<(), CommandRunError> {
     let all_params = client.list_runtime_parameters()?;
     let shovel_params: Vec<_> = all_params
@@ -888,6 +915,7 @@ pub fn disable_tls_peer_verification_for_all_destination_uris(
 pub fn enable_tls_peer_verification_for_all_source_uris(
     client: APIClient,
     args: &ArgMatches,
+    _prog_rep: &mut dyn ProgressReporter,
 ) -> Result<(), CommandRunError> {
     let ca_cert_path = args
         .get_one::<String>("node_local_ca_certificate_bundle_path")
@@ -944,6 +972,7 @@ pub fn enable_tls_peer_verification_for_all_source_uris(
 pub fn enable_tls_peer_verification_for_all_destination_uris(
     client: APIClient,
     args: &ArgMatches,
+    _prog_rep: &mut dyn ProgressReporter,
 ) -> Result<(), CommandRunError> {
     let ca_cert_path = args
         .get_one::<String>("node_local_ca_certificate_bundle_path")
@@ -1486,7 +1515,7 @@ pub fn update_policy_definition(
         .get_one::<String>("definition_value")
         .cloned()
         .unwrap();
-    let parsed_value = parse_json_from_arg::<serde_json::Value>(&value)?;
+    let parsed_value = parse_json_from_arg::<Value>(&value)?;
 
     update_policy_definition_with(&client, vhost, &name, &key, &parsed_value).map_err(Into::into)
 }
@@ -1505,7 +1534,7 @@ pub fn update_operator_policy_definition(
         .get_one::<String>("definition_value")
         .cloned()
         .unwrap();
-    let parsed_value = parse_json_from_arg::<serde_json::Value>(&value)?;
+    let parsed_value = parse_json_from_arg::<Value>(&value)?;
 
     update_operator_policy_definition_with(&client, vhost, &name, &key, &parsed_value)
         .map_err(Into::into)
@@ -1521,7 +1550,7 @@ pub fn patch_policy_definition(
         .get_one::<String>("definition")
         .cloned()
         .unwrap();
-    let parsed_value = parse_json_from_arg::<serde_json::Value>(&value)?;
+    let parsed_value = parse_json_from_arg::<Value>(&value)?;
 
     let mut pol = client
         .get_policy(vhost, &name)
@@ -1551,7 +1580,7 @@ pub fn update_all_policy_definitions_in(
         .get_one::<String>("definition_value")
         .cloned()
         .unwrap();
-    let parsed_value = parse_json_from_arg::<serde_json::Value>(&value)?;
+    let parsed_value = parse_json_from_arg::<Value>(&value)?;
 
     for pol in pols {
         update_policy_definition_with(&client, vhost, &pol.name, &key, &parsed_value)?
@@ -1570,7 +1599,7 @@ pub fn patch_operator_policy_definition(
         .get_one::<String>("definition")
         .cloned()
         .unwrap();
-    let parsed_value = parse_json_from_arg::<serde_json::Value>(&value)?;
+    let parsed_value = parse_json_from_arg::<Value>(&value)?;
 
     let mut pol = client
         .get_operator_policy(vhost, &name)
@@ -1600,7 +1629,7 @@ pub fn update_all_operator_policy_definitions_in(
         .get_one::<String>("definition_value")
         .cloned()
         .unwrap();
-    let parsed_value = parse_json_from_arg::<serde_json::Value>(&value)?;
+    let parsed_value = parse_json_from_arg::<Value>(&value)?;
 
     for pol in pols {
         update_operator_policy_definition_with(&client, vhost, &pol.name, &key, &parsed_value)?
@@ -2192,7 +2221,7 @@ fn parse_json_from_arg<T: DeserializeOwned>(input: &str) -> Result<T, CommandRun
     })
 }
 
-fn disable_tls_peer_verification(uri: &str) -> Result<String, CommandRunError> {
+pub fn disable_tls_peer_verification(uri: &str) -> Result<String, CommandRunError> {
     use rabbitmq_http_client::uris::UriBuilder;
 
     let ub = UriBuilder::new(uri)
@@ -2207,7 +2236,7 @@ fn disable_tls_peer_verification(uri: &str) -> Result<String, CommandRunError> {
         })
 }
 
-fn enable_tls_peer_verification(
+pub fn enable_tls_peer_verification(
     uri: &str,
     ca_cert_path: &str,
     client_cert_path: &str,

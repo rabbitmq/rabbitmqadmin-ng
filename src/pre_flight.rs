@@ -12,8 +12,34 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum InteractivityMode {
+    Interactive,
+    NonInteractive,
+}
+
+impl Default for InteractivityMode {
+    fn default() -> Self {
+        Self::Interactive
+    }
+}
+
+impl InteractivityMode {
+    pub fn from_env() -> Self {
+        if is_enabled_in_env("RABBITMQADMIN_NON_INTERACTIVE_MODE") {
+            Self::NonInteractive
+        } else {
+            Self::Interactive
+        }
+    }
+
+    pub fn is_non_interactive(&self) -> bool {
+        matches!(self, Self::NonInteractive)
+    }
+}
+
 pub fn is_non_interactive() -> bool {
-    is_enabled_in_env("RABBITMQADMIN_NON_INTERACTIVE_MODE")
+    InteractivityMode::from_env().is_non_interactive()
 }
 
 pub fn should_infer_subcommands() -> bool {

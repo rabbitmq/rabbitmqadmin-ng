@@ -27,6 +27,7 @@ use std::fmt;
 use sysexits::ExitCode;
 use tabled::settings::object::Rows;
 
+use std::io::{self, Write};
 use tabled::settings::{Panel, Remove, Style};
 use tabled::{
     Table, Tabled,
@@ -170,6 +171,15 @@ impl<'a> ResultHandler<'a> {
             non_interactive,
             idempotently,
             exit_code: None,
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn instantiate_progress_reporter(&self) -> Box<dyn ProgressReporter> {
+        match (self.quiet, self.non_interactive) {
+            (true, _) => Box::new(QuietProgressReporter::new()),
+            (false, true) => Box::new(NonInteractiveProgressReporter::new()),
+            (false, false) => Box::new(InteractiveProgressReporter::new()),
         }
     }
 
@@ -442,5 +452,159 @@ pub(crate) fn client_error_to_exit_code(error: &HttpClientError) -> ExitCode {
         ClientError::ParsingError { .. } => ExitCode::DataErr,
         ClientError::RequestError { .. } => ExitCode::IoErr,
         ClientError::Other => ExitCode::Usage,
+    }
+}
+
+#[allow(dead_code)]
+pub trait ProgressReporter {
+    fn start_operation(&mut self, total: usize, operation_name: &str);
+    fn report_progress(&mut self, current: usize, total: usize, item_name: &str);
+    fn report_success(&mut self, item_name: &str);
+    fn report_skip(&mut self, item_name: &str, reason: &str);
+    fn finish_operation(&mut self, succeeded: usize, total: usize);
+}
+
+#[allow(dead_code)]
+pub struct InteractiveProgressReporter {
+    operation_name: String,
+}
+
+#[allow(dead_code)]
+impl InteractiveProgressReporter {
+    pub fn new() -> Self {
+        Self {
+            operation_name: String::new(),
+        }
+    }
+}
+
+impl ProgressReporter for InteractiveProgressReporter {
+    fn start_operation(&mut self, _total: usize, operation_name: &str) {
+        self.operation_name = operation_name.to_string();
+        println!("{}...", operation_name);
+    }
+
+    fn report_progress(&mut self, current: usize, total: usize, _item_name: &str) {
+        let percentage = if total > 0 {
+            (current * 100) / total
+        } else {
+            0
+        };
+        let bar_width = 50;
+        let filled = if total > 0 {
+            (current * bar_width) / total
+        } else {
+            0
+        };
+        let bar = format!("{}{}", "#".repeat(filled), ".".repeat(bar_width - filled));
+        print!("\rProgress: [{:3}%] [{}]", percentage, bar);
+        io::stdout().flush().unwrap();
+    }
+
+    fn report_success(&mut self, _item_name: &str) {
+        print!(" ✅");
+    }
+
+    fn report_skip(&mut self, _item_name: &str, _reason: &str) {
+        // No-op: progress bar already shows the advancement
+    }
+
+    fn finish_operation(&mut self, succeeded: usize, total: usize) {
+        let skipped = total - succeeded;
+        if skipped > 0 {
+            println!(
+                "\n✓ Completed: {} updated, {} already configured",
+                succeeded, skipped
+            );
+        } else {
+            println!("\n✓ Completed: {} items updated", succeeded);
+        }
+    }
+}
+
+#[allow(dead_code)]
+pub struct NonInteractiveProgressReporter {
+    operation_name: String,
+}
+
+#[allow(dead_code)]
+impl NonInteractiveProgressReporter {
+    pub fn new() -> Self {
+        Self {
+            operation_name: String::new(),
+        }
+    }
+}
+
+impl ProgressReporter for NonInteractiveProgressReporter {
+    fn start_operation(&mut self, _total: usize, operation_name: &str) {
+        self.operation_name = operation_name.to_string();
+        print!("{}: ", operation_name);
+        io::stdout().flush().unwrap();
+    }
+
+    fn report_progress(&mut self, _current: usize, _total: usize, _item_name: &str) {
+        print!(".");
+        io::stdout().flush().unwrap();
+    }
+
+    fn report_success(&mut self, _item_name: &str) {
+        // Dot already printed in report_progress
+    }
+
+    fn report_skip(&mut self, _item_name: &str, _reason: &str) {
+        // Dot already printed in report_progress
+    }
+
+    fn finish_operation(&mut self, succeeded: usize, total: usize) {
+        let skipped = total - succeeded;
+        if skipped > 0 {
+            println!(
+                "\nCompleted: {} updated, {} already configured",
+                succeeded, skipped
+            );
+        } else {
+            println!("\nCompleted: {} items updated", succeeded);
+        }
+    }
+}
+
+#[allow(dead_code)]
+pub struct QuietProgressReporter;
+
+#[allow(dead_code)]
+impl QuietProgressReporter {
+    pub fn new() -> Self {
+        Self
+    }
+}
+
+impl ProgressReporter for QuietProgressReporter {
+    fn start_operation(&mut self, _total: usize, _operation_name: &str) {
+        // Silent
+    }
+
+    fn report_progress(&mut self, _current: usize, _total: usize, _item_name: &str) {
+        // Silent
+    }
+
+    fn report_success(&mut self, _item_name: &str) {
+        // Silent
+    }
+
+    fn report_skip(&mut self, _item_name: &str, _reason: &str) {
+        // Silent
+    }
+
+    fn finish_operation(&mut self, succeeded: usize, total: usize) {
+        let skipped = total - succeeded;
+        if skipped > 0 {
+            println!(
+                "Completed: {} updated, {} already configured",
+                succeeded, skipped
+            );
+        } else {
+            println!("Completed: {} items updated", succeeded);
+        }
     }
 }
