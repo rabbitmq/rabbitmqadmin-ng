@@ -22,6 +22,8 @@ $CTL add_vhost /
 $CTL add_user guest guest
 $CTL set_permissions -p / guest ".*" ".*" ".*"
 
+cargo run '--' --non-interactive vhosts delete_multiple --name-pattern "^rabbitmqadmin"
+
 $CTL add_vhost "rust/rabbitmqadmin"
 $CTL set_permissions -p "rust/rabbitmqadmin" guest ".*" ".*" ".*"
 
@@ -39,7 +41,5 @@ $PLUGINS enable rabbitmq_federation_management
 
 $PLUGINS enable rabbitmq_stream
 $PLUGINS enable rabbitmq_stream_management
-
-cargo run '--' --non-interactive vhosts delete_multiple --name-pattern "^rabbitmqadmin"
 
 true
