@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 use predicates::prelude::*;
-
+use std::error::Error;
 mod test_helpers;
 use crate::test_helpers::*;
 
 #[test]
-fn test_show_memory_breakdown_in_bytes_succeeds() -> Result<(), Box<dyn std::error::Error>> {
+fn test_show_memory_breakdown_in_bytes_succeeds() -> Result<(), Box<dyn Error>> {
     let rc = api_client();
     let nodes = rc.list_nodes()?;
     let first = nodes.first().unwrap();
@@ -39,7 +39,7 @@ fn test_show_memory_breakdown_in_bytes_succeeds() -> Result<(), Box<dyn std::err
 }
 
 #[test]
-fn test_show_memory_breakdown_in_percent_succeeds() -> Result<(), Box<dyn std::error::Error>> {
+fn test_show_memory_breakdown_in_percent_succeeds() -> Result<(), Box<dyn Error>> {
     let rc = api_client();
     let nodes = rc.list_nodes()?;
     let first = nodes.first().unwrap();

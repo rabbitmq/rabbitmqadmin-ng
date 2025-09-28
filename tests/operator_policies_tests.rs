@@ -13,12 +13,12 @@
 // limitations under the License.
 
 use predicates::prelude::*;
-
+use std::error::Error;
 mod test_helpers;
 use crate::test_helpers::*;
 
 #[test]
-fn test_list_operator_policies() -> Result<(), Box<dyn std::error::Error>> {
+fn test_list_operator_policies() -> Result<(), Box<dyn Error>> {
     let policy_name = "test_list_operator_policies";
 
     run_succeeds([
@@ -45,7 +45,7 @@ fn test_list_operator_policies() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn test_operator_policies() -> Result<(), Box<dyn std::error::Error>> {
+fn test_operator_policies() -> Result<(), Box<dyn Error>> {
     let operator_policy_name = "test_operator_policies.1";
 
     run_succeeds([
@@ -72,7 +72,7 @@ fn test_operator_policies() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn test_operator_policies_declare_list_and_delete() -> Result<(), Box<dyn std::error::Error>> {
+fn test_operator_policies_declare_list_and_delete() -> Result<(), Box<dyn Error>> {
     let policy_name = "test_operator_policies_declare_list_and_delete";
 
     run_succeeds([
@@ -99,7 +99,7 @@ fn test_operator_policies_declare_list_and_delete() -> Result<(), Box<dyn std::e
 }
 
 #[test]
-fn test_operator_policies_in() -> Result<(), Box<dyn std::error::Error>> {
+fn test_operator_policies_in() -> Result<(), Box<dyn Error>> {
     let vh1 = "rabbitmqadmin.test_operator_policies_in.1";
     run_succeeds(["delete", "vhost", "--name", vh1, "--idempotently"]);
     run_succeeds(["declare", "vhost", "--name", vh1]);
@@ -148,7 +148,7 @@ fn test_operator_policies_in() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn test_operator_policies_in_with_entity_type() -> Result<(), Box<dyn std::error::Error>> {
+fn test_operator_policies_in_with_entity_type() -> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.operator_policies.test1";
     run_succeeds(["delete", "vhost", "--name", vh, "--idempotently"]);
     run_succeeds(["declare", "vhost", "--name", vh]);
@@ -224,7 +224,7 @@ fn test_operator_policies_in_with_entity_type() -> Result<(), Box<dyn std::error
 }
 
 #[test]
-fn test_operator_policies_matching_objects() -> Result<(), Box<dyn std::error::Error>> {
+fn test_operator_policies_matching_objects() -> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.operator_policies.test2";
 
     run_succeeds(["delete", "vhost", "--name", vh, "--idempotently"]);
@@ -277,8 +277,8 @@ fn test_operator_policies_matching_objects() -> Result<(), Box<dyn std::error::E
 }
 
 #[test]
-fn test_operator_policies_declare_list_update_definition_and_delete()
--> Result<(), Box<dyn std::error::Error>> {
+fn test_operator_policies_declare_list_update_definition_and_delete() -> Result<(), Box<dyn Error>>
+{
     let policy_name = "test_operator_policies_declare_list_update_definition_and_delete";
 
     run_succeeds([
@@ -319,8 +319,7 @@ fn test_operator_policies_declare_list_update_definition_and_delete()
 }
 
 #[test]
-fn test_operator_policies_individual_policy_key_manipulation()
--> Result<(), Box<dyn std::error::Error>> {
+fn test_operator_policies_individual_policy_key_manipulation() -> Result<(), Box<dyn Error>> {
     let policy_name = "test_operator_policies_individual_policy_key_manipulation";
 
     run_succeeds([
@@ -375,8 +374,7 @@ fn test_operator_policies_individual_policy_key_manipulation()
 }
 
 #[test]
-fn test_operator_policies_bulk_policy_keys_manipulation() -> Result<(), Box<dyn std::error::Error>>
-{
+fn test_operator_policies_bulk_policy_keys_manipulation() -> Result<(), Box<dyn Error>> {
     let vh1 = "rabbitmqadmin.test_operator_policies_bulk_policy_keys_manipulation.1";
     let vh2 = "rabbitmqadmin.test_operator_policies_bulk_policy_keys_manipulation.2";
 
@@ -491,7 +489,7 @@ fn test_operator_policies_bulk_policy_keys_manipulation() -> Result<(), Box<dyn 
 }
 
 #[test]
-fn test_operator_policies_patch_definition() -> Result<(), Box<dyn std::error::Error>> {
+fn test_operator_policies_patch_definition() -> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.operator_policies.test3";
     run_succeeds(["delete", "vhost", "--name", vh, "--idempotently"]);
     run_succeeds(["declare", "vhost", "--name", vh]);

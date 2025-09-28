@@ -14,10 +14,10 @@
 
 mod test_helpers;
 use crate::test_helpers::delete_vhost;
+use std::error::Error;
 use test_helpers::run_succeeds;
-
 #[test]
-fn test_import_cluster_definitions() -> Result<(), Box<dyn std::error::Error>> {
+fn test_import_cluster_definitions() -> Result<(), Box<dyn Error>> {
     let q = "queue_from_definitions";
     run_succeeds(["delete", "queue", "--name", q, "--idempotently"]);
 
@@ -34,7 +34,7 @@ fn test_import_cluster_definitions() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn test_import_vhost_definitions() -> Result<(), Box<dyn std::error::Error>> {
+fn test_import_vhost_definitions() -> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.definitions_import.test1";
 
     delete_vhost(vh).expect("failed to delete a virtual host");

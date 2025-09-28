@@ -13,12 +13,13 @@
 // limitations under the License.
 
 use predicates::prelude::*;
+use std::error::Error;
 
 mod test_helpers;
 use crate::test_helpers::*;
 
 #[test]
-fn test_list_vhosts() -> Result<(), Box<dyn std::error::Error>> {
+fn test_list_vhosts() -> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.vhosts.test1";
     delete_vhost(vh).expect("failed to delete a virtual host");
 
@@ -32,7 +33,7 @@ fn test_list_vhosts() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn test_vhosts_list() -> Result<(), Box<dyn std::error::Error>> {
+fn test_vhosts_list() -> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.vhosts.test2";
     delete_vhost(vh).expect("failed to delete a virtual host");
 
@@ -46,7 +47,7 @@ fn test_vhosts_list() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn test_vhosts_create() -> Result<(), Box<dyn std::error::Error>> {
+fn test_vhosts_create() -> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.vhosts.test3";
     delete_vhost(vh).expect("failed to delete a virtual host");
 
@@ -68,7 +69,7 @@ fn test_vhosts_create() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn test_vhosts_delete() -> Result<(), Box<dyn std::error::Error>> {
+fn test_vhosts_delete() -> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.vhosts.test4";
     run_succeeds(["vhosts", "delete", "--name", vh, "--idempotently"]);
 
@@ -82,7 +83,7 @@ fn test_vhosts_delete() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn test_vhosts_enable_deletion_protection() -> Result<(), Box<dyn std::error::Error>> {
+fn test_vhosts_enable_deletion_protection() -> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.vhosts.test-deletion-protection-enable";
     run_succeeds(["vhosts", "delete", "--name", vh, "--idempotently"]);
 
@@ -97,7 +98,7 @@ fn test_vhosts_enable_deletion_protection() -> Result<(), Box<dyn std::error::Er
 }
 
 #[test]
-fn test_vhosts_disable_deletion_protection() -> Result<(), Box<dyn std::error::Error>> {
+fn test_vhosts_disable_deletion_protection() -> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.vhosts.test-deletion-protection-disable";
     run_succeeds(["vhosts", "delete", "--name", vh, "--idempotently"]);
 
@@ -112,7 +113,7 @@ fn test_vhosts_disable_deletion_protection() -> Result<(), Box<dyn std::error::E
 }
 
 #[test]
-fn test_vhosts_protected_vhost_cannot_be_deleted() -> Result<(), Box<dyn std::error::Error>> {
+fn test_vhosts_protected_vhost_cannot_be_deleted() -> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.vhosts.test-protected-cannot-delete";
     run_succeeds(["vhosts", "delete", "--name", vh, "--idempotently"]);
 

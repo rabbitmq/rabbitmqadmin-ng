@@ -13,12 +13,13 @@
 // limitations under the License.
 
 use predicates::prelude::*;
+use std::error::Error;
 
 mod test_helpers;
 use crate::test_helpers::*;
 
 #[test]
-fn test_list_users() -> Result<(), Box<dyn std::error::Error>> {
+fn test_list_users() -> Result<(), Box<dyn Error>> {
     let username = "test_list_users";
     let password = "pa$$w0rd";
     run_succeeds([
@@ -40,7 +41,7 @@ fn test_list_users() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn test_users_list() -> Result<(), Box<dyn std::error::Error>> {
+fn test_users_list() -> Result<(), Box<dyn Error>> {
     let username = "test_users_list.2";
     let password = "pa$$w0rd";
     run_succeeds([
@@ -62,7 +63,7 @@ fn test_users_list() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn test_list_users_with_table_styles() -> Result<(), Box<dyn std::error::Error>> {
+fn test_list_users_with_table_styles() -> Result<(), Box<dyn Error>> {
     let username = "test_list_users_with_table_styles";
     let password = "pa$$w0rd";
     run_succeeds([
@@ -85,7 +86,7 @@ fn test_list_users_with_table_styles() -> Result<(), Box<dyn std::error::Error>>
 }
 
 #[test]
-fn test_create_user_using_sha256_for_hashing() -> Result<(), Box<dyn std::error::Error>> {
+fn test_create_user_using_sha256_for_hashing() -> Result<(), Box<dyn Error>> {
     let username = "test_create_user_using_sha256_for_hashing.1";
     let password = "pa$$w0rd_9w798f__sd8f7";
 
@@ -121,7 +122,7 @@ fn test_create_user_using_sha256_for_hashing() -> Result<(), Box<dyn std::error:
 }
 
 #[test]
-fn test_create_user_using_sha512_for_hashing() -> Result<(), Box<dyn std::error::Error>> {
+fn test_create_user_using_sha512_for_hashing() -> Result<(), Box<dyn Error>> {
     let username = "test_create_user_using_sha512_for_hashing.1";
     let password = "pa$$w0rd///8*9";
 

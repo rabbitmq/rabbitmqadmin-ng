@@ -13,6 +13,7 @@
 // limitations under the License.
 
 use rabbitmqadmin::pre_flight::InteractivityMode;
+use std::env;
 
 #[test]
 fn test_interactivity_mode_default() {
@@ -31,7 +32,7 @@ fn test_interactivity_mode_non_interactive() {
 fn test_interactivity_mode_from_env_interactive() {
     // Clear the environment variable to test the default case
     unsafe {
-        std::env::remove_var("RABBITMQADMIN_NON_INTERACTIVE_MODE");
+        env::remove_var("RABBITMQADMIN_NON_INTERACTIVE_MODE");
     }
     let mode = InteractivityMode::from_env();
     assert_eq!(mode, InteractivityMode::Interactive);
@@ -41,13 +42,13 @@ fn test_interactivity_mode_from_env_interactive() {
 fn test_interactivity_mode_from_env_non_interactive() {
     // Set the environment variable
     unsafe {
-        std::env::set_var("RABBITMQADMIN_NON_INTERACTIVE_MODE", "true");
+        env::set_var("RABBITMQADMIN_NON_INTERACTIVE_MODE", "true");
     }
     let mode = InteractivityMode::from_env();
     assert_eq!(mode, InteractivityMode::NonInteractive);
 
     // Clean up
     unsafe {
-        std::env::remove_var("RABBITMQADMIN_NON_INTERACTIVE_MODE");
+        env::remove_var("RABBITMQADMIN_NON_INTERACTIVE_MODE");
     }
 }

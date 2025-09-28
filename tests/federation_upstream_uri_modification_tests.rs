@@ -15,10 +15,9 @@
 mod test_helpers;
 
 use crate::test_helpers::*;
-
+use std::error::Error;
 #[test]
-fn test_disable_tls_peer_verification_for_all_upstreams_basic()
--> Result<(), Box<dyn std::error::Error>> {
+fn test_disable_tls_peer_verification_for_all_upstreams_basic() -> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.federation.modifications.test1";
     let upstream_name = "test_basic_upstream";
 
@@ -66,7 +65,7 @@ fn test_disable_tls_peer_verification_for_all_upstreams_basic()
 
 #[test]
 fn test_disable_tls_peer_verification_for_all_upstreams_with_existing_verify_param()
--> Result<(), Box<dyn std::error::Error>> {
+-> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.federation.modifications.test2";
     let upstream_name = "test_existing_upstream";
 
@@ -130,7 +129,7 @@ fn test_disable_tls_peer_verification_for_all_upstreams_with_existing_verify_par
 
 #[test]
 fn test_disable_tls_peer_verification_for_all_upstreams_queue_federation_basic()
--> Result<(), Box<dyn std::error::Error>> {
+-> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.federation.modifications.test3";
     let upstream_name = "test_queue_upstream";
 
@@ -178,7 +177,7 @@ fn test_disable_tls_peer_verification_for_all_upstreams_queue_federation_basic()
 
 #[test]
 fn test_disable_tls_peer_verification_for_all_upstreams_queue_federation_with_params()
--> Result<(), Box<dyn std::error::Error>> {
+-> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.federation.modifications.test4";
     let upstream_name = "test_queue_upstream_with_params";
 
@@ -237,7 +236,7 @@ fn test_disable_tls_peer_verification_for_all_upstreams_queue_federation_with_pa
 
 #[test]
 fn test_disable_tls_peer_verification_for_all_upstreams_mixed_federation()
--> Result<(), Box<dyn std::error::Error>> {
+-> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.federation.modifications.test5";
     let exchange_upstream_name = "exchange_upstream";
     let queue_upstream_name = "queue_upstream";
@@ -324,8 +323,7 @@ fn test_disable_tls_peer_verification_for_all_upstreams_mixed_federation()
 }
 
 #[test]
-fn test_enable_tls_peer_verification_for_all_upstreams_basic()
--> Result<(), Box<dyn std::error::Error>> {
+fn test_enable_tls_peer_verification_for_all_upstreams_basic() -> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.federation.modifications.test6";
     let upstream_name = "test_enable_basic_upstream";
 
@@ -383,7 +381,7 @@ fn test_enable_tls_peer_verification_for_all_upstreams_basic()
 
 #[test]
 fn test_enable_tls_peer_verification_for_all_upstreams_with_existing_params()
--> Result<(), Box<dyn std::error::Error>> {
+-> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.federation.modifications.test7";
     let upstream_name = "test_enable_existing_upstream";
 
@@ -452,7 +450,7 @@ fn test_enable_tls_peer_verification_for_all_upstreams_with_existing_params()
 
 #[test]
 fn test_enable_tls_peer_verification_for_all_upstreams_queue_federation()
--> Result<(), Box<dyn std::error::Error>> {
+-> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.federation.modifications.test8";
     let upstream_name = "test_enable_queue_upstream";
 
@@ -510,7 +508,7 @@ fn test_enable_tls_peer_verification_for_all_upstreams_queue_federation()
 
 #[test]
 fn test_enable_tls_peer_verification_for_all_upstreams_mixed_federation()
--> Result<(), Box<dyn std::error::Error>> {
+-> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.federation.modifications.test9";
     let exchange_upstream_name = "enable_exchange_upstream";
     let queue_upstream_name = "enable_queue_upstream";

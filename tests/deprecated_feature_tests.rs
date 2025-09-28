@@ -14,16 +14,16 @@
 
 mod test_helpers;
 use crate::test_helpers::*;
-
+use std::error::Error;
 #[test]
-fn test_list_all_deprecated_features() -> Result<(), Box<dyn std::error::Error>> {
+fn test_list_all_deprecated_features() -> Result<(), Box<dyn Error>> {
     run_succeeds(["deprecated_features", "list"]).stdout(output_includes("ram_node_type"));
 
     Ok(())
 }
 
 #[test]
-fn test_list_all_deprecated_features_via_alias() -> Result<(), Box<dyn std::error::Error>> {
+fn test_list_all_deprecated_features_via_alias() -> Result<(), Box<dyn Error>> {
     run_succeeds(["list", "deprecated_features"]).stdout(output_includes("ram_node_type"));
 
     Ok(())

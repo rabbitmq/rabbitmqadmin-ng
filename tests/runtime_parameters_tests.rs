@@ -13,12 +13,12 @@
 // limitations under the License.
 
 use predicates::prelude::*;
-
+use std::error::Error;
 mod test_helpers;
 use crate::test_helpers::*;
 
 #[test]
-fn test_runtime_parameters_across_groups() -> Result<(), Box<dyn std::error::Error>> {
+fn test_runtime_parameters_across_groups() -> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.runtime_parameters.test1";
     delete_vhost(vh).expect("failed to delete a virtual host");
 
@@ -74,7 +74,7 @@ fn test_runtime_parameters_across_groups() -> Result<(), Box<dyn std::error::Err
 }
 
 #[test]
-fn test_runtime_parameters_cmd_group() -> Result<(), Box<dyn std::error::Error>> {
+fn test_runtime_parameters_cmd_group() -> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.runtime_parameters.test2";
     delete_vhost(vh).expect("failed to delete a virtual host");
 
@@ -142,7 +142,7 @@ fn test_runtime_parameters_cmd_group() -> Result<(), Box<dyn std::error::Error>>
 }
 
 #[test]
-fn test_global_runtime_parameters_cmd_group() -> Result<(), Box<dyn std::error::Error>> {
+fn test_global_runtime_parameters_cmd_group() -> Result<(), Box<dyn Error>> {
     run_succeeds([
         "global_parameters",
         "set",
@@ -163,7 +163,7 @@ fn test_global_runtime_parameters_cmd_group() -> Result<(), Box<dyn std::error::
 }
 
 #[test]
-fn test_parameters_clear_idempotently() -> Result<(), Box<dyn std::error::Error>> {
+fn test_parameters_clear_idempotently() -> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.runtime_parameters.test3";
     let param_name = "test_param_delete_idempotently";
     let component = "federation-upstream";
@@ -230,7 +230,7 @@ fn test_parameters_clear_idempotently() -> Result<(), Box<dyn std::error::Error>
 }
 
 #[test]
-fn test_global_parameters_clear_idempotently() -> Result<(), Box<dyn std::error::Error>> {
+fn test_global_parameters_clear_idempotently() -> Result<(), Box<dyn Error>> {
     let param_name = "test_global_param_delete_idempotently";
 
     // Set the global parameter first

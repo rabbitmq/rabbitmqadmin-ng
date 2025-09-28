@@ -13,12 +13,13 @@
 // limitations under the License.
 
 use predicates::prelude::*;
+use std::error::Error;
 
 mod test_helpers;
 use crate::test_helpers::*;
 
 #[test]
-fn test_user_limits() -> Result<(), Box<dyn std::error::Error>> {
+fn test_user_limits() -> Result<(), Box<dyn Error>> {
     let limit_name = "max-connections";
     let username = "guest";
     run_succeeds([

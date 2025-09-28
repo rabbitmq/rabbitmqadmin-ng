@@ -13,12 +13,13 @@
 // limitations under the License.
 
 use predicates::prelude::*;
+use std::error::Error;
 
 mod test_helpers;
 use crate::test_helpers::*;
 
 #[test]
-fn list_streams() -> Result<(), Box<dyn std::error::Error>> {
+fn list_streams() -> Result<(), Box<dyn Error>> {
     let vh1 = "rabbitmqadmin.stream_vhost_1";
     let vh2 = "rabbitmqadmin.stream_vhost_2";
     let s1 = "new_stream1";
@@ -76,7 +77,7 @@ fn list_streams() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn streams_list() -> Result<(), Box<dyn std::error::Error>> {
+fn streams_list() -> Result<(), Box<dyn Error>> {
     let vh1 = "rabbitmqadmin.stream_vhost_3";
     let vh2 = "rabbitmqadmin.stream_vhost_4";
     let s1 = "new_stream1";
@@ -134,7 +135,7 @@ fn streams_list() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn test_streams_delete_idempotently() -> Result<(), Box<dyn std::error::Error>> {
+fn test_streams_delete_idempotently() -> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.streams.test1";
     let s = "test_stream_delete_idempotently";
 

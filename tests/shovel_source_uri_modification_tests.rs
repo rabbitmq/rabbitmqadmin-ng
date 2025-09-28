@@ -15,10 +15,9 @@
 mod test_helpers;
 
 use crate::test_helpers::*;
-
+use std::error::Error;
 #[test]
-fn test_disable_tls_peer_verification_for_all_shovels_basic()
--> Result<(), Box<dyn std::error::Error>> {
+fn test_disable_tls_peer_verification_for_all_shovels_basic() -> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.shovel.modifications.test1";
     let shovel_name = "test_basic_shovel";
 
@@ -71,7 +70,7 @@ fn test_disable_tls_peer_verification_for_all_shovels_basic()
 
 #[test]
 fn test_disable_tls_peer_verification_for_all_shovels_with_existing_verify_param()
--> Result<(), Box<dyn std::error::Error>> {
+-> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.shovel.modifications.test2";
     let shovel_name = "test_existing_shovel";
 
@@ -150,8 +149,7 @@ fn test_disable_tls_peer_verification_for_all_shovels_with_existing_verify_param
 }
 
 #[test]
-fn test_disable_tls_peer_verification_for_all_shovels_amqp10()
--> Result<(), Box<dyn std::error::Error>> {
+fn test_disable_tls_peer_verification_for_all_shovels_amqp10() -> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.shovel.modifications.test3";
     let shovel_name = "test_amqp10_shovel";
 
@@ -215,8 +213,8 @@ fn test_disable_tls_peer_verification_for_all_shovels_amqp10()
 }
 
 #[test]
-fn test_disable_tls_peer_verification_for_all_shovels_mixed_protocols()
--> Result<(), Box<dyn std::error::Error>> {
+fn test_disable_tls_peer_verification_for_all_shovels_mixed_protocols() -> Result<(), Box<dyn Error>>
+{
     let vh = "rabbitmqadmin.shovel.modifications.test4";
     let shovel_091_name = "test_091_shovel";
     let shovel_10_name = "test_10_shovel";
@@ -319,8 +317,7 @@ fn test_disable_tls_peer_verification_for_all_shovels_mixed_protocols()
 }
 
 #[test]
-fn test_disable_tls_peer_verification_for_all_shovels_no_shovels()
--> Result<(), Box<dyn std::error::Error>> {
+fn test_disable_tls_peer_verification_for_all_shovels_no_shovels() -> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.shovel.modifications.test5";
 
     delete_vhost(vh).ok();
@@ -338,7 +335,7 @@ fn test_disable_tls_peer_verification_for_all_shovels_no_shovels()
 
 #[test]
 fn test_disable_tls_peer_verification_for_all_shovels_with_dummy_query_params()
--> Result<(), Box<dyn std::error::Error>> {
+-> Result<(), Box<dyn Error>> {
     let vh =
         "rabbitmqadmin.test_disable_tls_peer_verification_for_all_shovels_with_dummy_query_params";
     let shovel_name = "test_dummy_params_shovel";
@@ -404,8 +401,7 @@ fn test_disable_tls_peer_verification_for_all_shovels_with_dummy_query_params()
 }
 
 #[test]
-fn test_enable_tls_peer_verification_for_all_source_uris_basic()
--> Result<(), Box<dyn std::error::Error>> {
+fn test_enable_tls_peer_verification_for_all_source_uris_basic() -> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.shovel.modifications.test6";
     let shovel_name = "test_enable_basic_shovel";
 
@@ -468,7 +464,7 @@ fn test_enable_tls_peer_verification_for_all_source_uris_basic()
 
 #[test]
 fn test_enable_tls_peer_verification_for_all_source_uris_with_existing_params()
--> Result<(), Box<dyn std::error::Error>> {
+-> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.shovel.modifications.test7";
     let shovel_name = "test_enable_existing_shovel";
 

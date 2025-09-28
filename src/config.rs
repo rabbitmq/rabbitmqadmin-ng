@@ -19,8 +19,8 @@ use crate::constants::{
 use crate::output::TableStyle;
 use clap::ArgMatches;
 use serde::Deserialize;
-use std::collections::HashMap;
 use std::path::{Path, PathBuf};
+use std::{collections::HashMap, fs, io};
 use thiserror::Error;
 use url::Url;
 
@@ -62,7 +62,7 @@ pub enum ConfigFileError {
     )]
     MissingConfigSection(String),
     #[error(transparent)]
-    IoError(#[from] std::io::Error),
+    IoError(#[from] io::Error),
     #[error("failed to deserialize the config file. Make sure it is valid TOML. Details: {0}")]
     DeserializationError(#[from] toml::de::Error),
 }
@@ -532,7 +532,7 @@ fn from_local_path(path: &Path) -> Result<ConfigurationMap<'_>, ConfigFileError>
 }
 
 fn read_from_local_path(path: &PathBuf) -> Result<ConfigurationMap<'_>, ConfigFileError> {
-    let contents = std::fs::read_to_string(path)?;
+    let contents = fs::read_to_string(path)?;
     toml::from_str(&contents).map_err(ConfigFileError::from)
 }
 

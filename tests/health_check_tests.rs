@@ -14,24 +14,24 @@
 
 mod test_helpers;
 use crate::test_helpers::output_includes;
+use std::error::Error;
 use test_helpers::{run_fails, run_succeeds};
-
 #[test]
-fn test_health_check_local_alarms() -> Result<(), Box<dyn std::error::Error>> {
+fn test_health_check_local_alarms() -> Result<(), Box<dyn Error>> {
     run_succeeds(["health_check", "local_alarms"]).stdout(output_includes("passed"));
 
     Ok(())
 }
 
 #[test]
-fn test_health_check_cluster_wide_alarms() -> Result<(), Box<dyn std::error::Error>> {
+fn test_health_check_cluster_wide_alarms() -> Result<(), Box<dyn Error>> {
     run_succeeds(["health_check", "cluster_wide_alarms"]).stdout(output_includes("passed"));
 
     Ok(())
 }
 
 #[test]
-fn test_health_check_port_listener_succeeds() -> Result<(), Box<dyn std::error::Error>> {
+fn test_health_check_port_listener_succeeds() -> Result<(), Box<dyn Error>> {
     run_succeeds(["health_check", "port_listener", "--port", "15672"])
         .stdout(output_includes("passed"));
 
@@ -39,7 +39,7 @@ fn test_health_check_port_listener_succeeds() -> Result<(), Box<dyn std::error::
 }
 
 #[test]
-fn test_health_check_port_listener_fails() -> Result<(), Box<dyn std::error::Error>> {
+fn test_health_check_port_listener_fails() -> Result<(), Box<dyn Error>> {
     run_fails(["health_check", "port_listener", "--port", "15679"])
         .stdout(output_includes("failed"));
 
@@ -47,7 +47,7 @@ fn test_health_check_port_listener_fails() -> Result<(), Box<dyn std::error::Err
 }
 
 #[test]
-fn test_health_check_protocol_listener_succeeds() -> Result<(), Box<dyn std::error::Error>> {
+fn test_health_check_protocol_listener_succeeds() -> Result<(), Box<dyn Error>> {
     run_succeeds(["health_check", "protocol_listener", "--protocol", "amqp"])
         .stdout(output_includes("passed"));
 
@@ -55,7 +55,7 @@ fn test_health_check_protocol_listener_succeeds() -> Result<(), Box<dyn std::err
 }
 
 #[test]
-fn test_health_check_protocol_listener_fails() -> Result<(), Box<dyn std::error::Error>> {
+fn test_health_check_protocol_listener_fails() -> Result<(), Box<dyn Error>> {
     run_fails([
         "health_check",
         "protocol_listener",

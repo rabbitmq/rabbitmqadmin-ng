@@ -13,14 +13,14 @@
 // limitations under the License.
 use predicates::prelude::*;
 use rabbitmq_http_client::requests::{FederationUpstreamParams, QueueFederationParams};
+use std::error::Error;
 
 mod test_helpers;
 use crate::test_helpers::{amqp_endpoint_with_vhost, await_ms, delete_vhost, output_includes};
 use test_helpers::{run_fails, run_succeeds};
 
 #[test]
-fn test_federation_upstream_declaration_for_queue_federation_case0()
--> Result<(), Box<dyn std::error::Error>> {
+fn test_federation_upstream_declaration_for_queue_federation_case0() -> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.federation.queue.test1";
     let name = "up.for_queue_federation";
 
@@ -56,8 +56,8 @@ fn test_federation_upstream_declaration_for_queue_federation_case0()
 }
 
 #[test]
-fn test_federation_upstream_declaration_for_queue_federation_case1a()
--> Result<(), Box<dyn std::error::Error>> {
+fn test_federation_upstream_declaration_for_queue_federation_case1a() -> Result<(), Box<dyn Error>>
+{
     let vh = "rabbitmqadmin.federation.queue.test2";
     let name = "up.for_queue_federation.a";
 
@@ -95,8 +95,8 @@ fn test_federation_upstream_declaration_for_queue_federation_case1a()
 }
 
 #[test]
-fn test_federation_upstream_declaration_for_queue_federation_case1b()
--> Result<(), Box<dyn std::error::Error>> {
+fn test_federation_upstream_declaration_for_queue_federation_case1b() -> Result<(), Box<dyn Error>>
+{
     let vh = "rabbitmqadmin.federation.queue.test3";
     let name = "up.for_queue_federation.b";
 
@@ -137,8 +137,7 @@ fn test_federation_upstream_declaration_for_queue_federation_case1b()
 }
 
 #[test]
-fn test_federation_upstream_declaration_for_queue_federation_case2()
--> Result<(), Box<dyn std::error::Error>> {
+fn test_federation_upstream_declaration_for_queue_federation_case2() -> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.federation.queue.test4";
     let name = "up.for_queue_federation";
 
@@ -171,8 +170,7 @@ fn test_federation_upstream_declaration_for_queue_federation_case2()
 }
 
 #[test]
-fn test_federation_upstream_declaration_for_queue_federation_case3()
--> Result<(), Box<dyn std::error::Error>> {
+fn test_federation_upstream_declaration_for_queue_federation_case3() -> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.federation.queue.test5";
     let name = "up.for_queue_federation";
 
@@ -203,8 +201,7 @@ fn test_federation_upstream_declaration_for_queue_federation_case3()
 }
 
 #[test]
-fn test_federation_upstream_declaration_for_queue_federation_case4()
--> Result<(), Box<dyn std::error::Error>> {
+fn test_federation_upstream_declaration_for_queue_federation_case4() -> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.federation.queue.test6";
     let name = "up.for_queue_federation";
 
@@ -237,8 +234,7 @@ fn test_federation_upstream_declaration_for_queue_federation_case4()
 }
 
 #[test]
-fn test_federation_list_all_upstreams_with_queue_federation()
--> Result<(), Box<dyn std::error::Error>> {
+fn test_federation_list_all_upstreams_with_queue_federation() -> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.federation.queue.test7";
     let name = "up.for_queue_federation/5";
 
@@ -280,8 +276,8 @@ fn test_federation_list_all_upstreams_with_queue_federation()
 }
 
 #[test]
-fn test_federation_delete_an_upstream_with_queue_federation_settings()
--> Result<(), Box<dyn std::error::Error>> {
+fn test_federation_delete_an_upstream_with_queue_federation_settings() -> Result<(), Box<dyn Error>>
+{
     let vh = "rabbitmqadmin.federation.queue.test8";
     let name = "up.for_queue_federation.6";
 
@@ -334,8 +330,7 @@ fn test_federation_delete_an_upstream_with_queue_federation_settings()
 }
 
 #[test]
-fn test_federation_list_all_links_with_queue_federation_settings()
--> Result<(), Box<dyn std::error::Error>> {
+fn test_federation_list_all_links_with_queue_federation_settings() -> Result<(), Box<dyn Error>> {
     let vh1 = "rabbitmqadmin.federation.links.a";
     let vh2 = "rabbitmqadmin.federation.links.b";
     let name = "up.for_queue_federation.links.a";

@@ -13,12 +13,12 @@
 // limitations under the License.
 
 use predicates::prelude::*;
-
+use std::error::Error;
 mod test_helpers;
 use crate::test_helpers::*;
 
 #[test]
-fn test_list_feature_flags() -> Result<(), Box<dyn std::error::Error>> {
+fn test_list_feature_flags() -> Result<(), Box<dyn Error>> {
     run_succeeds(["list", "feature_flags"])
         .stdout(output_includes("rabbitmq_4.0.0").and(output_includes("khepri_db")));
 

@@ -11,6 +11,8 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+use std::env;
+use std::error::Error;
 use std::path;
 use std::path::PathBuf;
 
@@ -21,7 +23,7 @@ use crate::test_helpers::output_includes;
 use test_helpers::{run_fails, run_succeeds};
 
 #[test]
-fn combined_integration_test1() -> Result<(), Box<dyn std::error::Error>> {
+fn combined_integration_test1() -> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.combined_integration.test1";
     let config_path = path::absolute("./tests/fixtures/config_files/config_file1.conf")
         .expect("failed to compute an absolute version for a ./test/fixtures path");
@@ -46,7 +48,7 @@ fn combined_integration_test1() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn combined_integration_test2() -> Result<(), Box<dyn std::error::Error>> {
+fn combined_integration_test2() -> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.combined_integration.test2";
 
     // Uses a node alias that does not exist in the file
@@ -77,7 +79,7 @@ fn combined_integration_test2() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn combined_integration_test3() -> Result<(), Box<dyn std::error::Error>> {
+fn combined_integration_test3() -> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.combined_integration.test3";
 
     // Uses a node alias that does not exist in the file
@@ -97,7 +99,7 @@ fn combined_integration_test3() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn combined_integration_test4() -> Result<(), Box<dyn std::error::Error>> {
+fn combined_integration_test4() -> Result<(), Box<dyn Error>> {
     // This test uses administrative credentials to create a new user
     // and set up a topology using those new credentials
     let vh = "rabbitmqadmin.combined_integration.test4";
@@ -235,11 +237,11 @@ fn combined_integration_test4() -> Result<(), Box<dyn std::error::Error>> {
 // Implementation
 //
 
-fn report_a_missing_config_file(config_path: PathBuf) -> Result<(), Box<dyn std::error::Error>> {
+fn report_a_missing_config_file(config_path: PathBuf) -> Result<(), Box<dyn Error>> {
     println!(
         "{} doesn't exist. Current working directory: {}",
         config_path.to_string_lossy(),
-        std::env::current_dir()?.display()
+        env::current_dir()?.display()
     );
     Ok(())
 }

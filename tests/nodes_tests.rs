@@ -13,12 +13,12 @@
 // limitations under the License.
 
 use predicates::prelude::*;
-
+use std::error::Error;
 mod test_helpers;
 use crate::test_helpers::*;
 
 #[test]
-fn test_list_nodes() -> Result<(), Box<dyn std::error::Error>> {
+fn test_list_nodes() -> Result<(), Box<dyn Error>> {
     run_succeeds(["list", "nodes"]).stdout(output_includes("rabbit@"));
 
     run_succeeds(["nodes", "list"]).stdout(output_includes("rabbit@"));
@@ -27,7 +27,7 @@ fn test_list_nodes() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn test_nodes_memory_breakdown_in_bytes_succeeds() -> Result<(), Box<dyn std::error::Error>> {
+fn test_nodes_memory_breakdown_in_bytes_succeeds() -> Result<(), Box<dyn Error>> {
     let rc = api_client();
     let nodes = rc.list_nodes()?;
     let first = nodes.first().unwrap();
@@ -49,7 +49,7 @@ fn test_nodes_memory_breakdown_in_bytes_succeeds() -> Result<(), Box<dyn std::er
 }
 
 #[test]
-fn test_nodes_memory_breakdown_in_percent_succeeds() -> Result<(), Box<dyn std::error::Error>> {
+fn test_nodes_memory_breakdown_in_percent_succeeds() -> Result<(), Box<dyn Error>> {
     let rc = api_client();
     let nodes = rc.list_nodes()?;
     let first = nodes.first().unwrap();

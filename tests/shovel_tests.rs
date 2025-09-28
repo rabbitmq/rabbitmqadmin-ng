@@ -16,9 +16,9 @@ mod test_helpers;
 
 use crate::test_helpers::*;
 use predicates::boolean::PredicateBooleanExt;
-
+use std::error::Error;
 #[test]
-fn test_shovel_declaration_without_source_uri() -> Result<(), Box<dyn std::error::Error>> {
+fn test_shovel_declaration_without_source_uri() -> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.shovels.test20";
     let name = "shovels.test_shovel_declaration_without_source_uri";
 
@@ -49,7 +49,7 @@ fn test_shovel_declaration_without_source_uri() -> Result<(), Box<dyn std::error
 }
 
 #[test]
-fn test_shovel_declaration_without_destination_uri() -> Result<(), Box<dyn std::error::Error>> {
+fn test_shovel_declaration_without_destination_uri() -> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.shovels.test25";
     let name = "shovels.test_shovel_declaration_without_destination_uri";
 
@@ -80,8 +80,7 @@ fn test_shovel_declaration_without_destination_uri() -> Result<(), Box<dyn std::
 }
 
 #[test]
-fn test_shovel_declaration_with_overlapping_destination_types()
--> Result<(), Box<dyn std::error::Error>> {
+fn test_shovel_declaration_with_overlapping_destination_types() -> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.shovels.test21";
     let name = "shovels.test_shovel_declaration_with_overlapping_destination_types";
 
@@ -136,7 +135,7 @@ fn test_shovel_declaration_with_overlapping_destination_types()
 }
 
 #[test]
-fn test_amqp091_shovel_declaration_and_deletion() -> Result<(), Box<dyn std::error::Error>> {
+fn test_amqp091_shovel_declaration_and_deletion() -> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.shovels.test22";
     delete_vhost(vh).expect("failed to delete a virtual host");
 
@@ -199,7 +198,7 @@ fn test_amqp091_shovel_declaration_and_deletion() -> Result<(), Box<dyn std::err
 }
 
 #[test]
-fn test_amqp10_shovel_declaration_and_deletion() -> Result<(), Box<dyn std::error::Error>> {
+fn test_amqp10_shovel_declaration_and_deletion() -> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.shovels.test23";
     let name = "shovels.test_amqp10_shovel_declaration_and_deletion";
 
@@ -249,7 +248,7 @@ fn test_amqp10_shovel_declaration_and_deletion() -> Result<(), Box<dyn std::erro
 }
 
 #[test]
-fn test_shovels_delete_idempotently() -> Result<(), Box<dyn std::error::Error>> {
+fn test_shovels_delete_idempotently() -> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.shovels.test24";
     let shovel_name = "test_shovel_delete_idempotently";
 

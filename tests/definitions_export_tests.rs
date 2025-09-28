@@ -13,20 +13,20 @@
 // limitations under the License.
 
 use predicates::prelude::*;
-
+use std::error::Error;
 mod test_helpers;
 use crate::test_helpers::{delete_vhost, output_includes};
 use test_helpers::run_succeeds;
 
 #[test]
-fn test_export_cluster_wide_definitions() -> Result<(), Box<dyn std::error::Error>> {
+fn test_export_cluster_wide_definitions() -> Result<(), Box<dyn Error>> {
     run_succeeds(["definitions", "export"]).stdout(output_includes("guest"));
 
     Ok(())
 }
 
 #[test]
-fn test_export_vhost_definitions() -> Result<(), Box<dyn std::error::Error>> {
+fn test_export_vhost_definitions() -> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.definitions_export.test1";
     delete_vhost(vh).expect("failed to delete a virtual host");
     run_succeeds(["declare", "vhost", "--name", vh]);
@@ -46,8 +46,7 @@ fn test_export_vhost_definitions() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn test_export_cluster_wide_definitions_with_transformations_case1()
--> Result<(), Box<dyn std::error::Error>> {
+fn test_export_cluster_wide_definitions_with_transformations_case1() -> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.definitions_export.test2";
     delete_vhost(vh).expect("failed to delete a virtual host");
     run_succeeds(["declare", "vhost", "--name", vh]);
@@ -95,8 +94,7 @@ fn test_export_cluster_wide_definitions_with_transformations_case1()
 }
 
 #[test]
-fn test_export_vhost_definitions_with_transformations_case1()
--> Result<(), Box<dyn std::error::Error>> {
+fn test_export_vhost_definitions_with_transformations_case1() -> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.definitions_export.test3";
     delete_vhost(vh).expect("failed to delete a virtual host");
     run_succeeds(["declare", "vhost", "--name", vh]);

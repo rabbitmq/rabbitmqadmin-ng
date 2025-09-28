@@ -13,12 +13,13 @@
 // limitations under the License.
 
 use predicates::prelude::*;
+use std::error::Error;
 
 mod test_helpers;
 use crate::test_helpers::*;
 
 #[test]
-fn list_exchanges() -> Result<(), Box<dyn std::error::Error>> {
+fn list_exchanges() -> Result<(), Box<dyn Error>> {
     let vh1 = "rabbitmqadmin.exchange_vhost_1";
     let vh2 = "rabbitmqadmin.exchange_vhost_2";
 
@@ -73,7 +74,7 @@ fn list_exchanges() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn exchanges_list() -> Result<(), Box<dyn std::error::Error>> {
+fn exchanges_list() -> Result<(), Box<dyn Error>> {
     let vh1 = "rabbitmqadmin.exchange_vhost_3";
     let vh2 = "rabbitmqadmin.exchange_vhost_4";
 
@@ -128,8 +129,7 @@ fn exchanges_list() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn delete_an_existing_exchange_using_original_command_group()
--> Result<(), Box<dyn std::error::Error>> {
+fn delete_an_existing_exchange_using_original_command_group() -> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.exchanges.test1";
     let x = "exchange_1_to_delete";
 
@@ -155,8 +155,7 @@ fn delete_an_existing_exchange_using_original_command_group()
 }
 
 #[test]
-fn delete_an_existing_exchange_using_exchanges_command_group()
--> Result<(), Box<dyn std::error::Error>> {
+fn delete_an_existing_exchange_using_exchanges_command_group() -> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.exchanges.test2";
     let x = "exchange_1_to_delete";
 
@@ -182,7 +181,7 @@ fn delete_an_existing_exchange_using_exchanges_command_group()
 }
 
 #[test]
-fn delete_a_non_existing_exchange() -> Result<(), Box<dyn std::error::Error>> {
+fn delete_a_non_existing_exchange() -> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.exchanges.test3";
 
     // declare a vhost
@@ -217,7 +216,7 @@ fn delete_a_non_existing_exchange() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn test_exchanges_bind_and_unbind() -> Result<(), Box<dyn std::error::Error>> {
+fn test_exchanges_bind_and_unbind() -> Result<(), Box<dyn Error>> {
     let vh1 = "rabbitmqadmin.exchanges_bind_vhost_3";
     let vh2 = "rabbitmqadmin.exchanges_bind_vhost_4";
     let q1 = "new_queue_1";

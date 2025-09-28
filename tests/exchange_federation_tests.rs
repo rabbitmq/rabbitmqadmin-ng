@@ -14,14 +14,15 @@
 use predicates::prelude::*;
 use rabbitmq_http_client::commons::QueueType;
 use rabbitmq_http_client::requests::{ExchangeFederationParams, FederationUpstreamParams};
+use std::error::Error;
 
 mod test_helpers;
 use crate::test_helpers::{amqp_endpoint_with_vhost, delete_vhost, output_includes};
 use test_helpers::{run_fails, run_succeeds};
 
 #[test]
-fn test_federation_upstream_declaration_for_exchange_federation_case0()
--> Result<(), Box<dyn std::error::Error>> {
+fn test_federation_upstream_declaration_for_exchange_federation_case0() -> Result<(), Box<dyn Error>>
+{
     let vh = "rabbitmqadmin.federation.exchange.test1";
     let name = "up.for_exchange_federation.0";
 
@@ -52,7 +53,7 @@ fn test_federation_upstream_declaration_for_exchange_federation_case0()
 
 #[test]
 fn test_federation_upstream_declaration_for_exchange_federation_case1a()
--> Result<(), Box<dyn std::error::Error>> {
+-> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.federation.exchange.test2";
     let name = "up.for_exchange_federation.1a";
 
@@ -89,7 +90,7 @@ fn test_federation_upstream_declaration_for_exchange_federation_case1a()
 
 #[test]
 fn test_federation_upstream_declaration_for_exchange_federation_case1b()
--> Result<(), Box<dyn std::error::Error>> {
+-> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.federation.exchange.test3";
     let name = "up.for_exchange_federation.1b";
 
@@ -128,8 +129,8 @@ fn test_federation_upstream_declaration_for_exchange_federation_case1b()
 }
 
 #[test]
-fn test_federation_upstream_declaration_for_exchange_federation_case2()
--> Result<(), Box<dyn std::error::Error>> {
+fn test_federation_upstream_declaration_for_exchange_federation_case2() -> Result<(), Box<dyn Error>>
+{
     let vh = "rabbitmqadmin.federation.exchange.test4";
     let name = "up.for_exchange_federation.2";
 
@@ -171,8 +172,8 @@ fn test_federation_upstream_declaration_for_exchange_federation_case2()
 }
 
 #[test]
-fn test_federation_upstream_declaration_for_exchange_federation_case3()
--> Result<(), Box<dyn std::error::Error>> {
+fn test_federation_upstream_declaration_for_exchange_federation_case3() -> Result<(), Box<dyn Error>>
+{
     let vh = "rabbitmqadmin.federation.exchange.test5";
     let name = "up.for_exchange_federation.3";
 
@@ -208,8 +209,8 @@ fn test_federation_upstream_declaration_for_exchange_federation_case3()
 }
 
 #[test]
-fn test_federation_upstream_declaration_for_exchange_federation_case4()
--> Result<(), Box<dyn std::error::Error>> {
+fn test_federation_upstream_declaration_for_exchange_federation_case4() -> Result<(), Box<dyn Error>>
+{
     let vh = "rabbitmqadmin.federation.exchange.test6";
     let name = "up.for_exchange_federation.4";
 
@@ -250,8 +251,7 @@ fn test_federation_upstream_declaration_for_exchange_federation_case4()
 }
 
 #[test]
-fn test_federation_list_all_upstreams_with_exchange_federation()
--> Result<(), Box<dyn std::error::Error>> {
+fn test_federation_list_all_upstreams_with_exchange_federation() -> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.federation.exchange.test7";
     let name = "up.for_exchange_federation.5";
 
@@ -300,7 +300,7 @@ fn test_federation_list_all_upstreams_with_exchange_federation()
 
 #[test]
 fn test_federation_delete_an_upstream_with_exchange_federation_settings()
--> Result<(), Box<dyn std::error::Error>> {
+-> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.federation.exchange.test8";
     let name = "up.for_exchange_federation.6";
 
@@ -360,7 +360,7 @@ fn test_federation_delete_an_upstream_with_exchange_federation_settings()
 }
 
 #[test]
-fn test_federation_delete_upstream_idempotently() -> Result<(), Box<dyn std::error::Error>> {
+fn test_federation_delete_upstream_idempotently() -> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.federation.exchange.test9";
     let upstream_name = "test_upstream_delete_idempotently";
 

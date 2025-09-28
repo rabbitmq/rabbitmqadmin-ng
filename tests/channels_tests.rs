@@ -14,16 +14,16 @@
 
 mod test_helpers;
 use crate::test_helpers::*;
-
+use std::error::Error;
 #[test]
-fn test_list_channels1() -> Result<(), Box<dyn std::error::Error>> {
+fn test_list_channels1() -> Result<(), Box<dyn Error>> {
     run_succeeds(["channels", "list"]);
 
     Ok(())
 }
 
 #[test]
-fn test_list_channels2() -> Result<(), Box<dyn std::error::Error>> {
+fn test_list_channels2() -> Result<(), Box<dyn Error>> {
     run_succeeds(["list", "channels"]);
 
     Ok(())

@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::env;
+
 /// Represents the two modes of operation for the `rabbitmqadmin` CLI:
 /// interactive (driven by a human) and non-interactive (driven by automation tools).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -53,7 +55,7 @@ pub fn should_infer_long_options() -> bool {
 }
 
 fn is_enabled_in_env(key: &str) -> bool {
-    match std::env::var(key) {
+    match env::var(key) {
         Ok(val) => val.to_lowercase().trim() == "true",
         Err(_) => false,
     }

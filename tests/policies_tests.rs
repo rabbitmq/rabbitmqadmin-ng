@@ -13,12 +13,12 @@
 // limitations under the License.
 
 use predicates::prelude::*;
-
+use std::error::Error;
 mod test_helpers;
 use crate::test_helpers::*;
 
 #[test]
-fn test_list_policies() -> Result<(), Box<dyn std::error::Error>> {
+fn test_list_policies() -> Result<(), Box<dyn Error>> {
     let policy_name = "test_policy";
 
     run_succeeds([
@@ -45,7 +45,7 @@ fn test_list_policies() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn test_operator_policies() -> Result<(), Box<dyn std::error::Error>> {
+fn test_operator_policies() -> Result<(), Box<dyn Error>> {
     let operator_policy_name = "test_operator_policy";
 
     run_succeeds([
@@ -72,7 +72,7 @@ fn test_operator_policies() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn test_policies_declare_list_and_delete() -> Result<(), Box<dyn std::error::Error>> {
+fn test_policies_declare_list_and_delete() -> Result<(), Box<dyn Error>> {
     let policy_name = "test_policies_declare_list_and_delete";
 
     run_succeeds([
@@ -99,7 +99,7 @@ fn test_policies_declare_list_and_delete() -> Result<(), Box<dyn std::error::Err
 }
 
 #[test]
-fn test_policies_in() -> Result<(), Box<dyn std::error::Error>> {
+fn test_policies_in() -> Result<(), Box<dyn Error>> {
     let vh1 = "rabbitmqadmin.test_policies_in.1";
     run_succeeds(["delete", "vhost", "--name", vh1, "--idempotently"]);
     run_succeeds(["declare", "vhost", "--name", vh1]);
@@ -141,7 +141,7 @@ fn test_policies_in() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn test_policies_in_with_entity_type() -> Result<(), Box<dyn std::error::Error>> {
+fn test_policies_in_with_entity_type() -> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.policies.test1";
     run_succeeds(["delete", "vhost", "--name", vh, "--idempotently"]);
     run_succeeds(["declare", "vhost", "--name", vh]);
@@ -202,7 +202,7 @@ fn test_policies_in_with_entity_type() -> Result<(), Box<dyn std::error::Error>>
 }
 
 #[test]
-fn test_policies_matching_objects() -> Result<(), Box<dyn std::error::Error>> {
+fn test_policies_matching_objects() -> Result<(), Box<dyn Error>> {
     let vh1 = "rabbitmqadmin.vh.policies.11";
     let vh2 = "rabbitmqadmin.vh.policies.12";
     let vh3 = "rabbitmqadmin.vh.policies.13";
@@ -345,8 +345,7 @@ fn test_policies_matching_objects() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn test_policies_declare_list_update_definition_and_delete()
--> Result<(), Box<dyn std::error::Error>> {
+fn test_policies_declare_list_update_definition_and_delete() -> Result<(), Box<dyn Error>> {
     let policy_name = "test_policies_declare_list_update_definition_and_delete";
 
     run_succeeds([
@@ -387,7 +386,7 @@ fn test_policies_declare_list_update_definition_and_delete()
 }
 
 #[test]
-fn test_policies_individual_policy_key_manipulation() -> Result<(), Box<dyn std::error::Error>> {
+fn test_policies_individual_policy_key_manipulation() -> Result<(), Box<dyn Error>> {
     let policy_name = "test_policies_individual_policy_key_manipulation";
 
     run_succeeds([
@@ -442,7 +441,7 @@ fn test_policies_individual_policy_key_manipulation() -> Result<(), Box<dyn std:
 }
 
 #[test]
-fn test_policies_bulk_policy_key_manipulation() -> Result<(), Box<dyn std::error::Error>> {
+fn test_policies_bulk_policy_key_manipulation() -> Result<(), Box<dyn Error>> {
     let vh1 = "rabbitmqadmin.test_policies_bulk_policy_key_manipulation.1";
     let vh2 = "rabbitmqadmin.test_policies_bulk_policy_key_manipulation.2";
 
@@ -543,7 +542,7 @@ fn test_policies_bulk_policy_key_manipulation() -> Result<(), Box<dyn std::error
 }
 
 #[test]
-fn test_policies_patch_definition() -> Result<(), Box<dyn std::error::Error>> {
+fn test_policies_patch_definition() -> Result<(), Box<dyn Error>> {
     let vh1 = "rabbitmqadmin.test_policies_patch_definition.1";
     run_succeeds(["delete", "vhost", "--name", vh1, "--idempotently"]);
     run_succeeds(["declare", "vhost", "--name", vh1]);
@@ -597,7 +596,7 @@ fn test_policies_patch_definition() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn test_policies_declare_override() -> Result<(), Box<dyn std::error::Error>> {
+fn test_policies_declare_override() -> Result<(), Box<dyn Error>> {
     let policy_name = "test_list_policies_override.1";
     let override_name = "overrides.test_list_policies_override.a";
 
@@ -646,7 +645,7 @@ fn test_policies_declare_override() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn test_policies_declare_blanket() -> Result<(), Box<dyn std::error::Error>> {
+fn test_policies_declare_blanket() -> Result<(), Box<dyn Error>> {
     let policy_name = "test_policies_declare_blanket.1";
 
     run_succeeds([

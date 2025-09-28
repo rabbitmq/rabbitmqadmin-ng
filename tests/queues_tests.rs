@@ -13,12 +13,13 @@
 // limitations under the License.
 
 use predicates::prelude::*;
+use std::error::Error;
 
 mod test_helpers;
 use crate::test_helpers::*;
 
 #[test]
-fn list_queues() -> Result<(), Box<dyn std::error::Error>> {
+fn list_queues() -> Result<(), Box<dyn Error>> {
     let vh1 = "rabbitmqadmin.queue_vhost_1";
     let vh2 = "rabbitmqadmin.queue_vhost_2";
     let q1 = "new_queue1";
@@ -65,7 +66,7 @@ fn list_queues() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn queues_lists() -> Result<(), Box<dyn std::error::Error>> {
+fn queues_lists() -> Result<(), Box<dyn Error>> {
     let vh1 = "rabbitmqadmin.queue_vhost_3";
     let vh2 = "rabbitmqadmin.queue_vhost_4";
     let q1 = "new_queue1";
@@ -112,7 +113,7 @@ fn queues_lists() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn test_queues_delete_idempotently() -> Result<(), Box<dyn std::error::Error>> {
+fn test_queues_delete_idempotently() -> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.queues.test1";
     let q = "test_queue_delete_idempotently";
 

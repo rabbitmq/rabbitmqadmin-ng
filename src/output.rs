@@ -244,7 +244,7 @@ impl<'a> ResultHandler<'a> {
 
     pub fn single_value_output_with_result<T: fmt::Display>(
         &mut self,
-        result: Result<T, crate::errors::CommandRunError>,
+        result: Result<T, CommandRunError>,
     ) {
         match result {
             Ok(output) => {

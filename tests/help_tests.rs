@@ -14,10 +14,10 @@
 
 mod test_helpers;
 use crate::test_helpers::output_includes;
+use std::error::Error;
 use test_helpers::{run_fails, run_succeeds};
-
 #[test]
-fn show_help_with_no_arguments() -> Result<(), Box<dyn std::error::Error>> {
+fn show_help_with_no_arguments() -> Result<(), Box<dyn Error>> {
     let args: [&str; 0] = [];
     run_fails(args).stderr(output_includes(
         "requires a subcommand but one was not provided",
@@ -27,7 +27,7 @@ fn show_help_with_no_arguments() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn show_subcommands_with_no_arguments() -> Result<(), Box<dyn std::error::Error>> {
+fn show_subcommands_with_no_arguments() -> Result<(), Box<dyn Error>> {
     let args: [&str; 0] = [];
     run_fails(args).stderr(output_includes("subcommands:"));
 
@@ -35,7 +35,7 @@ fn show_subcommands_with_no_arguments() -> Result<(), Box<dyn std::error::Error>
 }
 
 #[test]
-fn show_subcommands_with_category_name_and_help() -> Result<(), Box<dyn std::error::Error>> {
+fn show_subcommands_with_category_name_and_help() -> Result<(), Box<dyn Error>> {
     let args = ["declare", "--help"];
     run_succeeds(args).stdout(output_includes("Commands:"));
 
@@ -43,7 +43,7 @@ fn show_subcommands_with_category_name_and_help() -> Result<(), Box<dyn std::err
 }
 
 #[test]
-fn shows_subcommand_specific_info_with_help() -> Result<(), Box<dyn std::error::Error>> {
+fn shows_subcommand_specific_info_with_help() -> Result<(), Box<dyn Error>> {
     let args = ["declare", "queue", "--help"];
     run_succeeds(args).stdout(output_includes("Usage:"));
 

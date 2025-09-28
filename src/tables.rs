@@ -19,7 +19,7 @@ use rabbitmq_http_client::responses::{
     QuorumCriticalityCheckDetails, SchemaDefinitionSyncStatus,
 };
 use reqwest::StatusCode;
-use std::error::Error;
+use std::{error::Error, fmt};
 use tabled::settings::Panel;
 use tabled::{Table, Tabled};
 use url::Url;
@@ -57,7 +57,7 @@ struct OverviewRow<'a> {
 #[derive(Debug, Tabled)]
 struct RowOfTwo<'a, T>
 where
-    T: ?Sized + std::fmt::Display,
+    T: ?Sized + fmt::Display,
 {
     key: &'a str,
     value: &'a T,

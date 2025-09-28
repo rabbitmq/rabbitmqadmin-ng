@@ -14,9 +14,9 @@
 
 mod test_helpers;
 use crate::test_helpers::*;
-
+use std::error::Error;
 #[test]
-fn test_messages() -> Result<(), Box<dyn std::error::Error>> {
+fn test_messages() -> Result<(), Box<dyn Error>> {
     // declare a new queue
     let q = "publish_consume";
     run_succeeds(["declare", "queue", "--name", q, "--type", "classic"]);

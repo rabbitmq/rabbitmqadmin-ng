@@ -14,9 +14,9 @@
 
 mod test_helpers;
 use crate::test_helpers::*;
-
+use std::error::Error;
 #[test]
-fn test_enable_a_feature_flag() -> Result<(), Box<dyn std::error::Error>> {
+fn test_enable_a_feature_flag() -> Result<(), Box<dyn Error>> {
     let ff_name = "detailed_queues_endpoint";
 
     run_succeeds(["feature_flags", "enable", "--name", ff_name]);
@@ -26,7 +26,7 @@ fn test_enable_a_feature_flag() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn test_enable_all_stable_feature_flags() -> Result<(), Box<dyn std::error::Error>> {
+fn test_enable_all_stable_feature_flags() -> Result<(), Box<dyn Error>> {
     let ff_name = "rabbitmq_4.0.0";
 
     run_succeeds(["feature_flags", "enable_all"]);

@@ -18,6 +18,7 @@ use reqwest::{
     StatusCode,
     header::{HeaderMap, InvalidHeaderValue},
 };
+use std::io;
 use url::Url;
 
 #[derive(thiserror::Error, Debug)]
@@ -39,7 +40,7 @@ pub enum CommandRunError {
         cause: rustls::pki_types::pem::Error,
     },
     #[error("Run into an I/O error when loading a file: {0}")]
-    IoError(std::io::Error),
+    IoError(io::Error),
     #[error(
         "Local TLS certificate file at {local_path} does not exist, cannot be read or passed as a PEM file: {cause}"
     )]
@@ -103,8 +104,8 @@ pub enum CommandRunError {
     Other,
 }
 
-impl From<std::io::Error> for CommandRunError {
-    fn from(value: std::io::Error) -> Self {
+impl From<io::Error> for CommandRunError {
+    fn from(value: io::Error) -> Self {
         CommandRunError::IoError(value)
     }
 }

@@ -15,10 +15,10 @@
 mod test_helpers;
 
 use crate::test_helpers::*;
-
+use std::error::Error;
 #[test]
-fn test_disable_tls_peer_verification_for_all_destination_uris_basic()
--> Result<(), Box<dyn std::error::Error>> {
+fn test_disable_tls_peer_verification_for_all_destination_uris_basic() -> Result<(), Box<dyn Error>>
+{
     let vh = "rabbitmqadmin.shovel.modifications.test8";
     let shovel_name = "test_basic_dest_shovel";
 
@@ -71,7 +71,7 @@ fn test_disable_tls_peer_verification_for_all_destination_uris_basic()
 
 #[test]
 fn test_disable_tls_peer_verification_for_all_destination_uris_with_existing_verify_param()
--> Result<(), Box<dyn std::error::Error>> {
+-> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.shovel.modifications.test9";
     let shovel_name = "test_existing_dest_shovel";
 
@@ -147,8 +147,8 @@ fn test_disable_tls_peer_verification_for_all_destination_uris_with_existing_ver
 }
 
 #[test]
-fn test_disable_tls_peer_verification_for_all_destination_uris_amqp10()
--> Result<(), Box<dyn std::error::Error>> {
+fn test_disable_tls_peer_verification_for_all_destination_uris_amqp10() -> Result<(), Box<dyn Error>>
+{
     let vh = "rabbitmqadmin.shovel.modifications.test10";
     let shovel_name = "test_amqp10_dest_shovel";
 
@@ -206,7 +206,7 @@ fn test_disable_tls_peer_verification_for_all_destination_uris_amqp10()
 
 #[test]
 fn test_disable_tls_peer_verification_for_all_destination_uris_with_dummy_query_params()
--> Result<(), Box<dyn std::error::Error>> {
+-> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.shovel.modifications.test11";
     let shovel_name = "test_dummy_dest_params_shovel";
 
@@ -269,7 +269,7 @@ fn test_disable_tls_peer_verification_for_all_destination_uris_with_dummy_query_
 
 #[test]
 fn test_disable_tls_peer_verification_for_all_destination_uris_no_shovels()
--> Result<(), Box<dyn std::error::Error>> {
+-> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.shovel.modifications.test12";
 
     delete_vhost(vh).ok();
@@ -286,8 +286,8 @@ fn test_disable_tls_peer_verification_for_all_destination_uris_no_shovels()
 }
 
 #[test]
-fn test_enable_tls_peer_verification_for_all_destination_uris_basic()
--> Result<(), Box<dyn std::error::Error>> {
+fn test_enable_tls_peer_verification_for_all_destination_uris_basic() -> Result<(), Box<dyn Error>>
+{
     let vh = "rabbitmqadmin.shovel.modifications.test13";
     let shovel_name = "test_enable_basic_dest_shovel";
 
@@ -350,7 +350,7 @@ fn test_enable_tls_peer_verification_for_all_destination_uris_basic()
 
 #[test]
 fn test_enable_tls_peer_verification_for_all_destination_uris_with_existing_params()
--> Result<(), Box<dyn std::error::Error>> {
+-> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.shovel.modifications.test14";
     let shovel_name = "test_enable_existing_dest_shovel";
 

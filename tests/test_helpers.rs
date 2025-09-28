@@ -14,20 +14,22 @@
 #![allow(dead_code)]
 
 use std::env;
+use std::error::Error;
 use std::ffi::OsStr;
+use std::process::Command;
+use std::thread;
 use std::time::Duration;
 
 use assert_cmd::assert::Assert;
 use assert_cmd::prelude::*;
 use predicates::prelude::predicate;
-use std::process::Command;
 
 use rabbitmq_http_client::blocking_api::Client as GenericAPIClient;
 use rabbitmqadmin::pre_flight::InteractivityMode;
 
 type APIClient<'a> = GenericAPIClient<&'a str, &'a str, &'a str>;
 
-type CommandRunResult = Result<(), Box<dyn std::error::Error>>;
+type CommandRunResult = Result<(), Box<dyn Error>>;
 
 pub const ENDPOINT: &str = "http://localhost:15672/api";
 pub const USERNAME: &str = "guest";
@@ -52,11 +54,11 @@ pub fn amqp_endpoint_with_vhost(name: &str) -> String {
 }
 
 pub fn await_ms(ms: u64) {
-    std::thread::sleep(Duration::from_millis(ms));
+    thread::sleep(Duration::from_millis(ms));
 }
 
 pub fn await_metric_emission(ms: u64) {
-    std::thread::sleep(Duration::from_millis(ms));
+    thread::sleep(Duration::from_millis(ms));
 }
 
 pub fn await_queue_metric_emission() {

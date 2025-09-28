@@ -15,10 +15,10 @@
 #![allow(clippy::unnecessary_unwrap)]
 #![allow(clippy::collapsible_if)]
 
-use clap::ArgMatches;
+use clap::{ArgMatches, crate_version};
 use errors::CommandRunError;
-use reqwest::Identity;
-use std::path::PathBuf;
+use reqwest::{Identity, tls::Version as TlsVersion};
+use std::path::{Path, PathBuf};
 use std::{fs, process};
 use sysexits::ExitCode;
 
@@ -185,7 +185,7 @@ fn build_http_client(
     cli: &ArgMatches,
     common_settings: &SharedSettings,
 ) -> Result<HTTPClient, CommandRunError> {
-    let user_agent = format!("rabbitmqadmin-ng {}", clap::crate_version!());
+    let user_agent = format!("rabbitmqadmin-ng {}", crate_version!());
     if should_use_tls(common_settings) {
         let _ = CryptoProvider::install_default(rustls::crypto::aws_lc_rs::default_provider());
 
@@ -202,7 +202,7 @@ fn build_http_client(
             .use_rustls_tls()
             .tls_info(true)
             .tls_sni(true)
-            .min_tls_version(reqwest::tls::Version::TLS_1_2)
+            .min_tls_version(TlsVersion::TLS_1_2)
             .tls_built_in_native_certs(true)
             .tls_built_in_root_certs(true)
             .danger_accept_invalid_certs(disable_peer_verification)
@@ -315,7 +315,7 @@ fn read_pem_file(buf: &PathBuf, file_path: &str) -> Result<Vec<u8>, CommandRunEr
 }
 
 fn validate_certificate_file(path: &str) -> Result<(), CommandRunError> {
-    let path_buf = std::path::Path::new(path);
+    let path_buf = Path::new(path);
 
     if !path_buf.exists() {
         return Err(CommandRunError::CertificateFileNotFound {

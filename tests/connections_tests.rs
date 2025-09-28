@@ -14,30 +14,30 @@
 
 mod test_helpers;
 use crate::test_helpers::*;
-
+use std::error::Error;
 #[test]
-fn test_list_connections1() -> Result<(), Box<dyn std::error::Error>> {
+fn test_list_connections1() -> Result<(), Box<dyn Error>> {
     run_succeeds(["connections", "list"]);
 
     Ok(())
 }
 
 #[test]
-fn test_list_connections2() -> Result<(), Box<dyn std::error::Error>> {
+fn test_list_connections2() -> Result<(), Box<dyn Error>> {
     run_succeeds(["list", "connections"]);
 
     Ok(())
 }
 
 #[test]
-fn test_list_connections_table_styles() -> Result<(), Box<dyn std::error::Error>> {
+fn test_list_connections_table_styles() -> Result<(), Box<dyn Error>> {
     run_succeeds(["--table-style", "markdown", "list", "connections"]);
 
     Ok(())
 }
 
 #[test]
-fn test_list_user_connections1() -> Result<(), Box<dyn std::error::Error>> {
+fn test_list_user_connections1() -> Result<(), Box<dyn Error>> {
     run_succeeds([
         "--table-style",
         "markdown",
@@ -51,7 +51,7 @@ fn test_list_user_connections1() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn test_list_user_connections2() -> Result<(), Box<dyn std::error::Error>> {
+fn test_list_user_connections2() -> Result<(), Box<dyn Error>> {
     run_succeeds([
         "--table-style",
         "markdown",
@@ -65,7 +65,7 @@ fn test_list_user_connections2() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn test_connections_close_idempotently() -> Result<(), Box<dyn std::error::Error>> {
+fn test_connections_close_idempotently() -> Result<(), Box<dyn Error>> {
     run_succeeds([
         "connections",
         "close",

@@ -15,9 +15,10 @@
 mod test_helpers;
 
 use crate::test_helpers::*;
+use std::error::Error;
 
 #[test]
-fn test_vhosts_delete_multiple_basic() -> Result<(), Box<dyn std::error::Error>> {
+fn test_vhosts_delete_multiple_basic() -> Result<(), Box<dyn Error>> {
     let prefix = "rabbitmqadmin.test-vhosts-delete-multiple-basic";
 
     // Clean up any existing test vhosts first (only our specific ones)
@@ -60,7 +61,7 @@ fn test_vhosts_delete_multiple_basic() -> Result<(), Box<dyn std::error::Error>>
 }
 
 #[test]
-fn test_vhosts_delete_multiple_dry_run() -> Result<(), Box<dyn std::error::Error>> {
+fn test_vhosts_delete_multiple_dry_run() -> Result<(), Box<dyn Error>> {
     let prefix = "rabbitmqadmin.test-vhosts-delete-multiple-dry-run";
 
     // Clean up any existing test vhosts first (only our specific ones)
@@ -105,7 +106,7 @@ fn test_vhosts_delete_multiple_dry_run() -> Result<(), Box<dyn std::error::Error
 }
 
 #[test]
-fn test_vhosts_delete_multiple_non_interactive() -> Result<(), Box<dyn std::error::Error>> {
+fn test_vhosts_delete_multiple_non_interactive() -> Result<(), Box<dyn Error>> {
     let prefix = "rabbitmqadmin.test-vhosts-delete-multiple-non-interactive";
 
     // Clean up any existing test vhosts first (only our specific ones)
@@ -148,7 +149,7 @@ fn test_vhosts_delete_multiple_non_interactive() -> Result<(), Box<dyn std::erro
 }
 
 #[test]
-fn test_vhosts_delete_multiple_protects_default_vhost() -> Result<(), Box<dyn std::error::Error>> {
+fn test_vhosts_delete_multiple_protects_default_vhost() -> Result<(), Box<dyn Error>> {
     let prefix = "rabbitmqadmin.test-vhosts-delete-multiple-protects-default";
 
     // Clean up any existing test vhosts first (only our specific ones)
@@ -198,7 +199,7 @@ fn test_vhosts_delete_multiple_protects_default_vhost() -> Result<(), Box<dyn st
 }
 
 #[test]
-fn test_vhosts_delete_multiple_with_invalid_regex() -> Result<(), Box<dyn std::error::Error>> {
+fn test_vhosts_delete_multiple_with_invalid_regex() -> Result<(), Box<dyn Error>> {
     let prefix = "rabbitmqadmin.test-vhosts-delete-multiple-invalid-regex";
 
     // Clean up any existing test vhosts first (only our specific ones)
@@ -230,8 +231,8 @@ fn test_vhosts_delete_multiple_with_invalid_regex() -> Result<(), Box<dyn std::e
 }
 
 #[test]
-fn test_vhosts_delete_multiple_requires_approve_in_interactive_mode()
--> Result<(), Box<dyn std::error::Error>> {
+fn test_vhosts_delete_multiple_requires_approve_in_interactive_mode() -> Result<(), Box<dyn Error>>
+{
     let prefix = "rabbitmqadmin.test-vhosts-delete-multiple-requires-approve";
 
     // Clean up any existing test vhosts first (only our specific ones)
@@ -263,8 +264,7 @@ fn test_vhosts_delete_multiple_requires_approve_in_interactive_mode()
 // This test verifies that the delete_multiple command continues processing
 // even when individual vhost deletions fail and shows appropriate progress indicators.
 #[test]
-fn test_vhosts_delete_multiple_continues_on_individual_failures()
--> Result<(), Box<dyn std::error::Error>> {
+fn test_vhosts_delete_multiple_continues_on_individual_failures() -> Result<(), Box<dyn Error>> {
     let prefix = "rabbitmqadmin.test-vhosts-delete-multiple-continues";
 
     // Clean up any existing test vhosts first (only our specific ones)
@@ -319,8 +319,7 @@ fn test_vhosts_delete_multiple_continues_on_individual_failures()
 }
 
 #[test]
-fn test_vhosts_delete_multiple_protects_deletion_protected_vhosts()
--> Result<(), Box<dyn std::error::Error>> {
+fn test_vhosts_delete_multiple_protects_deletion_protected_vhosts() -> Result<(), Box<dyn Error>> {
     let prefix = "rabbitmqadmin.test-vhosts-delete-multiple-protects-protected";
 
     // Clean up any existing test vhosts first (only our specific ones)

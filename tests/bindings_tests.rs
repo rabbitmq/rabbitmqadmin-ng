@@ -13,12 +13,13 @@
 // limitations under the License.
 
 use predicates::prelude::*;
+use std::error::Error;
 
 mod test_helpers;
 use crate::test_helpers::*;
 
 #[test]
-fn test_list_bindings() -> Result<(), Box<dyn std::error::Error>> {
+fn test_list_bindings() -> Result<(), Box<dyn Error>> {
     let vh1 = "rabbitmqadmin.test_list_bindings_1";
     let vh2 = "rabbitmqadmin.test_list_bindings_2";
     let q1 = "new_queue_1";
@@ -103,7 +104,7 @@ fn test_list_bindings() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn test_bindings_list() -> Result<(), Box<dyn std::error::Error>> {
+fn test_bindings_list() -> Result<(), Box<dyn Error>> {
     let vh1 = "rabbitmqadmin.test_bindings_list_1";
     let vh2 = "rabbitmqadmin.test_bindings_list_2";
     let q1 = "new_queue_1";
@@ -202,7 +203,7 @@ fn test_bindings_list() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn test_bindings_delete_idempotently() -> Result<(), Box<dyn std::error::Error>> {
+fn test_bindings_delete_idempotently() -> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.bindings.test1";
     let source_ex = "test_source_exchange";
     let dest_queue = "test_dest_queue";
