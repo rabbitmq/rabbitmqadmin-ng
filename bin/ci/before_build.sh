@@ -40,4 +40,6 @@ $PLUGINS enable rabbitmq_federation_management
 $PLUGINS enable rabbitmq_stream
 $PLUGINS enable rabbitmq_stream_management
 
+cargo run '--' --non-interactive vhosts delete_multiple --name-pattern "^rabbitmqadmin"
+
 true
