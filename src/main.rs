@@ -30,7 +30,7 @@ mod config;
 mod constants;
 mod errors;
 mod output;
-mod pre_flight;
+pub mod pre_flight;
 mod static_urls;
 mod tables;
 mod tanzu_cli;
@@ -669,14 +669,19 @@ fn dispatch_common_subcommand(
             res_handler.tabular_result(result)
         }
         ("federation", "disable_tls_peer_verification_for_all_upstreams") => {
-            let result =
-                commands::disable_tls_peer_verification_for_all_federation_upstreams(client);
+            let mut prog_rep = res_handler.instantiate_progress_reporter();
+            let result = commands::disable_tls_peer_verification_for_all_federation_upstreams(
+                client,
+                prog_rep.as_mut(),
+            );
             res_handler.no_output_on_success(result);
         }
         ("federation", "enable_tls_peer_verification_for_all_upstreams") => {
+            let mut prog_rep = res_handler.instantiate_progress_reporter();
             let result = commands::enable_tls_peer_verification_for_all_federation_upstreams(
                 client,
                 second_level_args,
+                prog_rep.as_mut(),
             );
             res_handler.no_output_on_success(result);
         }
@@ -1079,24 +1084,36 @@ fn dispatch_common_subcommand(
             res_handler.tabular_result(result)
         }
         ("shovels", "disable_tls_peer_verification_for_all_source_uris") => {
-            let result = commands::disable_tls_peer_verification_for_all_source_uris(client);
+            let mut prog_rep = res_handler.instantiate_progress_reporter();
+            let result = commands::disable_tls_peer_verification_for_all_source_uris(
+                client,
+                prog_rep.as_mut(),
+            );
             res_handler.no_output_on_success(result);
         }
         ("shovels", "disable_tls_peer_verification_for_all_destination_uris") => {
-            let result = commands::disable_tls_peer_verification_for_all_destination_uris(client);
+            let mut prog_rep = res_handler.instantiate_progress_reporter();
+            let result = commands::disable_tls_peer_verification_for_all_destination_uris(
+                client,
+                prog_rep.as_mut(),
+            );
             res_handler.no_output_on_success(result);
         }
         ("shovels", "enable_tls_peer_verification_for_all_source_uris") => {
+            let mut prog_rep = res_handler.instantiate_progress_reporter();
             let result = commands::enable_tls_peer_verification_for_all_source_uris(
                 client,
                 second_level_args,
+                prog_rep.as_mut(),
             );
             res_handler.no_output_on_success(result);
         }
         ("shovels", "enable_tls_peer_verification_for_all_destination_uris") => {
+            let mut prog_rep = res_handler.instantiate_progress_reporter();
             let result = commands::enable_tls_peer_verification_for_all_destination_uris(
                 client,
                 second_level_args,
+                prog_rep.as_mut(),
             );
             res_handler.no_output_on_success(result);
         }
