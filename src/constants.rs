@@ -35,3 +35,6 @@ pub const DEFAULT_CONFIG_SECTION_NAME: &str = "default";
 pub const TANZU_COMMAND_PREFIX: &str = "tanzu";
 
 pub const DEFAULT_BLANKET_POLICY_PRIORITY: i16 = -20;
+
+pub const VHOST_DELETION_PROTECTION_GUIDE_URL: &str =
+    "https://www.rabbitmq.com/docs/vhosts#deletion-protection";

@@ -2711,7 +2711,7 @@ pub fn nodes_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 3]
     .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
 }
 
-pub fn vhosts_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 4] {
+pub fn vhosts_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 6] {
     let list_cmd = Command::new("list")
         .long_about("Lists virtual hosts")
         .after_help(color_print::cformat!(
@@ -2788,9 +2788,40 @@ pub fn vhosts_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 4
                 .required(false),
         )
         .arg(idempotently_arg.clone());
+    let enable_deletion_protection_cmd = Command::new("enable_deletion_protection")
+        .about("Enables deletion protection for a virtual host")
+        .after_help(color_print::cformat!(
+            "<bold>Doc guide:</bold>: {}",
+            VHOST_DELETION_PROTECTION_GUIDE_URL
+        ))
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("virtual host name")
+                .required(true),
+        );
+    let disable_deletion_protection_cmd = Command::new("disable_deletion_protection")
+        .about("Disables deletion protection for a virtual host")
+        .after_help(color_print::cformat!(
+            "<bold>Doc guide:</bold>: {}",
+            VHOST_DELETION_PROTECTION_GUIDE_URL
+        ))
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("virtual host name")
+                .required(true),
+        );
 
-    [list_cmd, declare_cmd, delete_cmd, bulk_delete_cmd]
-        .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+    [
+        list_cmd,
+        declare_cmd,
+        delete_cmd,
+        bulk_delete_cmd,
+        enable_deletion_protection_cmd,
+        disable_deletion_protection_cmd,
+    ]
+    .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
 }
 
 pub fn users_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 6] {

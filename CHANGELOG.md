@@ -24,6 +24,21 @@
 
   **Important**: this command is **very destructive** and should be used with caution. Always test with `--dry-run` first.
 
+* `vhosts enable_deletion_protection` and `vhosts disable_deletion_protection` are two new commands
+   for managing [virtual host deletion protection](https://www.rabbitmq.com/docs/vhosts#deletion-protection):
+
+  ```shell
+  # Enable deletion protection for a virtual host
+  rabbitmqadmin vhosts enable_deletion_protection --name "production-vhost"
+
+  # Disable deletion protection for a virtual host
+  rabbitmqadmin vhosts disable_deletion_protection --name "production-vhost"
+  ```
+
+  Protected virtual hosts cannot be deleted, either individually using `vhosts delete` or
+  as part of bulk operations using `vhosts delete_multiple`. To delete a protected
+  virtual host, its protection must be lifted first.
+
 ## v2.13.0 (Sep 26, 2025)
 
 ### Enhancements

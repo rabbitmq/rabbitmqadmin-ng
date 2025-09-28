@@ -317,3 +317,68 @@ fn test_vhosts_delete_multiple_continues_on_individual_failures()
 
     Ok(())
 }
+
+#[test]
+fn test_vhosts_delete_multiple_protects_deletion_protected_vhosts()
+-> Result<(), Box<dyn std::error::Error>> {
+    let prefix = "rabbitmqadmin.test-vhosts-delete-multiple-protects-protected";
+
+    // Clean up any existing test vhosts first (only our specific ones)
+    delete_vhosts_with_prefix("rabbitmqadmin.test-vhosts-delete-multiple").ok();
+
+    // Create test virtual hosts
+    for i in 1..=3 {
+        let vh_name = format!("{}-{}", prefix, i);
+        run_succeeds(["vhosts", "declare", "--name", &vh_name]);
+    }
+
+    // Enable deletion protection for the second vhost only
+    let protected_vh = format!("{}-2", prefix);
+    run_succeeds([
+        "vhosts",
+        "enable_deletion_protection",
+        "--name",
+        &protected_vh,
+    ]);
+
+    // We begin with this many virtual hosts
+    let client = api_client();
+    let vhosts_before = client.list_vhosts()?;
+    let test_vhosts_before: Vec<_> = vhosts_before
+        .iter()
+        .filter(|vh| vh.name.starts_with(prefix))
+        .collect();
+    assert_eq!(test_vhosts_before.len(), 3);
+
+    // Try to delete all using the 'vhosts delete_multiple' command
+    run_succeeds([
+        "vhosts",
+        "delete_multiple",
+        "--name-pattern",
+        &format!("{}.*", prefix),
+        "--approve",
+        "--idempotently",
+    ]);
+
+    // Verify that the protected vhost still exists, but several others were deleted
+    let vhosts_after = client.list_vhosts()?;
+    let test_vhosts_after: Vec<_> = vhosts_after
+        .iter()
+        .filter(|vh| vh.name.starts_with(prefix))
+        .collect();
+
+    // Only the protected vhost should remain
+    assert_eq!(test_vhosts_after.len(), 1);
+    assert_eq!(test_vhosts_after[0].name, protected_vh);
+
+    // Clean up
+    run_succeeds([
+        "vhosts",
+        "disable_deletion_protection",
+        "--name",
+        &protected_vh,
+    ]);
+    run_succeeds(["vhosts", "delete", "--name", &protected_vh]);
+
+    Ok(())
+}

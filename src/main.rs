@@ -1181,6 +1181,16 @@ fn dispatch_common_subcommand(
             let result = commands::list_vhosts(client);
             res_handler.tabular_result(result)
         }
+        ("vhosts", "enable_deletion_protection") => {
+            let result = commands::enable_vhost_deletion_protection(client, second_level_args)
+                .map_err(Into::into);
+            res_handler.no_output_on_success(result);
+        }
+        ("vhosts", "disable_deletion_protection") => {
+            let result = commands::disable_vhost_deletion_protection(client, second_level_args)
+                .map_err(Into::into);
+            res_handler.no_output_on_success(result);
+        }
         _ => {
             let error = CommandRunError::UnknownCommandTarget {
                 command: pair.0.into(),

@@ -80,3 +80,49 @@ fn test_vhosts_delete() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
+
+#[test]
+fn test_vhosts_enable_deletion_protection() -> Result<(), Box<dyn std::error::Error>> {
+    let vh = "rabbitmqadmin.vhosts.test-deletion-protection-enable";
+    run_succeeds(["vhosts", "delete", "--name", vh, "--idempotently"]);
+
+    run_succeeds(["vhosts", "declare", "--name", vh]);
+
+    run_succeeds(["vhosts", "enable_deletion_protection", "--name", vh]);
+
+    run_succeeds(["vhosts", "disable_deletion_protection", "--name", vh]);
+    run_succeeds(["vhosts", "delete", "--name", vh]);
+
+    Ok(())
+}
+
+#[test]
+fn test_vhosts_disable_deletion_protection() -> Result<(), Box<dyn std::error::Error>> {
+    let vh = "rabbitmqadmin.vhosts.test-deletion-protection-disable";
+    run_succeeds(["vhosts", "delete", "--name", vh, "--idempotently"]);
+
+    run_succeeds(["vhosts", "declare", "--name", vh]);
+
+    run_succeeds(["vhosts", "enable_deletion_protection", "--name", vh]);
+    run_succeeds(["vhosts", "disable_deletion_protection", "--name", vh]);
+
+    run_succeeds(["vhosts", "delete", "--name", vh]);
+
+    Ok(())
+}
+
+#[test]
+fn test_vhosts_protected_vhost_cannot_be_deleted() -> Result<(), Box<dyn std::error::Error>> {
+    let vh = "rabbitmqadmin.vhosts.test-protected-cannot-delete";
+    run_succeeds(["vhosts", "delete", "--name", vh, "--idempotently"]);
+
+    run_succeeds(["vhosts", "declare", "--name", vh]);
+    run_succeeds(["vhosts", "enable_deletion_protection", "--name", vh]);
+
+    run_fails(["vhosts", "delete", "--name", vh]);
+
+    run_succeeds(["vhosts", "disable_deletion_protection", "--name", vh]);
+    run_succeeds(["vhosts", "delete", "--name", vh]);
+
+    Ok(())
+}

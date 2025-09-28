@@ -1267,6 +1267,22 @@ pub fn delete_vhost(client: APIClient, command_args: &ArgMatches) -> ClientResul
     client.delete_vhost(name, idempotently)
 }
 
+pub fn enable_vhost_deletion_protection(
+    client: APIClient,
+    command_args: &ArgMatches,
+) -> ClientResult<()> {
+    let name = command_args.get_one::<String>("name").unwrap();
+    client.enable_vhost_deletion_protection(name)
+}
+
+pub fn disable_vhost_deletion_protection(
+    client: APIClient,
+    command_args: &ArgMatches,
+) -> ClientResult<()> {
+    let name = command_args.get_one::<String>("name").unwrap();
+    client.disable_vhost_deletion_protection(name)
+}
+
 pub fn delete_multiple_vhosts(
     client: APIClient,
     command_args: &ArgMatches,
