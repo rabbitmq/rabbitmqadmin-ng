@@ -1161,6 +1161,22 @@ fn dispatch_common_subcommand(
             let result = commands::delete_vhost(client, second_level_args);
             res_handler.delete_operation_result(result);
         }
+        ("vhosts", "delete_multiple") => {
+            let mut prog_rep = res_handler.instantiate_progress_reporter();
+            let result =
+                commands::delete_multiple_vhosts(client, second_level_args, &mut *prog_rep);
+            match result {
+                Ok(Some(vhosts)) => {
+                    res_handler.tabular_result(Ok(vhosts));
+                }
+                Ok(None) => {
+                    res_handler.no_output_on_success(Ok(()));
+                }
+                Err(e) => {
+                    res_handler.no_output_on_success::<()>(Err(e));
+                }
+            }
+        }
         ("vhosts", "list") => {
             let result = commands::list_vhosts(client);
             res_handler.tabular_result(result)

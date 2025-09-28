@@ -152,6 +152,25 @@ pub fn delete_all_test_vhosts() -> CommandRunResult {
     Ok(())
 }
 
+pub fn delete_vhosts_with_prefix(prefix: &str) -> CommandRunResult {
+    let client = api_client();
+    match client.list_vhosts() {
+        Ok(vhosts) => {
+            for vhost in vhosts {
+                if vhost.name.starts_with(prefix) {
+                    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+                    cmd.args(["vhosts", "delete", "--name", &vhost.name, "--idempotently"]);
+                    let _ = cmd.assert().success();
+                }
+            }
+        }
+        Err(_) => {
+            // If we can't list vhosts, continue anyway
+        }
+    }
+    Ok(())
+}
+
 pub fn output_includes(content: &str) -> predicates::str::ContainsPredicate {
     predicate::str::contains(content)
 }

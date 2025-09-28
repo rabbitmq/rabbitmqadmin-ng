@@ -461,12 +461,17 @@ pub trait ProgressReporter {
     fn report_progress(&mut self, current: usize, total: usize, item_name: &str);
     fn report_success(&mut self, item_name: &str);
     fn report_skip(&mut self, item_name: &str, reason: &str);
+    fn report_failure(&mut self, item_name: &str, error: &str);
     fn finish_operation(&mut self, total: usize);
 }
 
 #[allow(dead_code)]
 pub struct InteractiveProgressReporter {
     operation_name: String,
+    failures: usize,
+    current_position: usize,
+    total: usize,
+    results: Vec<char>,
 }
 
 #[allow(dead_code)]
@@ -474,29 +479,35 @@ impl InteractiveProgressReporter {
     pub fn new() -> Self {
         Self {
             operation_name: String::new(),
+            failures: 0,
+            current_position: 0,
+            total: 0,
+            results: Vec::new(),
         }
     }
 }
 
 impl ProgressReporter for InteractiveProgressReporter {
-    fn start_operation(&mut self, _total: usize, operation_name: &str) {
+    fn start_operation(&mut self, total: usize, operation_name: &str) {
         self.operation_name = operation_name.to_string();
+        self.failures = 0;
+        self.current_position = 0;
+        self.total = total;
+        self.results = vec!['.'; total];
         println!("{}...", operation_name);
     }
 
-    fn report_progress(&mut self, current: usize, total: usize, _item_name: &str) {
-        let percentage = if total > 0 {
-            (current * 100) / total
+    fn report_progress(&mut self, _current: usize, _total: usize, _item_name: &str) {
+        if self.current_position < self.results.len() {
+            self.results[self.current_position] = '#';
+        }
+        self.current_position += 1;
+        let percentage = if self.total > 0 {
+            (self.current_position * 100) / self.total
         } else {
             0
         };
-        let bar_width = 50;
-        let filled = if total > 0 {
-            (current * bar_width) / total
-        } else {
-            0
-        };
-        let bar = format!("{}{}", "#".repeat(filled), ".".repeat(bar_width - filled));
+        let bar: String = self.results.iter().collect();
         print!("\rProgress: [{:3}%] [{}]", percentage, bar);
         io::stdout().flush().unwrap();
     }
@@ -509,8 +520,34 @@ impl ProgressReporter for InteractiveProgressReporter {
         // No-op: progress bar already shows the advancement
     }
 
+    fn report_failure(&mut self, _item_name: &str, _error: &str) {
+        self.failures += 1;
+        if self.current_position < self.results.len() {
+            self.results[self.current_position] = 'X';
+        }
+        self.current_position += 1;
+        let percentage = if self.total > 0 {
+            (self.current_position * 100) / self.total
+        } else {
+            0
+        };
+        let bar: String = self.results.iter().collect();
+        print!("\rProgress: [{:3}%] [{}]", percentage, bar);
+        io::stdout().flush().unwrap();
+    }
+
     fn finish_operation(&mut self, total: usize) {
-        println!("\n✅ Completed: {} items processed", total);
+        let successes = total - self.failures;
+        if self.failures == 0 {
+            println!("\n✅ Completed: {} items processed successfully", total);
+        } else if successes == 0 {
+            println!("\n❌ Failed: All {} items failed to process", total);
+        } else {
+            println!(
+                "\n⚠️  Completed with failures: {} succeeded, {} failed out of {} total",
+                successes, self.failures, total
+            );
+        }
     }
 }
 
@@ -536,16 +573,21 @@ impl ProgressReporter for NonInteractiveProgressReporter {
     }
 
     fn report_progress(&mut self, _current: usize, _total: usize, _item_name: &str) {
-        print!(".");
+        print!("#");
         io::stdout().flush().unwrap();
     }
 
     fn report_success(&mut self, _item_name: &str) {
-        // Dot already printed in report_progress
+        // Hash already printed in report_progress
     }
 
     fn report_skip(&mut self, _item_name: &str, _reason: &str) {
-        // Dot already printed in report_progress
+        // Hash already printed in report_progress
+    }
+
+    fn report_failure(&mut self, _item_name: &str, _error: &str) {
+        print!("X");
+        io::stdout().flush().unwrap();
     }
 
     fn finish_operation(&mut self, total: usize) {
@@ -577,6 +619,10 @@ impl ProgressReporter for QuietProgressReporter {
     }
 
     fn report_skip(&mut self, _item_name: &str, _reason: &str) {
+        // Silent
+    }
+
+    fn report_failure(&mut self, _item_name: &str, _error: &str) {
         // Silent
     }
 

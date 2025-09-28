@@ -2711,7 +2711,7 @@ pub fn nodes_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 3]
     .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
 }
 
-pub fn vhosts_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 3] {
+pub fn vhosts_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 4] {
     let list_cmd = Command::new("list")
         .long_about("Lists virtual hosts")
         .after_help(color_print::cformat!(
@@ -2764,7 +2764,32 @@ pub fn vhosts_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 3
         )
         .arg(idempotently_arg.clone());
 
-    [list_cmd, declare_cmd, delete_cmd]
+    let bulk_delete_cmd = Command::new("delete_multiple")
+        .about(color_print::cstr!("<bold><red>DANGER ZONE.</red></bold> Deletes multiple virtual hosts at once using a name matching pattern"))
+        .after_help(color_print::cformat!("<bold>Doc guide:</bold>: {}", VIRTUAL_HOST_GUIDE_URL))
+        .arg(
+            Arg::new("name_pattern")
+                .long("name-pattern")
+                .help("a regular expression that will be used to match virtual host names")
+                .required(true),
+        )
+        .arg(
+            Arg::new("approve")
+                .long("approve")
+                .action(ArgAction::SetTrue)
+                .help("this operation is very destructive and requires an explicit approval")
+                .required(false),
+        )
+        .arg(
+            Arg::new("dry_run")
+                .long("dry-run")
+                .action(ArgAction::SetTrue)
+                .help("show what would be deleted without performing the actual deletion")
+                .required(false),
+        )
+        .arg(idempotently_arg.clone());
+
+    [list_cmd, declare_cmd, delete_cmd, bulk_delete_cmd]
         .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
 }
 

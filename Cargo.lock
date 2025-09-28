@@ -1459,6 +1459,7 @@ dependencies = [
  "log",
  "predicates",
  "rabbitmq_http_client",
+ "regex",
  "reqwest",
  "rustls",
  "serde",

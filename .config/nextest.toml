@@ -15,6 +15,8 @@ read_only = { max-threads = 16 }
 isolated_vhosts = { max-threads = 8 }
 # Tests that modify users/permissions (global state)
 user_management = { max-threads = 1 }
+# Tests that modify virtual hosts (global state)
+vhost_management = { max-threads = 1 }
 # Tests that modify runtime parameters
 runtime_params = { max-threads = 1 }
 # Tests requiring complete isolation
@@ -103,7 +105,13 @@ test-group = 'runtime_params'
 [[profile.default.overrides]]
 filter = 'binary(vhosts_tests)'
 priority = 62
-test-group = 'user_management'
+test-group = 'vhost_management'
+
+# Virtual host delete_multiple tests (global vhost operations, can be flaky due to race conditions)
+[[profile.default.overrides]]
+filter = 'binary(vhosts_delete_multiple_tests)'
+priority = 61
+test-group = 'vhost_management'
 
 # Combined integration tests (creates global users)
 [[profile.default.overrides]]

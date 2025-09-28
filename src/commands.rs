@@ -13,9 +13,10 @@
 // limitations under the License.
 #![allow(clippy::result_large_err)]
 
-use crate::constants::DEFAULT_BLANKET_POLICY_PRIORITY;
+use crate::constants::{DEFAULT_BLANKET_POLICY_PRIORITY, DEFAULT_VHOST};
 use crate::errors::CommandRunError;
 use crate::output::ProgressReporter;
+use crate::pre_flight;
 use clap::ArgMatches;
 use rabbitmq_http_client::blocking_api::Client;
 use rabbitmq_http_client::blocking_api::Result as ClientResult;
@@ -39,6 +40,7 @@ use rabbitmq_http_client::requests::{
 
 use rabbitmq_http_client::transformers::{TransformationChain, VirtualHostTransformationChain};
 use rabbitmq_http_client::{password_hashing, requests, responses};
+use regex::Regex;
 use serde::de::DeserializeOwned;
 use serde_json::Value;
 use std::fs;
@@ -1263,6 +1265,88 @@ pub fn delete_vhost(client: APIClient, command_args: &ArgMatches) -> ClientResul
         .cloned()
         .unwrap_or(false);
     client.delete_vhost(name, idempotently)
+}
+
+pub fn delete_multiple_vhosts(
+    client: APIClient,
+    command_args: &ArgMatches,
+    prog_rep: &mut dyn ProgressReporter,
+) -> Result<Option<Vec<responses::VirtualHost>>, CommandRunError> {
+    let name_pattern = command_args.get_one::<String>("name_pattern").unwrap();
+    let approve = command_args
+        .get_one::<bool>("approve")
+        .cloned()
+        .unwrap_or(false);
+    let dry_run = command_args
+        .get_one::<bool>("dry_run")
+        .cloned()
+        .unwrap_or(false);
+    let idempotently = command_args
+        .get_one::<bool>("idempotently")
+        .cloned()
+        .unwrap_or(false);
+    let non_interactive_cli = command_args
+        .get_one::<bool>("non_interactive")
+        .cloned()
+        .unwrap_or_else(|| pre_flight::InteractivityMode::from_env().is_non_interactive());
+
+    let regex =
+        Regex::new(name_pattern).map_err(|_| CommandRunError::UnsupportedArgumentValue {
+            property: "name_pattern".to_string(),
+        })?;
+
+    let vhosts = client.list_vhosts()?;
+
+    let matching_vhosts: Vec<responses::VirtualHost> = vhosts
+        .into_iter()
+        .filter(|vhost| regex.is_match(&vhost.name))
+        .filter(|vhost| vhost.name != DEFAULT_VHOST)
+        .collect();
+
+    if dry_run {
+        return Ok(Some(matching_vhosts));
+    }
+
+    if !approve && !pre_flight::is_non_interactive() && !non_interactive_cli {
+        return Err(CommandRunError::FailureDuringExecution {
+            message: "This operation is destructive and requires the --approve flag".to_string(),
+        });
+    }
+
+    let total = matching_vhosts.len();
+
+    if total == 0 {
+        return Ok(None);
+    }
+
+    prog_rep.start_operation(total, "Deleting virtual hosts");
+
+    let mut successes = 0;
+    let mut failures = 0;
+
+    for (index, vhost) in matching_vhosts.iter().enumerate() {
+        let vhost_name = &vhost.name;
+        match client.delete_vhost(vhost_name, idempotently) {
+            Ok(_) => {
+                prog_rep.report_progress(index + 1, total, vhost_name);
+                successes += 1;
+            }
+            Err(error) => {
+                prog_rep.report_failure(vhost_name, &error.to_string());
+                failures += 1;
+            }
+        }
+    }
+
+    prog_rep.finish_operation(total);
+
+    if failures > 0 && successes == 0 {
+        return Err(CommandRunError::FailureDuringExecution {
+            message: format!("Failed to delete all {} virtual hosts", failures),
+        });
+    }
+
+    Ok(None)
 }
 
 pub fn delete_user(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {

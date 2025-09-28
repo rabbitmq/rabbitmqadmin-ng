@@ -6,6 +6,24 @@
 
 * Several commands now have minimalistic progress indicators: `federation disable_tls_peer_verification_for_all_upstreams`, `federation enable_tls_peer_verification_for_all_upstreams`, `shovels disable_tls_peer_verification_for_all_source_uris`, `shovels disable_tls_peer_verification_for_all_destination_uris`, `shovels enable_tls_peer_verification_for_all_source_uris`, and `shovels enable_tls_peer_verification_for_all_destination_uris`
 
+* `vhosts delete_multiple` is a new command that deletes multiple virtual hosts matching a regular expression pattern:
+
+  ```shell
+  # Delete all virtual hosts matching a pattern (requires explicit approval)
+  rabbitmqadmin vhosts delete_multiple --name-pattern "test-.*" --approve
+
+  # Dry-run to see what would be deleted without actually deleting
+  rabbitmqadmin vhosts delete_multiple --name-pattern "staging-.*" --dry-run
+
+  # Non-interactive mode (no --approve flag needed)
+  rabbitmqadmin --non-interactive vhosts delete_multiple --name-pattern "temp-.*"
+  ```
+
+  One virtual host — named `/`, that is, the default one — is always skipped to preserve
+  at least one functional virtual host at all times.
+
+  **Important**: this command is **very destructive** and should be used with caution. Always test with `--dry-run` first.
+
 ## v2.13.0 (Sep 26, 2025)
 
 ### Enhancements
