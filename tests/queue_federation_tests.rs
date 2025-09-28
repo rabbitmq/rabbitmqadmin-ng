@@ -336,8 +336,8 @@ fn test_federation_delete_an_upstream_with_queue_federation_settings()
 #[test]
 fn test_federation_list_all_links_with_queue_federation_settings()
 -> Result<(), Box<dyn std::error::Error>> {
-    let vh1 = "rust.federation.links.a";
-    let vh2 = "rust.federation.links.b";
+    let vh1 = "rabbitmqadmin.federation.links.a";
+    let vh2 = "rabbitmqadmin.federation.links.b";
     let name = "up.for_queue_federation.links.a";
 
     let amqp_endpoint = amqp_endpoint_with_vhost(vh2);

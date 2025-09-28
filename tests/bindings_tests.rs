@@ -19,8 +19,8 @@ use crate::test_helpers::*;
 
 #[test]
 fn test_list_bindings() -> Result<(), Box<dyn std::error::Error>> {
-    let vh1 = "test_list_bindings_1";
-    let vh2 = "test_list_bindings_2";
+    let vh1 = "rabbitmqadmin.test_list_bindings_1";
+    let vh2 = "rabbitmqadmin.test_list_bindings_2";
     let q1 = "new_queue_1";
     let q2 = "new_queue_2";
 
@@ -104,8 +104,8 @@ fn test_list_bindings() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn test_bindings_list() -> Result<(), Box<dyn std::error::Error>> {
-    let vh1 = "test_bindings_list_1";
-    let vh2 = "test_bindings_list_2";
+    let vh1 = "rabbitmqadmin.test_bindings_list_1";
+    let vh2 = "rabbitmqadmin.test_bindings_list_2";
     let q1 = "new_queue_1";
     let q2 = "new_queue_2";
 

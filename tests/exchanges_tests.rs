@@ -19,8 +19,8 @@ use crate::test_helpers::*;
 
 #[test]
 fn list_exchanges() -> Result<(), Box<dyn std::error::Error>> {
-    let vh1 = "exchange_vhost_1";
-    let vh2 = "exchange_vhost_2";
+    let vh1 = "rabbitmqadmin.exchange_vhost_1";
+    let vh2 = "rabbitmqadmin.exchange_vhost_2";
 
     let x1 = "new_exchange_1";
     let x2 = "new_exchange_2";
@@ -74,8 +74,8 @@ fn list_exchanges() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn exchanges_list() -> Result<(), Box<dyn std::error::Error>> {
-    let vh1 = "exchange_vhost_3";
-    let vh2 = "exchange_vhost_4";
+    let vh1 = "rabbitmqadmin.exchange_vhost_3";
+    let vh2 = "rabbitmqadmin.exchange_vhost_4";
 
     let x1 = "new_exchange_1";
     let x2 = "new_exchange_2";
@@ -218,8 +218,8 @@ fn delete_a_non_existing_exchange() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn test_exchanges_bind_and_unbind() -> Result<(), Box<dyn std::error::Error>> {
-    let vh1 = "exchanges_bind_vhost_3";
-    let vh2 = "exchanges_bind_vhost_4";
+    let vh1 = "rabbitmqadmin.exchanges_bind_vhost_3";
+    let vh2 = "rabbitmqadmin.exchanges_bind_vhost_4";
     let q1 = "new_queue_1";
     let q2 = "new_queue_2";
 

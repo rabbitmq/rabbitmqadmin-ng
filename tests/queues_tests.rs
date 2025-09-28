@@ -19,8 +19,8 @@ use crate::test_helpers::*;
 
 #[test]
 fn list_queues() -> Result<(), Box<dyn std::error::Error>> {
-    let vh1 = "queue_vhost_1";
-    let vh2 = "queue_vhost_2";
+    let vh1 = "rabbitmqadmin.queue_vhost_1";
+    let vh2 = "rabbitmqadmin.queue_vhost_2";
     let q1 = "new_queue1";
     let q2 = "new_queue2";
 
@@ -66,8 +66,8 @@ fn list_queues() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn queues_lists() -> Result<(), Box<dyn std::error::Error>> {
-    let vh1 = "queue_vhost_3";
-    let vh2 = "queue_vhost_4";
+    let vh1 = "rabbitmqadmin.queue_vhost_3";
+    let vh2 = "rabbitmqadmin.queue_vhost_4";
     let q1 = "new_queue1";
     let q2 = "new_queue2";
 

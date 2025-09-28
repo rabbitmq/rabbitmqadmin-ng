@@ -19,8 +19,8 @@ use crate::test_helpers::*;
 
 #[test]
 fn list_streams() -> Result<(), Box<dyn std::error::Error>> {
-    let vh1 = "stream_vhost_1";
-    let vh2 = "stream_vhost_2";
+    let vh1 = "rabbitmqadmin.stream_vhost_1";
+    let vh2 = "rabbitmqadmin.stream_vhost_2";
     let s1 = "new_stream1";
     let s2 = "new_stream2";
 
@@ -77,8 +77,8 @@ fn list_streams() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn streams_list() -> Result<(), Box<dyn std::error::Error>> {
-    let vh1 = "stream_vhost_3";
-    let vh2 = "stream_vhost_4";
+    let vh1 = "rabbitmqadmin.stream_vhost_3";
+    let vh2 = "rabbitmqadmin.stream_vhost_4";
     let s1 = "new_stream1";
     let s2 = "new_stream2";
 
