@@ -29,7 +29,7 @@ fn test_interactivity_mode_non_interactive() {
 
 #[test]
 fn test_interactivity_mode_from_env_interactive() {
-    // Clear the environment variable to test default case
+    // Clear the environment variable to test the default case
     unsafe {
         std::env::remove_var("RABBITMQADMIN_NON_INTERACTIVE_MODE");
     }

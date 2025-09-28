@@ -2,8 +2,9 @@
 
 ## v2.14.0 (in development)
 
-No changes yet.
+### Enhancements
 
+* Several commands now have minimalistic progress indicators: `federation disable_tls_peer_verification_for_all_upstreams`, `federation enable_tls_peer_verification_for_all_upstreams`, `shovels disable_tls_peer_verification_for_all_source_uris`, `shovels disable_tls_peer_verification_for_all_destination_uris`, `shovels enable_tls_peer_verification_for_all_source_uris`, and `shovels enable_tls_peer_verification_for_all_destination_uris`
 
 ## v2.13.0 (Sep 26, 2025)
 

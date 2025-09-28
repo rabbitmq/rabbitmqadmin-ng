@@ -744,7 +744,7 @@ pub fn disable_tls_peer_verification_for_all_federation_upstreams(
         prog_rep.report_success(upstream_name);
     }
 
-    prog_rep.finish_operation(total, total);
+    prog_rep.finish_operation(total);
 
     Ok(())
 }
@@ -825,7 +825,7 @@ pub fn enable_tls_peer_verification_for_all_federation_upstreams(
         prog_rep.report_success(upstream_name);
     }
 
-    prog_rep.finish_operation(total, total);
+    prog_rep.finish_operation(total);
     Ok(())
 }
 
@@ -849,7 +849,7 @@ pub fn disable_tls_peer_verification_for_all_source_uris(
         let owned_params = match OwnedShovelParams::try_from(param.clone()) {
             Ok(params) => params,
             Err(_) => {
-                prog_rep.report_skip(param_name, "invalid shovel parameters");
+                prog_rep.report_skip(param_name, "shovel parameters fail validation");
                 continue;
             }
         };
@@ -871,14 +871,14 @@ pub fn disable_tls_peer_verification_for_all_source_uris(
         prog_rep.report_success(param_name);
     }
 
-    prog_rep.finish_operation(total, total);
+    prog_rep.finish_operation(total);
 
     Ok(())
 }
 
 pub fn disable_tls_peer_verification_for_all_destination_uris(
     client: APIClient,
-    _prog_rep: &mut dyn ProgressReporter,
+    prog_rep: &mut dyn ProgressReporter,
 ) -> Result<(), CommandRunError> {
     let all_params = client.list_runtime_parameters()?;
     let shovel_params: Vec<_> = all_params
@@ -886,28 +886,39 @@ pub fn disable_tls_peer_verification_for_all_destination_uris(
         .filter(|p| p.component == "shovel")
         .collect();
 
-    for param in shovel_params {
+    let total = shovel_params.len();
+    prog_rep.start_operation(total, "Updating shovel destination URIs");
+
+    for (index, param) in shovel_params.into_iter().enumerate() {
+        let param_name = &param.name;
+        prog_rep.report_progress(index + 1, total, param_name);
+
         let owned_params = match OwnedShovelParams::try_from(param.clone()) {
             Ok(params) => params,
-            Err(_) => continue,
+            Err(_) => {
+                prog_rep.report_skip(param_name, "shovel parameters fail validation");
+                continue;
+            }
         };
 
         let original_destination_uri = &owned_params.destination_uri;
 
         if original_destination_uri.is_empty() {
+            prog_rep.report_skip(param_name, "empty destination URI");
             continue;
         }
 
         let updated_destination_uri = disable_tls_peer_verification(original_destination_uri)?;
 
-        if original_destination_uri != &updated_destination_uri {
-            let mut updated_params = owned_params;
-            updated_params.destination_uri = updated_destination_uri;
+        let mut updated_params = owned_params;
+        updated_params.destination_uri = updated_destination_uri;
 
-            let param = RuntimeParameterDefinition::from(&updated_params);
-            client.upsert_runtime_parameter(&param)?;
-        }
+        let param = RuntimeParameterDefinition::from(&updated_params);
+        client.upsert_runtime_parameter(&param)?;
+        prog_rep.report_success(param_name);
     }
+
+    prog_rep.finish_operation(total);
 
     Ok(())
 }
@@ -915,7 +926,7 @@ pub fn disable_tls_peer_verification_for_all_destination_uris(
 pub fn enable_tls_peer_verification_for_all_source_uris(
     client: APIClient,
     args: &ArgMatches,
-    _prog_rep: &mut dyn ProgressReporter,
+    prog_rep: &mut dyn ProgressReporter,
 ) -> Result<(), CommandRunError> {
     let ca_cert_path = args
         .get_one::<String>("node_local_ca_certificate_bundle_path")
@@ -939,14 +950,24 @@ pub fn enable_tls_peer_verification_for_all_source_uris(
         .filter(|p| p.component == "shovel")
         .collect();
 
-    for param in shovel_params {
+    let total = shovel_params.len();
+    prog_rep.start_operation(total, "Updating shovel source URIs");
+
+    for (index, param) in shovel_params.into_iter().enumerate() {
+        let param_name = &param.name;
+        prog_rep.report_progress(index + 1, total, param_name);
+
         let owned_params = match OwnedShovelParams::try_from(param.clone()) {
             Ok(params) => params,
-            Err(_) => continue,
+            Err(_) => {
+                prog_rep.report_skip(param_name, "shovel parameters fail validation");
+                continue;
+            }
         };
 
         let original_source_uri = &owned_params.source_uri;
         if original_source_uri.is_empty() {
+            prog_rep.report_skip(param_name, "empty source URI");
             continue;
         }
 
@@ -957,14 +978,15 @@ pub fn enable_tls_peer_verification_for_all_source_uris(
             client_key_path,
         )?;
 
-        if original_source_uri != &updated_source_uri {
-            let mut updated_params = owned_params;
-            updated_params.source_uri = updated_source_uri;
+        let mut updated_params = owned_params;
+        updated_params.source_uri = updated_source_uri;
 
-            let param = RuntimeParameterDefinition::from(&updated_params);
-            client.upsert_runtime_parameter(&param)?;
-        }
+        let param = RuntimeParameterDefinition::from(&updated_params);
+        client.upsert_runtime_parameter(&param)?;
+        prog_rep.report_success(param_name);
     }
+
+    prog_rep.finish_operation(total);
 
     Ok(())
 }
@@ -972,7 +994,7 @@ pub fn enable_tls_peer_verification_for_all_source_uris(
 pub fn enable_tls_peer_verification_for_all_destination_uris(
     client: APIClient,
     args: &ArgMatches,
-    _prog_rep: &mut dyn ProgressReporter,
+    prog_rep: &mut dyn ProgressReporter,
 ) -> Result<(), CommandRunError> {
     let ca_cert_path = args
         .get_one::<String>("node_local_ca_certificate_bundle_path")
@@ -996,14 +1018,24 @@ pub fn enable_tls_peer_verification_for_all_destination_uris(
         .filter(|p| p.component == "shovel")
         .collect();
 
-    for param in shovel_params {
+    let total = shovel_params.len();
+    prog_rep.start_operation(total, "Updating shovel destination URIs");
+
+    for (index, param) in shovel_params.into_iter().enumerate() {
+        let param_name = &param.name;
+        prog_rep.report_progress(index + 1, total, param_name);
+
         let owned_params = match OwnedShovelParams::try_from(param.clone()) {
             Ok(params) => params,
-            Err(_) => continue,
+            Err(_) => {
+                prog_rep.report_skip(param_name, "shovel parameters fail validation");
+                continue;
+            }
         };
 
         let original_destination_uri = &owned_params.destination_uri;
         if original_destination_uri.is_empty() {
+            prog_rep.report_skip(param_name, "empty destination URI");
             continue;
         }
 
@@ -1014,14 +1046,15 @@ pub fn enable_tls_peer_verification_for_all_destination_uris(
             client_key_path,
         )?;
 
-        if original_destination_uri != &updated_destination_uri {
-            let mut updated_params = owned_params;
-            updated_params.destination_uri = updated_destination_uri;
+        let mut updated_params = owned_params;
+        updated_params.destination_uri = updated_destination_uri;
 
-            let param = RuntimeParameterDefinition::from(&updated_params);
-            client.upsert_runtime_parameter(&param)?;
-        }
+        let param = RuntimeParameterDefinition::from(&updated_params);
+        client.upsert_runtime_parameter(&param)?;
+        prog_rep.report_success(param_name);
     }
+
+    prog_rep.finish_operation(total);
 
     Ok(())
 }

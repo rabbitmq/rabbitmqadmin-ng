@@ -461,7 +461,7 @@ pub trait ProgressReporter {
     fn report_progress(&mut self, current: usize, total: usize, item_name: &str);
     fn report_success(&mut self, item_name: &str);
     fn report_skip(&mut self, item_name: &str, reason: &str);
-    fn finish_operation(&mut self, succeeded: usize, total: usize);
+    fn finish_operation(&mut self, total: usize);
 }
 
 #[allow(dead_code)]
@@ -502,23 +502,15 @@ impl ProgressReporter for InteractiveProgressReporter {
     }
 
     fn report_success(&mut self, _item_name: &str) {
-        print!(" ✅");
+        // No-op: progress bar already shows the advancement
     }
 
     fn report_skip(&mut self, _item_name: &str, _reason: &str) {
         // No-op: progress bar already shows the advancement
     }
 
-    fn finish_operation(&mut self, succeeded: usize, total: usize) {
-        let skipped = total - succeeded;
-        if skipped > 0 {
-            println!(
-                "\n✓ Completed: {} updated, {} already configured",
-                succeeded, skipped
-            );
-        } else {
-            println!("\n✓ Completed: {} items updated", succeeded);
-        }
+    fn finish_operation(&mut self, total: usize) {
+        println!("\n✅ Completed: {} items processed", total);
     }
 }
 
@@ -556,16 +548,8 @@ impl ProgressReporter for NonInteractiveProgressReporter {
         // Dot already printed in report_progress
     }
 
-    fn finish_operation(&mut self, succeeded: usize, total: usize) {
-        let skipped = total - succeeded;
-        if skipped > 0 {
-            println!(
-                "\nCompleted: {} updated, {} already configured",
-                succeeded, skipped
-            );
-        } else {
-            println!("\nCompleted: {} items updated", succeeded);
-        }
+    fn finish_operation(&mut self, total: usize) {
+        println!("\nCompleted: {} items processed", total);
     }
 }
 
@@ -596,15 +580,7 @@ impl ProgressReporter for QuietProgressReporter {
         // Silent
     }
 
-    fn finish_operation(&mut self, succeeded: usize, total: usize) {
-        let skipped = total - succeeded;
-        if skipped > 0 {
-            println!(
-                "Completed: {} updated, {} already configured",
-                succeeded, skipped
-            );
-        } else {
-            println!("Completed: {} items updated", succeeded);
-        }
+    fn finish_operation(&mut self, total: usize) {
+        println!("Completed: {} items processed", total);
     }
 }
