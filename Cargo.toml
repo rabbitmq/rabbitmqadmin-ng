@@ -29,6 +29,7 @@ color-print = "0.3"
 thiserror = "2"
 shellexpand = "3.1"
 regex = "1"
+indicatif = "0.17"
 
 log = "0.4"
 rustls = { version = "0.23", features = ["aws_lc_rs"] }

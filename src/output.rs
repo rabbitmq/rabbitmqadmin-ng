@@ -27,7 +27,7 @@ use std::fmt;
 use sysexits::ExitCode;
 use tabled::settings::object::Rows;
 
-use std::io::{self, Write};
+use indicatif::{ProgressBar, ProgressStyle};
 use tabled::settings::{Panel, Remove, Style};
 use tabled::{
     Table, Tabled,
@@ -467,131 +467,123 @@ pub trait ProgressReporter {
 
 #[allow(dead_code)]
 pub struct InteractiveProgressReporter {
-    operation_name: String,
+    bar: Option<ProgressBar>,
     failures: usize,
-    current_position: usize,
-    total: usize,
-    results: Vec<char>,
 }
 
 #[allow(dead_code)]
 impl InteractiveProgressReporter {
     pub fn new() -> Self {
         Self {
-            operation_name: String::new(),
+            bar: None,
             failures: 0,
-            current_position: 0,
-            total: 0,
-            results: Vec::new(),
         }
     }
 }
 
 impl ProgressReporter for InteractiveProgressReporter {
     fn start_operation(&mut self, total: usize, operation_name: &str) {
-        self.operation_name = operation_name.to_string();
+        let bar = ProgressBar::new(total as u64);
+        bar.set_style(
+            ProgressStyle::with_template(
+                "{msg} [{bar:40.cyan/blue}] {pos}/{len} ({percent}%) {elapsed_precise}",
+            )
+            .unwrap(),
+        );
+        bar.set_message(operation_name.to_string());
+        self.bar = Some(bar);
         self.failures = 0;
-        self.current_position = 0;
-        self.total = total;
-        self.results = vec!['.'; total];
-        println!("{}...", operation_name);
     }
 
     fn report_progress(&mut self, _current: usize, _total: usize, _item_name: &str) {
-        if self.current_position < self.results.len() {
-            self.results[self.current_position] = '#';
+        if let Some(bar) = &self.bar {
+            bar.inc(1);
         }
-        self.current_position += 1;
-        let percentage = if self.total > 0 {
-            (self.current_position * 100) / self.total
-        } else {
-            0
-        };
-        let bar: String = self.results.iter().collect();
-        print!("\rProgress: [{:3}%] [{}]", percentage, bar);
-        io::stdout().flush().unwrap();
     }
 
     fn report_success(&mut self, _item_name: &str) {
-        // No-op: progress bar already shows the advancement
+        // No-op: progress already incremented in report_progress
     }
 
     fn report_skip(&mut self, _item_name: &str, _reason: &str) {
-        // No-op: progress bar already shows the advancement
+        // No-op: progress already incremented in report_progress
     }
 
     fn report_failure(&mut self, _item_name: &str, _error: &str) {
         self.failures += 1;
-        if self.current_position < self.results.len() {
-            self.results[self.current_position] = 'X';
+        if let Some(bar) = &self.bar {
+            bar.inc(1);
         }
-        self.current_position += 1;
-        let percentage = if self.total > 0 {
-            (self.current_position * 100) / self.total
-        } else {
-            0
-        };
-        let bar: String = self.results.iter().collect();
-        print!("\rProgress: [{:3}%] [{}]", percentage, bar);
-        io::stdout().flush().unwrap();
     }
 
     fn finish_operation(&mut self, total: usize) {
-        let successes = total - self.failures;
-        if self.failures == 0 {
-            println!("\n✅ Completed: {} items processed successfully", total);
-        } else if successes == 0 {
-            println!("\n❌ Failed: All {} items failed to process", total);
-        } else {
-            println!(
-                "\n⚠️  Completed with failures: {} succeeded, {} failed out of {} total",
-                successes, self.failures, total
-            );
+        if let Some(bar) = &self.bar {
+            bar.finish();
+
+            let successes = total - self.failures;
+            if self.failures == 0 {
+                println!("✅ Completed: {} items processed successfully", total);
+            } else if successes == 0 {
+                println!("❌ Failed: All {} items failed to process", total);
+            } else {
+                println!(
+                    "⚠️  Completed with failures: {} succeeded, {} failed out of {} total",
+                    successes, self.failures, total
+                );
+            }
         }
+        self.bar = None;
     }
 }
 
 #[allow(dead_code)]
 pub struct NonInteractiveProgressReporter {
-    operation_name: String,
+    bar: Option<ProgressBar>,
 }
 
 #[allow(dead_code)]
 impl NonInteractiveProgressReporter {
     pub fn new() -> Self {
-        Self {
-            operation_name: String::new(),
-        }
+        Self { bar: None }
     }
 }
 
 impl ProgressReporter for NonInteractiveProgressReporter {
-    fn start_operation(&mut self, _total: usize, operation_name: &str) {
-        self.operation_name = operation_name.to_string();
-        print!("{}: ", operation_name);
-        io::stdout().flush().unwrap();
+    fn start_operation(&mut self, total: usize, operation_name: &str) {
+        let bar = ProgressBar::new(total as u64);
+        bar.set_style(
+            ProgressStyle::with_template("{msg}: {pos}/{len} [{elapsed_precise}]").unwrap(),
+        );
+        bar.set_message(operation_name.to_string());
+        self.bar = Some(bar);
     }
 
     fn report_progress(&mut self, _current: usize, _total: usize, _item_name: &str) {
-        print!(".");
-        io::stdout().flush().unwrap();
+        if let Some(bar) = &self.bar {
+            bar.inc(1);
+        }
     }
 
     fn report_success(&mut self, _item_name: &str) {
-        // Hash already printed in report_progress
+        // No-op: progress already incremented in report_progress
     }
 
     fn report_skip(&mut self, _item_name: &str, _reason: &str) {
-        // Hash already printed in report_progress
+        // No-op: progress already incremented in report_progress
     }
 
     fn report_failure(&mut self, _item_name: &str, _error: &str) {
-        print!("x");
-        io::stdout().flush().unwrap();
+        if let Some(bar) = &self.bar {
+            bar.inc(1);
+        }
     }
 
     fn finish_operation(&mut self, total: usize) {
-        println!("\nCompleted: {} items processed", total);
+        if let Some(bar) = &self.bar {
+            bar.finish();
+            println!("Completed: {} items processed", total);
+        }
+        self.bar = None;
     }
 }
 
