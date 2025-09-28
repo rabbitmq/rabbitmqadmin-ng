@@ -486,7 +486,7 @@ impl ProgressReporter for InteractiveProgressReporter {
         let bar = ProgressBar::new(total as u64);
         bar.set_style(
             ProgressStyle::with_template(
-                "{msg} [{bar:40.cyan/blue}] {pos}/{len} ({percent}%) {elapsed_precise}",
+                "{msg} [{bar:40.yellow/red}] {pos}/{len} ({percent}%) {elapsed_precise}",
             )
             .unwrap(),
         );
