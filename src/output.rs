@@ -573,7 +573,7 @@ impl ProgressReporter for NonInteractiveProgressReporter {
     }
 
     fn report_progress(&mut self, _current: usize, _total: usize, _item_name: &str) {
-        print!("#");
+        print!(".");
         io::stdout().flush().unwrap();
     }
 
@@ -586,7 +586,7 @@ impl ProgressReporter for NonInteractiveProgressReporter {
     }
 
     fn report_failure(&mut self, _item_name: &str, _error: &str) {
-        print!("X");
+        print!("x");
         io::stdout().flush().unwrap();
     }
 
