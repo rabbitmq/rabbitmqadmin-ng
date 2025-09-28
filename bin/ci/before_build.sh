@@ -22,7 +22,8 @@ $CTL add_vhost /
 $CTL add_user guest guest
 $CTL set_permissions -p / guest ".*" ".*" ".*"
 
-cargo run '--' --non-interactive vhosts delete_multiple --name-pattern "^rabbitmqadmin"
+cargo -q run '--' --non-interactive vhosts delete_multiple --name-pattern "^rabbitmqadmin" --dry-run
+cargo -q run '--' --non-interactive vhosts delete_multiple --name-pattern "^rabbitmqadmin"
 
 $CTL add_vhost "rust/rabbitmqadmin"
 $CTL set_permissions -p "rust/rabbitmqadmin" guest ".*" ".*" ".*"
