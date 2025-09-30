@@ -22,18 +22,18 @@ use crate::test_helpers::*;
 fn test_vhost_limits() -> Result<(), Box<dyn Error>> {
     let limit_name = "max-connections";
     run_succeeds([
+        "vhost_limits",
         "declare",
-        "vhost_limit",
         "--name",
         limit_name,
         "--value",
         "1234",
     ]);
 
-    run_succeeds(["list", "vhost_limits"])
+    run_succeeds(["vhost_limits", "list"])
         .stdout(output_includes(limit_name).and(output_includes("1234")));
-    run_succeeds(["delete", "vhost_limit", "--name", limit_name]);
-    run_succeeds(["list", "vhost_limits"]).stdout(output_includes(limit_name).not());
+    run_succeeds(["vhost_limits", "delete", "--name", limit_name]);
+    run_succeeds(["vhost_limits", "list"]).stdout(output_includes(limit_name).not());
 
     Ok(())
 }

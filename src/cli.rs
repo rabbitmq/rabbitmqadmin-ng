@@ -220,6 +220,16 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
             PASSWORD_GUIDE_URL
         ))
         .subcommands(passwords_subcommands(pre_flight_settings.clone()));
+    let permissions_group = Command::new("permissions")
+        .about("Operations on user permissions")
+        .infer_subcommands(pre_flight_settings.infer_subcommands)
+        .infer_long_args(pre_flight_settings.infer_long_options)
+        .after_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            ACCESS_CONTROL_GUIDE_URL
+        ))
+        .subcommand_value_name("permission")
+        .subcommands(permissions_subcommands(pre_flight_settings.clone()));
     let policies_group = Command::new("policies")
         .about("Operations on policies")
         .infer_subcommands(pre_flight_settings.infer_subcommands)
@@ -304,11 +314,31 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         ))
         .subcommand_value_name("subcommand")
         .subcommands(users_subcommands(pre_flight_settings.clone()));
+    let user_limits_group = Command::new("user_limits")
+        .about("Operations on per-user (resource) limits")
+        .infer_subcommands(pre_flight_settings.infer_subcommands)
+        .infer_long_args(pre_flight_settings.infer_long_options)
+        .after_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            USER_LIMIT_GUIDE_URL
+        ))
+        .subcommand_value_name("user_limit")
+        .subcommands(user_limits_subcommands(pre_flight_settings.clone()));
     let vhosts_group = Command::new("vhosts")
         .about("Virtual host operations")
         .infer_subcommands(pre_flight_settings.infer_subcommands)
         .infer_long_args(pre_flight_settings.infer_long_options)
         .subcommands(vhosts_subcommands(pre_flight_settings.clone()));
+    let vhost_limits_group = Command::new("vhost_limits")
+        .about("Operations on virtual host (resource) limits")
+        .infer_subcommands(pre_flight_settings.infer_subcommands)
+        .infer_long_args(pre_flight_settings.infer_long_options)
+        .after_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            VIRTUAL_HOST_LIMIT_GUIDE_URL
+        ))
+        .subcommand_value_name("vhost_limit")
+        .subcommands(vhost_limits_subcommands(pre_flight_settings.clone()));
 
     let command_groups = [
         bindings_group,
@@ -332,6 +362,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         operator_policies_group,
         parameters_group,
         passwords_group,
+        permissions_group,
         policies_group,
         publish_group,
         purge_group,
@@ -342,7 +373,9 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         streams_group,
         tanzu_group,
         users_group,
+        user_limits_group,
         vhosts_group,
+        vhost_limits_group,
     ];
 
     Command::new("rabbitmqadmin")
@@ -2946,6 +2979,162 @@ pub fn passwords_subcommands(pre_flight_settings: PreFlightSettings) -> [Command
         );
 
     [hash_password].map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+}
+
+pub fn permissions_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 3] {
+    let idempotently_arg = Arg::new("idempotently")
+        .long("idempotently")
+        .value_parser(value_parser!(bool))
+        .action(ArgAction::SetTrue)
+        .help("do not consider 404 Not Found API responses to be errors")
+        .required(false);
+
+    let list_cmd = Command::new("list")
+        .long_about("Lists user permissions")
+        .after_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            ACCESS_CONTROL_GUIDE_URL
+        ));
+
+    let declare_cmd = Command::new("declare")
+        .about("grants permissions to a user")
+        .after_help(color_print::cformat!(
+            "<bold>Doc guide:</bold>: {}",
+            ACCESS_CONTROL_GUIDE_URL
+        ))
+        .arg(
+            Arg::new("user")
+                .long("user")
+                .help("username")
+                .required(true),
+        )
+        .arg(
+            Arg::new("configure")
+                .long("configure")
+                .help("name pattern for configuration access")
+                .required(true),
+        )
+        .arg(
+            Arg::new("read")
+                .long("read")
+                .help("name pattern for read access")
+                .required(true),
+        )
+        .arg(
+            Arg::new("write")
+                .long("write")
+                .help("name pattern for write access")
+                .required(true),
+        );
+
+    let delete_cmd = Command::new("delete")
+        .about("Revokes user permissions to a given vhost")
+        .arg(
+            Arg::new("user")
+                .long("user")
+                .help("username")
+                .required(true),
+        )
+        .arg(idempotently_arg.clone());
+
+    [list_cmd, declare_cmd, delete_cmd]
+        .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+}
+
+pub fn user_limits_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 3] {
+    let list_cmd = Command::new("list")
+        .long_about("Lists per-user (resource) limits")
+        .after_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            USER_LIMIT_GUIDE_URL
+        ))
+        .arg(
+            Arg::new("user")
+                .long("user")
+                .help("username")
+                .required(false),
+        );
+
+    let declare_cmd = Command::new("declare")
+        .about("Set a user limit")
+        .after_help(color_print::cformat!(
+            "<bold>Doc guide:</bold>: {}",
+            USER_LIMIT_GUIDE_URL
+        ))
+        .arg(
+            Arg::new("user")
+                .long("user")
+                .help("username")
+                .required(true),
+        )
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("limit name (eg. max-connections, max-queues)")
+                .required(true),
+        )
+        .arg(
+            Arg::new("value")
+                .long("value")
+                .help("limit value")
+                .required(true),
+        );
+
+    let delete_cmd = Command::new("delete")
+        .about("Clears a user limit")
+        .arg(
+            Arg::new("user")
+                .long("user")
+                .help("username")
+                .required(true),
+        )
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("limit name (eg. max-connections, max-queues)")
+                .required(true),
+        );
+
+    [list_cmd, declare_cmd, delete_cmd]
+        .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+}
+
+pub fn vhost_limits_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 3] {
+    let list_cmd = Command::new("list")
+        .long_about("Lists virtual host (resource) limits")
+        .after_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            VIRTUAL_HOST_GUIDE_URL
+        ));
+
+    let declare_cmd = Command::new("declare")
+        .about("Set a vhost limit")
+        .after_help(color_print::cformat!(
+            "<bold>Doc guide:</bold>: {}",
+            VIRTUAL_HOST_LIMIT_GUIDE_URL
+        ))
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("limit name (eg. max-connections, max-queues)")
+                .required(true),
+        )
+        .arg(
+            Arg::new("value")
+                .long("value")
+                .help("limit value")
+                .required(true),
+        );
+
+    let delete_cmd = Command::new("delete").about("delete a vhost limit").arg(
+        Arg::new("name")
+            .long("name")
+            .help("limit name (eg. max-connections, max-queues)")
+            .required(true),
+    );
+
+    [list_cmd, declare_cmd, delete_cmd]
+        .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
 }
 
 pub fn publish_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 1] {

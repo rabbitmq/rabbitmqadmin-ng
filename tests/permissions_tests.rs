@@ -31,8 +31,8 @@ fn test_list_permissions() -> Result<(), Box<dyn Error>> {
     ]);
 
     run_succeeds([
-        "declare",
         "permissions",
+        "declare",
         "--user",
         username,
         "--configure",
@@ -43,14 +43,14 @@ fn test_list_permissions() -> Result<(), Box<dyn Error>> {
         "baz",
     ]);
 
-    run_succeeds(["list", "permissions"]).stdout(
+    run_succeeds(["permissions", "list"]).stdout(
         output_includes("foo")
             .and(output_includes("bar"))
             .and(output_includes("baz")),
     );
 
-    run_succeeds(["delete", "permissions", "--user", username]);
-    run_succeeds(["list", "permissions"]).stdout(output_includes(username).not());
+    run_succeeds(["permissions", "delete", "--user", username]);
+    run_succeeds(["permissions", "list"]).stdout(output_includes(username).not());
     run_succeeds(["delete", "user", "--name", username]);
 
     Ok(())

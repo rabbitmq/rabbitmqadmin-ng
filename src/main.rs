@@ -910,6 +910,20 @@ fn dispatch_common_subcommand(
             let result = commands::salt_and_hash_password(second_level_args);
             res_handler.show_salted_and_hashed_value(result)
         }
+        ("permissions", "list") => {
+            let result = commands::list_permissions(client);
+            res_handler.tabular_result(result)
+        }
+        ("permissions", "declare") => {
+            let result = commands::declare_permissions(client, &vhost, second_level_args)
+                .map_err(Into::into);
+            res_handler.no_output_on_success(result);
+        }
+        ("permissions", "delete") => {
+            let result =
+                commands::delete_permissions(client, &vhost, second_level_args).map_err(Into::into);
+            res_handler.no_output_on_success(result);
+        }
         ("policies", "declare") => {
             let result = commands::declare_policy(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);
@@ -1153,6 +1167,19 @@ fn dispatch_common_subcommand(
             let result = commands::list_permissions(client);
             res_handler.tabular_result(result)
         }
+        ("user_limits", "list") => {
+            let result = commands::list_user_limits(client, second_level_args);
+            res_handler.tabular_result(result)
+        }
+        ("user_limits", "declare") => {
+            let result =
+                commands::declare_user_limit(client, second_level_args).map_err(Into::into);
+            res_handler.no_output_on_success(result);
+        }
+        ("user_limits", "delete") => {
+            let result = commands::delete_user_limit(client, second_level_args).map_err(Into::into);
+            res_handler.no_output_on_success(result);
+        }
         ("vhosts", "declare") => {
             let result = commands::declare_vhost(client, second_level_args).map_err(Into::into);
             res_handler.no_output_on_success(result);
@@ -1189,6 +1216,20 @@ fn dispatch_common_subcommand(
         ("vhosts", "disable_deletion_protection") => {
             let result = commands::disable_vhost_deletion_protection(client, second_level_args)
                 .map_err(Into::into);
+            res_handler.no_output_on_success(result);
+        }
+        ("vhost_limits", "list") => {
+            let result = commands::list_vhost_limits(client, &vhost);
+            res_handler.tabular_result(result)
+        }
+        ("vhost_limits", "declare") => {
+            let result = commands::declare_vhost_limit(client, &vhost, second_level_args)
+                .map_err(Into::into);
+            res_handler.no_output_on_success(result);
+        }
+        ("vhost_limits", "delete") => {
+            let result =
+                commands::delete_vhost_limit(client, &vhost, second_level_args).map_err(Into::into);
             res_handler.no_output_on_success(result);
         }
         _ => {

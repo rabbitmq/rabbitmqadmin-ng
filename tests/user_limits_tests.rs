@@ -23,8 +23,8 @@ fn test_user_limits() -> Result<(), Box<dyn Error>> {
     let limit_name = "max-connections";
     let username = "guest";
     run_succeeds([
+        "user_limits",
         "declare",
-        "user_limit",
         "--user",
         username,
         "--name",
@@ -33,23 +33,23 @@ fn test_user_limits() -> Result<(), Box<dyn Error>> {
         "1234",
     ]);
 
-    run_succeeds(["list", "user_limits"])
+    run_succeeds(["user_limits", "list"])
         .stdout(output_includes(limit_name).and(output_includes("1234")));
 
     run_succeeds([
+        "user_limits",
         "delete",
-        "user_limit",
         "--user",
         username,
         "--name",
         limit_name,
     ]);
 
-    run_succeeds(["list", "user_limits"]).stdout(output_includes(limit_name).not());
+    run_succeeds(["user_limits", "list"]).stdout(output_includes(limit_name).not());
 
     run_succeeds([
+        "user_limits",
         "delete",
-        "user_limit",
         "--user",
         username,
         "--name",

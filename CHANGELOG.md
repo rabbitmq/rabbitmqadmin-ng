@@ -2,7 +2,41 @@
 
 ## v2.15.0 (in development)
 
-No changes yet.
+### Enhancements
+
+* `permissions` is a new command group for operations on user permissions:
+
+  ```shell
+  rabbitmqadmin permissions list
+
+  rabbitmqadmin permissions declare --user "user1" --configure ".*" --read ".*" --write ".*"
+
+  rabbitmqadmin permissions delete --user "user1"
+  ```
+
+* `user_limits` is a new command group for operations on per-user limits:
+
+  ```shell
+  rabbitmqadmin user_limits list
+
+  rabbitmqadmin user_limits declare --user "user1" --name "max-connections" --value "100"
+
+  rabbitmqadmin user_limits delete --user "user1" --name "max-connections"
+  ```
+
+* `vhost_limits` is a new command group for operations on virtual host limits:
+
+  ```shell
+  rabbitmqadmin vhost_limits list
+
+  rabbitmqadmin vhost_limits declare --name "max-connections" --value "1000"
+
+  rabbitmqadmin vhost_limits delete --name "max-connections"
+  ```
+
+### Deprecations
+
+* "Verb" command groups (`list [object]`, `declare [object]`, `delete [object]`) are now deprecated in favor of the "noun" group commands (such as `users [operation]` or `permissions [operation]`).
 
 
 ## v2.14.0 (Sep 30, 2025)
