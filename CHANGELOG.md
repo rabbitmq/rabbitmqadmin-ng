@@ -19,7 +19,7 @@ No changes yet.
   rabbitmqadmin permissions delete --user "user1"
   ```
 
-* `user_limits` is a new command group for operations on per-user limits:
+* `user_limits` is a new command group for operations on [per-user limits](https://www.rabbitmq.com/docs/user-limits):
 
   ```shell
   rabbitmqadmin user_limits list
@@ -29,7 +29,7 @@ No changes yet.
   rabbitmqadmin user_limits delete --user "user1" --name "max-connections"
   ```
 
-* `vhost_limits` is a new command group for operations on virtual host limits:
+* `vhost_limits` is a new command group for operations on [virtual host limits](https://www.rabbitmq.com/docs/vhosts#limits):
 
   ```shell
   rabbitmqadmin vhost_limits list
