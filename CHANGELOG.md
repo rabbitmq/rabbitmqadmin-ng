@@ -1,6 +1,11 @@
 # rabbitmqadmin-ng Change Log
 
-## v2.15.0 (in development)
+## v2.16.0 (in development)
+
+No changes yet.
+
+
+## v2.15.0 (Sep 30, 2025)
 
 ### Enhancements
 
@@ -185,7 +190,7 @@
 ### Enhancements
 
 * `federation disable_tls_peer_verification_for_all_upstreams` is a new command that disables TLS peer verification
-  for all federation upstreams. 
+  for all federation upstreams.
 
   **Important**: this command should **only** be used to correct federation upstream URI after a bad deployment, for example,
   if [peer verification](https://www.rabbitmq.com/docs/ssl#peer-verification) was enabled before certificates and keys were
@@ -236,7 +241,7 @@
 
 ### Enhancements
 
- * `definitions export` is now compatible with RabbitMQ 3.10.0, a series that has 
+ * `definitions export` is now compatible with RabbitMQ 3.10.0, a series that has
    reached end of life (EOL) in late 2023
 
 ### Upgrades
@@ -302,12 +307,12 @@
 
 ### Enhancements
 
- * `rabbitmqadmin.conf` now supports more TLS-related settings: `ca_certificate_bundle_path` (corresponds to `--tls-ca-cert-file` on the command line), 
-   `client_certificate_file_path` (corresponds to `--tls-cert-file`), and `client_private_key_file_path` (corresponds to `--tls-key-file`). 
+ * `rabbitmqadmin.conf` now supports more TLS-related settings: `ca_certificate_bundle_path` (corresponds to `--tls-ca-cert-file` on the command line),
+   `client_certificate_file_path` (corresponds to `--tls-cert-file`), and `client_private_key_file_path` (corresponds to `--tls-key-file`).
 
    As the names suggest, they are used to configure the CA certificate bundle file path, the client certificate file path,
    and the client private key file path, respectively:
- 
+
    ```toml
     [production]
     hostname = "(redacted)"
@@ -324,8 +329,8 @@
 
 ### Bug Fixes
 
- * Tool version was unintentionally missing from `-h` output (but present in its long counterpart, `--help`)  
- * The `tls` setting in `rabbitmqadmin.conf`, a `--use-tls` equivalent, was not respected when connecting to a node 
+ * Tool version was unintentionally missing from `-h` output (but present in its long counterpart, `--help`)
+ * The `tls` setting in `rabbitmqadmin.conf`, a `--use-tls` equivalent, was not respected when connecting to a node
    in certain cases
 
 ## v2.6.0 (Jul 12, 2025)
