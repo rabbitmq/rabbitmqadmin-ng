@@ -51,26 +51,31 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         .infer_subcommands(pre_flight_settings.infer_subcommands)
         .infer_long_args(pre_flight_settings.infer_long_options)
         .subcommand_value_name("binding")
+        .arg_required_else_help(true)
         .subcommands(binding_subcommands(pre_flight_settings.clone()));
     let channels_group = Command::new("channels")
         .about("Operations on channels")
         .infer_subcommands(pre_flight_settings.infer_subcommands)
         .infer_long_args(pre_flight_settings.infer_long_options)
+        .arg_required_else_help(true)
         .subcommands(channels_subcommands(pre_flight_settings.clone()));
     let close_group = Command::new("close")
         .about("Closes connections")
         .infer_subcommands(pre_flight_settings.infer_subcommands)
         .infer_long_args(pre_flight_settings.infer_long_options)
+        .arg_required_else_help(true)
         .subcommands(close_subcommands(pre_flight_settings.clone()));
     let connections_group = Command::new("connections")
         .about("Operations on connections")
         .infer_subcommands(pre_flight_settings.infer_subcommands)
         .infer_long_args(pre_flight_settings.infer_long_options)
+        .arg_required_else_help(true)
         .subcommands(connections_subcommands(pre_flight_settings.clone()));
     let declare_group = Command::new("declare")
         .about("Creates or declares objects")
         .infer_subcommands(pre_flight_settings.infer_subcommands)
         .infer_long_args(pre_flight_settings.infer_long_options)
+        .arg_required_else_help(true)
         .subcommands(declare_subcommands(pre_flight_settings.clone()));
     let definitions_group = Command::new("definitions")
         .about("Operations on definitions (everything except for messages: virtual hosts, queues, streams, exchanges, bindings, users, etc)")
@@ -81,11 +86,13 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
                     DEFINITION_GUIDE_URL
                 ))
         .subcommand_value_name("export")
+        .arg_required_else_help(true)
         .subcommands(definitions_subcommands(pre_flight_settings.clone()));
     let delete_group = Command::new("delete")
         .about("Deletes objects")
         .infer_subcommands(pre_flight_settings.infer_subcommands)
         .infer_long_args(pre_flight_settings.infer_long_options)
+        .arg_required_else_help(true)
         .subcommands(delete_subcommands(pre_flight_settings.clone()));
     let deprecated_features_group = Command::new("deprecated_features")
         .about("Operations on deprecated features")
@@ -96,12 +103,14 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
             DEPRECATED_FEATURE_GUIDE_URL
         ))
         .subcommand_value_name("deprecated feature")
+        .arg_required_else_help(true)
         .subcommands(deprecated_features_subcommands(pre_flight_settings.clone()));
     let exchanges_group = Command::new("exchanges")
         .about("Operations on exchanges")
         .infer_subcommands(pre_flight_settings.infer_subcommands)
         .infer_long_args(pre_flight_settings.infer_long_options)
         .subcommand_value_name("exchange")
+        .arg_required_else_help(true)
         .subcommands(exchanges_subcommands(pre_flight_settings.clone()));
     let export_group = Command::new("export")
         .about("See 'definitions export'")
@@ -112,6 +121,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
             DEFINITION_GUIDE_URL
         ))
         .subcommand_value_name("definitions")
+        .arg_required_else_help(true)
         .subcommands(export_subcommands(pre_flight_settings.clone()));
     let feature_flags_group = Command::new("feature_flags")
         .about("Operations on feature flags")
@@ -122,6 +132,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
             FEATURE_FLAG_GUIDE_URL
         ))
         .subcommand_value_name("feature flag")
+        .arg_required_else_help(true)
         .subcommands(feature_flags_subcommands(pre_flight_settings.clone()));
     let federation_group = Command::new("federation")
         .about("Operations on federation upstreams and links")
@@ -139,6 +150,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
             FEDERATED_QUEUES_GUIDE_URL,
             FEDERATION_REFERENCE_URL
         ))
+        .arg_required_else_help(true)
         .subcommands(federation_subcommands(pre_flight_settings.clone()));
     let get_group = Command::new("get")
         .about(color_print::cstr!("Fetches message(s) from a queue or stream via <bold><red>polling</red></bold>. <bold><red>Only suitable for development and test environments</red></bold>."))
@@ -146,6 +158,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         .infer_long_args(pre_flight_settings.infer_long_options)
         .after_help(color_print::cformat!("<bold>Doc guide</bold>: {}", POLLING_CONSUMER_GUIDE_URL))
         .subcommand_value_name("message")
+        .arg_required_else_help(true)
         .subcommands(get_subcommands(pre_flight_settings.clone()));
     let global_parameters_group = Command::new("global_parameters")
         .about("Operations on global runtime parameters")
@@ -156,12 +169,14 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
             RUNTIME_PARAMETER_GUIDE_URL
         ))
         .subcommand_value_name("runtime_parameter")
+        .arg_required_else_help(true)
         .subcommands(global_parameters_subcommands(pre_flight_settings.clone()));
     let health_check_group = Command::new("health_check")
         .about("Runs health checks")
         .infer_subcommands(pre_flight_settings.infer_subcommands)
         .infer_long_args(pre_flight_settings.infer_long_options)
         .subcommand_value_name("check")
+        .arg_required_else_help(true)
         .subcommands(health_check_subcommands(pre_flight_settings.clone()))
         .after_help(color_print::cformat!(
             r#"<bold>Doc guides</bold>:
@@ -180,16 +195,19 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
             DEFINITION_GUIDE_URL
         ))
         .subcommand_value_name("definitions")
+        .arg_required_else_help(true)
         .subcommands(import_subcommands(pre_flight_settings.clone()));
     let list_group = Command::new("list")
         .about("Lists objects")
         .infer_subcommands(pre_flight_settings.infer_subcommands)
         .infer_long_args(pre_flight_settings.infer_long_options)
+        .arg_required_else_help(true)
         .subcommands(list_subcommands(pre_flight_settings.clone()));
     let nodes_group = Command::new("nodes")
         .about("Node operations")
         .infer_subcommands(pre_flight_settings.infer_subcommands)
         .infer_long_args(pre_flight_settings.infer_long_options)
+        .arg_required_else_help(true)
         .subcommands(nodes_subcommands(pre_flight_settings.clone()));
     let operator_policies_group = Command::new("operator_policies")
         .about("Operations on operator policies")
@@ -200,6 +218,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
             POLICY_GUIDE_URL
         ))
         .subcommand_value_name("operator policy")
+        .arg_required_else_help(true)
         .subcommands(operator_policies_subcommands(pre_flight_settings.clone()));
     let parameters_group = Command::new("parameters")
         .about("Operations on runtime parameters")
@@ -210,6 +229,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
             RUNTIME_PARAMETER_GUIDE_URL
         ))
         .subcommand_value_name("runtime_parameter")
+        .arg_required_else_help(true)
         .subcommands(parameters_subcommands(pre_flight_settings.clone()));
     let passwords_group = Command::new("passwords")
         .about("Operations on passwords")
@@ -219,6 +239,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
             "<bold>Doc guide</bold>: {}",
             PASSWORD_GUIDE_URL
         ))
+        .arg_required_else_help(true)
         .subcommands(passwords_subcommands(pre_flight_settings.clone()));
     let permissions_group = Command::new("permissions")
         .about("Operations on user permissions")
@@ -229,6 +250,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
             ACCESS_CONTROL_GUIDE_URL
         ))
         .subcommand_value_name("permission")
+        .arg_required_else_help(true)
         .subcommands(permissions_subcommands(pre_flight_settings.clone()));
     let policies_group = Command::new("policies")
         .about("Operations on policies")
@@ -239,6 +261,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
             POLICY_GUIDE_URL
         ))
         .subcommand_value_name("policy")
+        .arg_required_else_help(true)
         .subcommands(policies_subcommands(pre_flight_settings.clone()));
     let publish_group = Command::new("publish")
         .about(color_print::cstr!("Publishes (<red>inefficiently</red>) message(s) to a queue or a stream. <bold><red>Only suitable for development and test environments</red></bold>."))
@@ -246,18 +269,21 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         .infer_long_args(pre_flight_settings.infer_long_options)
         .after_help(color_print::cformat!("<bold>Doc guide</bold>: {}", PUBLISHER_GUIDE_URL))
         .subcommand_value_name("message")
+        .arg_required_else_help(true)
         .subcommands(publish_subcommands(pre_flight_settings.clone()));
     let purge_group = Command::new("purge")
         .about("Purges queues")
         .infer_subcommands(pre_flight_settings.infer_subcommands)
         .infer_long_args(pre_flight_settings.infer_long_options)
         .subcommand_value_name("queue")
+        .arg_required_else_help(true)
         .subcommands(purge_subcommands(pre_flight_settings.clone()));
     let queues_group = Command::new("queues")
         .about("Operations on queues")
         .infer_subcommands(pre_flight_settings.infer_subcommands)
         .infer_long_args(pre_flight_settings.infer_long_options)
         .subcommand_value_name("queue")
+        .arg_required_else_help(true)
         .subcommands(queues_subcommands(pre_flight_settings.clone()));
     let rebalance_group = Command::new("rebalance")
         .about("Rebalancing of leader replicas")
@@ -268,6 +294,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
             QUORUM_QUEUE_GUIDE_URL
         ))
         .subcommand_value_name("queues")
+        .arg_required_else_help(true)
         .subcommands(rebalance_subcommands(pre_flight_settings.clone()));
     let show_group = Command::new("show")
         .about("Overview, memory footprint breakdown, and more")
@@ -277,6 +304,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         ))
         .infer_subcommands(pre_flight_settings.infer_subcommands)
         .infer_long_args(pre_flight_settings.infer_long_options)
+        .arg_required_else_help(true)
         .subcommands(show_subcommands(pre_flight_settings.clone()));
     let shovels_group = Command::new("shovels")
         .about("Operations on shovels")
@@ -287,12 +315,14 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
             SHOVEL_GUIDE_URL
         ))
         .subcommand_value_name("shovels")
+        .arg_required_else_help(true)
         .subcommands(shovel_subcommands(pre_flight_settings.clone()));
     let streams_group = Command::new("streams")
         .about("Operations on streams")
         .infer_subcommands(pre_flight_settings.infer_subcommands)
         .infer_long_args(pre_flight_settings.infer_long_options)
         .subcommand_value_name("stream")
+        .arg_required_else_help(true)
         .subcommands(streams_subcommands(pre_flight_settings.clone()));
     let tanzu_group = Command::new("tanzu")
         .about("Tanzu RabbitMQ-specific commands")
@@ -303,6 +333,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
             COMMERCIAL_OFFERINGS_GUIDE_URL
         ))
         .subcommand_value_name("subcommand")
+        .arg_required_else_help(true)
         .subcommands(tanzu_subcommands());
     let users_group = Command::new("users")
         .about("Operations on users")
@@ -313,6 +344,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
             ACCESS_CONTROL_GUIDE_URL
         ))
         .subcommand_value_name("subcommand")
+        .arg_required_else_help(true)
         .subcommands(users_subcommands(pre_flight_settings.clone()));
     let user_limits_group = Command::new("user_limits")
         .about("Operations on per-user (resource) limits")
@@ -323,11 +355,13 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
             USER_LIMIT_GUIDE_URL
         ))
         .subcommand_value_name("user_limit")
+        .arg_required_else_help(true)
         .subcommands(user_limits_subcommands(pre_flight_settings.clone()));
     let vhosts_group = Command::new("vhosts")
         .about("Virtual host operations")
         .infer_subcommands(pre_flight_settings.infer_subcommands)
         .infer_long_args(pre_flight_settings.infer_long_options)
+        .arg_required_else_help(true)
         .subcommands(vhosts_subcommands(pre_flight_settings.clone()));
     let vhost_limits_group = Command::new("vhost_limits")
         .about("Operations on virtual host (resource) limits")
@@ -338,6 +372,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
             VIRTUAL_HOST_LIMIT_GUIDE_URL
         ))
         .subcommand_value_name("vhost_limit")
+        .arg_required_else_help(true)
         .subcommands(vhost_limits_subcommands(pre_flight_settings.clone()));
 
     let command_groups = [
