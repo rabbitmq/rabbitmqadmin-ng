@@ -18,7 +18,7 @@ use super::static_urls::*;
 use super::tanzu_cli::tanzu_subcommands;
 use crate::config::PreFlightSettings;
 use crate::output::TableStyle;
-use clap::{Arg, ArgAction, ArgGroup, Command, crate_version, value_parser};
+use clap::{Arg, ArgAction, ArgGroup, Command, crate_name, crate_version, value_parser};
 use rabbitmq_http_client::commons::{
     BindingDestinationType, ChannelUseMode, ExchangeType, MessageTransferAcknowledgementMode,
     PolicyTarget, QueueType, SupportedProtocol,
@@ -413,10 +413,10 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         vhost_limits_group,
     ];
 
-    Command::new("rabbitmqadmin")
+    Command::new(crate_name!())
         .version(crate_version!())
         .author("The RabbitMQ Core Team")
-        .about(format!("rabbitmqadmin gen 2, version: {}", crate_version!()))
+        .about(format!("{} gen 2, version: {}", crate_name!(), crate_version!()))
         .long_about(format!(
             "RabbitMQ CLI that uses the HTTP API. Version: {}",
             crate_version!()

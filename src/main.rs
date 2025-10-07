@@ -15,7 +15,7 @@
 #![allow(clippy::unnecessary_unwrap)]
 #![allow(clippy::collapsible_if)]
 
-use clap::{ArgMatches, crate_version};
+use clap::{ArgMatches, crate_name, crate_version};
 use errors::CommandRunError;
 use reqwest::{Identity, tls::Version as TlsVersion};
 use std::path::{Path, PathBuf};
@@ -185,7 +185,7 @@ fn build_http_client(
     cli: &ArgMatches,
     common_settings: &SharedSettings,
 ) -> Result<HTTPClient, CommandRunError> {
-    let user_agent = format!("rabbitmqadmin-ng {}", crate_version!());
+    let user_agent = format!("{} {}", crate_name!(), crate_version!());
     if should_use_tls(common_settings) {
         let _ = CryptoProvider::install_default(rustls::crypto::aws_lc_rs::default_provider());
 
