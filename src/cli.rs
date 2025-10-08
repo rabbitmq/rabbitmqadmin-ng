@@ -596,7 +596,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         .subcommands(command_groups)
 }
 
-fn list_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 19] {
+fn list_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     let nodes_cmd = Command::new("nodes").long_about("Lists cluster members");
     let vhosts_cmd = Command::new("vhosts")
         .long_about("Lists virtual hosts")
@@ -731,10 +731,12 @@ fn list_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 19] {
         deprecated_features_cmd,
         deprecated_features_in_use_cmd,
     ]
+    .into_iter()
     .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+    .collect()
 }
 
-fn declare_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 12] {
+fn declare_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     let user_cmd = Command::new("user")
         .about("Creates a user")
         .arg(
@@ -1134,10 +1136,12 @@ fn declare_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 12] 
         vhost_limit_cmd,
         user_limit_cmd,
     ]
+    .into_iter()
     .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+    .collect()
 }
 
-fn show_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 5] {
+fn show_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     let overview_cmd = Command::new("overview")
         .about("Displays essential information about target node and its cluster");
     let churn_cmd = Command::new("churn").about("Displays object churn metrics");
@@ -1176,10 +1180,12 @@ fn show_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 5] {
         memory_breakdown_in_bytes_cmd,
         memory_breakdown_in_percent_cmd,
     ]
+    .into_iter()
     .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+    .collect()
 }
 
-fn delete_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 13] {
+fn delete_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     let idempotently_arg = Arg::new("idempotently")
         .long("idempotently")
         .value_parser(value_parser!(bool))
@@ -1355,10 +1361,12 @@ fn delete_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 13] {
         user_limit_cmd,
         shovel_cmd,
     ]
+    .into_iter()
     .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+    .collect()
 }
 
-fn purge_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 1] {
+fn purge_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     let queue_cmd = Command::new("queue")
         .long_about("Purges (permanently removes unacknowledged messages from) a queue")
         .arg(
@@ -1367,10 +1375,13 @@ fn purge_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 1] {
                 .help("name of the queue to purge")
                 .required(true),
         );
-    [queue_cmd].map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+    [queue_cmd]
+        .into_iter()
+        .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+        .collect()
 }
 
-fn binding_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 3] {
+fn binding_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     let idempotently_arg = Arg::new("idempotently")
         .long("idempotently")
         .value_parser(value_parser!(bool))
@@ -1451,10 +1462,12 @@ fn binding_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 3] {
     let list_cmd = Command::new("list").long_about("Lists bindings");
 
     [declare_cmd, delete_cmd, list_cmd]
+        .into_iter()
         .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+        .collect()
 }
 
-fn queues_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 5] {
+fn queues_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     let declare_cmd = Command::new("declare")
         .about("Declares a queue or a stream")
         .after_help(color_print::cformat!(
@@ -1523,10 +1536,12 @@ fn queues_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 5] {
         );
     let rebalance_cmd = Command::new("rebalance").about("Rebalances queue leaders");
     [declare_cmd, delete_cmd, list_cmd, purge_cmd, rebalance_cmd]
+        .into_iter()
         .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+        .collect()
 }
 
-fn streams_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 3] {
+fn streams_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     let declare_cmd = Command::new("declare")
         .about("Declares a stream")
         .after_help(color_print::cformat!(
@@ -1585,10 +1600,12 @@ fn streams_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 3] {
             STREAM_GUIDE_URL
         ));
     [declare_cmd, delete_cmd, list_cmd]
+        .into_iter()
         .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+        .collect()
 }
 
-fn parameters_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 5] {
+fn parameters_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     let idempotently_arg = Arg::new("idempotently")
         .long("idempotently")
         .value_parser(value_parser!(bool))
@@ -1671,10 +1688,12 @@ fn parameters_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 5
         .arg(idempotently_arg.clone());
 
     [clear_cmd, list_all_cmd, list_cmd, list_in_cmd, set_cmd]
+        .into_iter()
         .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+        .collect()
 }
 
-fn global_parameters_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 3] {
+fn global_parameters_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     let idempotently_arg = Arg::new("idempotently")
         .long("idempotently")
         .value_parser(value_parser!(bool))
@@ -1721,10 +1740,12 @@ fn global_parameters_subcommands(pre_flight_settings: PreFlightSettings) -> [Com
         .arg(idempotently_arg.clone());
 
     [clear_cmd, list_cmd, set_cmd]
+        .into_iter()
         .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+        .collect()
 }
 
-fn operator_policies_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 10] {
+fn operator_policies_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     let idempotently_arg = Arg::new("idempotently")
         .long("idempotently")
         .value_parser(value_parser!(bool))
@@ -1902,10 +1923,12 @@ fn operator_policies_subcommands(pre_flight_settings: PreFlightSettings) -> [Com
         update_cmd,
         update_all_in_cmd,
     ]
+    .into_iter()
     .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+    .collect()
 }
 
-fn policies_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 12] {
+fn policies_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     let idempotently_arg = Arg::new("idempotently")
         .long("idempotently")
         .value_parser(value_parser!(bool))
@@ -2130,10 +2153,12 @@ fn policies_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 12]
         update_cmd,
         update_all_in_cmd,
     ]
+    .into_iter()
     .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+    .collect()
 }
 
-fn health_check_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 6] {
+fn health_check_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     let node_is_quorum_critical_after_help = color_print::cformat!(
         r#"
 <bold>Doc guides</bold>:
@@ -2195,15 +2220,20 @@ fn health_check_subcommands(pre_flight_settings: PreFlightSettings) -> [Command;
         port_listener,
         protocol_listener,
     ]
+    .into_iter()
     .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+    .collect()
 }
 
-fn rebalance_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 1] {
+fn rebalance_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     let queues_cmd = Command::new("queues").about("Rebalances queue leaders");
-    [queues_cmd].map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+    [queues_cmd]
+        .into_iter()
+        .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+        .collect()
 }
 
-fn close_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 2] {
+fn close_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     let idempotently_arg = Arg::new("idempotently")
         .long("idempotently")
         .value_parser(value_parser!(bool))
@@ -2231,10 +2261,12 @@ fn close_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 2] {
         )
         .arg(idempotently_arg.clone());
     [close_connection, close_user_connections]
+        .into_iter()
         .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+        .collect()
 }
 
-fn channels_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 1] {
+fn channels_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     let list_cmd = Command::new("list")
         .long_about("Lists all channels across all virtual hosts")
         .after_help(color_print::cformat!(
@@ -2242,10 +2274,13 @@ fn channels_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 1] 
             "https://www.rabbitmq.com/docs/channels"
         ));
 
-    [list_cmd].map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+    [list_cmd]
+        .into_iter()
+        .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+        .collect()
 }
 
-fn connections_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 4] {
+fn connections_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     let idempotently_arg = Arg::new("idempotently")
         .long("idempotently")
         .value_parser(value_parser!(bool))
@@ -2298,10 +2333,12 @@ fn connections_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 
         list_cmd,
         list_user_connections_cmd,
     ]
+    .into_iter()
     .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+    .collect()
 }
 
-fn definitions_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 4] {
+fn definitions_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     let export_cmd = Command::new("export")
         .about("Export cluster-wide definitions")
         .after_help(color_print::cformat!(
@@ -2476,10 +2513,12 @@ Examples:
         import_cmd,
         import_into_vhost_cmd,
     ]
+    .into_iter()
     .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+    .collect()
 }
 
-fn exchanges_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 5] {
+fn exchanges_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     let bind_cmd = Command::new("bind")
         .about("Creates a binding between a source exchange and a destination (a queue or an exchange)")
         .arg(
@@ -2604,9 +2643,11 @@ fn exchanges_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 5]
         )
         .arg(idempotently_arg.clone());
     [bind_cmd, declare_cmd, delete_cmd, list_cmd, unbind_cmd]
+        .into_iter()
         .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+        .collect()
 }
-fn export_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 1] {
+fn export_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     let definitions = Command::new("definitions")
         .about("Export cluster-wide definitions")
         .after_help(color_print::cformat!(
@@ -2667,10 +2708,13 @@ Examples:
                 .action(ArgAction::Append)
                 .required(false),
         );
-    [definitions].map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+    [definitions]
+        .into_iter()
+        .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+        .collect()
 }
 
-fn import_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 1] {
+fn import_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     [Command::new("definitions")
         .about("Prefer 'definitions import'")
         .after_help(color_print::cformat!(
@@ -2683,10 +2727,12 @@ fn import_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 1] {
                 .help("JSON file with definitions")
                 .required(true),
         )]
+    .into_iter()
     .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+    .collect()
 }
 
-pub fn feature_flags_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 3] {
+pub fn feature_flags_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     let list_cmd = Command::new("list")
         .long_about("Lists feature flags and their cluster state")
         .after_help(color_print::cformat!(
@@ -2715,10 +2761,12 @@ pub fn feature_flags_subcommands(pre_flight_settings: PreFlightSettings) -> [Com
         ));
 
     [list_cmd, enable_cmd, enable_all_cmd]
+        .into_iter()
         .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+        .collect()
 }
 
-pub fn deprecated_features_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 2] {
+pub fn deprecated_features_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     let list_cmd = Command::new("list")
         .long_about("Lists deprecated features")
         .after_help(color_print::cformat!(
@@ -2734,10 +2782,12 @@ pub fn deprecated_features_subcommands(pre_flight_settings: PreFlightSettings) -
         ));
 
     [list_cmd, list_in_use_cmd]
+        .into_iter()
         .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+        .collect()
 }
 
-pub fn nodes_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 3] {
+pub fn nodes_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     let list_cmd = Command::new("list")
         .long_about("Lists cluster nodes")
         .after_help(color_print::cformat!(
@@ -2776,10 +2826,12 @@ pub fn nodes_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 3]
         memory_breakdown_in_percent_cmd,
         memory_breakdown_in_bytes_cmd,
     ]
+    .into_iter()
     .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+    .collect()
 }
 
-pub fn vhosts_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 6] {
+pub fn vhosts_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     let list_cmd = Command::new("list")
         .long_about("Lists virtual hosts")
         .after_help(color_print::cformat!(
@@ -2889,10 +2941,12 @@ pub fn vhosts_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 6
         enable_deletion_protection_cmd,
         disable_deletion_protection_cmd,
     ]
+    .into_iter()
     .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+    .collect()
 }
 
-pub fn users_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 6] {
+pub fn users_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     let declare_cmd = Command::new("declare")
         .about("Creates a user")
         .arg(
@@ -2994,10 +3048,12 @@ pub fn users_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 6]
         list_cmd,
         permissions_cmd,
     ]
+    .into_iter()
     .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+    .collect()
 }
 
-pub fn passwords_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 1] {
+pub fn passwords_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     let hash_password = Command::new("salt_and_hash")
         .arg(
             Arg::new("password")
@@ -3013,10 +3069,13 @@ pub fn passwords_subcommands(pre_flight_settings: PreFlightSettings) -> [Command
                 .help("The hashing algorithm to use: SHA256 or SHA512"),
         );
 
-    [hash_password].map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+    [hash_password]
+        .into_iter()
+        .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+        .collect()
 }
 
-pub fn permissions_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 3] {
+pub fn permissions_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     let idempotently_arg = Arg::new("idempotently")
         .long("idempotently")
         .value_parser(value_parser!(bool))
@@ -3073,10 +3132,12 @@ pub fn permissions_subcommands(pre_flight_settings: PreFlightSettings) -> [Comma
         .arg(idempotently_arg.clone());
 
     [list_cmd, declare_cmd, delete_cmd]
+        .into_iter()
         .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+        .collect()
 }
 
-pub fn user_limits_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 3] {
+pub fn user_limits_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     let list_cmd = Command::new("list")
         .long_about("Lists per-user (resource) limits")
         .after_help(color_print::cformat!(
@@ -3131,10 +3192,12 @@ pub fn user_limits_subcommands(pre_flight_settings: PreFlightSettings) -> [Comma
         );
 
     [list_cmd, declare_cmd, delete_cmd]
+        .into_iter()
         .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+        .collect()
 }
 
-pub fn vhost_limits_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 3] {
+pub fn vhost_limits_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     let list_cmd = Command::new("list")
         .long_about("Lists virtual host (resource) limits")
         .after_help(color_print::cformat!(
@@ -3169,10 +3232,12 @@ pub fn vhost_limits_subcommands(pre_flight_settings: PreFlightSettings) -> [Comm
     );
 
     [list_cmd, declare_cmd, delete_cmd]
+        .into_iter()
         .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+        .collect()
 }
 
-pub fn publish_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 1] {
+pub fn publish_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     [Command::new("message")
         .about(color_print::cstr!("Publishes (<red>inefficiently</red>) message(s) to a queue or a stream. <bold><red>Only suitable for development and test environments</red></bold>. Prefer messaging or streaming protocol clients!"))
         .after_help(color_print::cformat!("<bold>Doc guide</bold>: {}", PUBLISHER_GUIDE_URL))
@@ -3207,10 +3272,13 @@ pub fn publish_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 
                 .required(false)
                 .default_value("{}")
                 .help("Message properties"),
-        )].map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+        )]
+    .into_iter()
+    .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+    .collect()
 }
 
-pub fn get_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 1] {
+pub fn get_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     [Command::new("messages")
         .about(color_print::cstr!("Fetches (via <red>polling, very inefficiently</red>) message(s) from a queue. <bold><red>Only suitable for development and test environments</red></bold>"))
         .after_help(color_print::cformat!("<bold>Doc guide</bold>: {}", POLLING_CONSUMER_GUIDE_URL))
@@ -3236,10 +3304,13 @@ pub fn get_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 1] {
                 .required(false)
                 .default_value("ack_requeue_false")
                 .help("Accepted values are: ack_requeue_false, reject_requeue_false, ack_requeue_true, reject_requeue_true"),
-        )].map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+        )]
+    .into_iter()
+    .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+    .collect()
 }
 
-pub fn shovel_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 9] {
+pub fn shovel_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     let idempotently_arg = Arg::new("idempotently")
         .long("idempotently")
         .value_parser(value_parser!(bool))
@@ -3507,10 +3578,12 @@ pub fn shovel_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 9
         enable_tls_peer_verification_source_cmd,
         enable_tls_peer_verification_dest_cmd,
     ]
+    .into_iter()
     .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+    .collect()
 }
 
-fn federation_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 8] {
+fn federation_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     let idempotently_arg = Arg::new("idempotently")
         .long("idempotently")
         .value_parser(value_parser!(bool))
@@ -3914,5 +3987,7 @@ fn federation_subcommands(pre_flight_settings: PreFlightSettings) -> [Command; 8
         disable_tls_peer_verification_cmd,
         enable_tls_peer_verification_cmd,
     ]
+    .into_iter()
     .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+    .collect()
 }
