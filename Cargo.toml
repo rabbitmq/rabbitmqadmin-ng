@@ -40,6 +40,7 @@ rustls = { version = "0.23", features = ["aws_lc_rs"] }
 [dev-dependencies]
 assert_cmd = "2.0"
 predicates = "3.1"
+proptest = "1.5"
 
 [lints.clippy]
 uninlined_format_args = "allow"

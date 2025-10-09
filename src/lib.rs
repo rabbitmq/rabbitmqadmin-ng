@@ -13,4 +13,9 @@
 // limitations under the License.
 
 // Re-export modules for testing
+pub mod config;
+pub mod constants;
+pub mod errors;
+pub mod output;
 pub mod pre_flight;
+pub mod tables;

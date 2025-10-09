@@ -3,3 +3,4 @@
 .fleet/*
 profile.json
 .tool-versions
+*.proptest-regressions

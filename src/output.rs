@@ -471,6 +471,12 @@ pub struct InteractiveProgressReporter {
     failures: usize,
 }
 
+impl Default for InteractiveProgressReporter {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[allow(dead_code)]
 impl InteractiveProgressReporter {
     pub fn new() -> Self {
@@ -541,6 +547,12 @@ pub struct NonInteractiveProgressReporter {
     bar: Option<ProgressBar>,
 }
 
+impl Default for NonInteractiveProgressReporter {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[allow(dead_code)]
 impl NonInteractiveProgressReporter {
     pub fn new() -> Self {
@@ -589,6 +601,12 @@ impl ProgressReporter for NonInteractiveProgressReporter {
 
 #[allow(dead_code)]
 pub struct QuietProgressReporter;
+
+impl Default for QuietProgressReporter {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 #[allow(dead_code)]
 impl QuietProgressReporter {
