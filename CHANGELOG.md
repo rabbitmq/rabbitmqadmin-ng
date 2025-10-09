@@ -14,6 +14,13 @@
   rabbitmqadmin plugins list_on_node --node rabbit@hostname
   ```
 
+* `--timeout` is a new global option limits HTTP API request execution timeout. The value is in seconds and defaults
+  to 60s:
+
+  ```shell
+  rabbitmqadmin --timeout 15 queues list
+  ```
+
 ### Upgrades
 
 * RabbitMQ HTTP API client was upgraded to [`0.62.0`](https://github.com/michaelklishin/rabbitmq-http-api-rs/releases/tag/v0.62.0)
