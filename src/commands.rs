@@ -46,6 +46,7 @@ use serde_json::Value;
 use std::fs;
 use std::io;
 use std::process;
+use tabled::Tabled;
 
 type APIClient = Client<String, String, String>;
 
@@ -1088,6 +1089,52 @@ pub fn list_deprecated_features_in_use(
     client: APIClient,
 ) -> ClientResult<responses::DeprecatedFeatureList> {
     client.list_deprecated_features_in_use()
+}
+
+//
+// Plugins
+//
+
+#[derive(Debug, Clone, Tabled)]
+pub struct PluginOnNode {
+    pub node: String,
+    pub name: String,
+    pub state: String,
+}
+
+pub fn list_plugins_on_node(
+    client: APIClient,
+    command_args: &ArgMatches,
+) -> ClientResult<Vec<PluginOnNode>> {
+    let node = command_args.get_one::<String>("node").cloned().unwrap();
+    let plugins = client.list_node_plugins(&node)?;
+
+    Ok(plugins
+        .into_iter()
+        .map(|plugin_name| PluginOnNode {
+            node: node.clone(),
+            name: plugin_name,
+            state: "Enabled".to_string(),
+        })
+        .collect())
+}
+
+pub fn list_plugins_across_cluster(client: APIClient) -> ClientResult<Vec<PluginOnNode>> {
+    let nodes = client.list_nodes()?;
+    let mut result = Vec::new();
+
+    for node in nodes {
+        let plugins = client.list_node_plugins(&node.name)?;
+        for plugin_name in plugins {
+            result.push(PluginOnNode {
+                node: node.name.clone(),
+                name: plugin_name,
+                state: "Enabled".to_string(),
+            });
+        }
+    }
+
+    Ok(result)
 }
 
 //

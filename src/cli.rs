@@ -252,6 +252,17 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         .subcommand_value_name("permission")
         .arg_required_else_help(true)
         .subcommands(permissions_subcommands(pre_flight_settings.clone()));
+    let plugins_group = Command::new("plugins")
+        .about("List enabled plugins")
+        .infer_subcommands(pre_flight_settings.infer_subcommands)
+        .infer_long_args(pre_flight_settings.infer_long_options)
+        .after_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            PLUGIN_GUIDE_URL
+        ))
+        .subcommand_value_name("plugin")
+        .arg_required_else_help(true)
+        .subcommands(plugins_subcommands(pre_flight_settings.clone()));
     let policies_group = Command::new("policies")
         .about("Operations on policies")
         .infer_subcommands(pre_flight_settings.infer_subcommands)
@@ -398,6 +409,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         parameters_group,
         passwords_group,
         permissions_group,
+        plugins_group,
         policies_group,
         publish_group,
         purge_group,
@@ -2795,6 +2807,36 @@ pub fn deprecated_features_subcommands(pre_flight_settings: PreFlightSettings) -
         .into_iter()
         .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
         .collect()
+}
+
+pub fn plugins_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
+    let list_all_cmd = Command::new("list_all")
+        .about("Lists plugins across all cluster nodes")
+        .after_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            PLUGIN_GUIDE_URL
+        ));
+
+    let list_on_node_cmd = Command::new("list_on_node")
+        .about("Lists plugins enabled on a specific node")
+        .arg(
+            Arg::new("node")
+                .long("node")
+                .help("target node, must be a cluster member")
+                .required(true),
+        )
+        .after_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            PLUGIN_GUIDE_URL
+        ));
+
+    [
+        list_all_cmd,
+        list_on_node_cmd,
+    ]
+    .into_iter()
+    .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+    .collect()
 }
 
 pub fn nodes_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {

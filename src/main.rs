@@ -823,6 +823,14 @@ fn dispatch_common_subcommand(
             let result = commands::show_memory_breakdown(client, second_level_args);
             res_handler.memory_breakdown_in_percent_result(result)
         }
+        ("plugins", "list_all") => {
+            let result = commands::list_plugins_across_cluster(client);
+            res_handler.tabular_result(result)
+        }
+        ("plugins", "list_on_node") => {
+            let result = commands::list_plugins_on_node(client, second_level_args);
+            res_handler.tabular_result(result)
+        }
         ("operator_policies", "declare") => {
             let result = commands::declare_operator_policy(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);

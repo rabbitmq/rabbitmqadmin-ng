@@ -2,7 +2,21 @@
 
 ## v2.16.0 (in development)
 
-No changes yet.
+### Enhancements
+
+* `plugins` is a new command group for listing enabled plugins:
+
+  ```shell
+  # List plugins across all cluster nodes
+  rabbitmqadmin plugins list_all
+
+  # List plugins on a specific node
+  rabbitmqadmin plugins list_on_node --node rabbit@hostname
+  ```
+
+### Upgrades
+
+* RabbitMQ HTTP API client was upgraded to [`0.62.0`](https://github.com/michaelklishin/rabbitmq-http-api-rs/releases/tag/v0.62.0)
 
 
 ## v2.15.0 (Sep 30, 2025)
