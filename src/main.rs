@@ -19,6 +19,7 @@ use clap::{ArgMatches, crate_name, crate_version};
 use errors::CommandRunError;
 use reqwest::{Identity, tls::Version as TlsVersion};
 use std::path::{Path, PathBuf};
+use std::time::Duration;
 use std::{fs, process};
 use sysexits::ExitCode;
 
@@ -124,11 +125,17 @@ fn configure_http_api_client<'a>(
     // Due to how SharedSettings are computed, these should safe to unwrap()
     let username = merged_settings.username.clone().unwrap();
     let password = merged_settings.password.clone().unwrap();
+
+    // Extract timeout from CLI arguments (default is 60 seconds)
+    let timeout_secs = cli.get_one::<u64>("timeout").copied().unwrap_or(60);
+    let timeout = Duration::from_secs(timeout_secs);
+
     let client = build_rabbitmq_http_api_client(
         httpc,
         endpoint.to_owned(),
         username.clone(),
         password.clone(),
+        timeout,
     );
     Ok(client)
 }
@@ -173,11 +180,13 @@ fn build_rabbitmq_http_api_client(
     endpoint: String,
     username: String,
     password: String,
+    timeout: Duration,
 ) -> APIClient {
     ClientBuilder::new()
         .with_endpoint(endpoint)
         .with_basic_auth_credentials(username, password)
         .with_client(httpc)
+        .with_request_timeout(timeout)
         .build()
 }
 

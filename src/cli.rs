@@ -558,6 +558,16 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
                 .help("Local path to a client private key file in the PEM format")
                 .value_parser(value_parser!(PathBuf)),
         )
+        // --timeout
+        .arg(
+            Arg::new("timeout")
+                .long("timeout")
+                .env("RABBITMQADMIN_TIMEOUT")
+                .help("HTTP API request timeout in seconds. Must be greater than 0")
+                .required(false)
+                .default_value("60")
+                .value_parser(value_parser!(u64).range(1..)),
+        )
         // --quiet
         .arg(
             Arg::new("quiet")
