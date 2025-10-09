@@ -2830,13 +2830,10 @@ pub fn plugins_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Comman
             PLUGIN_GUIDE_URL
         ));
 
-    [
-        list_all_cmd,
-        list_on_node_cmd,
-    ]
-    .into_iter()
-    .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
-    .collect()
+    [list_all_cmd, list_on_node_cmd]
+        .into_iter()
+        .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+        .collect()
 }
 
 pub fn nodes_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
