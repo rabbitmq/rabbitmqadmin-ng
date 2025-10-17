@@ -1512,9 +1512,8 @@ checksum = "69cdb34c158ceb288df11e18b4bd39de994f6657d83847bdffdbd7f346754b0f"
 
 [[package]]
 name = "rabbitmq_http_client"
-version = "0.65.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "17f03705ab15935d1ca97605ecdfbb4fed6938df94e64dafcb08e741265308d1"
+version = "0.66.0"
+source = "git+https://github.com/mkuratczyk/rabbitmq-http-api-rs?branch=parse-error-reason#3bff32654442012135f3406f1e0edb60a74fcab0"
 dependencies = [
  "backtrace",
  "log",
