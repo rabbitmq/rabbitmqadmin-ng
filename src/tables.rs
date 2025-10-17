@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 use rabbitmq_http_client::blocking_api::HttpClientError;
+use rabbitmq_http_client::error::ErrorDetails;
 use rabbitmq_http_client::formatting::*;
 use rabbitmq_http_client::password_hashing::HashingError;
 use rabbitmq_http_client::responses::{
@@ -314,14 +315,16 @@ pub fn failure_details(error: &HttpClientError) -> Table {
             status_code,
             url,
             body,
+            error_details,
             ..
-        } => generic_failed_request_details(status_code, url, body),
+        } => generic_failed_request_details(status_code, url, body, error_details),
         HttpClientError::ServerErrorResponse {
             status_code,
             url,
             body,
+            error_details,
             ..
-        } => generic_failed_request_details(status_code, url, body),
+        } => generic_failed_request_details(status_code, url, body, error_details),
         HttpClientError::HealthCheckFailed {
             status_code,
             path,
@@ -496,12 +499,13 @@ fn generic_failed_request_details(
     status_code: &StatusCode,
     url: &Option<Url>,
     body: &Option<String>,
+    error_details: &Option<ErrorDetails>,
 ) -> Table {
     let status_code_s = status_code.to_string();
     let url_s = url.clone().unwrap().to_string();
     let body_s = body.clone().unwrap_or("N/A".to_string());
 
-    let data = vec![
+    let mut data = vec![
         RowOfTwo {
             key: "result",
             value: "request failed",
@@ -519,6 +523,15 @@ fn generic_failed_request_details(
             value: body_s.as_str(),
         },
     ];
+
+    if let Some(details) = error_details
+        && let Some(reason) = details.reason()
+    {
+        data.push(RowOfTwo {
+            key: "error",
+            value: reason,
+        });
+    }
 
     build_simple_table(data)
 }

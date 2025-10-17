@@ -129,7 +129,7 @@ pub fn list_policies_in_and_applying_to(
     let policies = client.list_policies_in(vhost)?;
     Ok(policies
         .into_iter()
-        .filter(|pol| apply_to.does_apply_to(pol.apply_to.clone()))
+        .filter(|pol| apply_to.does_apply_to(pol.apply_to))
         .collect())
 }
 
@@ -139,10 +139,10 @@ pub fn list_matching_policies_in(
     name: &str,
     typ: PolicyTarget,
 ) -> ClientResult<Vec<responses::Policy>> {
-    let candidates = list_policies_in_and_applying_to(client, vhost, typ.clone())?;
+    let candidates = list_policies_in_and_applying_to(client, vhost, typ)?;
     Ok(candidates
         .into_iter()
-        .filter(|pol| pol.does_match_name(vhost, name, typ.clone()))
+        .filter(|pol| pol.does_match_name(vhost, name, typ))
         .collect())
 }
 
@@ -165,7 +165,7 @@ pub fn list_operator_policies_in_and_applying_to(
     let policies = client.list_operator_policies_in(vhost)?;
     Ok(policies
         .into_iter()
-        .filter(|pol| apply_to.does_apply_to(pol.apply_to.clone()))
+        .filter(|pol| apply_to.does_apply_to(pol.apply_to))
         .collect())
 }
 
@@ -175,10 +175,10 @@ pub fn list_matching_operator_policies_in(
     name: &str,
     typ: PolicyTarget,
 ) -> ClientResult<Vec<responses::Policy>> {
-    let candidates = list_operator_policies_in_and_applying_to(client, vhost, typ.clone())?;
+    let candidates = list_operator_policies_in_and_applying_to(client, vhost, typ)?;
     Ok(candidates
         .into_iter()
-        .filter(|pol| pol.does_match_name(vhost, name, typ.clone()))
+        .filter(|pol| pol.does_match_name(vhost, name, typ))
         .collect())
 }
 
@@ -1578,7 +1578,7 @@ pub fn declare_policy(
         vhost,
         name,
         pattern,
-        apply_to: apply_to.clone(),
+        apply_to,
         priority: priority.parse::<i32>().unwrap(),
         definition: parsed_definition,
     };
@@ -1606,7 +1606,7 @@ pub fn declare_operator_policy(
         vhost,
         name: &name,
         pattern: &pattern,
-        apply_to: apply_to.clone(),
+        apply_to,
         priority: priority.parse::<i32>().unwrap(),
         definition: parsed_definition,
     };
@@ -1832,7 +1832,7 @@ pub fn delete_policy_definition_keys(
     let str_keys: Vec<&str> = keys.iter().map(AsRef::as_ref).collect::<Vec<_>>();
 
     let pol = client.get_policy(vhost, &name)?;
-    let updated_pol = pol.without_keys(str_keys);
+    let updated_pol = pol.without_keys(&str_keys);
 
     let params = PolicyParams::from(&updated_pol);
     client.declare_policy(&params)
@@ -1852,7 +1852,7 @@ pub fn delete_policy_definition_keys_in(
     let str_keys: Vec<&str> = keys.iter().map(AsRef::as_ref).collect::<Vec<_>>();
 
     for pol in pols {
-        let updated_pol = pol.without_keys(str_keys.clone());
+        let updated_pol = pol.without_keys(&str_keys);
 
         let params = PolicyParams::from(&updated_pol);
         client.declare_policy(&params)?
@@ -1875,7 +1875,7 @@ pub fn delete_operator_policy_definition_keys(
     let str_keys: Vec<&str> = keys.iter().map(AsRef::as_ref).collect::<Vec<_>>();
 
     let pol = client.get_operator_policy(vhost, &name)?;
-    let updated_pol = pol.without_keys(str_keys);
+    let updated_pol = pol.without_keys(&str_keys);
 
     let params = PolicyParams::from(&updated_pol);
     client.declare_operator_policy(&params)
@@ -1895,7 +1895,7 @@ pub fn delete_operator_policy_definition_keys_in(
     let str_keys: Vec<&str> = keys.iter().map(AsRef::as_ref).collect::<Vec<_>>();
 
     for pol in pols {
-        let updated_pol = pol.without_keys(str_keys.clone());
+        let updated_pol = pol.without_keys(&str_keys);
 
         let params = PolicyParams::from(&updated_pol);
         client.declare_operator_policy(&params)?
