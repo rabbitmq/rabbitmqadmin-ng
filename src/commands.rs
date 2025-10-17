@@ -1832,7 +1832,7 @@ pub fn delete_policy_definition_keys(
     let str_keys: Vec<&str> = keys.iter().map(AsRef::as_ref).collect::<Vec<_>>();
 
     let pol = client.get_policy(vhost, &name)?;
-    let updated_pol = pol.without_keys(str_keys);
+    let updated_pol = pol.without_keys(&str_keys);
 
     let params = PolicyParams::from(&updated_pol);
     client.declare_policy(&params)
@@ -1852,7 +1852,7 @@ pub fn delete_policy_definition_keys_in(
     let str_keys: Vec<&str> = keys.iter().map(AsRef::as_ref).collect::<Vec<_>>();
 
     for pol in pols {
-        let updated_pol = pol.without_keys(str_keys.clone());
+        let updated_pol = pol.without_keys(&str_keys);
 
         let params = PolicyParams::from(&updated_pol);
         client.declare_policy(&params)?
@@ -1875,7 +1875,7 @@ pub fn delete_operator_policy_definition_keys(
     let str_keys: Vec<&str> = keys.iter().map(AsRef::as_ref).collect::<Vec<_>>();
 
     let pol = client.get_operator_policy(vhost, &name)?;
-    let updated_pol = pol.without_keys(str_keys);
+    let updated_pol = pol.without_keys(&str_keys);
 
     let params = PolicyParams::from(&updated_pol);
     client.declare_operator_policy(&params)
@@ -1895,7 +1895,7 @@ pub fn delete_operator_policy_definition_keys_in(
     let str_keys: Vec<&str> = keys.iter().map(AsRef::as_ref).collect::<Vec<_>>();
 
     for pol in pols {
-        let updated_pol = pol.without_keys(str_keys.clone());
+        let updated_pol = pol.without_keys(&str_keys);
 
         let params = PolicyParams::from(&updated_pol);
         client.declare_operator_policy(&params)?

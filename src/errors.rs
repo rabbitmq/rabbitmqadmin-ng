@@ -60,18 +60,20 @@ pub enum CommandRunError {
     PrivateKeyFileUnsupported { local_path: String },
     #[error("TLS certificate and private key files do not match")]
     CertificateKeyMismatch { cert_path: String, key_path: String },
-    #[error("API responded with a client error: status code of {status_code}")]
+    #[error("{}", format_client_error(.status_code, .error_details))]
     ClientError {
         status_code: StatusCode,
         url: Option<Url>,
         body: Option<String>,
+        error_details: Option<rabbitmq_http_client::error::ErrorDetails>,
         headers: Option<HeaderMap>,
     },
-    #[error("API responded with a client error: status code of {status_code}")]
+    #[error("{}", format_server_error(.status_code, .error_details))]
     ServerError {
         status_code: StatusCode,
         url: Option<Url>,
         body: Option<String>,
+        error_details: Option<rabbitmq_http_client::error::ErrorDetails>,
         headers: Option<HeaderMap>,
     },
     #[error("Health check failed")]
@@ -115,11 +117,11 @@ impl From<HttpClientError> for CommandRunError {
         use ApiClientError::*;
         match value {
             UnsupportedArgumentValue { property } => Self::UnsupportedArgumentValue { property },
-            ClientErrorResponse { status_code, url, body, headers, .. } => {
-                Self::ClientError { status_code, url, body, headers }
+            ClientErrorResponse { status_code, url, body, error_details, headers, .. } => {
+                Self::ClientError { status_code, url, body, error_details, headers }
             }
-            ServerErrorResponse { status_code, url, body, headers, .. } => {
-                Self::ServerError { status_code, url, body, headers }
+            ServerErrorResponse { status_code, url, body, error_details, headers, .. } => {
+                Self::ServerError { status_code, url, body, error_details, headers }
             }
             HealthCheckFailed { path, details, status_code } => {
                 Self::HealthCheckFailed { health_check_path: path, details, status_code }
@@ -136,4 +138,37 @@ impl From<HttpClientError> for CommandRunError {
             ParsingError { message } => Self::FailureDuringExecution { message },
         }
     }
+}
+
+fn format_client_error(
+    status_code: &StatusCode,
+    error_details: &Option<rabbitmq_http_client::error::ErrorDetails>,
+) -> String {
+    if let Some(details) = error_details {
+        if let Some(reason) = details.reason() {
+            return reason.to_string();
+        }
+    }
+    format!(
+        "API responded with a client error: status code of {}",
+        status_code
+    )
+}
+
+fn format_server_error(
+    status_code: &StatusCode,
+    error_details: &Option<rabbitmq_http_client::error::ErrorDetails>,
+) -> String {
+    if let Some(details) = error_details {
+        if let Some(reason) = details.reason() {
+            return format!(
+                "API responded with a server error: status code of {}\n\n{}",
+                status_code, reason
+            );
+        }
+    }
+    format!(
+        "API responded with a server error: status code of {}",
+        status_code
+    )
 }

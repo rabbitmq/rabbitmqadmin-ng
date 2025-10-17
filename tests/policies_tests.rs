@@ -676,3 +676,32 @@ fn test_policies_declare_blanket() -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
+
+#[test]
+fn test_policy_validation_error() -> Result<(), Box<dyn Error>> {
+    let policy_name = "test_policy_validation_error";
+
+    // Attempt to declare a policy with invalid/unknown settings in the definition
+    // This should fail with a descriptive validation error message
+    run_fails([
+        "declare",
+        "policy",
+        "--name",
+        policy_name,
+        "--pattern",
+        "^qq$",
+        "--apply-to",
+        "queues",
+        "--priority",
+        "1",
+        "--definition",
+        r#"{"foo": "bar", "invalid-setting": 12345}"#,
+    ])
+    .stderr(output_includes("Validation failed"))
+    .stderr(output_includes("not recognised").or(output_includes("not recognized")));
+
+    // Verify the policy was not created
+    run_succeeds(["list", "policies"]).stdout(output_includes(policy_name).not());
+
+    Ok(())
+}
