@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 use rabbitmq_http_client::blocking_api::HttpClientError;
+use rabbitmq_http_client::error::ErrorDetails;
 use rabbitmq_http_client::formatting::*;
 use rabbitmq_http_client::password_hashing::HashingError;
 use rabbitmq_http_client::responses::{
@@ -498,7 +499,7 @@ fn generic_failed_request_details(
     status_code: &StatusCode,
     url: &Option<Url>,
     body: &Option<String>,
-    error_details: &Option<rabbitmq_http_client::error::ErrorDetails>,
+    error_details: &Option<ErrorDetails>,
 ) -> Table {
     let status_code_s = status_code.to_string();
     let url_s = url.clone().unwrap().to_string();

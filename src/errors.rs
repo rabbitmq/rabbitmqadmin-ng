@@ -12,12 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use rabbitmq_http_client::error::{ConversionError, Error as ApiClientError};
+use rabbitmq_http_client::error::{ConversionError, Error as ApiClientError, ErrorDetails};
 use rabbitmq_http_client::{blocking_api::HttpClientError, responses::HealthCheckFailureDetails};
-use reqwest::{
-    StatusCode,
-    header::{HeaderMap, InvalidHeaderValue},
-};
+use reqwest::StatusCode;
+use reqwest::header::{HeaderMap, InvalidHeaderValue};
 use std::io;
 use url::Url;
 
@@ -65,7 +63,7 @@ pub enum CommandRunError {
         status_code: StatusCode,
         url: Option<Url>,
         body: Option<String>,
-        error_details: Option<rabbitmq_http_client::error::ErrorDetails>,
+        error_details: Option<ErrorDetails>,
         headers: Option<HeaderMap>,
     },
     #[error("{}", format_server_error(.status_code, .error_details))]
@@ -73,7 +71,7 @@ pub enum CommandRunError {
         status_code: StatusCode,
         url: Option<Url>,
         body: Option<String>,
-        error_details: Option<rabbitmq_http_client::error::ErrorDetails>,
+        error_details: Option<ErrorDetails>,
         headers: Option<HeaderMap>,
     },
     #[error("Health check failed")]
@@ -114,36 +112,32 @@ impl From<io::Error> for CommandRunError {
 
 impl From<HttpClientError> for CommandRunError {
     fn from(value: HttpClientError) -> Self {
-        use ApiClientError::*;
         match value {
-            UnsupportedArgumentValue { property } => Self::UnsupportedArgumentValue { property },
-            ClientErrorResponse { status_code, url, body, error_details, headers, .. } => {
+            ApiClientError::UnsupportedArgumentValue { property } => Self::UnsupportedArgumentValue { property },
+            ApiClientError::ClientErrorResponse { status_code, url, body, error_details, headers, .. } => {
                 Self::ClientError { status_code, url, body, error_details, headers }
             }
-            ServerErrorResponse { status_code, url, body, error_details, headers, .. } => {
+            ApiClientError::ServerErrorResponse { status_code, url, body, error_details, headers, .. } => {
                 Self::ServerError { status_code, url, body, error_details, headers }
             }
-            HealthCheckFailed { path, details, status_code } => {
+            ApiClientError::HealthCheckFailed { path, details, status_code } => {
                 Self::HealthCheckFailed { health_check_path: path, details, status_code }
             }
-            NotFound => Self::NotFound,
-            MultipleMatchingBindings => Self::ConflictingOptions {
+            ApiClientError::NotFound => Self::NotFound,
+            ApiClientError::MultipleMatchingBindings => Self::ConflictingOptions {
                 message: "multiple bindings match, cannot determine which binding to delete without explicitly provided binding properties".to_owned()
             },
-            InvalidHeaderValue { error } => Self::InvalidHeaderValue { error },
-            RequestError { error, .. } => Self::RequestError { error },
-            Other => Self::Other,
-            MissingProperty { argument } => Self::MissingArgumentValue { property: argument },
-            IncompatibleBody { error, .. } => Self::IncompatibleBody { error },
-            ParsingError { message } => Self::FailureDuringExecution { message },
+            ApiClientError::InvalidHeaderValue { error } => Self::InvalidHeaderValue { error },
+            ApiClientError::RequestError { error, .. } => Self::RequestError { error },
+            ApiClientError::Other => Self::Other,
+            ApiClientError::MissingProperty { argument } => Self::MissingArgumentValue { property: argument },
+            ApiClientError::IncompatibleBody { error, .. } => Self::IncompatibleBody { error },
+            ApiClientError::ParsingError { message } => Self::FailureDuringExecution { message },
         }
     }
 }
 
-fn format_client_error(
-    status_code: &StatusCode,
-    error_details: &Option<rabbitmq_http_client::error::ErrorDetails>,
-) -> String {
+fn format_client_error(status_code: &StatusCode, error_details: &Option<ErrorDetails>) -> String {
     if let Some(details) = error_details
         && let Some(reason) = details.reason()
     {
@@ -155,10 +149,7 @@ fn format_client_error(
     )
 }
 
-fn format_server_error(
-    status_code: &StatusCode,
-    error_details: &Option<rabbitmq_http_client::error::ErrorDetails>,
-) -> String {
+fn format_server_error(status_code: &StatusCode, error_details: &Option<ErrorDetails>) -> String {
     if let Some(details) = error_details
         && let Some(reason) = details.reason()
     {
