@@ -14,6 +14,8 @@
   rabbitmqadmin plugins list_on_node --node rabbit@hostname
   ```
 
+* Errors now include the `error` or `reason` field from the API response (if they were present there)
+
 * `--timeout` is a new global option limits HTTP API request execution timeout. The value is in seconds and defaults
   to 60s:
 
