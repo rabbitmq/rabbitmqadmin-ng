@@ -523,13 +523,13 @@ fn generic_failed_request_details(
         },
     ];
 
-    if let Some(details) = error_details {
-        if let Some(reason) = details.reason() {
-            data.push(RowOfTwo {
-                key: "error",
-                value: reason,
-            });
-        }
+    if let Some(details) = error_details
+        && let Some(reason) = details.reason()
+    {
+        data.push(RowOfTwo {
+            key: "error",
+            value: reason,
+        });
     }
 
     build_simple_table(data)

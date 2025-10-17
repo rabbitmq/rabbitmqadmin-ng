@@ -129,7 +129,7 @@ pub fn list_policies_in_and_applying_to(
     let policies = client.list_policies_in(vhost)?;
     Ok(policies
         .into_iter()
-        .filter(|pol| apply_to.does_apply_to(pol.apply_to.clone()))
+        .filter(|pol| apply_to.does_apply_to(pol.apply_to))
         .collect())
 }
 
@@ -139,10 +139,10 @@ pub fn list_matching_policies_in(
     name: &str,
     typ: PolicyTarget,
 ) -> ClientResult<Vec<responses::Policy>> {
-    let candidates = list_policies_in_and_applying_to(client, vhost, typ.clone())?;
+    let candidates = list_policies_in_and_applying_to(client, vhost, typ)?;
     Ok(candidates
         .into_iter()
-        .filter(|pol| pol.does_match_name(vhost, name, typ.clone()))
+        .filter(|pol| pol.does_match_name(vhost, name, typ))
         .collect())
 }
 
@@ -165,7 +165,7 @@ pub fn list_operator_policies_in_and_applying_to(
     let policies = client.list_operator_policies_in(vhost)?;
     Ok(policies
         .into_iter()
-        .filter(|pol| apply_to.does_apply_to(pol.apply_to.clone()))
+        .filter(|pol| apply_to.does_apply_to(pol.apply_to))
         .collect())
 }
 
@@ -175,10 +175,10 @@ pub fn list_matching_operator_policies_in(
     name: &str,
     typ: PolicyTarget,
 ) -> ClientResult<Vec<responses::Policy>> {
-    let candidates = list_operator_policies_in_and_applying_to(client, vhost, typ.clone())?;
+    let candidates = list_operator_policies_in_and_applying_to(client, vhost, typ)?;
     Ok(candidates
         .into_iter()
-        .filter(|pol| pol.does_match_name(vhost, name, typ.clone()))
+        .filter(|pol| pol.does_match_name(vhost, name, typ))
         .collect())
 }
 
@@ -1578,7 +1578,7 @@ pub fn declare_policy(
         vhost,
         name,
         pattern,
-        apply_to: apply_to.clone(),
+        apply_to,
         priority: priority.parse::<i32>().unwrap(),
         definition: parsed_definition,
     };
@@ -1606,7 +1606,7 @@ pub fn declare_operator_policy(
         vhost,
         name: &name,
         pattern: &pattern,
-        apply_to: apply_to.clone(),
+        apply_to,
         priority: priority.parse::<i32>().unwrap(),
         definition: parsed_definition,
     };

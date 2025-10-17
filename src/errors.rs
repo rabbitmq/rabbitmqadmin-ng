@@ -144,10 +144,10 @@ fn format_client_error(
     status_code: &StatusCode,
     error_details: &Option<rabbitmq_http_client::error::ErrorDetails>,
 ) -> String {
-    if let Some(details) = error_details {
-        if let Some(reason) = details.reason() {
-            return reason.to_string();
-        }
+    if let Some(details) = error_details
+        && let Some(reason) = details.reason()
+    {
+        return reason.to_string();
     }
     format!(
         "API responded with a client error: status code of {}",
@@ -159,13 +159,13 @@ fn format_server_error(
     status_code: &StatusCode,
     error_details: &Option<rabbitmq_http_client::error::ErrorDetails>,
 ) -> String {
-    if let Some(details) = error_details {
-        if let Some(reason) = details.reason() {
-            return format!(
-                "API responded with a server error: status code of {}\n\n{}",
-                status_code, reason
-            );
-        }
+    if let Some(details) = error_details
+        && let Some(reason) = details.reason()
+    {
+        return format!(
+            "API responded with a server error: status code of {}\n\n{}",
+            status_code, reason
+        );
     }
     format!(
         "API responded with a server error: status code of {}",
