@@ -1318,3 +1318,5 @@ client_private_key_file_path = "/path/to/client_key.pem"
 
 This tool, `rabbitmqadmin` (v2 and later versions), is dual-licensed under
 the Apache Software License 2.0 and the MIT license.
+
+SPDX-License-Identifier: Apache-2.0 OR MIT
