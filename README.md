@@ -91,6 +91,8 @@ Commands:
   operator_policies    Operations on operator policies
   parameters           Operations on runtime parameters
   passwords            Operations on passwords
+  permissions          Operations on user permissions
+  plugins              List enabled plugins
   policies             Operations on policies
   publish              Publishes (inefficiently) message(s) to a queue or a stream. Only suitable for development and test environments.
   purge                Purges queues
@@ -101,7 +103,9 @@ Commands:
   streams              Operations on streams
   tanzu                Tanzu RabbitMQ-specific commands
   users                Operations on users
+  user_limits          Operations on per-user (resource) limits
   vhosts               Virtual host operations
+  vhost_limits         Operations on virtual host (resource) limits
   help                 Print this message or the help of the given subcommand(s)
 ```
 
@@ -122,10 +126,10 @@ rabbitmqadmin help
 This flag can be appended to a command or subcommand to get command-specific documentation:
 
 ```shell
-rabbitmqadmin declare queue --help
-# => creates or declares things
+rabbitmqadmin queues declare --help
+# => Declares a queue or a stream
 # =>
-# => Usage: rabbitmqadmin declare [object]
+# => Usage: rabbitmqadmin queues declare [OPTIONS] --name <name>
 # => ...
 ```
 
@@ -133,10 +137,10 @@ Alternatively, the `help` subcommand can be given a command name. It's the equiv
 of tagging on `--help` at the end of command name:
 
 ```shell
-rabbitmqadmin declare help queue
-# => declares a queue or a stream
+rabbitmqadmin queues help declare
+# => Declares a queue or a stream
 # =>
-# => Usage: rabbitmqadmin declare queue [OPTIONS] --name <name>
+# => Usage: rabbitmqadmin queues declare [OPTIONS] --name <name>
 ```
 
 More specific examples are covered in the Examples section below.
@@ -262,6 +266,14 @@ Helps assess connection, queue/stream, channel [churn metrics](https://rabbitmq.
 rabbitmqadmin show churn
 ```
 
+### Displaying the HTTP API Endpoint
+
+To verify the computed HTTP API endpoint URI (useful for troubleshooting):
+
+``` shell
+rabbitmqadmin show endpoint
+```
+
 ### Listing cluster nodes
 
 ``` shell
@@ -313,75 +325,75 @@ rabbitmqadmin --vhost "events" list bindings
 ### Create a Virtual Host
 
 ```shell
-rabbitmqadmin declare vhost --name "vh-789" --default-queue-type "quorum" --description "Used to reproduce issue #789"
+rabbitmqadmin vhosts declare --name "vh-789" --default-queue-type "quorum" --description "Used to reproduce issue #789"
 ```
 
 ### Delete a Virtual Host
 
 ```shell
-rabbitmqadmin delete vhost --name "vh-789"
+rabbitmqadmin vhosts delete --name "vh-789"
 ```
 
 ```shell
 # --idempotently means that 404 Not Found responses will not be  considered errors
-rabbitmqadmin delete vhost --name "vh-789" --idempotently
+rabbitmqadmin vhosts delete --name "vh-789" --idempotently
 ```
 
 
 ### Declare a Queue
 
 ```shell
-rabbitmqadmin --vhost "events" declare queue --name "target.quorum.queue.name" --type "quorum" --durable true
+rabbitmqadmin --vhost "events" queues declare --name "target.quorum.queue.name" --type "quorum" --durable true
 ```
 
 ```shell
-rabbitmqadmin --vhost "events" declare queue --name "target.stream.name" --type "stream" --durable true
+rabbitmqadmin --vhost "events" queues declare --name "target.stream.name" --type "stream" --durable true
 ```
 
 ```shell
-rabbitmqadmin --vhost "events" declare queue --name "target.classic.queue.name" --type "classic" --durable true --auto-delete false
+rabbitmqadmin --vhost "events" queues declare --name "target.classic.queue.name" --type "classic" --durable true --auto-delete false
 ```
 
 ### Purge a queue
 
-```
-rabbitmqadmin --vhost "events" purge queue --name "target.queue.name"
+```shell
+rabbitmqadmin --vhost "events" queues purge --name "target.queue.name"
 ```
 
 ### Delete a queue
 
 ``` shell
-rabbitmqadmin --vhost "events" delete queue --name "target.queue.name"
+rabbitmqadmin --vhost "events" queues delete --name "target.queue.name"
 ```
 
 ``` shell
 # --idempotently means that 404 Not Found responses will not be  considered errors
-rabbitmqadmin --vhost "events" delete queue --name "target.queue.name" --idempotently
+rabbitmqadmin --vhost "events" queues delete --name "target.queue.name" --idempotently
 ```
 
 ### Declare an Exchange
 
 ```shell
-rabbitmqadmin --vhost "events" declare exchange --name "events.all_types.topic" --type "topic" --durable true
+rabbitmqadmin --vhost "events" exchanges declare --name "events.all_types.topic" --type "topic" --durable true
 ```
 
 ```shell
-rabbitmqadmin --vhost "events" declare exchange --name "events.all_type.uncategorized" --type "fanout" --durable true --auto-delete false
+rabbitmqadmin --vhost "events" exchanges declare --name "events.all_type.uncategorized" --type "fanout" --durable true --auto-delete false
 ```
 
 ```shell
-rabbitmqadmin --vhost "events" declare exchange --name "local.random.c60bda92" --type "x-local-random" --durable true
+rabbitmqadmin --vhost "events" exchanges declare --name "local.random.c60bda92" --type "x-local-random" --durable true
 ```
 
 ### Delete an exchange
 
 ``` shell
-rabbitmqadmin --vhost "events" delete exchange --name "target.exchange.name"
+rabbitmqadmin --vhost "events" exchanges delete --name "target.exchange.name"
 ```
 
 ``` shell
 # --idempotently means that 404 Not Found responses will not be  considered errors
-rabbitmqadmin --vhost "events" delete exchange --name "target.exchange.name" --idempotently
+rabbitmqadmin --vhost "events" exchanges delete --name "target.exchange.name" --idempotently
 ```
 
 ### Inspecting Node Memory Breakdown
@@ -480,7 +492,7 @@ rabbitmqadmin list feature_flags
 ### Enable a feature flag
 
 ```shell
-rabbitmqadmin feature_flags enable rabbitmq_4.0.0
+rabbitmqadmin feature_flags enable --name rabbitmq_4.0.0
 ```
 
 ### Enable all stable feature flags
@@ -605,11 +617,11 @@ rabbitmqadmin --vhost "vh-1" policies list_in
 ### List Policies Matching an Object
 
 ```shell
-rabbitmqadmin --vhost "vh-1" policies list_matching_object --name "cq.1" --type "classic_queue"
+rabbitmqadmin --vhost "vh-1" policies list_matching_object --name "cq.1" --type "queues"
 
-rabbitmqadmin --vhost "vh-1" policies list_matching_object --name "qq.1" --type "quorum_queue"
+rabbitmqadmin --vhost "vh-1" policies list_matching_object --name "qq.1" --type "queues"
 
-rabbitmqadmin --vhost "vh-1" policies list_matching_object --name "topics.events" --type "exchange"
+rabbitmqadmin --vhost "vh-1" policies list_matching_object --name "topics.events" --type "exchanges"
 ```
 
 ### Patch (Perform a Partial Update on) a Policy
@@ -642,7 +654,6 @@ Override policies are meant to be relatively short lived.
 rabbitmqadmin --vhost "vh-1" policies declare_override \
   --name "policy-name-1" \
   --override-name "tmp.overrides.policy-name-1" \
-  --apply-to "queues" \
   --definition '{"federation-upstream-set": "all"}'
 ```
 
@@ -682,32 +693,30 @@ rabbitmqadmin definitions import --file /path/to/definitions.file.json
 ### Declare an AMQP 0-9-1 Shovel
 
 To declare a [dynamic shovel](https://www.rabbitmq.com/docs/shovel-dynamic) that uses AMQP 0-9-1 for both source and desitnation, use
-`shovel declare_amqp091`:
+`shovels declare_amqp091`:
 
 ```shell
-rabbitmqadmin shovel declare_amqp091 --name my-amqp091-shovel \
+rabbitmqadmin shovels declare_amqp091 --name my-amqp091-shovel \
     --source-uri amqp://username:s3KrE7@source.hostname:5672 \
     --destination-uri amqp://username:s3KrE7@source.hostname:5672 \
     --ack-mode "on-confirm" \
     --source-queue "src.queue" \
-    --destination-queue "dest.queue" \
-    --predeclared-source false \
-    --predeclared-destination false
+    --destination-queue "dest.queue"
 ```
 
 ### Declare an AMQP 1.0 Shovel
 
 To declare a [dynamic shovel](https://www.rabbitmq.com/docs/shovel-dynamic) that uses AMQP 1.0 for both source and desitnation, use
-`shovel declare_amqp10`.
+`shovels declare_amqp10`.
 
 Note that
 
 1. With AMQP 1.0 shovels, credentials in the URI are mandatory (there are no defaults)
-2. With AMQP 1.0 shovels, the topology must be pre-declared (an equivalent of `--predeclared-source true` and `--predeclared-destination true` for AMQP 0-9-1 shovels)
-2. AMQP 1.0 shovels should use [AMQP 1.0 addresses v2](https://www.rabbitmq.com/docs/amqp#addresses)
+2. With AMQP 1.0 shovels, the topology must be pre-declared (an equivalent of `--predeclared-source` and `--predeclared-destination` flags for AMQP 0-9-1 shovels)
+3. AMQP 1.0 shovels should use [AMQP 1.0 addresses v2](https://www.rabbitmq.com/docs/amqp#addresses)
 
 ```shell
-rabbitmqadmin shovel declare_amqp10 --name my-amqp1.0-shovel \
+rabbitmqadmin shovels declare_amqp10 --name my-amqp1.0-shovel \
     --source-uri "amqp://username:s3KrE7@source.hostname:5672?hostname=vhost:src-vhost" \
     --destination-uri "amqp://username:s3KrE7@source.hostname:5672?hostname=vhost:dest-vhost" \
     --ack-mode "on-confirm" \
@@ -717,18 +726,18 @@ rabbitmqadmin shovel declare_amqp10 --name my-amqp1.0-shovel \
 
 ### List Shovels
 
-To list shovels across all virtual hosts, use `shovel list_all`:
+To list shovels across all virtual hosts, use `shovels list_all`:
 
 ```shell
-rabbitmqadmin shovel list_all
+rabbitmqadmin shovels list_all
 ```
 
 ### Delete a Shovel
 
-To delete a shovel, use `shovel delete --name`:
+To delete a shovel, use `shovels delete --name`:
 
 ```shell
-rabbitmqadmin shovel delete --name my-amqp091-shovel
+rabbitmqadmin shovels delete --name my-amqp091-shovel
 ```
 
 ### List Federation Upstreams
@@ -841,14 +850,32 @@ rabbitmqadmin users delete --name "user-to-delete"
 rabbitmqadmin users delete --name "user-to-delete" --idempotently
 ```
 
+### List User Permissions
+
+```shell
+# List all user permissions across all virtual hosts
+rabbitmqadmin permissions list
+```
+
 ### Grant Permissions to a User
 
 ```shell
-rabbitmqadmin users permissions --name "app-user" --configure ".*" --write ".*" --read ".*"
+rabbitmqadmin permissions declare --user "app-user" --configure ".*" --write ".*" --read ".*"
 ```
 
 ```shell
-rabbitmqadmin --vhost "production" users permissions --name "app-user" --configure "^amq\.gen.*|^aliveness-test$" --write ".*" --read ".*"
+rabbitmqadmin --vhost "production" permissions declare --user "app-user" --configure "^amq\.gen.*|^aliveness-test$" --write ".*" --read ".*"
+```
+
+### Revoke User Permissions
+
+```shell
+rabbitmqadmin --vhost "production" permissions delete --user "app-user"
+```
+
+```shell
+# Idempotent deletion (won't fail if permissions don't exist)
+rabbitmqadmin --vhost "production" permissions delete --user "app-user" --idempotently
 ```
 
 ### Create a Binding
@@ -875,7 +902,7 @@ rabbitmqadmin connections list
 
 ```shell
 # List connections for a specific user
-rabbitmqadmin connections list --user "app-user"
+rabbitmqadmin connections list_of_user --username "app-user"
 ```
 
 ### Close Connections
@@ -887,7 +914,7 @@ rabbitmqadmin connections close --name "connection-name"
 
 ```shell
 # Close all connections from a specific user
-rabbitmqadmin connections close --user "problem-user" --reason "Maintenance window"
+rabbitmqadmin connections close_of_user --username "a-user"
 ```
 
 ### List Channels
@@ -933,24 +960,38 @@ rabbitmqadmin health_check port_listener --port 5672
 rabbitmqadmin health_check protocol_listener --protocol "amqp"
 ```
 
-### Set Runtime Parameters
+### Runtime Parameters
 
 ```shell
-rabbitmqadmin --vhost "events" parameters declare --component "federation-upstream" --name "upstream-1" --value '{"uri": "amqp://remote-server", "ack-mode": "on-publish"}'
+# List all runtime parameters
+rabbitmqadmin parameters list_all
 ```
 
 ```shell
-rabbitmqadmin parameters delete --component "federation-upstream" --name "upstream-1"
-```
-
-### Set Global Parameters
-
-```shell
-rabbitmqadmin global_parameters declare --name "cluster_name" --value '"production-cluster"'
+# Set a runtime parameter
+rabbitmqadmin --vhost "events" parameters set --component "federation-upstream" --name "upstream-1" --value '{"uri": "amqp://remote-server", "ack-mode": "on-publish"}'
 ```
 
 ```shell
-rabbitmqadmin global_parameters delete --name "cluster_name"
+# Clear (delete) a runtime parameter
+rabbitmqadmin --vhost "events" parameters clear --component "federation-upstream" --name "upstream-1"
+```
+
+### Global Parameters
+
+```shell
+# List global parameters
+rabbitmqadmin global_parameters list
+```
+
+```shell
+# Set a global parameter
+rabbitmqadmin global_parameters set --name "cluster_name" --value '"production-cluster"'
+```
+
+```shell
+# Clear (delete) a global parameter
+rabbitmqadmin global_parameters clear --name "cluster_name"
 ```
 
 ### Declare Operator Policies
@@ -971,18 +1012,71 @@ rabbitmqadmin operator_policies list
 rabbitmqadmin --vhost "production" operator_policies delete --name "ha-policy"
 ```
 
-### Manage Passwords
+### User Limits
+
+Per-user [resource limits](https://www.rabbitmq.com/docs/user-limits) can be used to restrict how many connections or channels a specific user can open.
 
 ```shell
-# Change user password
-rabbitmqadmin passwords change --name "app-user" --new-password "new-secure-password"
+# List all per-user limits
+rabbitmqadmin user_limits list
+```
+
+```shell
+# Set maximum connections for a user
+rabbitmqadmin user_limits declare --user "app-user" --name "max-connections" --value 100
+```
+
+```shell
+# Set maximum channels for a user
+rabbitmqadmin user_limits declare --user "app-user" --name "max-channels" --value 1000
+```
+
+```shell
+# Clear a user limit
+rabbitmqadmin user_limits delete --user "app-user" --name "max-connections"
+```
+
+### Virtual Host Limits
+
+Virtual host [resource limits](https://www.rabbitmq.com/docs/vhosts#limits) can be used to restrict the maximum number of queues, connections, or other resources in a virtual host.
+
+```shell
+# List all virtual host limits
+rabbitmqadmin vhost_limits list
+```
+
+```shell
+# Set maximum queues for a virtual host
+rabbitmqadmin --vhost "production" vhost_limits declare --name "max-queues" --value 1000
+```
+
+```shell
+# Set maximum connections for a virtual host
+rabbitmqadmin --vhost "production" vhost_limits declare --name "max-connections" --value 500
+```
+
+```shell
+# Clear a virtual host limit
+rabbitmqadmin --vhost "production" vhost_limits delete --name "max-queues"
+```
+
+### List Enabled Plugins
+
+```shell
+# List plugins across all cluster nodes
+rabbitmqadmin plugins list_all
+```
+
+```shell
+# List plugins enabled on a specific node
+rabbitmqadmin plugins list_on_node --node "rabbit@hostname"
 ```
 
 ### Rebalance Quorum Queue Leaders
 
 ```shell
-# Rebalances leader members (replicas) for all quorum queue
-rabbitmqadmin rebalance all
+# Rebalances leader members (replicas) for all quorum queues
+rabbitmqadmin rebalance queues
 ```
 
 ### Stream Operations
@@ -994,7 +1088,7 @@ rabbitmqadmin streams list
 
 ```shell
 # Declare a stream
-rabbitmqadmin --vhost "logs" streams declare --name "application.logs" --max-age "7d" --max-length-bytes "10GB"
+rabbitmqadmin --vhost "logs" streams declare --name "application.logs" --expiration "7D" --max-length-bytes "10737418240"
 ```
 
 ```shell
@@ -1007,11 +1101,6 @@ rabbitmqadmin --vhost "logs" streams delete --name "old.stream"
 ```shell
 # List cluster nodes
 rabbitmqadmin nodes list
-```
-
-```shell
-# Show node information
-rabbitmqadmin nodes show --name "rabbit@server1"
 ```
 
 
