@@ -16,17 +16,13 @@ use std::env;
 
 /// Represents the two modes of operation for the `rabbitmqadmin` CLI:
 /// interactive (driven by a human) and non-interactive (driven by automation tools).
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq)]
 pub enum InteractivityMode {
+    #[default]
     Interactive,
     NonInteractive,
 }
 
-impl Default for InteractivityMode {
-    fn default() -> Self {
-        Self::Interactive
-    }
-}
 
 impl InteractivityMode {
     pub fn from_env() -> Self {
