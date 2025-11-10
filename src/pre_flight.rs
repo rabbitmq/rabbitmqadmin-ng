@@ -23,7 +23,6 @@ pub enum InteractivityMode {
     NonInteractive,
 }
 
-
 impl InteractivityMode {
     pub fn from_env() -> Self {
         if is_enabled_in_env("RABBITMQADMIN_NON_INTERACTIVE_MODE") {
