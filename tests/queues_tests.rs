@@ -28,35 +28,27 @@ fn list_queues() -> Result<(), Box<dyn Error>> {
     delete_vhost(vh1).expect("failed to delete a virtual host");
     delete_vhost(vh2).expect("failed to delete a virtual host");
 
-    // declare vhost 1
     run_succeeds(["declare", "vhost", "--name", vh1]);
 
-    // declare vhost 2
     run_succeeds(["declare", "vhost", "--name", vh2]);
 
-    // declare a new queue in vhost 1
     run_succeeds([
         "-V", vh1, "declare", "queue", "--name", q1, "--type", "classic",
     ]);
 
-    // declare new queue in vhost 2
     run_succeeds([
         "-V", vh2, "declare", "queue", "--name", q2, "--type", "quorum",
     ]);
 
     await_queue_metric_emission();
 
-    // list queues in vhost 1
     run_succeeds(["-V", vh1, "list", "queues"])
         .stdout(output_includes(q1).and(output_includes("new_queue2").not()));
 
-    // purge a queue in vhost 1
     run_succeeds(["-V", vh1, "purge", "queue", "--name", q1]);
 
-    // delete a queue in vhost 1
     run_succeeds(["-V", vh1, "delete", "queue", "--name", q1]);
 
-    // list queues in vhost 1
     run_succeeds(["-V", vh1, "list", "queues"]).stdout(output_includes(q1).not());
 
     delete_vhost(vh1).expect("failed to delete a virtual host");
@@ -75,35 +67,27 @@ fn queues_lists() -> Result<(), Box<dyn Error>> {
     delete_vhost(vh1).expect("failed to delete a virtual host");
     delete_vhost(vh2).expect("failed to delete a virtual host");
 
-    // declare vhost 1
     run_succeeds(["vhosts", "declare", "--name", vh1]);
 
-    // declare vhost 2
     run_succeeds(["vhosts", "declare", "--name", vh2]);
 
-    // declare a new queue in vhost 1
     run_succeeds([
         "-V", vh1, "queues", "declare", "--name", q1, "--type", "classic",
     ]);
 
-    // declare new queue in vhost 2
     run_succeeds([
         "-V", vh2, "queues", "declare", "--name", q2, "--type", "quorum",
     ]);
 
     await_queue_metric_emission();
 
-    // list queues in vhost 1
     run_succeeds(["-V", vh1, "queues", "list"])
         .stdout(output_includes(q1).and(output_includes("new_queue2").not()));
 
-    // purge a queue in vhost 1
     run_succeeds(["-V", vh1, "queues", "purge", "--name", q1]);
 
-    // delete a queue in vhost 1
     run_succeeds(["-V", vh1, "queues", "delete", "--name", q1]);
 
-    // list queues in vhost 1
     run_succeeds(["-V", vh1, "queues", "list"]).stdout(output_includes(q1).not());
 
     delete_vhost(vh1).expect("failed to delete a virtual host");

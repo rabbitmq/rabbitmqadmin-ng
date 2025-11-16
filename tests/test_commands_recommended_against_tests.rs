@@ -17,11 +17,9 @@ use crate::test_helpers::*;
 use std::error::Error;
 #[test]
 fn test_messages() -> Result<(), Box<dyn Error>> {
-    // declare a new queue
     let q = "publish_consume";
     run_succeeds(["declare", "queue", "--name", q, "--type", "classic"]);
 
-    // publish a message
     let payload = "test_messages_1";
     run_succeeds([
         "publish",
@@ -34,10 +32,8 @@ fn test_messages() -> Result<(), Box<dyn Error>> {
         "{\"timestamp\": 1234, \"message_id\": \"foo\"}",
     ]);
 
-    // consume a message
     run_succeeds(["get", "messages", "--queue", q]).stdout(output_includes(payload));
 
-    // delete the test queue
     run_succeeds(["delete", "queue", "--name", q]);
 
     Ok(())

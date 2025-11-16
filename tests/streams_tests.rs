@@ -28,13 +28,10 @@ fn list_streams() -> Result<(), Box<dyn Error>> {
     delete_vhost(vh1).expect("failed to delete a virtual host");
     delete_vhost(vh2).expect("failed to delete a virtual host");
 
-    // declare vhost 1
     run_succeeds(["declare", "vhost", "--name", vh1]);
 
-    // declare vhost 2
     run_succeeds(["declare", "vhost", "--name", vh2]);
 
-    // declare a new stream in vhost 1
     run_succeeds([
         "-V",
         vh1,
@@ -46,7 +43,6 @@ fn list_streams() -> Result<(), Box<dyn Error>> {
         "2D",
     ]);
 
-    // declare new stream in vhost 2
     run_succeeds([
         "-V",
         vh2,
@@ -60,14 +56,11 @@ fn list_streams() -> Result<(), Box<dyn Error>> {
 
     await_queue_metric_emission();
 
-    // list streams in vhost 1
     run_succeeds(["-V", vh1, "list", "queues"])
         .stdout(output_includes(s1).and(output_includes("random_stream").not()));
 
-    // delete the stream in vhost 1
     run_succeeds(["-V", vh1, "delete", "stream", "--name", s1]);
 
-    // list streams in vhost 1
     run_succeeds(["-V", vh1, "list", "queues"]).stdout(output_includes(s1).not());
 
     delete_vhost(vh1).expect("failed to delete a virtual host");
@@ -86,13 +79,10 @@ fn streams_list() -> Result<(), Box<dyn Error>> {
     delete_vhost(vh1).expect("failed to delete a virtual host");
     delete_vhost(vh2).expect("failed to delete a virtual host");
 
-    // declare vhost 1
     run_succeeds(["vhosts", "declare", "--name", vh1]);
 
-    // declare vhost 2
     run_succeeds(["vhosts", "declare", "--name", vh2]);
 
-    // declare a new stream in vhost 1
     run_succeeds([
         "-V",
         vh1,
@@ -104,7 +94,6 @@ fn streams_list() -> Result<(), Box<dyn Error>> {
         "2D",
     ]);
 
-    // declare new stream in vhost 2
     run_succeeds([
         "-V",
         vh2,
@@ -118,14 +107,11 @@ fn streams_list() -> Result<(), Box<dyn Error>> {
 
     await_queue_metric_emission();
 
-    // list streams in vhost 1
     run_succeeds(["-V", vh1, "streams", "list"])
         .stdout(output_includes(s1).and(output_includes("random_stream").not()));
 
-    // delete the stream in vhost 1
     run_succeeds(["-V", vh1, "streams", "delete", "--name", s1]);
 
-    // list streams in vhost 1
     run_succeeds(["-V", vh1, "streams", "list"]).stdout(output_includes(s1).not());
 
     delete_vhost(vh1).expect("failed to delete a virtual host");

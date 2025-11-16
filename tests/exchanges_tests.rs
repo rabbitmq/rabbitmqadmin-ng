@@ -29,19 +29,14 @@ fn list_exchanges() -> Result<(), Box<dyn Error>> {
     delete_vhost(vh1).expect("failed to delete a virtual host");
     delete_vhost(vh2).expect("failed to delete a virtual host");
 
-    // declare vhost 1
     run_succeeds(["declare", "vhost", "--name", vh1]);
 
-    // declare vhost 2
     run_succeeds(["declare", "vhost", "--name", vh2]);
 
-    // declare a new exchange in vhost 1
     run_succeeds(["-V", vh1, "declare", "exchange", "--name", x1]);
 
-    // declare a new exchange in vhost 2
     run_succeeds(["-V", vh2, "declare", "exchange", "--name", x2]);
 
-    // list exchanges in vhost 1
     run_succeeds(["-V", vh1, "list", "exchanges"]).stdout(
         output_includes("amq.direct")
             .and(output_includes("amq.fanout"))
@@ -49,17 +44,14 @@ fn list_exchanges() -> Result<(), Box<dyn Error>> {
             .and(output_includes(x2).not()),
     );
 
-    // delete the exchanges from vhost 1
     run_succeeds(["-V", vh1, "delete", "exchange", "--name", x1]);
 
-    // list exchange in vhost 1
     run_succeeds(["-V", vh1, "list", "exchanges"]).stdout(
         output_includes("amq.direct")
             .and(output_includes("amq.topic"))
             .and(output_includes(x1).not()),
     );
 
-    // list exchange in vhost 2
     run_succeeds(["-V", vh2, "list", "exchanges"]).stdout(
         output_includes("amq.direct")
             .and(output_includes("amq.headers"))
@@ -84,19 +76,14 @@ fn exchanges_list() -> Result<(), Box<dyn Error>> {
     delete_vhost(vh1).expect("failed to delete a virtual host");
     delete_vhost(vh2).expect("failed to delete a virtual host");
 
-    // declare vhost 1
     run_succeeds(["vhosts", "declare", "--name", vh1]);
 
-    // declare vhost 2
     run_succeeds(["vhosts", "declare", "--name", vh2]);
 
-    // declare a new exchange in vhost 1
     run_succeeds(["-V", vh1, "exchanges", "declare", "--name", x1]);
 
-    // declare a new exchange in vhost 2
     run_succeeds(["-V", vh2, "exchanges", "declare", "--name", x2]);
 
-    // list exchanges in vhost 1
     run_succeeds(["-V", vh1, "exchanges", "list"]).stdout(
         output_includes("amq.direct")
             .and(output_includes("amq.fanout"))
@@ -104,17 +91,14 @@ fn exchanges_list() -> Result<(), Box<dyn Error>> {
             .and(output_includes(x2).not()),
     );
 
-    // delete the exchanges from vhost 1
     run_succeeds(["-V", vh1, "exchanges", "delete", "--name", x1]);
 
-    // list exchange in vhost 1
     run_succeeds(["-V", vh1, "exchanges", "list"]).stdout(
         output_includes("amq.direct")
             .and(output_includes("amq.topic"))
             .and(output_includes(x1).not()),
     );
 
-    // list exchange in vhost 2
     run_succeeds(["-V", vh2, "exchanges", "list"]).stdout(
         output_includes("amq.direct")
             .and(output_includes("amq.headers"))
@@ -133,22 +117,16 @@ fn delete_an_existing_exchange_using_original_command_group() -> Result<(), Box<
     let vh = "rabbitmqadmin.exchanges.test1";
     let x = "exchange_1_to_delete";
 
-    // create a vhost
     create_vhost(vh)?;
 
-    // declare an exchange
     run_succeeds(["-V", vh, "declare", "exchange", "--name", x]);
 
-    // list exchanges in vhost 1
     run_succeeds(["-V", vh, "list", "exchanges"]).stdout(output_includes(x));
 
-    // delete the exchange
     run_succeeds(["-V", vh, "delete", "exchange", "--name", x]);
 
-    // list exchange in vhost 1
     run_succeeds(["-V", vh, "list", "exchanges"]).stdout(output_includes(x).not());
 
-    // delete the vhost
     delete_vhost(vh)?;
 
     Ok(())
@@ -159,22 +137,16 @@ fn delete_an_existing_exchange_using_exchanges_command_group() -> Result<(), Box
     let vh = "rabbitmqadmin.exchanges.test2";
     let x = "exchange_1_to_delete";
 
-    // create a vhost
     create_vhost(vh)?;
 
-    // declare an exchange
     run_succeeds(["-V", vh, "exchanges", "declare", "--name", x]);
 
-    // list exchanges in vhost 1
     run_succeeds(["-V", vh, "exchanges", "list"]).stdout(output_includes(x));
 
-    // delete the exchange
     run_succeeds(["-V", vh, "exchanges", "delete", "--name", x]);
 
-    // list exchange in vhost 1
     run_succeeds(["-V", vh, "exchanges", "list"]).stdout(output_includes(x).not());
 
-    // delete the vhost
     delete_vhost(vh)?;
 
     Ok(())
@@ -184,10 +156,8 @@ fn delete_an_existing_exchange_using_exchanges_command_group() -> Result<(), Box
 fn delete_a_non_existing_exchange() -> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.exchanges.test3";
 
-    // declare a vhost
     create_vhost(vh)?;
 
-    // try deleting a non-existent exchange with --idempotently
     run_succeeds([
         "--vhost",
         vh,
@@ -198,7 +168,6 @@ fn delete_a_non_existing_exchange() -> Result<(), Box<dyn Error>> {
         "--idempotently",
     ]);
 
-    // try deleting it without
     run_fails([
         "--vhost",
         vh,
@@ -209,7 +178,6 @@ fn delete_a_non_existing_exchange() -> Result<(), Box<dyn Error>> {
     ])
     .stderr(output_includes("Not Found"));
 
-    // delete the vhost
     delete_vhost(vh)?;
 
     Ok(())
@@ -225,23 +193,18 @@ fn test_exchanges_bind_and_unbind() -> Result<(), Box<dyn Error>> {
     delete_vhost(vh1).expect("failed to delete a virtual host");
     delete_vhost(vh2).expect("failed to delete a virtual host");
 
-    // declare vhost 1
     run_succeeds(["vhosts", "declare", "--name", vh1]);
 
-    // declare vhost 2
     run_succeeds(["vhosts", "declare", "--name", vh2]);
 
-    // declare a new queue in vhost 1
     run_succeeds([
         "-V", vh1, "queues", "declare", "--name", q1, "--type", "classic",
     ]);
 
-    // declare a new queue in vhost 2
     run_succeeds([
         "-V", vh2, "queues", "declare", "--name", q2, "--type", "quorum",
     ]);
 
-    // bind the queue -> a pre-existing exchange
     run_succeeds([
         "-V",
         vh1,
@@ -257,7 +220,6 @@ fn test_exchanges_bind_and_unbind() -> Result<(), Box<dyn Error>> {
         "routing_key_queue",
     ]);
 
-    // declare an exchange -> exchange binding
     run_succeeds([
         "-V",
         vh1,
@@ -275,14 +237,12 @@ fn test_exchanges_bind_and_unbind() -> Result<(), Box<dyn Error>> {
 
     await_queue_metric_emission();
 
-    // list bindings in vhost 1
     run_succeeds(["-V", vh2, "list", "bindings"]).stdout(
         output_includes("new_queue_1")
             .and(output_includes("routing_key_queue"))
             .and(output_includes("routing_key_exchange")),
     );
 
-    // unbind
     run_succeeds([
         "-V",
         vh1,

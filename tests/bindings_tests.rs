@@ -28,23 +28,18 @@ fn test_list_bindings() -> Result<(), Box<dyn Error>> {
     delete_vhost(vh1).expect("failed to delete a virtual host");
     delete_vhost(vh2).expect("failed to delete a virtual host");
 
-    // declare vhost 1
     run_succeeds(["declare", "vhost", "--name", vh1]);
 
-    // declare vhost 2
     run_succeeds(["declare", "vhost", "--name", vh2]);
 
-    // declare a new queue in vhost 1
     run_succeeds([
         "-V", vh1, "declare", "queue", "--name", q1, "--type", "classic",
     ]);
 
-    // declare a new queue in vhost 2
     run_succeeds([
         "-V", vh2, "declare", "queue", "--name", q2, "--type", "quorum",
     ]);
 
-    // bind the queue -> a pre-existing exchange
     run_succeeds([
         "-V",
         vh1,
@@ -60,7 +55,6 @@ fn test_list_bindings() -> Result<(), Box<dyn Error>> {
         "routing_key_queue",
     ]);
 
-    // declare an exchange -> exchange binding
     run_succeeds([
         "-V",
         vh1,
@@ -78,17 +72,14 @@ fn test_list_bindings() -> Result<(), Box<dyn Error>> {
 
     await_queue_metric_emission();
 
-    // list bindings in vhost 1
     run_succeeds(["-V", "bindings_vhost_1", "list", "bindings"]).stdout(
         output_includes("new_queue_1")
             .and(output_includes("routing_key_queue"))
             .and(output_includes("routing_key_exchange")),
     );
 
-    // delete the queue from vhost 1
     run_succeeds(["-V", vh1, "queues", "delete", "--name", q1]);
 
-    // these bindings were deleted with the queue
     run_succeeds(["-V", "bindings_vhost_1", "list", "bindings"]).stdout(
         output_includes("new_queue_1")
             .not()
@@ -113,23 +104,18 @@ fn test_bindings_list() -> Result<(), Box<dyn Error>> {
     delete_vhost(vh1).expect("failed to delete a virtual host");
     delete_vhost(vh2).expect("failed to delete a virtual host");
 
-    // declare vhost 1
     run_succeeds(["vhosts", "declare", "--name", vh1]);
 
-    // declare vhost 2
     run_succeeds(["vhosts", "declare", "--name", vh2]);
 
-    // declare a new queue in vhost 1
     run_succeeds([
         "-V", vh1, "queues", "declare", "--name", q1, "--type", "classic",
     ]);
 
-    // declare a new queue in vhost 2
     run_succeeds([
         "-V", vh2, "queues", "declare", "--name", q2, "--type", "quorum",
     ]);
 
-    // bind the queue -> a pre-existing exchange
     run_succeeds([
         "-V",
         vh1,
@@ -145,7 +131,6 @@ fn test_bindings_list() -> Result<(), Box<dyn Error>> {
         "routing_key_queue",
     ]);
 
-    // declare an exchange -> exchange binding
     run_succeeds([
         "-V",
         vh1,
@@ -163,15 +148,12 @@ fn test_bindings_list() -> Result<(), Box<dyn Error>> {
 
     await_queue_metric_emission();
 
-    // list bindings in vhost 1
     run_succeeds(["-V", vh1, "list", "bindings"]).stdout(
         output_includes("new_queue_1")
             .and(output_includes("routing_key_queue"))
             .and(output_includes("routing_key_exchange")),
     );
 
-    // delete a binding
-    // declare an exchange -> exchange binding
     run_succeeds([
         "-V",
         vh1,
@@ -187,7 +169,6 @@ fn test_bindings_list() -> Result<(), Box<dyn Error>> {
         "routing_key_queue",
     ]);
 
-    // ensure that the deleted binding is no longer listed
     run_succeeds(["-V", vh1, "list", "bindings"]).stdout(
         output_includes("new_queue_1")
             .not()

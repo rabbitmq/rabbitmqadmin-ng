@@ -1142,9 +1142,7 @@ pub fn list_plugins_across_cluster(client: APIClient) -> ClientResult<Vec<Plugin
 //
 
 pub fn declare_vhost(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
-    // the flag is required
     let name = command_args.get_one::<String>("name").unwrap();
-    // these are optional
     let description = command_args
         .get_one::<String>("description")
         .map(|s| s.as_str());
@@ -1173,9 +1171,7 @@ pub fn declare_exchange(
     vhost: &str,
     command_args: &ArgMatches,
 ) -> Result<(), CommandRunError> {
-    // the flag is required
     let name = command_args.get_one::<String>("name").unwrap();
-    // these are optional
     let exchange_type = command_args
         .get_one::<ExchangeType>("type")
         .cloned()
@@ -1305,7 +1301,6 @@ pub fn delete_global_parameter(client: APIClient, command_args: &ArgMatches) -> 
 }
 
 pub fn delete_vhost(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
-    // the flag is required
     let name = command_args.get_one::<String>("name").unwrap();
     let idempotently = command_args
         .get_one::<bool>("idempotently")
@@ -1413,7 +1408,6 @@ pub fn delete_multiple_vhosts(
 }
 
 pub fn delete_user(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
-    // the flag is required
     let name = command_args.get_one::<String>("name").unwrap();
     let idempotently = command_args
         .get_one::<bool>("idempotently")
@@ -1427,7 +1421,6 @@ pub fn delete_permissions(
     vhost: &str,
     command_args: &ArgMatches,
 ) -> ClientResult<()> {
-    // the flag is required
     let user = command_args.get_one::<String>("user").unwrap();
     let idempotently = command_args
         .get_one::<bool>("idempotently")
@@ -1512,11 +1505,9 @@ pub fn declare_queue(
     vhost: &str,
     command_args: &ArgMatches,
 ) -> Result<(), CommandRunError> {
-    // the flag is required
     let name = command_args.get_one::<String>("name").unwrap();
     let queue_type = command_args.get_one::<QueueType>("type").cloned().unwrap();
 
-    // these are optional
     let durable = command_args
         .get_one::<bool>("durable")
         .cloned()
@@ -1973,7 +1964,6 @@ pub fn declare_global_parameter(
 }
 
 pub fn delete_queue(client: APIClient, vhost: &str, command_args: &ArgMatches) -> ClientResult<()> {
-    // the flag is required
     let name = command_args.get_one::<String>("name").unwrap();
     let idempotently = command_args
         .get_one::<bool>("idempotently")
@@ -2026,7 +2016,6 @@ pub fn delete_exchange(
     vhost: &str,
     command_args: &ArgMatches,
 ) -> ClientResult<()> {
-    // the flag is required
     let name = command_args.get_one::<String>("name").unwrap();
     let idempotent = command_args
         .get_one::<bool>("idempotently")
@@ -2040,7 +2029,6 @@ pub fn delete_policy(
     vhost: &str,
     command_args: &ArgMatches,
 ) -> ClientResult<()> {
-    // the flag is required
     let name = command_args.get_one::<String>("name").unwrap();
     let idempotently = command_args
         .get_one::<bool>("idempotently")
@@ -2054,7 +2042,6 @@ pub fn delete_operator_policy(
     vhost: &str,
     command_args: &ArgMatches,
 ) -> ClientResult<()> {
-    // the flag is required
     let name = command_args.get_one::<String>("name").unwrap();
     let idempotently = command_args
         .get_one::<bool>("idempotently")
@@ -2064,7 +2051,6 @@ pub fn delete_operator_policy(
 }
 
 pub fn purge_queue(client: APIClient, vhost: &str, command_args: &ArgMatches) -> ClientResult<()> {
-    // the flag is required
     let name = command_args.get_one::<String>("name").unwrap();
     client.purge_queue(vhost, name)
 }
@@ -2085,7 +2071,6 @@ pub fn health_check_port_listener(
     client: APIClient,
     command_args: &ArgMatches,
 ) -> ClientResult<()> {
-    // the flag is required
     let port = command_args.get_one::<u16>("port").cloned().unwrap();
     client.health_check_port_listener(port)
 }
@@ -2094,7 +2079,6 @@ pub fn health_check_protocol_listener(
     client: APIClient,
     command_args: &ArgMatches,
 ) -> ClientResult<()> {
-    // the flag is required
     let proto = command_args
         .get_one::<SupportedProtocol>("protocol")
         .cloned()
@@ -2103,7 +2087,6 @@ pub fn health_check_protocol_listener(
 }
 
 pub fn close_connection(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
-    // the flag is required
     let name = command_args.get_one::<String>("name").unwrap();
     let idempotently = command_args
         .get_one::<bool>("idempotently")
@@ -2113,7 +2096,6 @@ pub fn close_connection(client: APIClient, command_args: &ArgMatches) -> ClientR
 }
 
 pub fn close_user_connections(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
-    // the flag is required
     let username = command_args.get_one::<String>("username").unwrap();
     let idempotently = command_args
         .get_one::<bool>("idempotently")
