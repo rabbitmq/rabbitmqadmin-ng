@@ -1,5 +1,5 @@
-use std::error::Error;
 use predicates::prelude::*;
+use std::error::Error;
 
 mod test_helpers;
 use test_helpers::*;
