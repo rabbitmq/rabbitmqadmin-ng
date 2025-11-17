@@ -71,7 +71,7 @@ where
     I: IntoIterator<Item = S>,
     S: AsRef<OsStr>,
 {
-    let mut cmd = Command::cargo_bin("rabbitmqadmin").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("rabbitmqadmin"));
     cmd.args(args).assert().success()
 }
 
@@ -80,7 +80,7 @@ where
     I: IntoIterator<Item = S>,
     S: AsRef<OsStr>,
 {
-    let mut cmd = Command::cargo_bin("rabbitmqadmin").unwrap();
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("rabbitmqadmin"));
     cmd.args(args).assert().failure()
 }
 
@@ -91,7 +91,7 @@ where
 {
     match mode {
         InteractivityMode::NonInteractive => {
-            let mut cmd = Command::cargo_bin("rabbitmqadmin").unwrap();
+            let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("rabbitmqadmin"));
             cmd.env("RABBITMQADMIN_NON_INTERACTIVE_MODE", "true");
             cmd.args(args).assert().success()
         }
@@ -106,7 +106,7 @@ where
 {
     match mode {
         InteractivityMode::NonInteractive => {
-            let mut cmd = Command::cargo_bin("rabbitmqadmin").unwrap();
+            let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("rabbitmqadmin"));
             cmd.env("RABBITMQADMIN_NON_INTERACTIVE_MODE", "true");
             cmd.args(args).assert().failure()
         }
@@ -115,21 +115,21 @@ where
 }
 
 pub fn create_vhost(vhost: &str) -> CommandRunResult {
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("rabbitmqadmin"));
     cmd.args(["vhosts", "declare", "--name", vhost]);
     cmd.assert().success();
     Ok(())
 }
 
 pub fn delete_vhost(vhost: &str) -> CommandRunResult {
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("rabbitmqadmin"));
     cmd.args(["vhosts", "delete", "--name", vhost, "--idempotently"]);
     cmd.assert().success();
     Ok(())
 }
 
 pub fn delete_user(username: &str) -> CommandRunResult {
-    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("rabbitmqadmin"));
     cmd.args(["delete", "user", "--name", username, "--idempotently"]);
     cmd.assert().success();
     Ok(())
@@ -141,7 +141,7 @@ pub fn delete_all_test_vhosts() -> CommandRunResult {
         Ok(vhosts) => {
             for vhost in vhosts {
                 if vhost.name.starts_with("rabbitmqadmin.") {
-                    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+                    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("rabbitmqadmin"));
                     cmd.args(["vhosts", "delete", "--name", &vhost.name, "--idempotently"]);
                     let _ = cmd.assert().success();
                 }
@@ -160,7 +160,7 @@ pub fn delete_vhosts_with_prefix(prefix: &str) -> CommandRunResult {
         Ok(vhosts) => {
             for vhost in vhosts {
                 if vhost.name.starts_with(prefix) {
-                    let mut cmd = Command::cargo_bin("rabbitmqadmin")?;
+                    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("rabbitmqadmin"));
                     cmd.args(["vhosts", "delete", "--name", &vhost.name, "--idempotently"]);
                     let _ = cmd.assert().success();
                 }
