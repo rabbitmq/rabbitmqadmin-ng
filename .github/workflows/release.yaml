@@ -44,7 +44,7 @@ jobs:
       contents: write
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install Rust toolchains
         uses: dtolnay/rust-toolchain@beta
@@ -73,8 +73,8 @@ jobs:
         if: ${{ matrix.os == 'macos-latest' }}
         uses: actions/upload-artifact@v4
         with:
-          name: "rabbitmqadmin-${{ vars.NEXT_RELESE_VERSION }}-${{ matrix.target }}"
-          path: "${{ github.workspace }}/target/${{ matrix.target }}/release/rabbitmqadmin-${{ vars.NEXT_RELESE_VERSION }}-${{ matrix.target }}"
+          name: "rabbitmqadmin-${{ vars.NEXT_RELEASE_VERSION }}-${{ matrix.target }}"
+          path: "${{ github.workspace }}/target/${{ matrix.target }}/release/rabbitmqadmin-${{ vars.NEXT_RELEASE_VERSION }}-${{ matrix.target }}"
           retention-days: 2
 
       - name: Build an rabbitmqadmin release archive on x86-64 Linux
@@ -91,8 +91,8 @@ jobs:
         if: ${{ matrix.os == 'ubuntu-24.04' || matrix.os == 'ubuntu-22.04' }}
         uses: actions/upload-artifact@v4
         with:
-          name: "rabbitmqadmin-${{ vars.NEXT_RELESE_VERSION }}-${{ matrix.target }}"
-          path: "${{ github.workspace }}/target/${{ matrix.target }}/release/rabbitmqadmin-${{ vars.NEXT_RELESE_VERSION }}-${{ matrix.target }}"
+          name: "rabbitmqadmin-${{ vars.NEXT_RELEASE_VERSION }}-${{ matrix.target }}"
+          path: "${{ github.workspace }}/target/${{ matrix.target }}/release/rabbitmqadmin-${{ vars.NEXT_RELEASE_VERSION }}-${{ matrix.target }}"
           retention-days: 2
 
       - name: Build an rabbitmqadmin release archive on aarch64 Linux
@@ -109,8 +109,8 @@ jobs:
         if: ${{ matrix.os == 'ubuntu-24.04-arm' }}
         uses: actions/upload-artifact@v4
         with:
-          name: "rabbitmqadmin-${{ vars.NEXT_RELESE_VERSION }}-${{ matrix.target }}"
-          path: "${{ github.workspace }}/target/${{ matrix.target }}/release/rabbitmqadmin-${{ vars.NEXT_RELESE_VERSION }}-${{ matrix.target }}"
+          name: "rabbitmqadmin-${{ vars.NEXT_RELEASE_VERSION }}-${{ matrix.target }}"
+          path: "${{ github.workspace }}/target/${{ matrix.target }}/release/rabbitmqadmin-${{ vars.NEXT_RELEASE_VERSION }}-${{ matrix.target }}"
           retention-days: 2
 
       - name: Build an rabbitmqadmin release archive on Windows
@@ -127,8 +127,8 @@ jobs:
         if: ${{ matrix.os == 'windows-latest' }}
         uses: actions/upload-artifact@v4
         with:
-          name: "rabbitmqadmin-${{ vars.NEXT_RELESE_VERSION }}-${{ matrix.target }}.exe"
-          path: "${{ github.workspace }}/target/${{ matrix.target }}/release/rabbitmqadmin-${{ vars.NEXT_RELESE_VERSION }}-${{ matrix.target }}.exe"
+          name: "rabbitmqadmin-${{ vars.NEXT_RELEASE_VERSION }}-${{ matrix.target }}.exe"
+          path: "${{ github.workspace }}/target/${{ matrix.target }}/release/rabbitmqadmin-${{ vars.NEXT_RELEASE_VERSION }}-${{ matrix.target }}.exe"
           retention-days: 2
 
   create_gh_release:
@@ -138,27 +138,27 @@ jobs:
     - name: Fetch macOS archive
       uses: actions/download-artifact@v4
       with:
-        name: "rabbitmqadmin-${{ vars.NEXT_RELESE_VERSION }}-aarch64-apple-darwin"
+        name: "rabbitmqadmin-${{ vars.NEXT_RELEASE_VERSION }}-aarch64-apple-darwin"
         path: ./artifacts
     - name: Fetch amd64 Linux archive
       uses: actions/download-artifact@v4
       with:
-        name: "rabbitmqadmin-${{ vars.NEXT_RELESE_VERSION }}-x86_64-unknown-linux-gnu"
+        name: "rabbitmqadmin-${{ vars.NEXT_RELEASE_VERSION }}-x86_64-unknown-linux-gnu"
         path: ./artifacts
     - name: Fetch aarch64 Linux archive
       uses: actions/download-artifact@v4
       with:
-        name: "rabbitmqadmin-${{ vars.NEXT_RELESE_VERSION }}-aarch64-unknown-linux-gnu"
+        name: "rabbitmqadmin-${{ vars.NEXT_RELEASE_VERSION }}-aarch64-unknown-linux-gnu"
         path: ./artifacts
     - name: Fetch Windows archive
       uses: actions/download-artifact@v4
       with:
-        name: "rabbitmqadmin-${{ vars.NEXT_RELESE_VERSION }}-x86_64-pc-windows-msvc.exe"
+        name: "rabbitmqadmin-${{ vars.NEXT_RELEASE_VERSION }}-x86_64-pc-windows-msvc.exe"
         path: ./artifacts
     - name: Publish rabbitmqadmin release archive
       uses: softprops/action-gh-release@v2
       with:
-        tag_name: v${{ vars.NEXT_RELESE_VERSION }}
+        tag_name: v${{ vars.NEXT_RELEASE_VERSION }}
         draft: false
         files: ./artifacts/*
       env:
