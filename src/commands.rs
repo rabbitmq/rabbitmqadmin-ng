@@ -68,6 +68,14 @@ pub fn list_nodes(client: APIClient) -> ClientResult<Vec<responses::ClusterNode>
     client.list_nodes()
 }
 
+pub fn list_auth_attempts(
+    client: APIClient,
+    command_args: &ArgMatches,
+) -> ClientResult<Vec<responses::AuthenticationAttemptStatistics>> {
+    let node = command_args.get_one::<String>("node").unwrap();
+    client.auth_attempts_statistics(node)
+}
+
 pub fn list_vhosts(client: APIClient) -> ClientResult<Vec<responses::VirtualHost>> {
     client.list_vhosts()
 }

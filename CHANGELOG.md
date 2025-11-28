@@ -2,7 +2,13 @@
 
 ## v2.17.0 (in development)
 
-No changes yet.
+### Enhancements
+
+ * New command, `auth_attempts stats`, displays authentication attempte statistics per protocol:
+
+   ```
+   rabbitmqadmin auth_attempts stats --node rabbit@target.hostname
+   ```
 
 
 ## v2.16.0 (Oct 20, 2025)

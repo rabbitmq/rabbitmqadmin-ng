@@ -427,6 +427,10 @@ fn dispatch_common_subcommand(
     res_handler: &mut ResultHandler,
 ) -> ExitCode {
     match &pair {
+        ("auth_attempts", "stats") => {
+            let result = commands::list_auth_attempts(client, second_level_args);
+            res_handler.tabular_result(result)
+        }
         ("bindings", "declare") => {
             let result = commands::declare_binding(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);

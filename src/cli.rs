@@ -46,6 +46,16 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         GITHUB_REPOSITORY_URL
     );
 
+    let auth_attempts_group = Command::new("auth_attempts")
+        .about("Operations on authentication attempt statistics")
+        .infer_subcommands(pre_flight_settings.infer_subcommands)
+        .infer_long_args(pre_flight_settings.infer_long_options)
+        .after_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            ACCESS_CONTROL_GUIDE_URL
+        ))
+        .arg_required_else_help(true)
+        .subcommands(auth_attempts_subcommands(pre_flight_settings.clone()));
     let bindings_group = Command::new("bindings")
         .about("Operations on bindings")
         .infer_subcommands(pre_flight_settings.infer_subcommands)
@@ -387,6 +397,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         .subcommands(vhost_limits_subcommands(pre_flight_settings.clone()));
 
     let command_groups = [
+        auth_attempts_group,
         bindings_group,
         channels_group,
         close_group,
@@ -1398,6 +1409,26 @@ fn purge_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
                 .required(true),
         );
     [queue_cmd]
+        .into_iter()
+        .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+        .collect()
+}
+
+fn auth_attempts_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
+    let stats_cmd = Command::new("stats")
+        .about("Displays authentication attempt statistics for a cluster node")
+        .after_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            ACCESS_CONTROL_GUIDE_URL
+        ))
+        .arg(
+            Arg::new("node")
+                .long("node")
+                .help("target node, must be a cluster member")
+                .required(true),
+        );
+
+    [stats_cmd]
         .into_iter()
         .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
         .collect()
