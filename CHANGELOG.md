@@ -1,6 +1,6 @@
 # rabbitmqadmin-ng Change Log
 
-## v2.17.0 (in development)
+## v2.17.0 (Nov 29, 2025)
 
 ### Enhancements
 
@@ -9,6 +9,10 @@
    ```
    rabbitmqadmin auth_attempts stats --node rabbit@target.hostname
    ```
+
+### Upgrades
+
+* RabbitMQ HTTP API client was upgraded to [`0.68.0`](https://github.com/michaelklishin/rabbitmq-http-api-rs/releases/tag/v0.68.0)
 
 
 ## v2.16.0 (Oct 20, 2025)
