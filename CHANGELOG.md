@@ -4,7 +4,7 @@
 
 ### Enhancements
 
- * New command, `auth_attempts stats`, displays authentication attempte statistics per protocol:
+ * New command, `auth_attempts stats`, displays authentication attempt statistics per protocol:
 
    ```
    rabbitmqadmin auth_attempts stats --node rabbit@target.hostname
