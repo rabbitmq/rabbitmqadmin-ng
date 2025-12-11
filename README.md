@@ -277,49 +277,59 @@ rabbitmqadmin show endpoint
 ### Listing cluster nodes
 
 ``` shell
-rabbitmqadmin list nodes
+rabbitmqadmin nodes list
 ```
 
 ### Listing virtual hosts
 
 ``` shell
-rabbitmqadmin list vhosts
+rabbitmqadmin vhosts list
 ```
 
 ### Listing users
 
 ``` shell
-rabbitmqadmin list users
+rabbitmqadmin users list
 ```
 
 ### Listing queues
 
 ``` shell
-rabbitmqadmin list queues
+rabbitmqadmin queues list
 ```
 
 ``` shell
-rabbitmqadmin --vhost "monitoring" list queues
+rabbitmqadmin --vhost "monitoring" queues list
 ```
 
 ### Listing exchanges
 
 ``` shell
-rabbitmqadmin list exchanges
+rabbitmqadmin exchanges list
 ```
 
 ``` shell
-rabbitmqadmin --vhost "events" list exchanges
+rabbitmqadmin --vhost "events" exchanges list
 ```
 
 ### Listing bindings
 
 ``` shell
-rabbitmqadmin list bindings
+rabbitmqadmin bindings list
 ```
 
 ``` shell
-rabbitmqadmin --vhost "events" list bindings
+rabbitmqadmin --vhost "events" bindings list
+```
+
+### Listing consumers
+
+``` shell
+rabbitmqadmin consumers list
+```
+
+``` shell
+rabbitmqadmin --vhost "events" consumers list
 ```
 
 ### Create a Virtual Host
@@ -339,6 +349,17 @@ rabbitmqadmin vhosts delete --name "vh-789"
 rabbitmqadmin vhosts delete --name "vh-789" --idempotently
 ```
 
+### Enable Virtual Host Deletion Protection
+
+```shell
+rabbitmqadmin vhosts enable_deletion_protection --name "production"
+```
+
+### Disable Virtual Host Deletion Protection
+
+```shell
+rabbitmqadmin vhosts disable_deletion_protection --name "production"
+```
 
 ### Declare a Queue
 
@@ -394,6 +415,26 @@ rabbitmqadmin --vhost "events" exchanges delete --name "target.exchange.name"
 ``` shell
 # --idempotently means that 404 Not Found responses will not be  considered errors
 rabbitmqadmin --vhost "events" exchanges delete --name "target.exchange.name" --idempotently
+```
+
+### Bind an Exchange to a Queue or Another Exchange
+
+```shell
+rabbitmqadmin --vhost "events" exchanges bind --source "events.topic" --destination-type "queue" --destination "events.processing" --routing-key "user.created"
+```
+
+```shell
+rabbitmqadmin --vhost "events" exchanges bind --source "events.fanout" --destination-type "exchange" --destination "events.archived" --routing-key ""
+```
+
+### Unbind an Exchange from a Queue or Another Exchange
+
+```shell
+rabbitmqadmin --vhost "events" exchanges unbind --source "events.topic" --destination-type "queue" --destination "events.processing" --routing-key "user.created"
+```
+
+```shell
+rabbitmqadmin --vhost "events" exchanges unbind --source "events.fanout" --destination-type "exchange" --destination "events.archived" --routing-key ""
 ```
 
 ### Inspecting Node Memory Breakdown
@@ -484,11 +525,6 @@ behavior nuances and the [kernel page cache](https://rabbitmq.com/docs/memory-us
 rabbitmqadmin feature_flags list
 ```
 
-```shell
-# same command as above
-rabbitmqadmin list feature_flags
-```
-
 ### Enable a feature flag
 
 ```shell
@@ -511,11 +547,6 @@ rabbitmqadmin deprecated_features list_used
 
 ```shell
 rabbitmqadmin deprecated_features list
-```
-
-```shell
-# same command as above
-rabbitmqadmin list deprecated_features
 ```
 
 ### Export Definitions
@@ -675,8 +706,32 @@ rabbitmqadmin --vhost "vh-1" policies declare_blanket \
   --definition '{"federation-upstream-set": "all"}'
 ```
 
+### Update a Policy Definition Key
 
-### Import Definition
+```shell
+rabbitmqadmin --vhost "vh-1" policies update_definition \
+  --name "policy-name-1" \
+  --definition-key "max-length" \
+  --new-value "5000000"
+```
+
+### Update a Definition Key in All Policies in a Virtual Host
+
+```shell
+rabbitmqadmin --vhost "vh-1" policies update_definitions_of_all_in \
+  --definition-key "max-length" \
+  --new-value "5000000"
+```
+
+### Delete Definition Keys from All Policies in a Virtual Host
+
+```shell
+rabbitmqadmin --vhost "vh-1" policies delete_definition_keys_from_all_in \
+  --definition-keys max-length,max-length-bytes
+```
+
+
+### Import Definitions
 
 To import definitions from the standard input, use `definitions import --stdin`:
 
@@ -688,6 +743,22 @@ To import definitions from a file, use `definitions import --file /path/to/defin
 
 ```shell
 rabbitmqadmin definitions import --file /path/to/definitions.file.json
+```
+
+### Export Definitions from a Specific Virtual Host
+
+```shell
+rabbitmqadmin --vhost "events" definitions export_from_vhost --stdout
+```
+
+```shell
+rabbitmqadmin --vhost "events" definitions export_from_vhost --file /path/to/vhost-definitions.json
+```
+
+### Import Virtual Host-specific Definitions
+
+```shell
+rabbitmqadmin --vhost "events" definitions import_into_vhost --file /path/to/vhost-definitions.json
 ```
 
 ### Declare an AMQP 0-9-1 Shovel
@@ -960,6 +1031,12 @@ rabbitmqadmin health_check port_listener --port 5672
 rabbitmqadmin health_check protocol_listener --protocol "amqp"
 ```
 
+### Authentication Attempt Statistics
+
+```shell
+rabbitmqadmin auth_attempts stats --node "rabbit@hostname"
+```
+
 ### Runtime Parameters
 
 ```shell
@@ -997,7 +1074,7 @@ rabbitmqadmin global_parameters clear --name "cluster_name"
 ### Declare Operator Policies
 
 ```shell
-rabbitmqadmin --vhost "production" operator_policies declare --name "ha-policy" --pattern "^ha\." --definition '{"ha-mode": "exactly", "ha-params": 3}' --priority 1 --apply-to "queues"
+rabbitmqadmin --vhost "production" operator_policies declare --name "queue-limits" --pattern ".*" --definition '{"max-length": 10000}' --priority 1 --apply-to "queues"
 ```
 
 ### List Operator Policies
@@ -1009,7 +1086,53 @@ rabbitmqadmin operator_policies list
 ### Delete Operator Policies
 
 ```shell
-rabbitmqadmin --vhost "production" operator_policies delete --name "ha-policy"
+rabbitmqadmin --vhost "production" operator_policies delete --name "queue-limits"
+```
+
+### Patch (Perform a Partial Update on) an Operator Policy
+
+```shell
+rabbitmqadmin --vhost "production" operator_policies patch \
+  --name "queue-limits" \
+  --definition '{"max-length": 7777777}'
+```
+
+### Update an Operator Policy Definition Key
+
+```shell
+rabbitmqadmin --vhost "production" operator_policies update_definition \
+  --name "queue-limits" \
+  --definition-key "max-length" \
+  --new-value "5000000"
+```
+
+### Update a Definition Key in All Operator Policies in a Virtual Host
+
+```shell
+rabbitmqadmin --vhost "production" operator_policies update_definitions_of_all_in \
+  --definition-key "max-length" \
+  --new-value "5000000"
+```
+
+### Delete Definition Keys from an Operator Policy
+
+```shell
+rabbitmqadmin --vhost "production" operator_policies delete_definition_keys \
+  --name "queue-limits" \
+  --definition-keys max-length,max-length-bytes
+```
+
+### Delete Definition Keys from All Operator Policies in a Virtual Host
+
+```shell
+rabbitmqadmin --vhost "production" operator_policies delete_definition_keys_from_all_in \
+  --definition-keys max-length,max-length-bytes
+```
+
+### List Operator Policies Matching an Object
+
+```shell
+rabbitmqadmin --vhost "production" operator_policies list_matching_object --name "qq.1" --type "queues"
 ```
 
 ### User Limits
@@ -1101,6 +1224,54 @@ rabbitmqadmin --vhost "logs" streams delete --name "old.stream"
 ```shell
 # List cluster nodes
 rabbitmqadmin nodes list
+```
+
+```shell
+# Memory breakdown in bytes
+rabbitmqadmin nodes memory_breakdown_in_bytes --node "rabbit@hostname"
+```
+
+```shell
+# Memory breakdown in percent
+rabbitmqadmin nodes memory_breakdown_in_percent --node "rabbit@hostname"
+```
+
+
+## Tanzu RabbitMQ Commands
+
+The `tanzu` command group provides Tanzu RabbitMQ-specific operations for Schema Definition Sync (SDS) and
+Warm Standby Replication (WSR).
+
+### Schema Definition Sync (SDS) Status
+
+```shell
+rabbitmqadmin tanzu sds status_on_node --node "rabbit@hostname"
+```
+
+### Enable/Disable Schema Definition Sync on a Node
+
+```shell
+rabbitmqadmin tanzu sds disable_on_node --node "rabbit@hostname"
+```
+
+```shell
+rabbitmqadmin tanzu sds enable_on_node --node "rabbit@hostname"
+```
+
+### Enable/Disable Schema Definition Sync Cluster-Wide
+
+```shell
+rabbitmqadmin tanzu sds disable_cluster_wide
+```
+
+```shell
+rabbitmqadmin tanzu sds enable_cluster_wide
+```
+
+### Warm Standby Replication (WSR) Status
+
+```shell
+rabbitmqadmin tanzu wsr status
 ```
 
 
