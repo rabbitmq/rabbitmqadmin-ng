@@ -56,7 +56,7 @@ Before migrating, please see [Breaking or Potentially Breaking Changes](#breakin
 
 ## Usage
 
-### Exploring Available Command Groups and Sub-commands
+### Explore Available Command Groups and Sub-commands
 
 To explore what command groups are available, use
 
@@ -115,7 +115,7 @@ To explore commands in a specific group, use
 rabbitmqadmin {group name} help
 ```
 
-### Exploring the CLI with `help`, `--help`
+### Explore the CLI with `help`, `--help`
 
 To learn about what command groups and specific commands are available, run
 
@@ -250,7 +250,7 @@ Cluster tags                                                      "az": "us-east
 Node tags                                                         "environment": "production","instance": "xlarge.m3",
 ```
 
-### Retrieving Basic Node Information
+### Retrieve Basic Node Information
 
 ``` shell
 rabbitmqadmin show overview
@@ -258,7 +258,7 @@ rabbitmqadmin show overview
 
 will display essential node information in tabular form.
 
-### Retrieving Connection, Queue/Stream, Channel Churn Information
+### Retrieve Connection, Queue/Stream, Channel Churn Information
 
 Helps assess connection, queue/stream, channel [churn metrics](https://rabbitmq.com/docs/connections#high-connection-churn) in the cluster.
 
@@ -266,7 +266,7 @@ Helps assess connection, queue/stream, channel [churn metrics](https://rabbitmq.
 rabbitmqadmin show churn
 ```
 
-### Displaying the HTTP API Endpoint
+### Display the HTTP API Endpoint
 
 To verify the computed HTTP API endpoint URI (useful for troubleshooting):
 
@@ -274,25 +274,25 @@ To verify the computed HTTP API endpoint URI (useful for troubleshooting):
 rabbitmqadmin show endpoint
 ```
 
-### Listing cluster nodes
+### List Cluster Nodes
 
 ``` shell
 rabbitmqadmin nodes list
 ```
 
-### Listing virtual hosts
+### List Virtual Hosts
 
 ``` shell
 rabbitmqadmin vhosts list
 ```
 
-### Listing users
+### List Users
 
 ``` shell
 rabbitmqadmin users list
 ```
 
-### Listing queues
+### List Queues
 
 ``` shell
 rabbitmqadmin queues list
@@ -302,7 +302,7 @@ rabbitmqadmin queues list
 rabbitmqadmin --vhost "monitoring" queues list
 ```
 
-### Listing exchanges
+### List Exchanges
 
 ``` shell
 rabbitmqadmin exchanges list
@@ -312,7 +312,7 @@ rabbitmqadmin exchanges list
 rabbitmqadmin --vhost "events" exchanges list
 ```
 
-### Listing bindings
+### List Bindings
 
 ``` shell
 rabbitmqadmin bindings list
@@ -322,7 +322,7 @@ rabbitmqadmin bindings list
 rabbitmqadmin --vhost "events" bindings list
 ```
 
-### Listing consumers
+### List Consumers
 
 ``` shell
 rabbitmqadmin consumers list
@@ -437,7 +437,7 @@ rabbitmqadmin --vhost "events" exchanges unbind --source "events.topic" --destin
 rabbitmqadmin --vhost "events" exchanges unbind --source "events.fanout" --destination-type "exchange" --destination "events.archived" --routing-key ""
 ```
 
-### Inspecting Node Memory Breakdown
+### Inspect Node Memory Breakdown
 
 There are two commands for reasoning about target [node's memory footprint](https://rabbitmq.com/docs/memory-use):
 
