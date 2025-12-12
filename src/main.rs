@@ -977,6 +977,14 @@ fn dispatch_common_subcommand(
             let result = commands::list_policies(client);
             res_handler.tabular_result(result)
         }
+        ("policies", "list_conflicting") => {
+            let result = commands::list_policies_with_conflicting_priorities(client);
+            res_handler.tabular_result(result)
+        }
+        ("policies", "list_conflicting_in") => {
+            let result = commands::list_policies_with_conflicting_priorities_in(client, &vhost);
+            res_handler.tabular_result(result)
+        }
         ("policies", "list_in") => {
             let typ_opt = second_level_args
                 .get_one::<PolicyTarget>("apply_to")

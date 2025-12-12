@@ -2126,6 +2126,20 @@ fn policies_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> 
                 .value_parser(value_parser!(PolicyTarget)),
         );
 
+    let list_conflicting_cmd = Command::new("list_conflicting")
+        .about("Lists policies that have conflicting priorities across all virtual hosts")
+        .after_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            POLICY_GUIDE_URL
+        ));
+
+    let list_conflicting_in_cmd = Command::new("list_conflicting_in")
+        .about("Lists policies that have conflicting priorities in a specific virtual host")
+        .after_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            POLICY_GUIDE_URL
+        ));
+
     let list_matching_cmd = Command::new("list_matching_object")
         .about("Lists policies that match an object (queue, stream, exchange) name")
         .arg(
@@ -2200,6 +2214,8 @@ fn policies_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> 
         delete_definition_keys_cmd,
         delete_definition_keys_from_all_in_cmd,
         list_cmd,
+        list_conflicting_cmd,
+        list_conflicting_in_cmd,
         list_in_cmd,
         list_matching_cmd,
         patch_cmd,

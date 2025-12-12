@@ -43,6 +43,7 @@ use rabbitmq_http_client::{password_hashing, requests, responses};
 use regex::Regex;
 use serde::de::DeserializeOwned;
 use serde_json::Value;
+use std::collections::HashMap;
 use std::fs;
 use std::io;
 use std::process;
@@ -152,6 +153,48 @@ pub fn list_matching_policies_in(
         .into_iter()
         .filter(|pol| pol.does_match_name(vhost, name, typ))
         .collect())
+}
+
+pub fn list_policies_with_conflicting_priorities(
+    client: APIClient,
+) -> ClientResult<Vec<responses::Policy>> {
+    let policies = client.list_policies()?;
+    Ok(filter_policies_with_conflicting_priorities(policies))
+}
+
+pub fn list_policies_with_conflicting_priorities_in(
+    client: APIClient,
+    vhost: &str,
+) -> ClientResult<Vec<responses::Policy>> {
+    let policies = client.list_policies_in(vhost)?;
+    Ok(filter_policies_with_conflicting_priorities(policies))
+}
+
+fn filter_policies_with_conflicting_priorities(
+    policies: Vec<responses::Policy>,
+) -> Vec<responses::Policy> {
+    let mut priority_counts: HashMap<(&str, i16), usize> = HashMap::new();
+
+    for pol in &policies {
+        *priority_counts
+            .entry((pol.vhost.as_str(), pol.priority))
+            .or_insert(0) += 1;
+    }
+
+    let dominated: Vec<bool> = policies
+        .iter()
+        .map(|pol| {
+            priority_counts
+                .get(&(pol.vhost.as_str(), pol.priority))
+                .is_some_and(|&count| count > 1)
+        })
+        .collect();
+
+    policies
+        .into_iter()
+        .zip(dominated)
+        .filter_map(|(pol, is_conflicting)| is_conflicting.then_some(pol))
+        .collect()
 }
 
 pub fn list_operator_policies(client: APIClient) -> ClientResult<Vec<responses::Policy>> {
