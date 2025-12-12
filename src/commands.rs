@@ -21,6 +21,7 @@ use clap::ArgMatches;
 use rabbitmq_http_client::blocking_api::Client;
 use rabbitmq_http_client::blocking_api::Result as ClientResult;
 use rabbitmq_http_client::commons;
+use rabbitmq_http_client::commons::PaginationParams;
 use rabbitmq_http_client::commons::QueueType;
 use rabbitmq_http_client::commons::{
     BindingDestinationType, ChannelUseMode, TlsPeerVerificationMode,
@@ -102,8 +103,27 @@ pub fn list_users(client: APIClient) -> ClientResult<Vec<responses::User>> {
     client.list_users()
 }
 
-pub fn list_connections(client: APIClient) -> ClientResult<Vec<responses::Connection>> {
-    client.list_connections()
+pub fn list_connections(
+    client: APIClient,
+    command_args: &ArgMatches,
+) -> ClientResult<Vec<responses::Connection>> {
+    let pagination = extract_pagination_params(command_args);
+    match pagination {
+        Some(params) => client.list_connections_paged(&params),
+        None => client.list_connections(),
+    }
+}
+
+fn extract_pagination_params(command_args: &ArgMatches) -> Option<PaginationParams> {
+    let page = command_args.get_one::<u64>("page").map(|&v| v as usize);
+    let page_size = command_args
+        .get_one::<u64>("page_size")
+        .map(|&v| v as usize);
+    if page.is_some() || page_size.is_some() {
+        Some(PaginationParams { page, page_size })
+    } else {
+        None
+    }
 }
 
 pub fn list_user_connections(
@@ -233,8 +253,16 @@ pub fn list_matching_operator_policies_in(
         .collect())
 }
 
-pub fn list_queues(client: APIClient, vhost: &str) -> ClientResult<Vec<responses::QueueInfo>> {
-    client.list_queues_in(vhost)
+pub fn list_queues(
+    client: APIClient,
+    vhost: &str,
+    command_args: &ArgMatches,
+) -> ClientResult<Vec<responses::QueueInfo>> {
+    let pagination = extract_pagination_params(command_args);
+    match pagination {
+        Some(params) => client.list_queues_in_paged(vhost, &params),
+        None => client.list_queues_in(vhost),
+    }
 }
 
 pub fn list_exchanges(

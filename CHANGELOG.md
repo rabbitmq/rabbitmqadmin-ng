@@ -1,8 +1,14 @@
 # rabbitmqadmin-ng Change Log
 
-## v2.18.0 (in development)
+## v2.18.0 (Dec 11, 2025)
 
-No changes yet.
+### Enhancements
+
+ * `--page` and `--page-size` options for paginated listing of queues, streams, and connections
+
+### Upgrades
+
+ * RabbitMQ HTTP API client was upgraded to [`0.70.0`](https://github.com/michaelklishin/rabbitmq-http-api-rs/releases/tag/v0.70.0)
 
 
 ## v2.17.0 (Nov 29, 2025)

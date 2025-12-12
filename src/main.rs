@@ -466,7 +466,7 @@ fn dispatch_common_subcommand(
             res_handler.no_output_on_success(result);
         }
         ("connections", "list") => {
-            let result = commands::list_connections(client);
+            let result = commands::list_connections(client, second_level_args);
             res_handler.tabular_result(result)
         }
         ("connections", "list_of_user") => {
@@ -748,7 +748,7 @@ fn dispatch_common_subcommand(
             res_handler.tabular_result(result)
         }
         ("list", "connections") => {
-            let result = commands::list_connections(client);
+            let result = commands::list_connections(client, second_level_args);
             res_handler.tabular_result(result)
         }
         ("list", "consumers") => {
@@ -792,7 +792,7 @@ fn dispatch_common_subcommand(
             res_handler.tabular_result(result)
         }
         ("list", "queues") => {
-            let result = commands::list_queues(client, &vhost);
+            let result = commands::list_queues(client, &vhost, second_level_args);
             res_handler.tabular_result(result)
         }
         ("list", "user_connections") => {
@@ -1038,7 +1038,7 @@ fn dispatch_common_subcommand(
             res_handler.delete_operation_result(result);
         }
         ("queues", "list") => {
-            let result = commands::list_queues(client, &vhost);
+            let result = commands::list_queues(client, &vhost, second_level_args);
             res_handler.tabular_result(result)
         }
         ("queues", "purge") => {
@@ -1169,7 +1169,7 @@ fn dispatch_common_subcommand(
             res_handler.delete_operation_result(result);
         }
         ("streams", "list") => {
-            let result = commands::list_queues(client, &vhost);
+            let result = commands::list_queues(client, &vhost, second_level_args);
             res_handler.tabular_result(result)
         }
         ("users", "connections") => {

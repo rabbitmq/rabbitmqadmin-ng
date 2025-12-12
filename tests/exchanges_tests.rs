@@ -44,7 +44,15 @@ fn list_exchanges() -> Result<(), Box<dyn Error>> {
             .and(output_includes(x2).not()),
     );
 
-    run_succeeds(["-V", vh1, "delete", "exchange", "--name", x1]);
+    run_succeeds([
+        "-V",
+        vh1,
+        "delete",
+        "exchange",
+        "--name",
+        x1,
+        "--idempotently",
+    ]);
 
     run_succeeds(["-V", vh1, "list", "exchanges"]).stdout(
         output_includes("amq.direct")
@@ -91,7 +99,15 @@ fn exchanges_list() -> Result<(), Box<dyn Error>> {
             .and(output_includes(x2).not()),
     );
 
-    run_succeeds(["-V", vh1, "exchanges", "delete", "--name", x1]);
+    run_succeeds([
+        "-V",
+        vh1,
+        "exchanges",
+        "delete",
+        "--name",
+        x1,
+        "--idempotently",
+    ]);
 
     run_succeeds(["-V", vh1, "exchanges", "list"]).stdout(
         output_includes("amq.direct")

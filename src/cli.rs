@@ -629,6 +629,21 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         .subcommands(command_groups)
 }
 
+fn pagination_args() -> [Arg; 2] {
+    [
+        Arg::new("page")
+            .long("page")
+            .help("page number (1-indexed)")
+            .required(false)
+            .value_parser(value_parser!(u64).range(1..)),
+        Arg::new("page_size")
+            .long("page-size")
+            .help("number of results per page (default: 100, max: 500)")
+            .required(false)
+            .value_parser(value_parser!(u64).range(1..=500)),
+    ]
+}
+
 fn list_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     let nodes_cmd = Command::new("nodes").long_about("Lists cluster members");
     let vhosts_cmd = Command::new("vhosts")
@@ -648,7 +663,8 @@ fn list_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
         .after_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             CONNECTION_GUIDE_URL
-        ));
+        ))
+        .args(pagination_args());
     let channels_cmd = Command::new("channels")
         .long_about("Lists AMQP 0-9-1 channels")
         .after_help(color_print::cformat!(
@@ -660,7 +676,8 @@ fn list_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
         .after_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             QUEUE_GUIDE_URL
-        ));
+        ))
+        .args(pagination_args());
     let exchanges_cmd = Command::new("exchanges").long_about("Lists exchanges");
     let bindings_cmd = Command::new("bindings").long_about("Lists bindings");
     let consumers_cmd = Command::new("consumers")
@@ -1578,7 +1595,8 @@ fn queues_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
         .after_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             QUEUE_GUIDE_URL
-        ));
+        ))
+        .args(pagination_args());
     let purge_cmd = Command::new("purge")
         .long_about("Purges (permanently removes unacknowledged messages from) a queue")
         .arg(
@@ -1647,11 +1665,12 @@ fn streams_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
         )
         .arg(idempotently_arg.clone());
     let list_cmd = Command::new("list")
-        .long_about("Lists streams and queues and")
+        .long_about("Lists streams and queues")
         .after_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             STREAM_GUIDE_URL
-        ));
+        ))
+        .args(pagination_args());
     [declare_cmd, delete_cmd, list_cmd]
         .into_iter()
         .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
@@ -2381,7 +2400,8 @@ fn connections_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Comman
         .after_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             CONNECTION_GUIDE_URL
-        ));
+        ))
+        .args(pagination_args());
     let list_user_connections_cmd = Command::new("list_of_user")
         .arg(
             Arg::new("username")
