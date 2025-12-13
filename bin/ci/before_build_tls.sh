@@ -60,39 +60,28 @@ RABBITMQ_CONF="${CERTS_DIR}/rabbitmq.conf"
 cat > "${RABBITMQ_CONF}" << 'EOF'
 # Enable TLS on management plugin
 management.ssl.port       = 15671
-management.ssl.cacertfile = /etc/rabbitmq/certs/ca_certificate.pem
-management.ssl.certfile   = /etc/rabbitmq/certs/server_certificate.pem
-management.ssl.keyfile    = /etc/rabbitmq/certs/server_key.pem
+management.ssl.cacertfile = /certs/ca_certificate.pem
+management.ssl.certfile   = /certs/server_certificate.pem
+management.ssl.keyfile    = /certs/server_key.pem
 
 # Keep HTTP enabled for other tests
 management.tcp.port = 15672
+loopback_users      = none
 EOF
 
 echo "RabbitMQ TLS configuration written to ${RABBITMQ_CONF}"
 
-# If using Docker, copy certificates and configuration to container
+# If using Docker, start a container with TLS configuration
 if [ -n "$CONTAINER_ID" ]; then
-    echo "Copying certificates to Docker container ${CONTAINER_ID}..."
-
-    docker exec "${CONTAINER_ID}" mkdir -p /etc/rabbitmq/certs
-    docker cp "${CERTS_DIR}/ca_certificate.pem" "${CONTAINER_ID}:/etc/rabbitmq/certs/"
-    docker cp "${CERTS_DIR}/server_certificate.pem" "${CONTAINER_ID}:/etc/rabbitmq/certs/"
-    docker cp "${CERTS_DIR}/server_key.pem" "${CONTAINER_ID}:/etc/rabbitmq/certs/"
-    docker cp "${RABBITMQ_CONF}" "${CONTAINER_ID}:/etc/rabbitmq/conf.d/20-tls.conf"
-
-    # Set proper permissions
-    docker exec "${CONTAINER_ID}" chmod 644 /etc/rabbitmq/certs/*.pem
-    docker exec "${CONTAINER_ID}" chmod 600 /etc/rabbitmq/certs/server_key.pem
-
-    echo "Restarting RabbitMQ to apply TLS configuration..."
-    docker exec "${CONTAINER_ID}" rabbitmqctl stop_app
-    docker exec "${CONTAINER_ID}" rabbitmqctl start_app
-
-    sleep 5
-
-    # Verify TLS listener is active
-    echo "Verifying TLS listener..."
-    docker exec "${CONTAINER_ID}" rabbitmq-diagnostics listeners | grep -E "15671|ssl" || echo "Warning: TLS listener may not be active"
+    echo "Note: Docker service container ${CONTAINER_ID} detected."
+    echo "For TLS tests, use a standalone Docker container instead."
+    echo ""
+    echo "To start RabbitMQ with TLS manually:"
+    echo "  docker run -d --name rabbitmq-tls \\"
+    echo "    -p 15671:15671 -p 15672:15672 -p 5672:5672 \\"
+    echo "    -v ${CERTS_DIR}:/certs:ro \\"
+    echo "    -v ${RABBITMQ_CONF}:/etc/rabbitmq/rabbitmq.conf:ro \\"
+    echo "    rabbitmq:4.0-management"
 fi
 
 # Enable management plugin (should already be enabled in the management image)

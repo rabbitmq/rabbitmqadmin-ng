@@ -131,10 +131,11 @@ jobs:
         run: |
           cat > tests/tls/certs/rabbitmq.conf << 'EOF'
           management.ssl.port       = 15671
-          management.ssl.cacertfile = /etc/rabbitmq/certs/ca_certificate.pem
-          management.ssl.certfile   = /etc/rabbitmq/certs/server_certificate.pem
-          management.ssl.keyfile    = /etc/rabbitmq/certs/server_key.pem
-          management.tcp.port = 15672
+          management.ssl.cacertfile = /certs/ca_certificate.pem
+          management.ssl.certfile   = /certs/server_certificate.pem
+          management.ssl.keyfile    = /certs/server_key.pem
+          management.tcp.port       = 15672
+          loopback_users            = none
           EOF
           sed -i 's/^[[:space:]]*//' tests/tls/certs/rabbitmq.conf
           echo "Generated config:"
@@ -143,12 +144,11 @@ jobs:
       - name: Start RabbitMQ with TLS
         run: |
           docker run -d --name rabbitmq-tls \
-            -e RABBITMQ_ERLANG_COOKIE='test-secret-cookie' \
             -p 15671:15671 \
             -p 15672:15672 \
             -p 5672:5672 \
-            -v ${{ github.workspace }}/tests/tls/certs:/etc/rabbitmq/certs:ro \
-            -v ${{ github.workspace }}/tests/tls/certs/rabbitmq.conf:/etc/rabbitmq/conf.d/20-tls.conf:ro \
+            -v ${{ github.workspace }}/tests/tls/certs:/certs:ro \
+            -v ${{ github.workspace }}/tests/tls/certs/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro \
             rabbitmq:${{ matrix.rabbitmq-series }}-management
 
       - name: Wait for RabbitMQ to start
