@@ -124,6 +124,7 @@ jobs:
           cp target/tls-gen/basic/result/server_localhost_key.pem tests/tls/certs/server_key.pem
           cp target/tls-gen/basic/result/client_localhost_certificate.pem tests/tls/certs/client_certificate.pem
           cp target/tls-gen/basic/result/client_localhost_key.pem tests/tls/certs/client_key.pem
+          chmod 644 tests/tls/certs/*.pem
 
       - name: Create RabbitMQ TLS configuration
         run: |
@@ -134,7 +135,7 @@ jobs:
           management.ssl.keyfile    = /etc/rabbitmq/certs/server_key.pem
           management.tcp.port = 15672
           EOF
-          sed -i 's/^          //' tests/tls/certs/rabbitmq.conf
+          sed -i 's/^[[:space:]]*//' tests/tls/certs/rabbitmq.conf
           echo "Generated config:"
           cat tests/tls/certs/rabbitmq.conf
 
