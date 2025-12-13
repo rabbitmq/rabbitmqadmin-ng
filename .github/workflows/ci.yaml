@@ -126,13 +126,13 @@ jobs:
 
       - name: Create RabbitMQ TLS configuration
         run: |
-          cat > tests/tls/certs/rabbitmq.conf << 'EOF'
-          management.ssl.port       = 15671
-          management.ssl.cacertfile = /etc/rabbitmq/certs/ca_certificate.pem
-          management.ssl.certfile   = /etc/rabbitmq/certs/server_certificate.pem
-          management.ssl.keyfile    = /etc/rabbitmq/certs/server_key.pem
-          management.tcp.port = 15672
-          EOF
+          echo 'management.ssl.port       = 15671' > tests/tls/certs/rabbitmq.conf
+          echo 'management.ssl.cacertfile = /etc/rabbitmq/certs/ca_certificate.pem' >> tests/tls/certs/rabbitmq.conf
+          echo 'management.ssl.certfile   = /etc/rabbitmq/certs/server_certificate.pem' >> tests/tls/certs/rabbitmq.conf
+          echo 'management.ssl.keyfile    = /etc/rabbitmq/certs/server_key.pem' >> tests/tls/certs/rabbitmq.conf
+          echo 'management.tcp.port = 15672' >> tests/tls/certs/rabbitmq.conf
+          echo "Generated config:"
+          cat tests/tls/certs/rabbitmq.conf
 
       - name: Start RabbitMQ with TLS
         run: |
@@ -150,11 +150,14 @@ jobs:
           for i in $(seq 1 30); do
             if docker exec rabbitmq-tls rabbitmqctl status > /dev/null 2>&1; then
               echo "RabbitMQ is ready"
-              break
+              exit 0
             fi
             echo "Waiting... ($i/30)"
             sleep 2
           done
+          echo "RabbitMQ failed to start. Container logs:"
+          docker logs rabbitmq-tls
+          exit 1
 
       - name: Verify TLS listener
         run: |
