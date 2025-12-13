@@ -110,7 +110,6 @@ jobs:
         run: |
           cd target/tls-gen/basic
           make CN=localhost
-          make alias-leaf-artifacts
 
       - name: Create certs directory
         run: mkdir -p tests/tls/certs
@@ -118,10 +117,10 @@ jobs:
       - name: Copy certificates
         run: |
           cp target/tls-gen/basic/result/ca_certificate.pem tests/tls/certs/
-          cp target/tls-gen/basic/result/server_certificate.pem tests/tls/certs/
-          cp target/tls-gen/basic/result/server_key.pem tests/tls/certs/
-          cp target/tls-gen/basic/result/client_certificate.pem tests/tls/certs/
-          cp target/tls-gen/basic/result/client_key.pem tests/tls/certs/
+          cp target/tls-gen/basic/result/server_localhost_certificate.pem tests/tls/certs/server_certificate.pem
+          cp target/tls-gen/basic/result/server_localhost_key.pem tests/tls/certs/server_key.pem
+          cp target/tls-gen/basic/result/client_localhost_certificate.pem tests/tls/certs/client_certificate.pem
+          cp target/tls-gen/basic/result/client_localhost_key.pem tests/tls/certs/client_key.pem
 
       - name: Create RabbitMQ TLS configuration
         run: |
