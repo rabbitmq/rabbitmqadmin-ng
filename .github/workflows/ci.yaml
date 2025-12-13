@@ -39,7 +39,7 @@ jobs:
         run: cargo fmt --all --check
 
   build:
-    name: All tests except for TLS connectivity
+    name: Non-TLS tests
     strategy:
       matrix:
         rabbitmq-series:
@@ -81,10 +81,11 @@ jobs:
         run: RUST_BACKTRACE=1 NEXTEST_RETRIES=2 cargo nextest run --workspace --no-fail-fast --all-features
 
   tls-tests:
-    name: TLS connectivity tests only
+    name: TLS tests
     strategy:
       matrix:
         rabbitmq-series:
+          - "4.0"
           - "4.1"
           - "4.2"
         rust-version:
@@ -126,11 +127,14 @@ jobs:
 
       - name: Create RabbitMQ TLS configuration
         run: |
-          echo 'management.ssl.port       = 15671' > tests/tls/certs/rabbitmq.conf
-          echo 'management.ssl.cacertfile = /etc/rabbitmq/certs/ca_certificate.pem' >> tests/tls/certs/rabbitmq.conf
-          echo 'management.ssl.certfile   = /etc/rabbitmq/certs/server_certificate.pem' >> tests/tls/certs/rabbitmq.conf
-          echo 'management.ssl.keyfile    = /etc/rabbitmq/certs/server_key.pem' >> tests/tls/certs/rabbitmq.conf
-          echo 'management.tcp.port = 15672' >> tests/tls/certs/rabbitmq.conf
+          cat > tests/tls/certs/rabbitmq.conf << 'EOF'
+          management.ssl.port       = 15671
+          management.ssl.cacertfile = /etc/rabbitmq/certs/ca_certificate.pem
+          management.ssl.certfile   = /etc/rabbitmq/certs/server_certificate.pem
+          management.ssl.keyfile    = /etc/rabbitmq/certs/server_key.pem
+          management.tcp.port = 15672
+          EOF
+          sed -i 's/^          //' tests/tls/certs/rabbitmq.conf
           echo "Generated config:"
           cat tests/tls/certs/rabbitmq.conf
 
