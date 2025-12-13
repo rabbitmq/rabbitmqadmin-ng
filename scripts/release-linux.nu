@@ -93,5 +93,6 @@ def 'build-with-cargo' [] {
 
 def 'build-static-with-cargo' [] {
   $env.RUSTFLAGS = '-C target-feature=+crt-static'
-  cargo rustc --bin $binary --target $target --release
+  # Disable native-tls feature for musl builds (no OpenSSL dependency)
+  cargo rustc --bin $binary --target $target --release --no-default-features
 }
