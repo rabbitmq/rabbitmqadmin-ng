@@ -38,6 +38,14 @@ jobs:
           - target: aarch64-unknown-linux-gnu
             os: ubuntu-24.04-arm
             target_rustflags: ''
+          # Linux musl, x86-64 (static, for Alpine)
+          - target: x86_64-unknown-linux-musl
+            os: ubuntu-22.04
+            target_rustflags: ''
+          # Linux musl, aarch64 (static, for Alpine)
+          - target: aarch64-unknown-linux-musl
+            os: ubuntu-24.04-arm
+            target_rustflags: ''
 
     permissions:
       id-token: write
@@ -79,7 +87,7 @@ jobs:
 
       - name: Build an rabbitmqadmin release archive on x86-64 Linux
         id: release-build-amd64-linux
-        if: ${{ matrix.os == 'ubuntu-24.04' || matrix.os == 'ubuntu-22.04' }}
+        if: ${{ matrix.target == 'x86_64-unknown-linux-gnu' }}
         run: nu ./scripts/release-linux.nu
         env:
           OS: ${{ matrix.os }}
@@ -88,7 +96,7 @@ jobs:
           SRC: ${{ github.workspace }}
       - name: Store x86-64 Linux build artifact
         id: upload-amd64-linux-artifact
-        if: ${{ matrix.os == 'ubuntu-24.04' || matrix.os == 'ubuntu-22.04' }}
+        if: ${{ matrix.target == 'x86_64-unknown-linux-gnu' }}
         uses: actions/upload-artifact@v4
         with:
           name: "rabbitmqadmin-${{ vars.NEXT_RELEASE_VERSION }}-${{ matrix.target }}"
@@ -97,7 +105,7 @@ jobs:
 
       - name: Build an rabbitmqadmin release archive on aarch64 Linux
         id: release-build-aarch64-linux
-        if: ${{ matrix.os == 'ubuntu-24.04-arm' }}
+        if: ${{ matrix.target == 'aarch64-unknown-linux-gnu' }}
         run: nu ./scripts/release-linux.nu
         env:
           OS: ${{ matrix.os }}
@@ -106,7 +114,43 @@ jobs:
           SRC: ${{ github.workspace }}
       - name: Store aarch64 Linux build artifact
         id: upload-aarch64-linux-artifact
-        if: ${{ matrix.os == 'ubuntu-24.04-arm' }}
+        if: ${{ matrix.target == 'aarch64-unknown-linux-gnu' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: "rabbitmqadmin-${{ vars.NEXT_RELEASE_VERSION }}-${{ matrix.target }}"
+          path: "${{ github.workspace }}/target/${{ matrix.target }}/release/rabbitmqadmin-${{ vars.NEXT_RELEASE_VERSION }}-${{ matrix.target }}"
+          retention-days: 2
+
+      - name: Build a static rabbitmqadmin release archive on x86-64 Linux (musl)
+        id: release-build-amd64-linux-musl
+        if: ${{ matrix.target == 'x86_64-unknown-linux-musl' }}
+        run: nu ./scripts/release-linux.nu
+        env:
+          OS: ${{ matrix.os }}
+          TARGET: ${{ matrix.target }}
+          TARGET_RUSTFLAGS: ${{ matrix.target_rustflags }}
+          SRC: ${{ github.workspace }}
+      - name: Store x86-64 Linux musl build artifact
+        id: upload-amd64-linux-musl-artifact
+        if: ${{ matrix.target == 'x86_64-unknown-linux-musl' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: "rabbitmqadmin-${{ vars.NEXT_RELEASE_VERSION }}-${{ matrix.target }}"
+          path: "${{ github.workspace }}/target/${{ matrix.target }}/release/rabbitmqadmin-${{ vars.NEXT_RELEASE_VERSION }}-${{ matrix.target }}"
+          retention-days: 2
+
+      - name: Build a static rabbitmqadmin release archive on aarch64 Linux (musl)
+        id: release-build-aarch64-linux-musl
+        if: ${{ matrix.target == 'aarch64-unknown-linux-musl' }}
+        run: nu ./scripts/release-linux.nu
+        env:
+          OS: ${{ matrix.os }}
+          TARGET: ${{ matrix.target }}
+          TARGET_RUSTFLAGS: ${{ matrix.target_rustflags }}
+          SRC: ${{ github.workspace }}
+      - name: Store aarch64 Linux musl build artifact
+        id: upload-aarch64-linux-musl-artifact
+        if: ${{ matrix.target == 'aarch64-unknown-linux-musl' }}
         uses: actions/upload-artifact@v4
         with:
           name: "rabbitmqadmin-${{ vars.NEXT_RELEASE_VERSION }}-${{ matrix.target }}"
@@ -149,6 +193,16 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: "rabbitmqadmin-${{ vars.NEXT_RELEASE_VERSION }}-aarch64-unknown-linux-gnu"
+        path: ./artifacts
+    - name: Fetch x86-64 Linux musl (static) archive
+      uses: actions/download-artifact@v4
+      with:
+        name: "rabbitmqadmin-${{ vars.NEXT_RELEASE_VERSION }}-x86_64-unknown-linux-musl"
+        path: ./artifacts
+    - name: Fetch aarch64 Linux musl (static) archive
+      uses: actions/download-artifact@v4
+      with:
+        name: "rabbitmqadmin-${{ vars.NEXT_RELEASE_VERSION }}-aarch64-unknown-linux-musl"
         path: ./artifacts
     - name: Fetch Windows archive
       uses: actions/download-artifact@v4
