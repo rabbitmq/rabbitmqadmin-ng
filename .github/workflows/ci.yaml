@@ -39,6 +39,7 @@ jobs:
         run: cargo fmt --all --check
 
   build:
+    name: All tests except for TLS connectivity
     strategy:
       matrix:
         rabbitmq-series:
@@ -79,7 +80,7 @@ jobs:
         run: RUST_BACKTRACE=1 NEXTEST_RETRIES=2 cargo nextest run --workspace --no-fail-fast --all-features
 
   tls-tests:
-    name: TLS Tests
+    name: TLS connectivity tests only
     strategy:
       matrix:
         rabbitmq-series:
