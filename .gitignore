@@ -4,3 +4,5 @@
 profile.json
 .tool-versions
 *.proptest-regressions
+tests/tls/certs/*.pem
+tests/tls/certs/*.conf
