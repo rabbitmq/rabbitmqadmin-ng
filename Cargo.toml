@@ -8,16 +8,16 @@ license = "MIT OR Apache-2.0"
 
 [features]
 default = ["native-tls"]
-# native-tls: Uses platform-native TLS (SecureTransport/SChannel/OpenSSL) alongside rustls.
-# Disable this feature for musl builds to avoid OpenSSL dependency.
+# Uses a platform-specific TLS implementation (SecureTransport, SChannel, OpenSSL).
+# Disable this feature for musl builds to avoid pulling in an OpenSSL dependency.
 native-tls = ["reqwest/default-tls", "rabbitmq_http_client/default-tls"]
 
 [dependencies]
 clap = { version = "4", features = ["help", "color", "cargo", "env"] }
 url = "2"
 sysexits = "0.10"
-# reqwest: disable defaults to control TLS features explicitly.
-# Base features always included; native-tls added via the native-tls feature above.
+# For reqwest, we disable defaults to control what TLS features are enabled explicitly at build time.
+# Base features always included; native-tls is added via the native-tls feature above.
 reqwest = { version = "0.12", default-features = false, features = [
     "blocking",
     "json",

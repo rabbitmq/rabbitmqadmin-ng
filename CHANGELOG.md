@@ -2,6 +2,12 @@
 
 ## v2.19.0 (Dec 13, 2025)
 
+### Enhancements
+
+ * Binary releases that use statically linked MUSL for Alpine Linux
+ * `rabbitmqadmin` users now can build the tool with native TLS support (via the `native-tls` feature, on by default)
+   or Rustls, for example, when targeting platforms that do not provide a dynamically linkable TLS library
+
 ### Bug Fixes
 
  * `definitions export` and `definitions export_from_vhost` now exit with an error code should a file write fail
