@@ -124,7 +124,8 @@ jobs:
           cp target/tls-gen/basic/result/server_localhost_key.pem tests/tls/certs/server_key.pem
           cp target/tls-gen/basic/result/client_localhost_certificate.pem tests/tls/certs/client_certificate.pem
           cp target/tls-gen/basic/result/client_localhost_key.pem tests/tls/certs/client_key.pem
-          chmod 644 tests/tls/certs/*.pem
+          chmod o+r tests/tls/certs/*
+          chmod g+r tests/tls/certs/*
 
       - name: Create RabbitMQ TLS configuration
         run: |
@@ -142,6 +143,7 @@ jobs:
       - name: Start RabbitMQ with TLS
         run: |
           docker run -d --name rabbitmq-tls \
+            -e RABBITMQ_ERLANG_COOKIE='test-secret-cookie' \
             -p 15671:15671 \
             -p 15672:15672 \
             -p 5672:5672 \
