@@ -1,8 +1,14 @@
 # rabbitmqadmin-ng Change Log
 
-## v2.19.0 (in development)
+## v2.19.0 (Dec 13, 2025)
 
-No changes yet.
+### Bug Fixes
+
+ * `definitions export` and `definitions export_from_vhost` now exit with an error code should a file write fail
+
+### Upgrades
+
+ * RabbitMQ HTTP API client was upgraded to [`0.71.0`](https://github.com/michaelklishin/rabbitmq-http-api-rs/releases/tag/v0.71.0)
 
 
 ## v2.18.0 (Dec 11, 2025)

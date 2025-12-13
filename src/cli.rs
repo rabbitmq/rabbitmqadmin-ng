@@ -670,7 +670,8 @@ fn list_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
         .after_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             CHANNEL_GUIDE_URL
-        ));
+        ))
+        .args(pagination_args());
     let queues_cmd = Command::new("queues")
         .long_about("Lists queues and streams")
         .after_help(color_print::cformat!(
@@ -678,7 +679,9 @@ fn list_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
             QUEUE_GUIDE_URL
         ))
         .args(pagination_args());
-    let exchanges_cmd = Command::new("exchanges").long_about("Lists exchanges");
+    let exchanges_cmd = Command::new("exchanges")
+        .long_about("Lists exchanges")
+        .args(pagination_args());
     let bindings_cmd = Command::new("bindings").long_about("Lists bindings");
     let consumers_cmd = Command::new("consumers")
         .long_about("Lists consumers")
@@ -710,7 +713,9 @@ fn list_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
             "<bold>Doc guide</bold>: {}",
             OPERATOR_POLICY_GUIDE_URL
         ));
-    let users_cmd = Command::new("users").long_about("Lists users in the internal database");
+    let users_cmd = Command::new("users")
+        .long_about("Lists users in the internal database")
+        .args(pagination_args());
     let permissions_cmd = Command::new("permissions")
         .long_about("Lists user permissions")
         .after_help(color_print::cformat!(
@@ -2360,7 +2365,8 @@ fn channels_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> 
         .after_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             "https://www.rabbitmq.com/docs/channels"
-        ));
+        ))
+        .args(pagination_args());
 
     [list_cmd]
         .into_iter()
@@ -2695,7 +2701,9 @@ fn exchanges_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command>
                 .required(true),
         )
         .arg(idempotently_arg.clone());
-    let list_cmd = Command::new("list").long_about("Lists exchanges");
+    let list_cmd = Command::new("list")
+        .long_about("Lists exchanges")
+        .args(pagination_args());
     let unbind_cmd = Command::new("unbind")
         .about("Deletes a binding")
         .arg(
@@ -3107,7 +3115,9 @@ pub fn users_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command>
                 .help("a list of comma-separated tags")
                 .default_value(""),
         );
-    let list_cmd = Command::new("list").long_about("Lists users in the internal database");
+    let list_cmd = Command::new("list")
+        .long_about("Lists users in the internal database")
+        .args(pagination_args());
     let permissions_cmd = Command::new("permissions")
         .long_about("Lists user permissions")
         .after_help(color_print::cformat!(

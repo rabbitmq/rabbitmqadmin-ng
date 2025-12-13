@@ -17,7 +17,7 @@ reqwest = { version = "0.12", features = [
     "__rustls",
     "rustls-tls-native-roots",
 ] }
-rabbitmq_http_client = { version = "0.70", features = [
+rabbitmq_http_client = { version = "0.71.0", features = [
     "blocking",
     "tabled",
 ] }
@@ -39,6 +39,7 @@ rustls = { version = "0.23", features = ["aws_lc_rs"] }
 
 [dev-dependencies]
 assert_cmd = "2.0"
+backtrace = "0.3"
 predicates = "3.1"
 proptest = "1.9"
 

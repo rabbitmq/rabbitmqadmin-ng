@@ -34,9 +34,9 @@ use rabbitmq_http_client::requests::shovels::OwnedShovelParams;
 use rabbitmq_http_client::requests::{
     Amqp10ShovelDestinationParams, Amqp10ShovelParams, Amqp10ShovelSourceParams,
     Amqp091ShovelDestinationParams, Amqp091ShovelParams, Amqp091ShovelSourceParams,
-    BindingDeletionParams, DEFAULT_FEDERATION_PREFETCH, EnforcedLimitParams,
-    ExchangeFederationParams, FEDERATION_UPSTREAM_COMPONENT, FederationResourceCleanupMode,
-    FederationUpstreamParams, PolicyParams, QueueFederationParams, RuntimeParameterDefinition,
+    BindingDeletionParams, EnforcedLimitParams, ExchangeFederationParams,
+    FEDERATION_UPSTREAM_COMPONENT, FederationResourceCleanupMode, FederationUpstreamParams,
+    OwnedFederationUpstreamParams, PolicyParams, QueueFederationParams, RuntimeParameterDefinition,
 };
 
 use rabbitmq_http_client::transformers::{TransformationChain, VirtualHostTransformationChain};
@@ -99,8 +99,15 @@ pub fn list_user_limits(
     }
 }
 
-pub fn list_users(client: APIClient) -> ClientResult<Vec<responses::User>> {
-    client.list_users()
+pub fn list_users(
+    client: APIClient,
+    command_args: &ArgMatches,
+) -> ClientResult<Vec<responses::User>> {
+    let pagination = extract_pagination_params(command_args);
+    match pagination {
+        Some(params) => client.list_users_paged(&params),
+        None => client.list_users(),
+    }
 }
 
 pub fn list_connections(
@@ -134,8 +141,15 @@ pub fn list_user_connections(
     client.list_user_connections(&username)
 }
 
-pub fn list_channels(client: APIClient) -> ClientResult<Vec<responses::Channel>> {
-    client.list_channels()
+pub fn list_channels(
+    client: APIClient,
+    command_args: &ArgMatches,
+) -> ClientResult<Vec<responses::Channel>> {
+    let pagination = extract_pagination_params(command_args);
+    match pagination {
+        Some(params) => client.list_channels_paged(&params),
+        None => client.list_channels(),
+    }
 }
 
 pub fn list_consumers(client: APIClient) -> ClientResult<Vec<responses::Consumer>> {
@@ -155,11 +169,7 @@ pub fn list_policies_in_and_applying_to(
     vhost: &str,
     apply_to: PolicyTarget,
 ) -> ClientResult<Vec<responses::Policy>> {
-    let policies = client.list_policies_in(vhost)?;
-    Ok(policies
-        .into_iter()
-        .filter(|pol| apply_to.does_apply_to(pol.apply_to))
-        .collect())
+    client.list_policies_for_target(vhost, apply_to)
 }
 
 pub fn list_matching_policies_in(
@@ -168,11 +178,7 @@ pub fn list_matching_policies_in(
     name: &str,
     typ: PolicyTarget,
 ) -> ClientResult<Vec<responses::Policy>> {
-    let candidates = list_policies_in_and_applying_to(client, vhost, typ)?;
-    Ok(candidates
-        .into_iter()
-        .filter(|pol| pol.does_match_name(vhost, name, typ))
-        .collect())
+    client.list_matching_policies(vhost, name, typ)
 }
 
 pub fn list_policies_with_conflicting_priorities(
@@ -233,11 +239,7 @@ pub fn list_operator_policies_in_and_applying_to(
     vhost: &str,
     apply_to: PolicyTarget,
 ) -> ClientResult<Vec<responses::Policy>> {
-    let policies = client.list_operator_policies_in(vhost)?;
-    Ok(policies
-        .into_iter()
-        .filter(|pol| apply_to.does_apply_to(pol.apply_to))
-        .collect())
+    client.list_operator_policies_for_target(vhost, apply_to)
 }
 
 pub fn list_matching_operator_policies_in(
@@ -246,11 +248,7 @@ pub fn list_matching_operator_policies_in(
     name: &str,
     typ: PolicyTarget,
 ) -> ClientResult<Vec<responses::Policy>> {
-    let candidates = list_operator_policies_in_and_applying_to(client, vhost, typ)?;
-    Ok(candidates
-        .into_iter()
-        .filter(|pol| pol.does_match_name(vhost, name, typ))
-        .collect())
+    client.list_matching_operator_policies(vhost, name, typ)
 }
 
 pub fn list_queues(
@@ -268,8 +266,13 @@ pub fn list_queues(
 pub fn list_exchanges(
     client: APIClient,
     vhost: &str,
+    command_args: &ArgMatches,
 ) -> ClientResult<Vec<responses::ExchangeInfo>> {
-    client.list_exchanges_in(vhost)
+    let pagination = extract_pagination_params(command_args);
+    match pagination {
+        Some(params) => client.list_exchanges_in_paged(vhost, &params),
+        None => client.list_exchanges_in(vhost),
+    }
 }
 
 pub fn list_bindings(client: APIClient) -> ClientResult<Vec<responses::BindingInfo>> {
@@ -781,49 +784,16 @@ pub fn disable_tls_peer_verification_for_all_federation_upstreams(
     prog_rep.start_operation(total, "Updating federation upstream URIs");
 
     for (index, upstream) in upstreams.into_iter().enumerate() {
-        let upstream_name = &upstream.name;
-        prog_rep.report_progress(index + 1, total, upstream_name);
+        let upstream_name = upstream.name.clone();
+        prog_rep.report_progress(index + 1, total, &upstream_name);
 
-        let original_uri = &upstream.uri;
-        let updated_uri = disable_tls_peer_verification(original_uri)?;
-
-        let upstream_params = FederationUpstreamParams {
-            name: &upstream.name,
-            vhost: &upstream.vhost,
-            uri: &updated_uri,
-            prefetch_count: upstream
-                .prefetch_count
-                .unwrap_or(DEFAULT_FEDERATION_PREFETCH),
-            reconnect_delay: upstream.reconnect_delay.unwrap_or(5),
-            ack_mode: upstream.ack_mode,
-            trust_user_id: upstream.trust_user_id.unwrap_or_default(),
-            bind_using_nowait: upstream.bind_using_nowait,
-            channel_use_mode: upstream.channel_use_mode,
-            queue_federation: if upstream.queue.is_some() {
-                Some(QueueFederationParams {
-                    queue: upstream.queue.as_deref(),
-                    consumer_tag: upstream.consumer_tag.as_deref(),
-                })
-            } else {
-                None
-            },
-            exchange_federation: if upstream.exchange.is_some() {
-                Some(ExchangeFederationParams {
-                    exchange: upstream.exchange.as_deref(),
-                    max_hops: upstream.max_hops,
-                    queue_type: upstream.queue_type.unwrap_or(QueueType::Classic),
-                    ttl: upstream.expires,
-                    message_ttl: upstream.message_ttl,
-                    resource_cleanup_mode: upstream.resource_cleanup_mode,
-                })
-            } else {
-                None
-            },
-        };
+        let updated_uri = disable_tls_peer_verification(&upstream.uri)?;
+        let owned_params = OwnedFederationUpstreamParams::from(upstream).with_uri(updated_uri);
+        let upstream_params = FederationUpstreamParams::from(&owned_params);
 
         let param = RuntimeParameterDefinition::from(upstream_params);
         client.upsert_runtime_parameter(&param)?;
-        prog_rep.report_success(upstream_name);
+        prog_rep.report_success(&upstream_name);
     }
 
     prog_rep.finish_operation(total);
@@ -857,54 +827,22 @@ pub fn enable_tls_peer_verification_for_all_federation_upstreams(
     prog_rep.start_operation(total, "Updating federation upstream URIs");
 
     for (index, upstream) in upstreams.into_iter().enumerate() {
-        let upstream_name = &upstream.name;
-        prog_rep.report_progress(index + 1, total, upstream_name);
+        let upstream_name = upstream.name.clone();
+        prog_rep.report_progress(index + 1, total, &upstream_name);
 
-        let original_uri = &upstream.uri;
         let updated_uri = enable_tls_peer_verification(
-            original_uri,
+            &upstream.uri,
             ca_cert_path,
             client_cert_path,
             client_key_path,
         )?;
 
-        let upstream_params = FederationUpstreamParams {
-            name: &upstream.name,
-            vhost: &upstream.vhost,
-            uri: &updated_uri,
-            prefetch_count: upstream
-                .prefetch_count
-                .unwrap_or(DEFAULT_FEDERATION_PREFETCH),
-            reconnect_delay: upstream.reconnect_delay.unwrap_or(5),
-            ack_mode: upstream.ack_mode,
-            trust_user_id: upstream.trust_user_id.unwrap_or_default(),
-            bind_using_nowait: upstream.bind_using_nowait,
-            channel_use_mode: upstream.channel_use_mode,
-            queue_federation: if upstream.queue.is_some() {
-                Some(QueueFederationParams {
-                    queue: upstream.queue.as_deref(),
-                    consumer_tag: upstream.consumer_tag.as_deref(),
-                })
-            } else {
-                None
-            },
-            exchange_federation: if upstream.exchange.is_some() {
-                Some(ExchangeFederationParams {
-                    exchange: upstream.exchange.as_deref(),
-                    max_hops: upstream.max_hops,
-                    queue_type: upstream.queue_type.unwrap_or(QueueType::Classic),
-                    ttl: upstream.expires,
-                    message_ttl: upstream.message_ttl,
-                    resource_cleanup_mode: upstream.resource_cleanup_mode,
-                })
-            } else {
-                None
-            },
-        };
+        let owned_params = OwnedFederationUpstreamParams::from(upstream).with_uri(updated_uri);
+        let upstream_params = FederationUpstreamParams::from(&owned_params);
 
         let param = RuntimeParameterDefinition::from(upstream_params);
         client.upsert_runtime_parameter(&param)?;
-        prog_rep.report_success(upstream_name);
+        prog_rep.report_success(&upstream_name);
     }
 
     prog_rep.finish_operation(total);
@@ -2190,7 +2128,7 @@ pub fn rebalance_queues(client: APIClient) -> ClientResult<()> {
 pub fn export_cluster_wide_definitions(
     client: APIClient,
     command_args: &ArgMatches,
-) -> ClientResult<()> {
+) -> Result<(), CommandRunError> {
     let transformations = command_args
         .get_many::<String>("transformations")
         .unwrap_or_default();
@@ -2208,7 +2146,7 @@ fn export_and_transform_cluster_wide_definitions(
     client: APIClient,
     command_args: &ArgMatches,
     transformations: Vec<String>,
-) -> ClientResult<()> {
+) -> Result<(), CommandRunError> {
     match client.export_cluster_wide_definitions_as_data() {
         Ok(mut defs0) => {
             let chain = TransformationChain::from(transformations);
@@ -2222,19 +2160,19 @@ fn export_and_transform_cluster_wide_definitions(
                     Ok(())
                 }
                 file => {
-                    _ = fs::write(file, &json);
+                    fs::write(file, &json)?;
                     Ok(())
                 }
             }
         }
-        Err(err) => Err(err),
+        Err(err) => Err(err.into()),
     }
 }
 
 fn export_cluster_wide_definitions_without_transformations(
     client: APIClient,
     command_args: &ArgMatches,
-) -> ClientResult<()> {
+) -> Result<(), CommandRunError> {
     match client.export_cluster_wide_definitions() {
         Ok(definitions) => {
             let path = command_args.get_one::<String>("file").cloned();
@@ -2250,7 +2188,7 @@ fn export_cluster_wide_definitions_without_transformations(
                         Ok(())
                     }
                     _ => {
-                        _ = fs::write(val, &definitions);
+                        fs::write(val, &definitions)?;
                         Ok(())
                     }
                 },
@@ -2264,7 +2202,7 @@ fn export_cluster_wide_definitions_without_transformations(
                 }
             }
         }
-        Err(err) => Err(err),
+        Err(err) => Err(err.into()),
     }
 }
 

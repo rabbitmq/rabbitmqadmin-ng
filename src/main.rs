@@ -444,7 +444,7 @@ fn dispatch_common_subcommand(
             res_handler.tabular_result(result)
         }
         ("channels", "list") => {
-            let result = commands::list_channels(client);
+            let result = commands::list_channels(client, second_level_args);
             res_handler.tabular_result(result)
         }
         ("close", "connection") => {
@@ -525,8 +525,7 @@ fn dispatch_common_subcommand(
             res_handler.no_output_on_success(result);
         }
         ("definitions", "export") => {
-            let result = commands::export_cluster_wide_definitions(client, second_level_args)
-                .map_err(Into::into);
+            let result = commands::export_cluster_wide_definitions(client, second_level_args);
             res_handler.no_output_on_success(result);
         }
         ("definitions", "export_from_vhost") => {
@@ -608,8 +607,7 @@ fn dispatch_common_subcommand(
             res_handler.tabular_result(result.map(|val| val.0))
         }
         ("export", "definitions") => {
-            let result = commands::export_cluster_wide_definitions(client, second_level_args)
-                .map_err(Into::into);
+            let result = commands::export_cluster_wide_definitions(client, second_level_args);
             res_handler.no_output_on_success(result);
         }
         ("exchanges", "bind") => {
@@ -625,7 +623,7 @@ fn dispatch_common_subcommand(
             res_handler.delete_operation_result(result);
         }
         ("exchanges", "list") => {
-            let result = commands::list_exchanges(client, &vhost);
+            let result = commands::list_exchanges(client, &vhost, second_level_args);
             res_handler.tabular_result(result)
         }
         ("exchanges", "unbind") => {
@@ -744,7 +742,7 @@ fn dispatch_common_subcommand(
             res_handler.tabular_result(result)
         }
         ("list", "channels") => {
-            let result = commands::list_channels(client);
+            let result = commands::list_channels(client, second_level_args);
             res_handler.tabular_result(result)
         }
         ("list", "connections") => {
@@ -764,7 +762,7 @@ fn dispatch_common_subcommand(
             res_handler.tabular_result(result.map(|val| val.0))
         }
         ("list", "exchanges") => {
-            let result = commands::list_exchanges(client, &vhost);
+            let result = commands::list_exchanges(client, &vhost, second_level_args);
             res_handler.tabular_result(result)
         }
         ("list", "feature_flags") => {
@@ -804,7 +802,7 @@ fn dispatch_common_subcommand(
             res_handler.tabular_result(result)
         }
         ("list", "users") => {
-            let result = commands::list_users(client);
+            let result = commands::list_users(client, second_level_args);
             res_handler.tabular_result(result)
         }
         ("list", "vhost_limits") => {
@@ -1189,7 +1187,7 @@ fn dispatch_common_subcommand(
             res_handler.tabular_result(result)
         }
         ("users", "list") => {
-            let result = commands::list_users(client);
+            let result = commands::list_users(client, second_level_args);
             res_handler.tabular_result(result)
         }
         ("users", "permissions") => {
