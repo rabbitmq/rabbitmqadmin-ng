@@ -1,6 +1,6 @@
 [package]
 name = "rabbitmqadmin"
-version = "2.19.0"
+version = "2.20.0"
 edition = "2024"
 repository = "https://github.com/rabbitmq/rabbitmqadmin-ng"
 description = "rabbitmqadmin v2 is a modern CLI tool for the RabbitMQ HTTP API"
