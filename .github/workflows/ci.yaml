@@ -141,14 +141,12 @@ jobs:
           echo "Generated config:"
           cat tests/tls/certs/rabbitmq.conf
 
-      - name: Start RabbitMQ with TLS
+      - name: Start RabbitMQ
         run: |
           docker run -d --name rabbitmq-tls \
             -p 15671:15671 \
             -p 15672:15672 \
             -p 5672:5672 \
-            -v ${{ github.workspace }}/tests/tls/certs:/certs:ro \
-            -v ${{ github.workspace }}/tests/tls/certs/rabbitmq.conf:/etc/rabbitmq/conf.d/10-tls.conf:ro \
             rabbitmq:${{ matrix.rabbitmq-series }}-management
 
       - name: Wait for RabbitMQ to start
@@ -166,6 +164,23 @@ jobs:
           docker logs rabbitmq-tls
           exit 1
 
+      - name: Configure TLS
+        run: |
+          docker exec rabbitmq-tls mkdir -p /certs
+          docker cp tests/tls/certs/ca_certificate.pem rabbitmq-tls:/certs/
+          docker cp tests/tls/certs/server_certificate.pem rabbitmq-tls:/certs/
+          docker cp tests/tls/certs/server_key.pem rabbitmq-tls:/certs/
+          docker cp tests/tls/certs/rabbitmq.conf rabbitmq-tls:/etc/rabbitmq/conf.d/10-tls.conf
+          docker exec rabbitmq-tls chown -R rabbitmq:rabbitmq /certs
+          docker exec rabbitmq-tls chmod 644 /certs/*.pem
+          docker exec rabbitmq-tls chmod 600 /certs/server_key.pem
+
+      - name: Restart RabbitMQ to apply TLS config
+        run: |
+          docker exec rabbitmq-tls rabbitmqctl stop_app
+          docker exec rabbitmq-tls rabbitmqctl start_app
+          sleep 5
+
       - name: Verify TLS listener
         run: |
           docker exec rabbitmq-tls rabbitmq-diagnostics listeners
@@ -174,8 +189,6 @@ jobs:
 
       - name: Configure broker
         run: |
-          docker exec rabbitmq-tls rabbitmq-plugins enable rabbitmq_management
-          sleep 3
           docker exec rabbitmq-tls rabbitmqctl add_vhost / || true
           docker exec rabbitmq-tls rabbitmqctl add_user guest guest || true
           docker exec rabbitmq-tls rabbitmqctl set_permissions -p / guest ".*" ".*" ".*"
