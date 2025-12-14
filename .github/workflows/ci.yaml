@@ -149,7 +149,7 @@ jobs:
             -p 15671:15671 \
             -p 15672:15672 \
             -p 5672:5672 \
-            -v ${{ github.workspace }}/tests/tls/certs/.erlang.cookie:/var/lib/rabbitmq/.erlang.cookie:ro \
+            -v ${{ github.workspace }}/tests/tls/certs/.erlang.cookie:/var/lib/rabbitmq/.erlang.cookie \
             -v ${{ github.workspace }}/tests/tls/certs:/certs:ro \
             -v ${{ github.workspace }}/tests/tls/certs/rabbitmq.conf:/etc/rabbitmq/conf.d/10-tls.conf:ro \
             rabbitmq:${{ matrix.rabbitmq-series }}-management
