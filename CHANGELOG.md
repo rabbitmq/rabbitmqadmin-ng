@@ -2,7 +2,10 @@
 
 ## v2.20.0 (in development)
 
-No changes yet.
+### Bug Fixes
+
+ * `--tls-ca-cert-file` was not correctly applied, causing [peer verification](https://www.rabbitmq.com/docs/ssl#peer-verification)
+   of connections to TLS-enabled endpoints to fail with a `UnknownIssuer`
 
 
 ## v2.19.0 (Dec 13, 2025)
