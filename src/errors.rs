@@ -39,13 +39,6 @@ pub enum CommandRunError {
     },
     #[error("Run into an I/O error when loading a file: {0}")]
     IoError(io::Error),
-    #[error(
-        "Local TLS certificate file at {local_path} does not exist, cannot be read or passed as a PEM file: {cause}"
-    )]
-    CertificateStoreRejectedCertificate {
-        local_path: String,
-        cause: rustls::Error,
-    },
     #[error("TLS certificate file at {local_path} does not exist or is not readable")]
     CertificateFileNotFound { local_path: String },
     #[error(

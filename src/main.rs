@@ -17,7 +17,7 @@
 
 use clap::{ArgMatches, crate_name, crate_version};
 use errors::CommandRunError;
-use reqwest::{Identity, tls::Version as TlsVersion};
+use reqwest::{Certificate, Identity, tls::Version as TlsVersion};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 use std::{fs, process};
@@ -47,11 +47,9 @@ use rabbitmq_http_client::blocking_api::{Client as GenericAPIClient, ClientBuild
 use rabbitmq_http_client::commons::PolicyTarget;
 use reqwest::blocking::Client as HTTPClient;
 use rustls::crypto::CryptoProvider;
-use rustls::pki_types::{CertificateDer, PrivateKeyDer};
+use rustls::pki_types::PrivateKeyDer;
 
 type APIClient = GenericAPIClient<String, String, String>;
-
-type CertificateChain = Vec<CertificateDer<'static>>;
 
 fn main() {
     let pre_flight_settings = if pre_flight::is_non_interactive() {
@@ -217,58 +215,10 @@ fn build_http_client(
             .danger_accept_invalid_certs(disable_peer_verification)
             .danger_accept_invalid_hostnames(disable_peer_verification);
 
-        // local certificate store
-        let mut store = rustls::RootCertStore::empty();
-
         if let Some(ca_certs_path) = ca_certs_path_opt {
-            let ca_certs_path_str = ca_certs_path.to_string_lossy();
-
-            // Load CA certificates with improved error handling
-            let ca_certs = load_certs(&ca_certs_path_str).map_err(|err| {
-                // Add context about this being a CA certificate bundle
-                match err {
-                    CommandRunError::CertificateFileNotFound { local_path } => {
-                        CommandRunError::CertificateFileNotFound {
-                            local_path: format!("CA certificate bundle at {}", local_path),
-                        }
-                    }
-                    CommandRunError::CertificateFileEmpty { local_path } => {
-                        CommandRunError::CertificateFileEmpty {
-                            local_path: format!("CA certificate bundle at {}", local_path),
-                        }
-                    }
-                    CommandRunError::CertificateFileInvalidPem {
-                        local_path,
-                        details,
-                    } => CommandRunError::CertificateFileInvalidPem {
-                        local_path: format!("CA certificate bundle at {}", local_path),
-                        details,
-                    },
-                    other => other,
-                }
-            })?;
-
-            for (index, cert) in ca_certs.into_iter().enumerate() {
-                store.add(cert).map_err(|err| {
-                    let readable_path = ca_cert_pem_file
-                        .clone()
-                        .unwrap()
-                        .to_string_lossy()
-                        .to_string();
-
-                    // Provide more context about which certificate failed
-                    let detailed_path = if index == 0 {
-                        readable_path
-                    } else {
-                        format!("{} (certificate #{} in bundle)", readable_path, index + 1)
-                    };
-
-                    CommandRunError::CertificateStoreRejectedCertificate {
-                        local_path: detailed_path,
-                        cause: err,
-                    }
-                })?;
-            }
+            let ca_certs_path_str = ca_certs_path.to_string_lossy().to_string();
+            let cert = load_ca_certificate(&ca_certs_path_str)?;
+            builder = builder.add_root_certificate(cert);
         }
 
         // --tls-cert-file, --tls-key-file
@@ -357,45 +307,19 @@ fn validate_certificate_file(path: &str) -> Result<(), CommandRunError> {
     Ok(())
 }
 
-fn load_certs(filename: &str) -> Result<CertificateChain, CommandRunError> {
+fn load_ca_certificate(filename: &str) -> Result<Certificate, CommandRunError> {
     validate_certificate_file(filename)?;
 
-    let results = CertificateDer::pem_file_iter(filename).map_err(|err| {
-        let readable_path = filename.to_string();
-        let details = match err {
-            rustls::pki_types::pem::Error::NoItemsFound => {
-                "Invalid PEM format or structure".to_string()
-            }
-            rustls::pki_types::pem::Error::IllegalSectionStart { .. } => {
-                "Invalid PEM format or structure".to_string()
-            }
-            rustls::pki_types::pem::Error::MissingSectionEnd { .. } => {
-                "Invalid PEM format or structure".to_string()
-            }
-            _ => format!("Failed to load a PEM file at {}: {}", filename, err),
-        };
-        CommandRunError::CertificateFileInvalidPem {
-            local_path: readable_path,
-            details,
-        }
+    let pem_data = fs::read(filename).map_err(|_| CommandRunError::CertificateFileNotFound {
+        local_path: filename.to_string(),
     })?;
 
-    let certs = results
-        .map(|result| {
-            result.map_err(|err| CommandRunError::CertificateFileInvalidPem {
-                local_path: filename.to_string(),
-                details: format!("Failed to parse certificate: {}", err),
-            })
-        })
-        .collect::<Result<CertificateChain, CommandRunError>>()?;
-
-    if certs.is_empty() {
-        return Err(CommandRunError::CertificateFileEmpty {
+    Certificate::from_pem(&pem_data).map_err(|err| {
+        CommandRunError::CertificateFileCouldNotBeLoaded1 {
             local_path: filename.to_string(),
-        });
-    }
-
-    Ok(certs)
+            cause: err,
+        }
+    })
 }
 
 #[allow(dead_code)]
