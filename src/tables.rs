@@ -502,8 +502,11 @@ fn generic_failed_request_details(
     error_details: &Option<ErrorDetails>,
 ) -> Table {
     let status_code_s = status_code.to_string();
-    let url_s = url.clone().unwrap().to_string();
-    let body_s = body.clone().unwrap_or("N/A".to_string());
+    let url_s = url
+        .as_ref()
+        .map(Url::to_string)
+        .unwrap_or_else(|| "N/A".to_string());
+    let body_s = body.clone().unwrap_or_else(|| "N/A".to_string());
 
     let mut data = vec![
         RowOfTwo {

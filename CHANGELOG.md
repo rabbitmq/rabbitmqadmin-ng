@@ -2,7 +2,33 @@
 
 ## v2.21.0 (in development)
 
-No changes yet.
+### Enhancements
+
+ * A new set of commands for operations on `rabbitmqadmin` configuration files are now available under the `config_file` command group:
+
+   ```shell
+   rabbitmqadmin config_file show_path
+
+   # Show all configured nodes (passwords masked by default)
+   rabbitmqadmin config_file show
+   rabbitmqadmin config_file show --reveal-passwords
+
+   # Add a new node (fails if an entry with this name already exists)
+   rabbitmqadmin config_file add_node --node experiment-001 --host rabbit.eng.example.com --port 15672 --username admin --password secret --vhost /
+
+   # Update an existing node (or create one if it does not exist).
+   # Only the specified fields are updated; unspecified fields are preserved.
+   rabbitmqadmin config_file update_node --node experiment-001 --host new-rabbit.eng.example.com --port 15673
+
+   # Enable TLS for a node (other settings like username, password are preserved)
+   rabbitmqadmin config_file update_node --node experiment-001 --use-tls --port 15671
+
+   # Disable TLS for a node (other settings are preserved)
+   rabbitmqadmin config_file update_node --node experiment-001 --scheme http --port 15672
+
+   # Delete a node (a configuration file entry)
+   rabbitmqadmin config_file delete_node --node experiment-001
+   ```
 
 
 ## v2.20.0 (Dec 13, 2025)

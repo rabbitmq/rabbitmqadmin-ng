@@ -37,3 +37,16 @@ fn test_vhost_limits() -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
+
+#[test]
+fn test_vhost_limits_with_invalid_value() {
+    run_fails([
+        "vhost_limits",
+        "declare",
+        "--name",
+        "max-connections",
+        "--value",
+        "not-a-number",
+    ])
+    .stderr(output_includes("not a valid integer"));
+}

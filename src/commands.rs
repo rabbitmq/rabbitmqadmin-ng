@@ -13,7 +13,11 @@
 // limitations under the License.
 #![allow(clippy::result_large_err)]
 
-use crate::constants::{DEFAULT_BLANKET_POLICY_PRIORITY, DEFAULT_VHOST};
+use crate::config::{
+    ConfigPathEntry, NodeConfigEntry, SharedSettings, add_node_to_config_file, config_file_exists,
+    delete_node_from_config_file, list_all_nodes, update_node_in_config_file,
+};
+use crate::constants::{DEFAULT_BLANKET_POLICY_PRIORITY, DEFAULT_HOST, DEFAULT_VHOST};
 use crate::errors::CommandRunError;
 use crate::output::ProgressReporter;
 use crate::pre_flight;
@@ -40,6 +44,7 @@ use rabbitmq_http_client::requests::{
 };
 
 use rabbitmq_http_client::transformers::{TransformationChain, VirtualHostTransformationChain};
+use rabbitmq_http_client::uris::UriBuilder;
 use rabbitmq_http_client::{password_hashing, requests, responses};
 use regex::Regex;
 use serde::de::DeserializeOwned;
@@ -47,6 +52,7 @@ use serde_json::Value;
 use std::collections::HashMap;
 use std::fs;
 use std::io;
+use std::path::{Path, PathBuf};
 use std::process;
 use tabled::Tabled;
 
@@ -430,17 +436,19 @@ pub fn declare_amqp091_shovel(
         .get_one::<String>("destination_exchange_key")
         .map(|s| s.as_str());
 
-    let source_queue: String;
-    let source_exchange: String;
+    // Variables declared here to ensure they outlive the params structs which hold references
+    let (source_queue, source_exchange);
+    #[allow(clippy::unnecessary_unwrap)]
     let source_params = if source_queue_opt.is_some() {
-        source_queue = source_queue_opt.unwrap();
+        source_queue = source_queue_opt.expect("checked above");
         if predeclared_source {
             Amqp091ShovelSourceParams::predeclared_queue_source(&source_uri, &source_queue)
         } else {
             Amqp091ShovelSourceParams::queue_source(&source_uri, &source_queue)
         }
     } else {
-        source_exchange = source_exchange_opt.unwrap();
+        source_exchange = source_exchange_opt
+            .expect("clap ensures that either source_queue or source_exchange is provided");
         if predeclared_source {
             Amqp091ShovelSourceParams::predeclared_exchange_source(
                 &source_uri,
@@ -456,10 +464,10 @@ pub fn declare_amqp091_shovel(
         }
     };
 
-    let destination_queue: String;
-    let destination_exchange: String;
+    let (destination_queue, destination_exchange);
+    #[allow(clippy::unnecessary_unwrap)]
     let destination_params = if destination_queue_opt.is_some() {
-        destination_queue = destination_queue_opt.unwrap();
+        destination_queue = destination_queue_opt.expect("checked above");
         if predeclared_destination {
             Amqp091ShovelDestinationParams::predeclared_queue_destination(
                 &destination_uri,
@@ -469,7 +477,9 @@ pub fn declare_amqp091_shovel(
             Amqp091ShovelDestinationParams::queue_destination(&destination_uri, &destination_queue)
         }
     } else {
-        destination_exchange = destination_exchange_opt.unwrap();
+        destination_exchange = destination_exchange_opt.expect(
+            "clap ensures that either destination_queue or destination_exchange is provided",
+        );
         if predeclared_destination {
             Amqp091ShovelDestinationParams::predeclared_exchange_destination(
                 &destination_uri,
@@ -1254,29 +1264,34 @@ pub fn declare_vhost_limit(
     client: APIClient,
     vhost: &str,
     command_args: &ArgMatches,
-) -> ClientResult<()> {
+) -> Result<(), CommandRunError> {
     let name = command_args.get_one::<String>("name").unwrap();
     let value = command_args.get_one::<String>("value").unwrap();
 
-    let limit = EnforcedLimitParams::new(
-        VirtualHostLimitTarget::from(name.as_str()),
-        str::parse(value).unwrap(),
-    );
+    let parsed_value = str::parse(value).map_err(|_| CommandRunError::JsonParseError {
+        message: format!("'{}' is not a valid integer value", value),
+    })?;
 
-    client.set_vhost_limit(vhost, limit)
+    let limit = EnforcedLimitParams::new(VirtualHostLimitTarget::from(name.as_str()), parsed_value);
+
+    client.set_vhost_limit(vhost, limit).map_err(Into::into)
 }
 
-pub fn declare_user_limit(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
+pub fn declare_user_limit(
+    client: APIClient,
+    command_args: &ArgMatches,
+) -> Result<(), CommandRunError> {
     let user = command_args.get_one::<String>("user").unwrap();
     let name = command_args.get_one::<String>("name").unwrap();
     let value = command_args.get_one::<String>("value").unwrap();
 
-    let limit = EnforcedLimitParams::new(
-        UserLimitTarget::from(name.as_str()),
-        str::parse(value).unwrap(),
-    );
+    let parsed_value = str::parse(value).map_err(|_| CommandRunError::JsonParseError {
+        message: format!("'{}' is not a valid integer value", value),
+    })?;
 
-    client.set_user_limit(user, limit)
+    let limit = EnforcedLimitParams::new(UserLimitTarget::from(name.as_str()), parsed_value);
+
+    client.set_user_limit(user, limit).map_err(Into::into)
 }
 
 pub fn delete_vhost_limit(
@@ -1470,8 +1485,7 @@ pub fn declare_user(client: APIClient, command_args: &ArgMatches) -> ClientResul
             .get_one::<HashingAlgorithm>("hashing_algorithm")
             .unwrap();
         let salt = password_hashing::salt();
-        let hash = hashing_algo.salt_and_hash(&salt, password).unwrap();
-        String::from_utf8(hash.into()).unwrap()
+        hashing_algo.salt_and_hash(&salt, password).unwrap()
     } else {
         provided_hash.to_owned()
     };
@@ -1659,7 +1673,9 @@ pub fn declare_blanket_policy(
         .map_err(CommandRunError::from)?;
     let min_priority = existing_policies
         .iter()
-        .fold(0, |acc, p| if p.priority < acc { p.priority } else { acc });
+        .map(|p| p.priority)
+        .min()
+        .unwrap_or(0);
 
     // blanket policy priority should be the lowest in the virtual host
     let priority = [min_priority - 1, DEFAULT_BLANKET_POLICY_PRIORITY]
@@ -1743,7 +1759,11 @@ pub fn patch_policy_definition(
     let mut pol = client
         .get_policy(vhost, &name)
         .map_err(CommandRunError::from)?;
-    let patch = parsed_value.as_object().unwrap();
+    let patch = parsed_value
+        .as_object()
+        .ok_or_else(|| CommandRunError::JsonParseError {
+            message: "definition must be a JSON object".to_string(),
+        })?;
     for (k, v) in patch.iter() {
         pol.insert_definition_key(k.clone(), v.clone());
     }
@@ -1792,7 +1812,11 @@ pub fn patch_operator_policy_definition(
     let mut pol = client
         .get_operator_policy(vhost, &name)
         .map_err(CommandRunError::from)?;
-    let patch = parsed_value.as_object().unwrap();
+    let patch = parsed_value
+        .as_object()
+        .ok_or_else(|| CommandRunError::JsonParseError {
+            message: "definition must be a JSON object".to_string(),
+        })?;
     for (k, v) in patch.iter() {
         pol.insert_definition_key(k.clone(), v.clone());
     }
@@ -2401,8 +2425,6 @@ fn parse_json_from_arg<T: DeserializeOwned>(input: &str) -> Result<T, CommandRun
 }
 
 pub fn disable_tls_peer_verification(uri: &str) -> Result<String, CommandRunError> {
-    use rabbitmq_http_client::uris::UriBuilder;
-
     let ub = UriBuilder::new(uri)
         .map_err(|e| CommandRunError::FailureDuringExecution {
             message: format!("Could not parse a value as a URI '{}': {}", uri, e),
@@ -2421,8 +2443,6 @@ pub fn enable_tls_peer_verification(
     client_cert_path: &str,
     client_key_path: &str,
 ) -> Result<String, CommandRunError> {
-    use rabbitmq_http_client::uris::UriBuilder;
-
     let ub = UriBuilder::new(uri)
         .map_err(|e| CommandRunError::FailureDuringExecution {
             message: format!("Could not parse a value as a URI '{}': {}", uri, e),
@@ -2436,4 +2456,134 @@ pub fn enable_tls_peer_verification(
         .map_err(|e| CommandRunError::FailureDuringExecution {
             message: format!("Failed to reconstruct (modify) a URI: {}", e),
         })
+}
+
+pub fn config_file_show_path(config_path: &Path) -> Result<Vec<ConfigPathEntry>, CommandRunError> {
+    if !config_file_exists(config_path) {
+        return Err(CommandRunError::FailureDuringExecution {
+            message: format!(
+                "Configuration file '{}' does not exist",
+                config_path.display()
+            ),
+        });
+    }
+
+    let resolved = crate::config::resolve_config_file_path(Some(&config_path.to_path_buf()));
+
+    Ok(vec![ConfigPathEntry {
+        key: "Configuration file path".to_string(),
+        value: resolved.to_string_lossy().to_string(),
+    }])
+}
+
+pub fn config_file_show(
+    config_path: &Path,
+    reveal_passwords: bool,
+) -> Result<Vec<NodeConfigEntry>, CommandRunError> {
+    if !config_file_exists(config_path) {
+        return Err(CommandRunError::FailureDuringExecution {
+            message: format!(
+                "Configuration file '{}' does not exist",
+                config_path.display()
+            ),
+        });
+    }
+
+    match list_all_nodes(config_path) {
+        Ok(nodes) => {
+            let entries: Vec<NodeConfigEntry> = nodes
+                .into_iter()
+                .map(|(name, settings)| {
+                    NodeConfigEntry::from_settings_with_name(&name, &settings, reveal_passwords)
+                })
+                .collect();
+            Ok(entries)
+        }
+        Err(e) => Err(CommandRunError::FailureDuringExecution {
+            message: format!("Failed to read configuration file: {}", e),
+        }),
+    }
+}
+
+fn extract_node_settings_from_args(command_args: &ArgMatches) -> (String, SharedSettings, bool) {
+    let base_uri = command_args.get_one::<String>("base_uri").cloned();
+    let hostname = command_args.get_one::<String>("host").cloned();
+    let port = command_args.get_one::<u16>("port").copied();
+    let scheme = command_args.get_one::<String>("scheme").cloned();
+    let username = command_args.get_one::<String>("username").cloned();
+    let password = command_args.get_one::<String>("password").cloned();
+    let vhost = command_args.get_one::<String>("vhost").cloned();
+    let path_prefix = command_args.get_one::<String>("path_prefix").cloned();
+    let tls = command_args.get_flag("tls");
+    let ca_certificate_bundle_path = command_args.get_one::<PathBuf>("tls_ca_cert_file").cloned();
+    let client_certificate_file_path = command_args.get_one::<PathBuf>("tls_cert_file").cloned();
+    let client_private_key_file_path = command_args.get_one::<PathBuf>("tls_key_file").cloned();
+
+    let node_name = command_args
+        .get_one::<String>("node")
+        .cloned()
+        .or_else(|| hostname.clone())
+        .unwrap_or_else(|| DEFAULT_HOST.to_string());
+
+    let settings = SharedSettings {
+        base_uri,
+        hostname,
+        port,
+        username,
+        password,
+        virtual_host: vhost,
+        scheme: scheme.unwrap_or_default(),
+        path_prefix: path_prefix.unwrap_or_default(),
+        tls,
+        ca_certificate_bundle_path,
+        client_certificate_file_path,
+        client_private_key_file_path,
+        ..Default::default()
+    };
+
+    let create_file_if_missing = command_args.get_flag("create_file_if_missing");
+
+    (node_name, settings, create_file_if_missing)
+}
+
+pub fn config_file_add_node(
+    config_path: &Path,
+    command_args: &ArgMatches,
+) -> Result<(), CommandRunError> {
+    let (node_name, settings, create_file_if_missing) =
+        extract_node_settings_from_args(command_args);
+
+    add_node_to_config_file(config_path, &node_name, &settings, create_file_if_missing).map_err(
+        |e| CommandRunError::FailureDuringExecution {
+            message: format!("Failed to add node to configuration file: {}", e),
+        },
+    )
+}
+
+pub fn config_file_update_node(
+    config_path: &Path,
+    command_args: &ArgMatches,
+) -> Result<(), CommandRunError> {
+    let (node_name, settings, create_file_if_missing) =
+        extract_node_settings_from_args(command_args);
+
+    update_node_in_config_file(config_path, &node_name, &settings, create_file_if_missing).map_err(
+        |e| CommandRunError::FailureDuringExecution {
+            message: format!("Failed to update node in configuration file: {}", e),
+        },
+    )
+}
+
+pub fn config_file_delete_node(
+    config_path: &Path,
+    command_args: &ArgMatches,
+) -> Result<(), CommandRunError> {
+    let node_name = command_args.get_one::<String>("node").unwrap();
+    let create_file_if_missing = command_args.get_flag("create_file_if_missing");
+
+    delete_node_from_config_file(config_path, node_name, create_file_if_missing).map_err(|e| {
+        CommandRunError::FailureDuringExecution {
+            message: format!("Failed to delete node from configuration file: {}", e),
+        }
+    })
 }

@@ -58,3 +58,18 @@ fn test_user_limits() -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
+
+#[test]
+fn test_user_limits_with_invalid_value() {
+    run_fails([
+        "user_limits",
+        "declare",
+        "--user",
+        "guest",
+        "--name",
+        "max-connections",
+        "--value",
+        "not-a-number",
+    ])
+    .stderr(output_includes("not a valid integer"));
+}

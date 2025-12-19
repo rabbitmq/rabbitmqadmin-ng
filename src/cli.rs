@@ -81,6 +81,12 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         .infer_long_args(pre_flight_settings.infer_long_options)
         .arg_required_else_help(true)
         .subcommands(connections_subcommands(pre_flight_settings.clone()));
+    let config_file_group = Command::new("config_file")
+        .about("Operations on the local configuration file")
+        .infer_subcommands(pre_flight_settings.infer_subcommands)
+        .infer_long_args(pre_flight_settings.infer_long_options)
+        .arg_required_else_help(true)
+        .subcommands(config_file_subcommands(pre_flight_settings.clone()));
     let declare_group = Command::new("declare")
         .about("Creates or declares objects")
         .infer_subcommands(pre_flight_settings.infer_subcommands)
@@ -401,6 +407,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         bindings_group,
         channels_group,
         close_group,
+        config_file_group,
         connections_group,
         declare_group,
         definitions_group,
@@ -2433,6 +2440,145 @@ fn connections_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Comman
     .collect()
 }
 
+fn node_entry_args() -> Vec<Arg> {
+    vec![
+        Arg::new("node")
+            .short('N')
+            .long("node")
+            .help("node entry name (defaults to the hostname)")
+            .required(false),
+        Arg::new("host")
+            .short('H')
+            .long("host")
+            .help("target node hostname")
+            .required(false),
+        Arg::new("port")
+            .short('P')
+            .long("port")
+            .help("target node HTTP API port")
+            .required(false)
+            .value_parser(value_parser!(u16)),
+        Arg::new("base_uri")
+            .short('U')
+            .long("base-uri")
+            .help("base HTTP API endpoint URI")
+            .required(false)
+            .conflicts_with_all(["host", "port"]),
+        Arg::new("path_prefix")
+            .long("path-prefix")
+            .help("HTTP API path prefix (defaults to '/api')")
+            .required(false),
+        Arg::new("username")
+            .short('u')
+            .long("username")
+            .help("username for authentication")
+            .required(false),
+        Arg::new("password")
+            .short('p')
+            .long("password")
+            .help("password for authentication")
+            .required(false),
+        Arg::new("scheme")
+            .short('s')
+            .long("scheme")
+            .help("connection scheme (http or https)")
+            .required(false)
+            .value_parser(["http", "https"]),
+        Arg::new("vhost")
+            .short('V')
+            .long("vhost")
+            .help("default virtual host")
+            .required(false),
+        Arg::new("tls")
+            .long("use-tls")
+            .help("use TLS (HTTPS) for connections to this node")
+            .action(ArgAction::SetTrue),
+        Arg::new("tls_ca_cert_file")
+            .long("tls-ca-cert-file")
+            .help("path to a CA certificate file in PEM format")
+            .required(false)
+            .value_parser(value_parser!(PathBuf)),
+        Arg::new("tls_cert_file")
+            .long("tls-cert-file")
+            .help("path to a client certificate file in PEM format")
+            .required(false)
+            .value_parser(value_parser!(PathBuf)),
+        Arg::new("tls_key_file")
+            .long("tls-key-file")
+            .help("path to a client private key file in PEM format")
+            .required(false)
+            .value_parser(value_parser!(PathBuf)),
+        Arg::new("create_file_if_missing")
+            .long("create-file-if-missing")
+            .help("create the configuration file if it does not exist")
+            .action(ArgAction::SetTrue),
+    ]
+}
+
+fn config_file_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
+    // Hidden args to shadow global flags that don't apply to these commands
+    let hidden_vhost_arg = Arg::new("vhost").short('V').long("vhost").hide(true);
+    let hidden_table_style_arg = Arg::new("table_style").long("table-style").hide(true);
+
+    let show_path_cmd = Command::new("show_path")
+        .about("Shows the path to the local rabbitmqadmin configuration file")
+        .arg(hidden_vhost_arg.clone());
+
+    let show_cmd = Command::new("show")
+        .about("Shows the contents of the local rabbitmqadmin configuration file")
+        .arg(hidden_vhost_arg.clone())
+        .arg(
+            Arg::new("reveal_passwords")
+                .long("reveal-passwords")
+                .help("reveal passwords in the output table instead of masked values (********)")
+                .required(false)
+                .num_args(0..=1)
+                .default_missing_value("true")
+                .value_parser(value_parser!(bool))
+                .action(ArgAction::Set)
+                .value_name("boolean"),
+        );
+
+    let add_node_cmd = Command::new("add_node")
+        .about("Adds a new node entry to the local rabbitmqadmin configuration file")
+        .args(node_entry_args())
+        .arg(hidden_table_style_arg.clone());
+
+    let update_node_cmd = Command::new("update_node")
+        .about("Updates an existing node entry in the local rabbitmqadmin configuration file (or creates one if it does not exist)")
+        .args(node_entry_args())
+        .arg(hidden_table_style_arg.clone());
+
+    let delete_node_cmd = Command::new("delete_node")
+        .about("Deletes a node entry from the local rabbitmqadmin configuration file")
+        .arg(hidden_vhost_arg)
+        .arg(hidden_table_style_arg)
+        .arg(
+            Arg::new("node")
+                .short('N')
+                .long("node")
+                .help("node entry name to delete")
+                .required(true),
+        )
+        .arg(
+            Arg::new("create_file_if_missing")
+                .long("create-file-if-missing")
+                .help("create the configuration file if it does not exist")
+                .action(ArgAction::SetTrue),
+        );
+
+    [
+        show_path_cmd,
+        show_cmd,
+        add_node_cmd,
+        update_node_cmd,
+        delete_node_cmd,
+    ]
+    .into_iter()
+    .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+    .collect()
+}
+
 fn definitions_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     let export_cmd = Command::new("export")
         .about("Export cluster-wide definitions")
@@ -3631,21 +3777,21 @@ pub fn shovel_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command
                 .long("node-local-ca-certificate-bundle-path")
                 .help("Path to the CA certificate bundle file on the target RabbitMQ node(s)")
                 .required(true)
-                .value_name("PATH")
+                .value_name("path")
         )
         .arg(
             Arg::new("node_local_client_certificate_file_path")
                 .long("node-local-client-certificate-file-path")
                 .help("Path to the client certificate file on the target RabbitMQ node(s)")
                 .required(true)
-                .value_name("PATH")
+                .value_name("path")
         )
         .arg(
             Arg::new("node_local_client_private_key_file_path")
                 .long("node-local-client-private-key-file-path")
                 .help("Path to the client private key file on the target RabbitMQ node(s)")
                 .required(true)
-                .value_name("PATH")
+                .value_name("path")
         )
         .after_help(color_print::cformat!(
             r#"<bold>Doc guides</bold>:
@@ -3666,21 +3812,21 @@ pub fn shovel_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command
                 .long("node-local-ca-certificate-bundle-path")
                 .help("Path to the CA certificate bundle file on the target RabbitMQ node(s)")
                 .required(true)
-                .value_name("PATH")
+                .value_name("path")
         )
         .arg(
             Arg::new("node_local_client_certificate_file_path")
                 .long("node-local-client-certificate-file-path")
                 .help("Path to the client certificate file on the target RabbitMQ node(s)")
                 .required(true)
-                .value_name("PATH")
+                .value_name("path")
         )
         .arg(
             Arg::new("node_local_client_private_key_file_path")
                 .long("node-local-client-private-key-file-path")
                 .help("Path to the client private key file on the target RabbitMQ node(s)")
                 .required(true)
-                .value_name("PATH")
+                .value_name("path")
         )
         .after_help(color_print::cformat!(
             r#"<bold>Doc guides</bold>:
@@ -4076,21 +4222,21 @@ fn federation_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command
                 .long("node-local-ca-certificate-bundle-path")
                 .help("Path to the CA certificate bundle file on the target RabbitMQ node(s)")
                 .required(true)
-                .value_name("PATH")
+                .value_name("path")
         )
         .arg(
             Arg::new("node_local_client_certificate_file_path")
                 .long("node-local-client-certificate-file-path")
                 .help("Path to the client certificate file on the target RabbitMQ node(s)")
                 .required(true)
-                .value_name("PATH")
+                .value_name("path")
         )
         .arg(
             Arg::new("node_local_client_private_key_file_path")
                 .long("node-local-client-private-key-file-path")
                 .help("Path to the client private key file on the target RabbitMQ node(s)")
                 .required(true)
-                .value_name("PATH")
+                .value_name("path")
         )
         .after_help(color_print::cformat!(
             r#"<bold>Doc guides</bold>:

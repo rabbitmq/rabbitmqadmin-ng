@@ -12,13 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 #![allow(clippy::result_large_err)]
-#![allow(clippy::unnecessary_unwrap)]
-#![allow(clippy::collapsible_if)]
 
 use clap::{ArgMatches, crate_name, crate_version};
 use errors::CommandRunError;
 use reqwest::{Certificate, Identity, tls::Version as TlsVersion};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::time::Duration;
 use std::{fs, process};
 use sysexits::ExitCode;
@@ -64,6 +62,12 @@ fn main() {
     let parser = cli::parser(pre_flight_settings);
     let cli = parser.get_matches();
 
+    // Handle config_file commands before trying to build the API client
+    if let Some(("config_file", config_file_args)) = cli.subcommand() {
+        let exit_code = dispatch_config_file_command(&cli, config_file_args);
+        process::exit(exit_code.into())
+    }
+
     let (common_settings, endpoint) = resolve_run_configuration(&cli);
 
     match configure_http_api_client(&cli, &common_settings, &endpoint.clone()) {
@@ -91,24 +95,36 @@ fn resolve_run_configuration(cli: &ArgMatches) -> (SharedSettings, String) {
     let node_alias = cli
         .get_one::<String>("node_alias")
         .cloned()
-        .or_else(|| Some(DEFAULT_NODE_ALIAS.to_string()));
+        .or(Some(DEFAULT_NODE_ALIAS.to_string()));
 
     // If the default config file path is used and the function above
     // reports that it is not found, continue. Otherwise, exit.
     let cf_ss = SharedSettings::from_config_file(&config_file_path, node_alias.clone());
-    if cf_ss.is_err() && !uses_default_config_file_path {
+    if let Err(e) = &cf_ss
+        && !uses_default_config_file_path
+    {
         eprintln!(
             "Encountered an error when trying to load configuration for node alias '{}' in configuration file '{}'",
-            &node_alias.unwrap(),
-            config_file_path.to_str().unwrap()
+            node_alias.as_deref().unwrap_or("<unknown>"),
+            config_file_path.to_str().unwrap_or("<non-UTF-8 path>")
         );
-        eprintln!("Underlying error: {}", cf_ss.unwrap_err());
+        eprintln!("Underlying error: {}", e);
         process::exit(ExitCode::DataErr.into())
     }
 
-    let common_settings = cf_ss
-        .map(|val| SharedSettings::from_args_with_defaults(cli, &val))
-        .unwrap_or_else(|_| SharedSettings::from_args(cli));
+    let common_settings = match cf_ss {
+        Ok(val) => SharedSettings::from_args_with_defaults(cli, &val),
+        Err(_) => SharedSettings::from_args(cli),
+    };
+
+    let common_settings = match common_settings {
+        Ok(settings) => settings,
+        Err(e) => {
+            eprintln!("{}", e);
+            process::exit(ExitCode::DataErr.into())
+        }
+    };
+
     let endpoint = common_settings.endpoint();
 
     (common_settings, endpoint)
@@ -138,37 +154,79 @@ fn configure_http_api_client<'a>(
     Ok(client)
 }
 
+fn dispatch_config_file_command(cli: &ArgMatches, config_file_args: &ArgMatches) -> ExitCode {
+    let config_file_path = cli
+        .get_one::<PathBuf>("config_file_path")
+        .cloned()
+        .unwrap_or(PathBuf::from(DEFAULT_CONFIG_FILE_PATH));
+
+    let common_settings = SharedSettings::default();
+    let mut res_handler = ResultHandler::new(&common_settings, config_file_args);
+
+    if let Some((subcommand, subcommand_args)) = config_file_args.subcommand() {
+        match subcommand {
+            "show_path" => {
+                let result = commands::config_file_show_path(&config_file_path);
+                res_handler.local_tabular_result(result);
+            }
+            "show" => {
+                let reveal_passwords = subcommand_args
+                    .get_one::<bool>("reveal_passwords")
+                    .copied()
+                    .unwrap_or(false);
+                let result = commands::config_file_show(&config_file_path, reveal_passwords);
+                res_handler.local_tabular_result(result);
+            }
+            "add_node" => {
+                let result = commands::config_file_add_node(&config_file_path, subcommand_args);
+                res_handler.local_no_output_on_success(result);
+            }
+            "update_node" => {
+                let result = commands::config_file_update_node(&config_file_path, subcommand_args);
+                res_handler.local_no_output_on_success(result);
+            }
+            "delete_node" => {
+                let result = commands::config_file_delete_node(&config_file_path, subcommand_args);
+                res_handler.local_no_output_on_success(result);
+            }
+            _ => return ExitCode::Usage,
+        }
+    }
+
+    res_handler.exit_code.unwrap_or(ExitCode::Usage)
+}
+
 fn dispatch_command(
     cli: &ArgMatches,
     client: APIClient,
     merged_settings: &SharedSettings,
 ) -> ExitCode {
-    if let Some((first_level, first_level_args)) = cli.subcommand() {
-        if let Some((second_level, second_level_args)) = first_level_args.subcommand() {
-            return if first_level == TANZU_COMMAND_PREFIX {
-                // this is a Tanzu RabbitMQ-specific command, these are grouped under "tanzu"
-                if let Some((third_level, third_level_args)) = second_level_args.subcommand() {
-                    let pair = (second_level, third_level);
-                    let mut res_handler = ResultHandler::new(merged_settings, second_level_args);
-                    dispatch_tanzu_subcommand(pair, third_level_args, client, &mut res_handler)
-                } else {
-                    ExitCode::Usage
-                }
-            } else {
-                // this is a common (OSS and Tanzu) command
-                let pair = (first_level, second_level);
-                let vhost = virtual_host(merged_settings, second_level_args);
+    if let Some((first_level, first_level_args)) = cli.subcommand()
+        && let Some((second_level, second_level_args)) = first_level_args.subcommand()
+    {
+        return if first_level == TANZU_COMMAND_PREFIX {
+            // this is a Tanzu RabbitMQ-specific command, these are grouped under "tanzu"
+            if let Some((third_level, third_level_args)) = second_level_args.subcommand() {
+                let pair = (second_level, third_level);
                 let mut res_handler = ResultHandler::new(merged_settings, second_level_args);
-                dispatch_common_subcommand(
-                    pair,
-                    second_level_args,
-                    client,
-                    merged_settings.endpoint(),
-                    vhost,
-                    &mut res_handler,
-                )
-            };
-        }
+                dispatch_tanzu_subcommand(pair, third_level_args, client, &mut res_handler)
+            } else {
+                ExitCode::Usage
+            }
+        } else {
+            // this is a common (OSS and Tanzu) command
+            let pair = (first_level, second_level);
+            let vhost = virtual_host(merged_settings, second_level_args);
+            let mut res_handler = ResultHandler::new(merged_settings, second_level_args);
+            dispatch_common_subcommand(
+                pair,
+                second_level_args,
+                client,
+                merged_settings.endpoint(),
+                vhost,
+                &mut res_handler,
+            )
+        };
     }
     ExitCode::Usage
 }
@@ -196,11 +254,9 @@ fn build_http_client(
     if should_use_tls(common_settings) {
         let _ = CryptoProvider::install_default(rustls::crypto::aws_lc_rs::default_provider());
 
-        let ca_cert_pem_file = common_settings.ca_certificate_bundle_path.clone();
-        let maybe_client_cert_pem_file = common_settings.client_certificate_file_path.clone();
-        let maybe_client_key_pem_file = common_settings.client_private_key_file_path.clone();
-
-        let ca_certs_path_opt = ca_cert_pem_file.clone();
+        let ca_certs_path_opt = common_settings.ca_certificate_bundle_path.clone();
+        let maybe_client_cert_pem_file = common_settings.client_certificate_file_path.as_ref();
+        let maybe_client_key_pem_file = common_settings.client_private_key_file_path.as_ref();
 
         let disable_peer_verification = *cli.get_one::<bool>("insecure").unwrap_or(&false);
 
@@ -222,10 +278,9 @@ fn build_http_client(
         }
 
         // --tls-cert-file, --tls-key-file
-        if maybe_client_cert_pem_file.is_some() && maybe_client_key_pem_file.is_some() {
-            let client_cert_pem_file = maybe_client_cert_pem_file.clone().unwrap();
-            let client_key_pem_file = maybe_client_key_pem_file.clone().unwrap();
-
+        if let (Some(client_cert_pem_file), Some(client_key_pem_file)) =
+            (maybe_client_cert_pem_file, maybe_client_key_pem_file)
+        {
             let cert_path = client_cert_pem_file.to_string_lossy().to_string();
             let key_path = client_key_pem_file.to_string_lossy().to_string();
 
@@ -233,8 +288,8 @@ fn build_http_client(
             validate_certificate_file(&cert_path)?;
             validate_certificate_file(&key_path)?;
 
-            let client_cert = read_pem_file(&client_cert_pem_file, &cert_path)?;
-            let client_key = read_pem_file(&client_key_pem_file, &key_path)?;
+            let client_cert = read_pem_file(client_cert_pem_file, &cert_path)?;
+            let client_key = read_pem_file(client_key_pem_file, &key_path)?;
 
             let concatenated = [&client_cert[..], &client_key[..]].concat();
             let client_id = Identity::from_pem(&concatenated).map_err(|err| {
@@ -257,12 +312,14 @@ fn build_http_client(
             builder = builder.identity(client_id);
         }
 
-        Ok(builder.build().unwrap())
+        builder
+            .build()
+            .map_err(CommandRunError::HttpClientBuildError)
     } else {
-        Ok(HTTPClient::builder()
+        HTTPClient::builder()
             .user_agent(user_agent)
             .build()
-            .unwrap())
+            .map_err(CommandRunError::HttpClientBuildError)
     }
 }
 
@@ -274,37 +331,18 @@ fn read_pem_file(buf: &PathBuf, file_path: &str) -> Result<Vec<u8>, CommandRunEr
 }
 
 fn validate_certificate_file(path: &str) -> Result<(), CommandRunError> {
-    let path_buf = Path::new(path);
-
-    if !path_buf.exists() {
-        return Err(CommandRunError::CertificateFileNotFound {
-            local_path: path.to_string(),
-        });
-    }
-
-    if !path_buf.is_file() {
-        return Err(CommandRunError::CertificateFileNotFound {
-            local_path: path.to_string(),
-        });
-    }
-
-    // Check if file is readable
     match fs::metadata(path) {
-        Ok(metadata) => {
-            if metadata.len() == 0 {
-                return Err(CommandRunError::CertificateFileEmpty {
-                    local_path: path.to_string(),
-                });
-            }
-        }
-        Err(_) => {
-            return Err(CommandRunError::CertificateFileNotFound {
-                local_path: path.to_string(),
-            });
-        }
+        Ok(meta) if meta.is_file() && meta.len() > 0 => Ok(()),
+        Ok(meta) if meta.is_file() => Err(CommandRunError::CertificateFileEmpty {
+            local_path: path.to_string(),
+        }),
+        Ok(_) => Err(CommandRunError::CertificateFileNotFound {
+            local_path: path.to_string(),
+        }),
+        Err(_) => Err(CommandRunError::CertificateFileNotFound {
+            local_path: path.to_string(),
+        }),
     }
-
-    Ok(())
 }
 
 fn load_ca_certificate(filename: &str) -> Result<Certificate, CommandRunError> {
@@ -435,8 +473,7 @@ fn dispatch_common_subcommand(
             res_handler.no_output_on_success(result);
         }
         ("declare", "user_limit") => {
-            let result =
-                commands::declare_user_limit(client, second_level_args).map_err(Into::into);
+            let result = commands::declare_user_limit(client, second_level_args);
             res_handler.no_output_on_success(result);
         }
         ("declare", "vhost") => {
@@ -444,8 +481,7 @@ fn dispatch_common_subcommand(
             res_handler.no_output_on_success(result);
         }
         ("declare", "vhost_limit") => {
-            let result = commands::declare_vhost_limit(client, &vhost, second_level_args)
-                .map_err(Into::into);
+            let result = commands::declare_vhost_limit(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);
         }
         ("definitions", "export") => {
@@ -1123,8 +1159,7 @@ fn dispatch_common_subcommand(
             res_handler.tabular_result(result)
         }
         ("user_limits", "declare") => {
-            let result =
-                commands::declare_user_limit(client, second_level_args).map_err(Into::into);
+            let result = commands::declare_user_limit(client, second_level_args);
             res_handler.no_output_on_success(result);
         }
         ("user_limits", "delete") => {
@@ -1174,8 +1209,7 @@ fn dispatch_common_subcommand(
             res_handler.tabular_result(result)
         }
         ("vhost_limits", "declare") => {
-            let result = commands::declare_vhost_limit(client, &vhost, second_level_args)
-                .map_err(Into::into);
+            let result = commands::declare_vhost_limit(client, &vhost, second_level_args);
             res_handler.no_output_on_success(result);
         }
         ("vhost_limits", "delete") => {
@@ -1248,27 +1282,15 @@ fn should_use_tls(shared_settings: &SharedSettings) -> bool {
 
 /// Retrieves a --vhost value, either from global or command-specific arguments
 fn virtual_host(shared_settings: &SharedSettings, command_flags: &ArgMatches) -> String {
-    // in case a command does not define --vhost
-    if command_flags.try_contains_id("vhost").is_ok() {
-        // if the command-specific flag is not set to default,
-        // use it, otherwise use the global/shared --vhost flag value
-        let fallback = DEFAULT_VHOST.to_string();
-        let command_vhost = command_flags
-            .get_one::<String>("vhost")
-            .unwrap_or(&fallback);
-
-        if command_vhost != DEFAULT_VHOST {
-            command_vhost.clone()
-        } else {
-            shared_settings
-                .virtual_host
-                .clone()
-                .unwrap_or_else(|| DEFAULT_VHOST.to_string())
-        }
-    } else {
-        shared_settings
-            .virtual_host
-            .clone()
-            .unwrap_or_else(|| DEFAULT_VHOST.to_string())
+    // If command defines --vhost and it's not the default, use it
+    if let Some(v) = command_flags.try_get_one::<String>("vhost").ok().flatten()
+        && v != DEFAULT_VHOST
+    {
+        return v.clone();
     }
+    // Otherwise use the global/shared --vhost flag value
+    shared_settings
+        .virtual_host
+        .clone()
+        .unwrap_or_else(|| DEFAULT_VHOST.to_string())
 }

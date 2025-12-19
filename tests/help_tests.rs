@@ -49,3 +49,9 @@ fn shows_subcommand_specific_info_with_help() -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
+
+#[test]
+fn test_invalid_base_uri_fails_gracefully() {
+    run_fails(["--base-uri", "not-a-valid-uri", "show", "overview"])
+        .stderr(output_includes("Invalid base URI"));
+}

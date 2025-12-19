@@ -19,6 +19,24 @@ use reqwest::header::{HeaderMap, InvalidHeaderValue};
 use std::io;
 use url::Url;
 
+#[derive(Debug)]
+#[allow(dead_code)]
+pub struct HttpErrorInfo {
+    pub status_code: StatusCode,
+    pub url: Option<Url>,
+    pub body: Option<String>,
+    pub error_details: Option<ErrorDetails>,
+    pub headers: Option<HeaderMap>,
+}
+
+#[derive(Debug)]
+#[allow(dead_code)]
+pub struct HealthCheckInfo {
+    pub health_check_path: String,
+    pub details: HealthCheckFailureDetails,
+    pub status_code: StatusCode,
+}
+
 #[derive(thiserror::Error, Debug)]
 pub enum CommandRunError {
     #[error("Asked to run an unknown command '{command} {subcommand}")]
@@ -51,28 +69,12 @@ pub enum CommandRunError {
     PrivateKeyFileUnsupported { local_path: String },
     #[error("TLS certificate and private key files do not match")]
     CertificateKeyMismatch { cert_path: String, key_path: String },
-    #[error("{}", format_client_error(.status_code, .error_details))]
-    ClientError {
-        status_code: StatusCode,
-        url: Option<Url>,
-        body: Option<String>,
-        error_details: Option<ErrorDetails>,
-        headers: Option<HeaderMap>,
-    },
-    #[error("{}", format_server_error(.status_code, .error_details))]
-    ServerError {
-        status_code: StatusCode,
-        url: Option<Url>,
-        body: Option<String>,
-        error_details: Option<ErrorDetails>,
-        headers: Option<HeaderMap>,
-    },
+    #[error("{}", format_client_error(&.0.status_code, &.0.error_details))]
+    ClientError(Box<HttpErrorInfo>),
+    #[error("{}", format_server_error(&.0.status_code, &.0.error_details))]
+    ServerError(Box<HttpErrorInfo>),
     #[error("Health check failed")]
-    HealthCheckFailed {
-        health_check_path: String,
-        details: HealthCheckFailureDetails,
-        status_code: StatusCode,
-    },
+    HealthCheckFailed(Box<HealthCheckInfo>),
     #[error("API responded with a 404 Not Found")]
     NotFound,
     #[error("{message}")]
@@ -89,8 +91,12 @@ pub enum CommandRunError {
     IncompatibleBody { error: ConversionError },
     #[error("encountered an error when performing an HTTP request")]
     RequestError { error: reqwest::Error },
+    #[error("Failed to build HTTP client: {0}")]
+    HttpClientBuildError(reqwest::Error),
     #[error("Failed to parse JSON argument: {message}")]
     JsonParseError { message: String },
+    #[error("Invalid base URI '{uri}': {message}")]
+    InvalidBaseUri { uri: String, message: String },
     #[error("Command execution failed: {message}")]
     FailureDuringExecution { message: String },
     #[error("an unspecified error")]
@@ -108,13 +114,13 @@ impl From<HttpClientError> for CommandRunError {
         match value {
             ApiClientError::UnsupportedArgumentValue { property } => Self::UnsupportedArgumentValue { property },
             ApiClientError::ClientErrorResponse { status_code, url, body, error_details, headers, .. } => {
-                Self::ClientError { status_code, url, body, error_details, headers }
+                Self::ClientError(Box::new(HttpErrorInfo { status_code, url, body, error_details, headers }))
             }
             ApiClientError::ServerErrorResponse { status_code, url, body, error_details, headers, .. } => {
-                Self::ServerError { status_code, url, body, error_details, headers }
+                Self::ServerError(Box::new(HttpErrorInfo { status_code, url, body, error_details, headers }))
             }
             ApiClientError::HealthCheckFailed { path, details, status_code } => {
-                Self::HealthCheckFailed { health_check_path: path, details, status_code }
+                Self::HealthCheckFailed(Box::new(HealthCheckInfo { health_check_path: path, details, status_code }))
             }
             ApiClientError::NotFound => Self::NotFound,
             ApiClientError::MultipleMatchingBindings => Self::ConflictingOptions {

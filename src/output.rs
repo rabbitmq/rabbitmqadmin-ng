@@ -159,7 +159,9 @@ impl<'a> ResultHandler<'a> {
         let quiet = common_args.quiet;
         let idempotently = command_args
             .try_get_one::<bool>("idempotently")
-            .map(|val| val.cloned().unwrap_or(false))
+            .ok()
+            .flatten()
+            .copied()
             .unwrap_or(false);
 
         let table_styler = TableStyler::new(common_args);
@@ -412,9 +414,37 @@ impl<'a> ResultHandler<'a> {
             CommandRunError::PrivateKeyFileUnsupported { .. } => ExitCode::DataErr,
             CommandRunError::CertificateKeyMismatch { .. } => ExitCode::DataErr,
             CommandRunError::IoError { .. } => ExitCode::DataErr,
+            CommandRunError::FailureDuringExecution { .. } => ExitCode::DataErr,
+            CommandRunError::HttpClientBuildError { .. } => ExitCode::DataErr,
             _ => ExitCode::Usage,
         };
         self.exit_code = Some(code);
+    }
+
+    pub fn local_tabular_result<T>(&mut self, result: Result<Vec<T>, CommandRunError>)
+    where
+        T: fmt::Debug + Tabled,
+    {
+        match result {
+            Ok(rows) => {
+                self.exit_code = Some(ExitCode::Ok);
+
+                let mut table = Table::new(rows);
+                self.table_styler.apply(&mut table);
+
+                println!("{}", table);
+            }
+            Err(error) => self.report_pre_command_run_error(&error),
+        }
+    }
+
+    pub fn local_no_output_on_success(&mut self, result: Result<(), CommandRunError>) {
+        match result {
+            Ok(_) => {
+                self.exit_code = Some(ExitCode::Ok);
+            }
+            Err(error) => self.report_pre_command_run_error(&error),
+        }
     }
 
     //

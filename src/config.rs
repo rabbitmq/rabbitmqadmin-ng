@@ -16,12 +16,15 @@ use crate::constants::{
     DEFAULT_PASSWORD, DEFAULT_PATH_PREFIX, DEFAULT_SCHEME, DEFAULT_USERNAME, DEFAULT_VHOST,
     HTTPS_SCHEME,
 };
+use crate::errors::CommandRunError;
 use crate::output::TableStyle;
 use clap::ArgMatches;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 use std::{collections::HashMap, fs, io};
+use tabled::Tabled;
 use thiserror::Error;
+use toml_edit::{DocumentMut, Item, Table, Value};
 use url::Url;
 
 /// A set of settings that must be set very early on.
@@ -61,17 +64,21 @@ pub enum ConfigFileError {
         "specified configuration section (--node) '{0}' was not found in the configuration file"
     )]
     MissingConfigSection(String),
+    #[error("node '{0}' already exists in the configuration file. Use 'update_node' to modify it")]
+    NodeAlreadyExists(String),
     #[error(transparent)]
     IoError(#[from] io::Error),
     #[error("failed to deserialize the config file. Make sure it is valid TOML. Details: {0}")]
     DeserializationError(#[from] toml::de::Error),
+    #[error("failed to parse the config file. Make sure it is valid TOML. Details: {0}")]
+    ParseError(#[from] toml_edit::TomlError),
 }
 
 type ConfigurationMap<'a> = HashMap<String, SharedSettings>;
 
 /// Represents a set of settings that can be set both via
 /// the command line arguments and an optional configuration file.
-#[derive(Debug, Clone, Deserialize, Default)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct SharedSettings {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub base_uri: Option<String>,
@@ -128,28 +135,44 @@ impl SharedSettings {
         })
     }
 
-    pub fn from_args_with_defaults(general_args: &ArgMatches, config_file_defaults: &Self) -> Self {
+    pub fn from_args_with_defaults(
+        general_args: &ArgMatches,
+        config_file_defaults: &Self,
+    ) -> Result<Self, CommandRunError> {
         let base_uri = general_args
             .get_one::<String>("base_uri")
             .cloned()
-            .or(config_file_defaults.base_uri.clone());
+            .or_else(|| config_file_defaults.base_uri.clone());
 
         if let Some(s) = base_uri {
-            let url = Url::parse(&s).unwrap();
-            SharedSettings::new_from_uri_with_defaults(&url, general_args, config_file_defaults)
+            let url = Url::parse(&s).map_err(|e| CommandRunError::InvalidBaseUri {
+                uri: s.clone(),
+                message: e.to_string(),
+            })?;
+            Ok(SharedSettings::new_from_uri_with_defaults(
+                &url,
+                general_args,
+                config_file_defaults,
+            ))
         } else {
-            SharedSettings::new_with_defaults(general_args, config_file_defaults)
+            Ok(SharedSettings::new_with_defaults(
+                general_args,
+                config_file_defaults,
+            ))
         }
     }
 
-    pub fn from_args(general_args: &ArgMatches) -> Self {
+    pub fn from_args(general_args: &ArgMatches) -> Result<Self, CommandRunError> {
         let base_uri = general_args.get_one::<String>("base_uri").cloned();
 
         if let Some(s) = base_uri {
-            let url = Url::parse(&s).unwrap();
-            SharedSettings::new_from_uri(&url, general_args)
+            let url = Url::parse(&s).map_err(|e| CommandRunError::InvalidBaseUri {
+                uri: s.clone(),
+                message: e.to_string(),
+            })?;
+            Ok(SharedSettings::new_from_uri(&url, general_args))
         } else {
-            SharedSettings::new(general_args)
+            Ok(SharedSettings::new(general_args))
         }
     }
 
@@ -173,7 +196,7 @@ impl SharedSettings {
         let hostname = cli_args
             .get_one::<String>("host")
             .cloned()
-            .or(config_file_defaults.hostname.clone())
+            .or_else(|| config_file_defaults.hostname.clone())
             .unwrap_or(default_hostname);
         let port: u16 = cli_args
             .get_one::<u16>("port")
@@ -195,17 +218,17 @@ impl SharedSettings {
         let username = cli_args
             .get_one::<String>("username")
             .cloned()
-            .or(config_file_defaults.username.clone())
+            .or_else(|| config_file_defaults.username.clone())
             .unwrap_or(DEFAULT_USERNAME.to_string());
         let password = cli_args
             .get_one::<String>("password")
             .cloned()
-            .or(config_file_defaults.password.clone())
+            .or_else(|| config_file_defaults.password.clone())
             .unwrap_or(DEFAULT_PASSWORD.to_string());
         let vhost = cli_args
             .get_one::<String>("vhost")
             .cloned()
-            .or(config_file_defaults.virtual_host.clone())
+            .or_else(|| config_file_defaults.virtual_host.clone())
             .unwrap_or(DEFAULT_VHOST.to_owned());
         let table_style = cli_args
             .get_one::<TableStyle>("table_style")
@@ -216,17 +239,17 @@ impl SharedSettings {
         let ca_certificate_bundle_path = cli_args
             .get_one::<PathBuf>("ca_certificate_bundle_path")
             .cloned()
-            .or(config_file_defaults.ca_certificate_bundle_path.clone());
+            .or_else(|| config_file_defaults.ca_certificate_bundle_path.clone());
 
         let client_certificate_file_path = cli_args
             .get_one::<PathBuf>("client_certificate_file_path")
             .cloned()
-            .or(config_file_defaults.client_certificate_file_path.clone());
+            .or_else(|| config_file_defaults.client_certificate_file_path.clone());
 
         let client_private_key_file_path = cli_args
             .get_one::<PathBuf>("client_private_key_file_path")
             .cloned()
-            .or(config_file_defaults.client_private_key_file_path.clone());
+            .or_else(|| config_file_defaults.client_private_key_file_path.clone());
 
         Self {
             tls: should_use_tls,
@@ -240,9 +263,9 @@ impl SharedSettings {
             scheme,
             hostname: Some(hostname),
             port: Some(port),
-            path_prefix: path_prefix.clone(),
-            username: Some(username.to_string()),
-            password: Some(password.to_string()),
+            path_prefix,
+            username: Some(username),
+            password: Some(password),
             virtual_host: Some(vhost),
             table_style: Some(table_style),
         }
@@ -323,9 +346,9 @@ impl SharedSettings {
             scheme,
             hostname: Some(hostname),
             port: Some(port),
-            path_prefix: path_prefix.clone(),
-            username: Some(username.to_string()),
-            password: Some(password.to_string()),
+            path_prefix,
+            username: Some(username),
+            password: Some(password),
             virtual_host: Some(vhost),
             table_style: Some(table_style),
         }
@@ -371,17 +394,17 @@ impl SharedSettings {
         let username = cli_args
             .get_one::<String>("username")
             .cloned()
-            .or(config_file_defaults.username.clone())
+            .or_else(|| config_file_defaults.username.clone())
             .unwrap_or(DEFAULT_USERNAME.to_string());
         let password = cli_args
             .get_one::<String>("password")
             .cloned()
-            .or(config_file_defaults.password.clone())
+            .or_else(|| config_file_defaults.password.clone())
             .unwrap_or(DEFAULT_PASSWORD.to_string());
         let vhost = cli_args
             .get_one::<String>("vhost")
             .cloned()
-            .or(config_file_defaults.virtual_host.clone())
+            .or_else(|| config_file_defaults.virtual_host.clone())
             .unwrap_or(DEFAULT_VHOST.to_owned());
         let table_style = cli_args
             .get_one::<TableStyle>("table_style")
@@ -422,8 +445,8 @@ impl SharedSettings {
     }
 
     pub fn new_from_uri(url: &Url, cli_args: &ArgMatches) -> Self {
-        let should_use_tls =
-            *cli_args.get_one::<bool>("tls").unwrap() || url.scheme() == HTTPS_SCHEME;
+        let should_use_tls = cli_args.get_one::<bool>("tls").cloned().unwrap_or(false)
+            || url.scheme() == HTTPS_SCHEME;
         let non_interactive = cli_args
             .get_one::<bool>("non_interactive")
             .cloned()
@@ -504,7 +527,7 @@ impl SharedSettings {
     }
 
     pub fn endpoint(&self) -> String {
-        let prefix = if self.path_prefix.starts_with("/") {
+        let prefix = if self.path_prefix.starts_with('/') {
             self.path_prefix.clone()
         } else {
             format!("/{}", self.path_prefix)
@@ -512,7 +535,7 @@ impl SharedSettings {
         format!(
             "{}://{}:{}{}",
             self.scheme,
-            self.hostname.as_ref().to_owned().unwrap(),
+            self.hostname.as_ref().unwrap(),
             self.port.unwrap(),
             prefix
         )
@@ -554,4 +577,262 @@ fn default_quiet() -> bool {
 
 fn default_path_prefix() -> String {
     "/api".to_string()
+}
+
+const PASSWORD_MASK: &str = "********";
+
+#[derive(Debug, Clone, Tabled)]
+pub struct ConfigPathEntry {
+    pub key: String,
+    pub value: String,
+}
+
+#[derive(Debug, Clone, Tabled)]
+pub struct NodeConfigEntry {
+    pub name: String,
+    pub hostname: String,
+    pub port: String,
+    pub scheme: String,
+    pub base_uri: String,
+    pub username: String,
+    pub password: String,
+    pub vhost: String,
+    pub path_prefix: String,
+}
+
+impl NodeConfigEntry {
+    pub fn from_settings_with_name(
+        name: &str,
+        settings: &SharedSettings,
+        reveal_password: bool,
+    ) -> Self {
+        let password = if reveal_password {
+            settings.password.clone().unwrap_or_default()
+        } else {
+            PASSWORD_MASK.to_string()
+        };
+        Self {
+            name: name.to_string(),
+            hostname: settings.hostname.clone().unwrap_or_default(),
+            port: settings.port.map(|p| p.to_string()).unwrap_or_default(),
+            scheme: if settings.scheme == DEFAULT_SCHEME {
+                String::new()
+            } else {
+                settings.scheme.clone()
+            },
+            base_uri: settings.base_uri.clone().unwrap_or_default(),
+            username: settings.username.clone().unwrap_or_default(),
+            password,
+            vhost: settings.virtual_host.clone().unwrap_or_default(),
+            path_prefix: if settings.path_prefix == DEFAULT_PATH_PREFIX {
+                String::new()
+            } else {
+                settings.path_prefix.clone()
+            },
+        }
+    }
+}
+
+pub fn resolve_config_file_path(cli_path: Option<&PathBuf>) -> PathBuf {
+    let path = cli_path
+        .map(|p| p.to_string_lossy().to_string())
+        .unwrap_or_else(|| crate::constants::DEFAULT_CONFIG_FILE_PATH.to_string());
+    let expanded = shellexpand::tilde(&path).to_string();
+    let path_buf = PathBuf::from(&expanded);
+    path_buf.canonicalize().unwrap_or(path_buf)
+}
+
+pub fn config_file_exists(path: &Path) -> bool {
+    let expanded_s = shellexpand::tilde(&path.to_string_lossy()).to_string();
+    let expanded_path = PathBuf::from(&expanded_s);
+    expanded_path.exists()
+}
+
+pub fn list_all_nodes(path: &Path) -> Result<Vec<(String, SharedSettings)>, ConfigFileError> {
+    let cm = from_local_path(path)?;
+    Ok(cm.into_iter().collect())
+}
+
+fn load_config_document(
+    path: &Path,
+    create_if_missing: bool,
+) -> Result<(PathBuf, DocumentMut), ConfigFileError> {
+    let expanded_s = shellexpand::tilde(&path.to_string_lossy()).to_string();
+    let expanded_path = PathBuf::from(&expanded_s);
+
+    let contents = if expanded_path.exists() {
+        fs::read_to_string(&expanded_path)?
+    } else if create_if_missing {
+        if let Some(parent) = expanded_path.parent()
+            && !parent.exists()
+        {
+            fs::create_dir_all(parent)?;
+        }
+        String::new()
+    } else {
+        return Err(ConfigFileError::MissingFile(expanded_path));
+    };
+
+    let doc = contents.parse::<DocumentMut>()?;
+    Ok((expanded_path, doc))
+}
+
+pub fn add_node_to_config_file(
+    path: &Path,
+    node_name: &str,
+    settings: &SharedSettings,
+    create_file_if_missing: bool,
+) -> Result<(), ConfigFileError> {
+    let (expanded_path, mut doc) = load_config_document(path, create_file_if_missing)?;
+
+    if doc.contains_key(node_name) {
+        return Err(ConfigFileError::NodeAlreadyExists(node_name.to_string()));
+    }
+
+    let node_table = build_node_table(settings);
+    doc.insert(node_name, Item::Table(node_table));
+
+    fs::write(&expanded_path, doc.to_string())?;
+    Ok(())
+}
+
+pub fn update_node_in_config_file(
+    path: &Path,
+    node_name: &str,
+    settings: &SharedSettings,
+    create_file_if_missing: bool,
+) -> Result<(), ConfigFileError> {
+    let (expanded_path, mut doc) = load_config_document(path, create_file_if_missing)?;
+
+    // Get existing node table or create a new one
+    let existing_table = doc.get_mut(node_name).and_then(|item| item.as_table_mut());
+
+    if let Some(table) = existing_table {
+        // Merge new settings into existing table
+        merge_settings_into_table(table, settings);
+    } else {
+        // Node doesn't exist, create new table
+        let node_table = build_node_table(settings);
+        doc.insert(node_name, Item::Table(node_table));
+    }
+
+    fs::write(&expanded_path, doc.to_string())?;
+    Ok(())
+}
+
+fn merge_settings_into_table(table: &mut Table, settings: &SharedSettings) {
+    if let Some(ref base_uri) = settings.base_uri {
+        table.insert("base_uri", Value::from(base_uri.as_str()).into());
+    }
+    if let Some(ref hostname) = settings.hostname {
+        table.insert("hostname", Value::from(hostname.as_str()).into());
+    }
+    if let Some(port) = settings.port {
+        table.insert("port", Value::from(port as i64).into());
+    }
+    if let Some(ref username) = settings.username {
+        table.insert("username", Value::from(username.as_str()).into());
+    }
+    if let Some(ref password) = settings.password {
+        table.insert("password", Value::from(password.as_str()).into());
+    }
+    if let Some(ref vhost) = settings.virtual_host {
+        table.insert("virtual_host", Value::from(vhost.as_str()).into());
+    }
+    if !settings.scheme.is_empty() {
+        table.insert("scheme", Value::from(settings.scheme.as_str()).into());
+    }
+    if !settings.path_prefix.is_empty() {
+        table.insert(
+            "path_prefix",
+            Value::from(settings.path_prefix.as_str()).into(),
+        );
+    }
+    if settings.tls {
+        table.insert("tls", Value::from(true).into());
+    }
+    if let Some(ref path) = settings.ca_certificate_bundle_path {
+        table.insert(
+            "ca_certificate_bundle_path",
+            Value::from(path.to_string_lossy().as_ref()).into(),
+        );
+    }
+    if let Some(ref path) = settings.client_certificate_file_path {
+        table.insert(
+            "client_certificate_file_path",
+            Value::from(path.to_string_lossy().as_ref()).into(),
+        );
+    }
+    if let Some(ref path) = settings.client_private_key_file_path {
+        table.insert(
+            "client_private_key_file_path",
+            Value::from(path.to_string_lossy().as_ref()).into(),
+        );
+    }
+}
+
+fn build_node_table(settings: &SharedSettings) -> Table {
+    let mut node_table = Table::new();
+    if let Some(ref base_uri) = settings.base_uri {
+        node_table.insert("base_uri", Value::from(base_uri.as_str()).into());
+    }
+    if let Some(ref hostname) = settings.hostname {
+        node_table.insert("hostname", Value::from(hostname.as_str()).into());
+    }
+    if let Some(port) = settings.port {
+        node_table.insert("port", Value::from(port as i64).into());
+    }
+    if let Some(ref username) = settings.username {
+        node_table.insert("username", Value::from(username.as_str()).into());
+    }
+    if let Some(ref password) = settings.password {
+        node_table.insert("password", Value::from(password.as_str()).into());
+    }
+    if let Some(ref vhost) = settings.virtual_host {
+        node_table.insert("virtual_host", Value::from(vhost.as_str()).into());
+    }
+    if !settings.scheme.is_empty() && settings.scheme != DEFAULT_SCHEME {
+        node_table.insert("scheme", Value::from(settings.scheme.as_str()).into());
+    }
+    if !settings.path_prefix.is_empty() && settings.path_prefix != DEFAULT_PATH_PREFIX {
+        node_table.insert(
+            "path_prefix",
+            Value::from(settings.path_prefix.as_str()).into(),
+        );
+    }
+    if settings.tls {
+        node_table.insert("tls", Value::from(true).into());
+    }
+    if let Some(ref path) = settings.ca_certificate_bundle_path {
+        node_table.insert(
+            "ca_certificate_bundle_path",
+            Value::from(path.to_string_lossy().as_ref()).into(),
+        );
+    }
+    if let Some(ref path) = settings.client_certificate_file_path {
+        node_table.insert(
+            "client_certificate_file_path",
+            Value::from(path.to_string_lossy().as_ref()).into(),
+        );
+    }
+    if let Some(ref path) = settings.client_private_key_file_path {
+        node_table.insert(
+            "client_private_key_file_path",
+            Value::from(path.to_string_lossy().as_ref()).into(),
+        );
+    }
+    node_table
+}
+
+pub fn delete_node_from_config_file(
+    path: &Path,
+    node_name: &str,
+    create_file_if_missing: bool,
+) -> Result<(), ConfigFileError> {
+    let (expanded_path, mut doc) = load_config_document(path, create_file_if_missing)?;
+
+    doc.remove(node_name);
+
+    fs::write(&expanded_path, doc.to_string())?;
+    Ok(())
 }

@@ -1,0 +1,21 @@
+[local]
+hostname = "localhost"
+port = 15672
+username = "guest"
+password = "guest"
+virtual_host = "/"
+
+[production]
+hostname = "prod.example.com"
+port = 15673
+username = "admin"
+password = "secret123"
+virtual_host = "prod_vhost"
+scheme = "https"
+
+[staging]
+hostname = "staging.example.com"
+port = 15672
+username = "staging_user"
+password = "staging_pass"
+virtual_host = "staging_vhost"
