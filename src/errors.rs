@@ -41,6 +41,10 @@ pub struct HealthCheckInfo {
 pub enum CommandRunError {
     #[error("Asked to run an unknown command '{command} {subcommand}")]
     UnknownCommandTarget { command: String, subcommand: String },
+    #[error("Missing required argument: {name}")]
+    MissingRequiredArgument { name: String },
+    #[error("Invalid value for argument '{name}': {message}")]
+    InvalidArgumentValue { name: String, message: String },
     #[error(
         "Local TLS certificate file at {local_path} does not exist, cannot be read or passed as a PEM file: {cause}"
     )]

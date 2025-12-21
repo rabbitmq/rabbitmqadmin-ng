@@ -13,9 +13,10 @@
 // limitations under the License.
 #![allow(clippy::result_large_err)]
 
+use crate::arg_helpers::ArgMatchesExt;
 use crate::config::{
-    ConfigPathEntry, NodeConfigEntry, SharedSettings, add_node_to_config_file, config_file_exists,
-    delete_node_from_config_file, list_all_nodes, update_node_in_config_file,
+    ConfigPathEntry, NodeConfigEntry, Scheme, SharedSettings, add_node_to_config_file,
+    config_file_exists, delete_node_from_config_file, list_all_nodes, update_node_in_config_file,
 };
 use crate::constants::{DEFAULT_BLANKET_POLICY_PRIORITY, DEFAULT_HOST, DEFAULT_VHOST};
 use crate::errors::CommandRunError;
@@ -23,7 +24,6 @@ use crate::output::ProgressReporter;
 use crate::pre_flight;
 use clap::ArgMatches;
 use rabbitmq_http_client::blocking_api::Client;
-use rabbitmq_http_client::blocking_api::Result as ClientResult;
 use rabbitmq_http_client::commons;
 use rabbitmq_http_client::commons::PaginationParams;
 use rabbitmq_http_client::commons::QueueType;
@@ -53,85 +53,89 @@ use std::collections::HashMap;
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
-use std::process;
 use tabled::Tabled;
 
 type APIClient = Client<String, String, String>;
+type CommandResult<T> = Result<T, CommandRunError>;
 
-pub fn show_overview(client: APIClient) -> ClientResult<responses::Overview> {
-    client.overview()
+pub fn show_overview(client: APIClient) -> CommandResult<responses::Overview> {
+    Ok(client.overview()?)
 }
 
 pub fn show_memory_breakdown(
     client: APIClient,
     command_args: &ArgMatches,
-) -> ClientResult<Option<responses::NodeMemoryBreakdown>> {
-    let node = command_args.get_one::<String>("node").unwrap();
-    client
+) -> CommandResult<Option<responses::NodeMemoryBreakdown>> {
+    let node = command_args.str_arg("node");
+    Ok(client
         .get_node_memory_footprint(node)
-        .map(|footprint| footprint.breakdown)
+        .map(|footprint| footprint.breakdown)?)
 }
 
-pub fn list_nodes(client: APIClient) -> ClientResult<Vec<responses::ClusterNode>> {
-    client.list_nodes()
+pub fn list_nodes(client: APIClient) -> CommandResult<Vec<responses::ClusterNode>> {
+    Ok(client.list_nodes()?)
 }
 
 pub fn list_auth_attempts(
     client: APIClient,
     command_args: &ArgMatches,
-) -> ClientResult<Vec<responses::AuthenticationAttemptStatistics>> {
-    let node = command_args.get_one::<String>("node").unwrap();
-    client.auth_attempts_statistics(node)
+) -> CommandResult<Vec<responses::AuthenticationAttemptStatistics>> {
+    let node = command_args.str_arg("node");
+    Ok(client.auth_attempts_statistics(node)?)
 }
 
-pub fn list_vhosts(client: APIClient) -> ClientResult<Vec<responses::VirtualHost>> {
-    client.list_vhosts()
+pub fn list_vhosts(client: APIClient) -> CommandResult<Vec<responses::VirtualHost>> {
+    Ok(client.list_vhosts()?)
 }
 
 pub fn list_vhost_limits(
     client: APIClient,
     vhost: &str,
-) -> ClientResult<Vec<responses::VirtualHostLimits>> {
-    client.list_vhost_limits(vhost)
+) -> CommandResult<Vec<responses::VirtualHostLimits>> {
+    Ok(client.list_vhost_limits(vhost)?)
 }
 
 pub fn list_user_limits(
     client: APIClient,
     command_args: &ArgMatches,
-) -> ClientResult<Vec<responses::UserLimits>> {
-    match command_args.get_one::<String>("user") {
-        None => client.list_all_user_limits(),
-        Some(username) => client.list_user_limits(username),
+) -> CommandResult<Vec<responses::UserLimits>> {
+    match command_args.optional_string("user") {
+        None => Ok(client.list_all_user_limits()?),
+        Some(username) => Ok(client.list_user_limits(&username)?),
     }
 }
 
 pub fn list_users(
     client: APIClient,
     command_args: &ArgMatches,
-) -> ClientResult<Vec<responses::User>> {
+) -> CommandResult<Vec<responses::User>> {
     let pagination = extract_pagination_params(command_args);
     match pagination {
-        Some(params) => client.list_users_paged(&params),
-        None => client.list_users(),
+        Some(params) => Ok(client.list_users_paged(&params)?),
+        None => Ok(client.list_users()?),
     }
 }
 
 pub fn list_connections(
     client: APIClient,
     command_args: &ArgMatches,
-) -> ClientResult<Vec<responses::Connection>> {
+) -> CommandResult<Vec<responses::Connection>> {
     let pagination = extract_pagination_params(command_args);
     match pagination {
-        Some(params) => client.list_connections_paged(&params),
-        None => client.list_connections(),
+        Some(params) => Ok(client.list_connections_paged(&params)?),
+        None => Ok(client.list_connections()?),
     }
 }
 
 fn extract_pagination_params(command_args: &ArgMatches) -> Option<PaginationParams> {
-    let page = command_args.get_one::<u64>("page").map(|&v| v as usize);
+    let page = command_args
+        .get_one::<u64>("page")
+        .copied()
+        .map(|v| v as usize);
     let page_size = command_args
         .get_one::<u64>("page_size")
-        .map(|&v| v as usize);
+        .copied()
+        .map(|v| v as usize);
     if page.is_some() || page_size.is_some() {
         Some(PaginationParams { page, page_size })
     } else {
@@ -142,40 +146,40 @@ fn extract_pagination_params(command_args: &ArgMatches) -> Option<PaginationPara
 pub fn list_user_connections(
     client: APIClient,
     command_args: &ArgMatches,
-) -> ClientResult<Vec<responses::UserConnection>> {
-    let username = command_args.get_one::<String>("username").cloned().unwrap();
-    client.list_user_connections(&username)
+) -> CommandResult<Vec<responses::UserConnection>> {
+    let username = command_args.string_arg("username");
+    Ok(client.list_user_connections(&username)?)
 }
 
 pub fn list_channels(
     client: APIClient,
     command_args: &ArgMatches,
-) -> ClientResult<Vec<responses::Channel>> {
+) -> CommandResult<Vec<responses::Channel>> {
     let pagination = extract_pagination_params(command_args);
     match pagination {
-        Some(params) => client.list_channels_paged(&params),
-        None => client.list_channels(),
+        Some(params) => Ok(client.list_channels_paged(&params)?),
+        None => Ok(client.list_channels()?),
     }
 }
 
-pub fn list_consumers(client: APIClient) -> ClientResult<Vec<responses::Consumer>> {
-    client.list_consumers()
+pub fn list_consumers(client: APIClient) -> CommandResult<Vec<responses::Consumer>> {
+    Ok(client.list_consumers()?)
 }
 
-pub fn list_policies(client: APIClient) -> ClientResult<Vec<responses::Policy>> {
-    client.list_policies()
+pub fn list_policies(client: APIClient) -> CommandResult<Vec<responses::Policy>> {
+    Ok(client.list_policies()?)
 }
 
-pub fn list_policies_in(client: APIClient, vhost: &str) -> ClientResult<Vec<responses::Policy>> {
-    client.list_policies_in(vhost)
+pub fn list_policies_in(client: APIClient, vhost: &str) -> CommandResult<Vec<responses::Policy>> {
+    Ok(client.list_policies_in(vhost)?)
 }
 
 pub fn list_policies_in_and_applying_to(
     client: APIClient,
     vhost: &str,
     apply_to: PolicyTarget,
-) -> ClientResult<Vec<responses::Policy>> {
-    client.list_policies_for_target(vhost, apply_to)
+) -> CommandResult<Vec<responses::Policy>> {
+    Ok(client.list_policies_for_target(vhost, apply_to)?)
 }
 
 pub fn list_matching_policies_in(
@@ -183,13 +187,13 @@ pub fn list_matching_policies_in(
     vhost: &str,
     name: &str,
     typ: PolicyTarget,
-) -> ClientResult<Vec<responses::Policy>> {
-    client.list_matching_policies(vhost, name, typ)
+) -> CommandResult<Vec<responses::Policy>> {
+    Ok(client.list_matching_policies(vhost, name, typ)?)
 }
 
 pub fn list_policies_with_conflicting_priorities(
     client: APIClient,
-) -> ClientResult<Vec<responses::Policy>> {
+) -> CommandResult<Vec<responses::Policy>> {
     let policies = client.list_policies()?;
     Ok(filter_policies_with_conflicting_priorities(policies))
 }
@@ -197,7 +201,7 @@ pub fn list_policies_with_conflicting_priorities(
 pub fn list_policies_with_conflicting_priorities_in(
     client: APIClient,
     vhost: &str,
-) -> ClientResult<Vec<responses::Policy>> {
+) -> CommandResult<Vec<responses::Policy>> {
     let policies = client.list_policies_in(vhost)?;
     Ok(filter_policies_with_conflicting_priorities(policies))
 }
@@ -229,23 +233,23 @@ fn filter_policies_with_conflicting_priorities(
         .collect()
 }
 
-pub fn list_operator_policies(client: APIClient) -> ClientResult<Vec<responses::Policy>> {
-    client.list_operator_policies()
+pub fn list_operator_policies(client: APIClient) -> CommandResult<Vec<responses::Policy>> {
+    Ok(client.list_operator_policies()?)
 }
 
 pub fn list_operator_policies_in(
     client: APIClient,
     vhost: &str,
-) -> ClientResult<Vec<responses::Policy>> {
-    client.list_operator_policies_in(vhost)
+) -> CommandResult<Vec<responses::Policy>> {
+    Ok(client.list_operator_policies_in(vhost)?)
 }
 
 pub fn list_operator_policies_in_and_applying_to(
     client: APIClient,
     vhost: &str,
     apply_to: PolicyTarget,
-) -> ClientResult<Vec<responses::Policy>> {
-    client.list_operator_policies_for_target(vhost, apply_to)
+) -> CommandResult<Vec<responses::Policy>> {
+    Ok(client.list_operator_policies_for_target(vhost, apply_to)?)
 }
 
 pub fn list_matching_operator_policies_in(
@@ -253,19 +257,19 @@ pub fn list_matching_operator_policies_in(
     vhost: &str,
     name: &str,
     typ: PolicyTarget,
-) -> ClientResult<Vec<responses::Policy>> {
-    client.list_matching_operator_policies(vhost, name, typ)
+) -> CommandResult<Vec<responses::Policy>> {
+    Ok(client.list_matching_operator_policies(vhost, name, typ)?)
 }
 
 pub fn list_queues(
     client: APIClient,
     vhost: &str,
     command_args: &ArgMatches,
-) -> ClientResult<Vec<responses::QueueInfo>> {
+) -> CommandResult<Vec<responses::QueueInfo>> {
     let pagination = extract_pagination_params(command_args);
     match pagination {
-        Some(params) => client.list_queues_in_paged(vhost, &params),
-        None => client.list_queues_in(vhost),
+        Some(params) => Ok(client.list_queues_in_paged(vhost, &params)?),
+        None => Ok(client.list_queues_in(vhost)?),
     }
 }
 
@@ -273,38 +277,38 @@ pub fn list_exchanges(
     client: APIClient,
     vhost: &str,
     command_args: &ArgMatches,
-) -> ClientResult<Vec<responses::ExchangeInfo>> {
+) -> CommandResult<Vec<responses::ExchangeInfo>> {
     let pagination = extract_pagination_params(command_args);
     match pagination {
-        Some(params) => client.list_exchanges_in_paged(vhost, &params),
-        None => client.list_exchanges_in(vhost),
+        Some(params) => Ok(client.list_exchanges_in_paged(vhost, &params)?),
+        None => Ok(client.list_exchanges_in(vhost)?),
     }
 }
 
-pub fn list_bindings(client: APIClient) -> ClientResult<Vec<responses::BindingInfo>> {
-    client.list_bindings()
+pub fn list_bindings(client: APIClient) -> CommandResult<Vec<responses::BindingInfo>> {
+    Ok(client.list_bindings()?)
 }
 
-pub fn list_permissions(client: APIClient) -> ClientResult<Vec<responses::Permissions>> {
-    client.list_permissions()
+pub fn list_permissions(client: APIClient) -> CommandResult<Vec<responses::Permissions>> {
+    Ok(client.list_permissions()?)
 }
 
-pub fn list_all_parameters(client: APIClient) -> ClientResult<Vec<responses::RuntimeParameter>> {
-    client.list_runtime_parameters()
+pub fn list_all_parameters(client: APIClient) -> CommandResult<Vec<responses::RuntimeParameter>> {
+    Ok(client.list_runtime_parameters()?)
 }
 
 pub fn list_parameters(
     client: APIClient,
     vhost: &str,
     command_args: &ArgMatches,
-) -> ClientResult<Vec<responses::RuntimeParameter>> {
+) -> CommandResult<Vec<responses::RuntimeParameter>> {
     match command_args.get_one::<String>("component") {
         None => {
             let mut r = client.list_runtime_parameters()?;
             r.retain(|p| p.vhost == vhost);
             Ok(r)
         }
-        Some(c) => client.list_runtime_parameters_of_component_in(c, vhost),
+        Some(c) => Ok(client.list_runtime_parameters_of_component_in(c, vhost)?),
     }
 }
 
@@ -312,60 +316,47 @@ pub fn list_parameters_of_component_in(
     client: APIClient,
     vhost: &str,
     command_args: &ArgMatches,
-) -> ClientResult<Vec<responses::RuntimeParameter>> {
-    let component = command_args.get_one::<String>("component").unwrap();
-    client.list_runtime_parameters_of_component_in(component, vhost)
+) -> CommandResult<Vec<responses::RuntimeParameter>> {
+    let component = command_args.str_arg("component");
+    Ok(client.list_runtime_parameters_of_component_in(component, vhost)?)
 }
 
 pub fn list_global_parameters(
     client: APIClient,
-) -> ClientResult<Vec<responses::GlobalRuntimeParameter>> {
-    client.list_global_runtime_parameters()
+) -> CommandResult<Vec<responses::GlobalRuntimeParameter>> {
+    Ok(client.list_global_runtime_parameters()?)
 }
 
-pub fn list_feature_flags(client: APIClient) -> ClientResult<responses::FeatureFlagList> {
-    client.list_feature_flags()
+pub fn list_feature_flags(client: APIClient) -> CommandResult<responses::FeatureFlagList> {
+    Ok(client.list_feature_flags()?)
 }
 
-pub fn list_shovels(client: APIClient) -> ClientResult<Vec<responses::Shovel>> {
-    client.list_shovels()
+pub fn list_shovels(client: APIClient) -> CommandResult<Vec<responses::Shovel>> {
+    Ok(client.list_shovels()?)
 }
 
-pub fn list_shovels_in(client: APIClient, vhost: &str) -> ClientResult<Vec<responses::Shovel>> {
-    client.list_shovels_in(vhost)
+pub fn list_shovels_in(client: APIClient, vhost: &str) -> CommandResult<Vec<responses::Shovel>> {
+    Ok(client.list_shovels_in(vhost)?)
 }
 
 pub fn declare_amqp10_shovel(
     client: APIClient,
     vhost: &str,
     command_args: &ArgMatches,
-) -> ClientResult<()> {
-    let name = command_args.get_one::<String>("name").cloned().unwrap();
-    let source_uri = command_args
-        .get_one::<String>("source_uri")
-        .cloned()
-        .unwrap();
-    let destination_uri = command_args
-        .get_one::<String>("destination_uri")
-        .cloned()
-        .unwrap();
+) -> CommandResult<()> {
+    let name = command_args.string_arg("name");
+    let source_uri = command_args.string_arg("source_uri");
+    let destination_uri = command_args.string_arg("destination_uri");
 
-    let source_address = command_args
-        .get_one::<String>("source_address")
-        .cloned()
-        .unwrap();
-    let destination_address = command_args
-        .get_one::<String>("destination_address")
-        .cloned()
-        .unwrap();
+    let source_address = command_args.string_arg("source_address");
+    let destination_address = command_args.string_arg("destination_address");
 
     let ack_mode = command_args
         .get_one::<MessageTransferAcknowledgementMode>("ack_mode")
         .cloned()
         .unwrap();
     let reconnect_delay = command_args
-        .get_one::<u32>("reconnect_delay")
-        .cloned()
+        .optional_typed::<u32>("reconnect_delay")
         .or(Some(5));
 
     let source_params = Amqp10ShovelSourceParams {
@@ -387,51 +378,37 @@ pub fn declare_amqp10_shovel(
         reconnect_delay,
     };
 
-    client.declare_amqp10_shovel(params)
+    Ok(client.declare_amqp10_shovel(params)?)
 }
 
 pub fn declare_amqp091_shovel(
     client: APIClient,
     vhost: &str,
     command_args: &ArgMatches,
-) -> ClientResult<()> {
-    let name = command_args.get_one::<String>("name").cloned().unwrap();
-    let source_uri = command_args
-        .get_one::<String>("source_uri")
-        .cloned()
-        .unwrap();
-    let destination_uri = command_args
-        .get_one::<String>("destination_uri")
-        .cloned()
-        .unwrap();
+) -> CommandResult<()> {
+    let name = command_args.string_arg("name");
+    let source_uri = command_args.string_arg("source_uri");
+    let destination_uri = command_args.string_arg("destination_uri");
 
     let ack_mode = command_args
         .get_one::<MessageTransferAcknowledgementMode>("ack_mode")
         .cloned()
         .unwrap();
     let reconnect_delay = command_args
-        .get_one::<u32>("reconnect_delay")
-        .cloned()
+        .optional_typed::<u32>("reconnect_delay")
         .or(Some(5));
 
-    let predeclared_source = command_args
-        .get_one::<bool>("predeclared_source")
-        .cloned()
-        .unwrap_or(false);
-    let source_queue_opt = command_args.get_one::<String>("source_queue").cloned();
-    let source_exchange_opt = command_args.get_one::<String>("source_exchange").cloned();
+    let predeclared_source = command_args.optional_typed_or::<bool>("predeclared_source", false);
+    let source_queue_opt = command_args.optional_string("source_queue");
+    let source_exchange_opt = command_args.optional_string("source_exchange");
     let source_exchange_routing_key_opt = command_args
         .get_one::<String>("source_exchange_key")
         .map(|s| s.as_str());
 
-    let predeclared_destination = command_args
-        .get_one::<bool>("predeclared_destination")
-        .cloned()
-        .unwrap_or(false);
-    let destination_queue_opt = command_args.get_one::<String>("destination_queue").cloned();
-    let destination_exchange_opt = command_args
-        .get_one::<String>("destination_exchange")
-        .cloned();
+    let predeclared_destination =
+        command_args.optional_typed_or::<bool>("predeclared_destination", false);
+    let destination_queue_opt = command_args.optional_string("destination_queue");
+    let destination_exchange_opt = command_args.optional_string("destination_exchange");
     let destination_exchange_routing_key_opt = command_args
         .get_one::<String>("destination_exchange_key")
         .map(|s| s.as_str());
@@ -503,21 +480,18 @@ pub fn declare_amqp091_shovel(
         source: source_params,
         destination: destination_params,
     };
-    client.declare_amqp091_shovel(params)
+    Ok(client.declare_amqp091_shovel(params)?)
 }
 
 pub fn delete_shovel(
     client: APIClient,
     vhost: &str,
     command_args: &ArgMatches,
-) -> ClientResult<()> {
-    let name = command_args.get_one::<String>("name").cloned().unwrap();
-    let idempotently = command_args
-        .get_one::<bool>("idempotently")
-        .cloned()
-        .unwrap_or(false);
+) -> CommandResult<()> {
+    let name = command_args.string_arg("name");
+    let idempotently = command_args.optional_typed_or::<bool>("idempotently", false);
 
-    client.delete_shovel(vhost, &name, idempotently)
+    Ok(client.delete_shovel(vhost, &name, idempotently)?)
 }
 
 //
@@ -526,263 +500,184 @@ pub fn delete_shovel(
 
 pub fn list_federation_upstreams(
     client: APIClient,
-) -> ClientResult<Vec<responses::FederationUpstream>> {
-    client.list_federation_upstreams()
+) -> CommandResult<Vec<responses::FederationUpstream>> {
+    Ok(client.list_federation_upstreams()?)
 }
 
-pub fn list_federation_links(client: APIClient) -> ClientResult<Vec<responses::FederationLink>> {
-    client.list_federation_links()
+pub fn list_federation_links(client: APIClient) -> CommandResult<Vec<responses::FederationLink>> {
+    Ok(client.list_federation_links()?)
+}
+
+struct FederationUpstreamCoreSettings {
+    name: String,
+    uri: String,
+    reconnect_delay: u32,
+    trust_user_id: bool,
+    prefetch_count: u32,
+    ack_mode: MessageTransferAcknowledgementMode,
+    bind_using_nowait: bool,
+    channel_use_mode: ChannelUseMode,
+}
+
+fn extract_federation_core_settings(command_args: &ArgMatches) -> FederationUpstreamCoreSettings {
+    FederationUpstreamCoreSettings {
+        name: command_args.string_arg("name"),
+        uri: command_args.string_arg("uri"),
+        reconnect_delay: command_args
+            .get_one::<u32>("reconnect_delay")
+            .cloned()
+            .unwrap(),
+        trust_user_id: command_args
+            .get_one::<bool>("trust_user_id")
+            .cloned()
+            .unwrap(),
+        prefetch_count: command_args
+            .get_one::<u32>("prefetch_count")
+            .cloned()
+            .unwrap(),
+        ack_mode: command_args
+            .get_one::<MessageTransferAcknowledgementMode>("ack_mode")
+            .cloned()
+            .unwrap(),
+        bind_using_nowait: command_args.optional_typed_or::<bool>("bind_nowait", false),
+        channel_use_mode: command_args
+            .get_one::<ChannelUseMode>("channel_use_mode")
+            .cloned()
+            .unwrap_or_default(),
+    }
+}
+
+fn extract_exchange_federation_params(command_args: &ArgMatches) -> ExchangeFederationParams<'_> {
+    let exchange_name = command_args
+        .get_one::<String>("exchange_name")
+        .map(|s| s.as_str());
+    let queue_type = command_args
+        .optional_string("queue_type")
+        .map(|s| Into::<QueueType>::into(s.as_str()))
+        .unwrap_or_default();
+    let max_hops = command_args.get_one::<u8>("max_hops").copied();
+    let resource_cleanup_mode = command_args
+        .get_one::<FederationResourceCleanupMode>("resource_cleanup_mode")
+        .cloned()
+        .unwrap_or_default();
+    let ttl = command_args.optional_typed::<u32>("ttl");
+    let message_ttl = command_args.optional_typed::<u32>("message_ttl");
+
+    ExchangeFederationParams {
+        exchange: exchange_name,
+        max_hops,
+        queue_type,
+        ttl,
+        message_ttl,
+        resource_cleanup_mode,
+    }
 }
 
 pub fn declare_federation_upstream(
     client: APIClient,
     vhost: &str,
     command_args: &ArgMatches,
-) -> ClientResult<()> {
-    // common settings
-    let name = command_args.get_one::<String>("name").cloned().unwrap();
-    let uri = command_args.get_one::<String>("uri").cloned().unwrap();
-    let reconnect_delay = command_args
-        .get_one::<u32>("reconnect_delay")
-        .cloned()
-        .unwrap();
-    let trust_user_id = command_args
-        .get_one::<bool>("trust_user_id")
-        .cloned()
-        .unwrap();
-    let prefetch_count = command_args
-        .get_one::<u32>("prefetch_count")
-        .cloned()
-        .unwrap();
-    let ack_mode = command_args
-        .get_one::<MessageTransferAcknowledgementMode>("ack_mode")
-        .cloned()
-        .unwrap();
+) -> CommandResult<()> {
+    let core = extract_federation_core_settings(command_args);
+    let efp = Some(extract_exchange_federation_params(command_args));
 
-    // optional queue federation settings
-    let queue_name = command_args.get_one::<String>("queue_name").cloned();
-    let consumer_tag = command_args.get_one::<String>("consumer_tag").cloned();
-    let qn: String;
-    let ct: String;
-    let qfp = match (queue_name, consumer_tag) {
-        (Some(queue_name), Some(consumer_tag)) => {
-            qn = queue_name.clone();
-            ct = consumer_tag.clone();
-            let qfp = QueueFederationParams::new_with_consumer_tag(&qn, &ct);
-            Some(qfp)
-        }
-        (Some(queue_name), None) => {
-            qn = queue_name.clone();
-            let qfp = QueueFederationParams::new(&qn);
-            Some(qfp)
-        }
-        (None, Some(_)) => None,
-        (None, None) => None,
+    let queue_name = command_args.optional_string("queue_name");
+    let consumer_tag = command_args.optional_string("consumer_tag");
+    let qfp = match (&queue_name, &consumer_tag) {
+        (Some(qn), Some(ct)) => Some(QueueFederationParams::new_with_consumer_tag(qn, ct)),
+        (Some(qn), None) => Some(QueueFederationParams::new(qn)),
+        _ => None,
     };
 
-    // optional exchange federation settings
-    let exchange_name = command_args
-        .get_one::<String>("exchange_name")
-        .map(|s| s.as_str());
-    let queue_type = command_args
-        .get_one::<String>("queue_type")
-        .map(|s| Into::<QueueType>::into(s.as_str()))
-        .unwrap_or_default();
-    let max_hops = command_args.get_one::<u8>("max_hops").copied();
-    let resource_cleanup_mode = command_args
-        .get_one::<FederationResourceCleanupMode>("resource_cleanup_mode")
-        .cloned()
-        .unwrap_or_default();
-    let bind_using_nowait = command_args
-        .get_one::<bool>("bind_nowait")
-        .cloned()
-        .unwrap_or_default();
-    let channel_use_mode = command_args
-        .get_one::<ChannelUseMode>("channel_use_mode")
-        .cloned()
-        .unwrap_or_default();
-    let ttl = command_args.get_one::<u32>("ttl").cloned();
-    let message_ttl = command_args.get_one::<u32>("message_ttl").cloned();
-    let efp = Some(ExchangeFederationParams {
-        exchange: exchange_name,
-        max_hops,
-        queue_type,
-        ttl,
-        message_ttl,
-        resource_cleanup_mode,
-    });
-
-    // putting it all together
     let upstream = FederationUpstreamParams {
-        name: &name,
+        name: &core.name,
         vhost,
-        uri: &uri,
-        reconnect_delay,
-        trust_user_id,
-        prefetch_count,
-        ack_mode,
-        bind_using_nowait,
-        channel_use_mode,
+        uri: &core.uri,
+        reconnect_delay: core.reconnect_delay,
+        trust_user_id: core.trust_user_id,
+        prefetch_count: core.prefetch_count,
+        ack_mode: core.ack_mode,
+        bind_using_nowait: core.bind_using_nowait,
+        channel_use_mode: core.channel_use_mode,
         queue_federation: qfp,
         exchange_federation: efp,
     };
     let param = RuntimeParameterDefinition::from(upstream);
-    client.upsert_runtime_parameter(&param)
+    Ok(client.upsert_runtime_parameter(&param)?)
 }
 
 pub fn declare_federation_upstream_for_exchange_federation(
     client: APIClient,
     vhost: &str,
     command_args: &ArgMatches,
-) -> ClientResult<()> {
-    let name = command_args.get_one::<String>("name").cloned().unwrap();
-    let uri = command_args.get_one::<String>("uri").cloned().unwrap();
-    let reconnect_delay = command_args
-        .get_one::<u32>("reconnect_delay")
-        .cloned()
-        .unwrap();
-    let trust_user_id = command_args
-        .get_one::<bool>("trust_user_id")
-        .cloned()
-        .unwrap();
-    let prefetch_count = command_args
-        .get_one::<u32>("prefetch_count")
-        .cloned()
-        .unwrap();
-    let ack_mode = command_args
-        .get_one::<MessageTransferAcknowledgementMode>("ack_mode")
-        .cloned()
-        .unwrap();
+) -> CommandResult<()> {
+    let core = extract_federation_core_settings(command_args);
+    let efp = Some(extract_exchange_federation_params(command_args));
 
-    let exchange_name = command_args
-        .get_one::<String>("exchange_name")
-        .map(|s| s.as_str());
-    let queue_type = command_args
-        .get_one::<String>("queue_type")
-        .map(|s| Into::<QueueType>::into(s.as_str()))
-        .unwrap_or_default();
-    let max_hops = command_args.get_one::<u8>("max_hops").copied();
-    let resource_cleanup_mode = command_args
-        .get_one::<FederationResourceCleanupMode>("resource_cleanup_mode")
-        .cloned()
-        .unwrap_or_default();
-    let bind_using_nowait = command_args
-        .get_one::<bool>("bind_nowait")
-        .cloned()
-        .unwrap_or_default();
-    let channel_use_mode = command_args
-        .get_one::<ChannelUseMode>("channel_use_mode")
-        .cloned()
-        .unwrap_or_default();
-    let ttl = command_args.get_one::<u32>("ttl").cloned();
-    let message_ttl = command_args.get_one::<u32>("message_ttl").cloned();
-    let efp = Some(ExchangeFederationParams {
-        exchange: exchange_name,
-        max_hops,
-        queue_type,
-        ttl,
-        message_ttl,
-        resource_cleanup_mode,
-    });
-
-    // putting it all together
     let upstream = FederationUpstreamParams {
-        name: &name,
+        name: &core.name,
         vhost,
-        uri: &uri,
-        reconnect_delay,
-        trust_user_id,
-        prefetch_count,
-        ack_mode,
-        bind_using_nowait,
-        channel_use_mode,
+        uri: &core.uri,
+        reconnect_delay: core.reconnect_delay,
+        trust_user_id: core.trust_user_id,
+        prefetch_count: core.prefetch_count,
+        ack_mode: core.ack_mode,
+        bind_using_nowait: core.bind_using_nowait,
+        channel_use_mode: core.channel_use_mode,
         queue_federation: None,
         exchange_federation: efp,
     };
     let param = RuntimeParameterDefinition::from(upstream);
-    client.upsert_runtime_parameter(&param)
+    Ok(client.upsert_runtime_parameter(&param)?)
 }
 
 pub fn declare_federation_upstream_for_queue_federation(
     client: APIClient,
     vhost: &str,
     command_args: &ArgMatches,
-) -> ClientResult<()> {
-    let name = command_args.get_one::<String>("name").cloned().unwrap();
-    let uri = command_args.get_one::<String>("uri").cloned().unwrap();
-    let reconnect_delay = command_args
-        .get_one::<u32>("reconnect_delay")
-        .cloned()
-        .unwrap();
-    let trust_user_id = command_args
-        .get_one::<bool>("trust_user_id")
-        .cloned()
-        .unwrap();
-    let prefetch_count = command_args
-        .get_one::<u32>("prefetch_count")
-        .cloned()
-        .unwrap();
-    let ack_mode = command_args
-        .get_one::<MessageTransferAcknowledgementMode>("ack_mode")
-        .cloned()
-        .unwrap();
-    let bind_using_nowait = command_args
-        .get_one::<bool>("bind_nowait")
-        .cloned()
-        .unwrap_or_default();
-    let channel_use_mode = command_args
-        .get_one::<ChannelUseMode>("channel_use_mode")
-        .cloned()
-        .unwrap_or_default();
+) -> CommandResult<()> {
+    let core = extract_federation_core_settings(command_args);
 
-    let queue_name = command_args.get_one::<String>("queue_name").cloned();
-    let consumer_tag = command_args.get_one::<String>("consumer_tag").cloned();
-    let qn: String;
-    let ct: String;
-    let qfp = match (queue_name, consumer_tag) {
-        (Some(queue_name), Some(consumer_tag)) => {
-            qn = queue_name.clone();
-            ct = consumer_tag.clone();
-            let qfp = QueueFederationParams::new_with_consumer_tag(&qn, &ct);
-            Some(qfp)
-        }
-        (Some(queue_name), None) => {
-            qn = queue_name.clone();
-            let qfp = QueueFederationParams::new(&qn);
-            Some(qfp)
-        }
-        (None, Some(_)) => None,
-        (None, None) => None,
+    let queue_name = command_args.optional_string("queue_name");
+    let consumer_tag = command_args.optional_string("consumer_tag");
+    let qfp = match (&queue_name, &consumer_tag) {
+        (Some(qn), Some(ct)) => Some(QueueFederationParams::new_with_consumer_tag(qn, ct)),
+        (Some(qn), None) => Some(QueueFederationParams::new(qn)),
+        _ => None,
     };
 
     let upstream = FederationUpstreamParams {
-        name: &name,
+        name: &core.name,
         vhost,
-        uri: &uri,
-        reconnect_delay,
-        trust_user_id,
-        prefetch_count,
-        ack_mode,
-        bind_using_nowait,
-        channel_use_mode,
+        uri: &core.uri,
+        reconnect_delay: core.reconnect_delay,
+        trust_user_id: core.trust_user_id,
+        prefetch_count: core.prefetch_count,
+        ack_mode: core.ack_mode,
+        bind_using_nowait: core.bind_using_nowait,
+        channel_use_mode: core.channel_use_mode,
         queue_federation: qfp,
         exchange_federation: None,
     };
     let param = RuntimeParameterDefinition::from(upstream);
-    client.upsert_runtime_parameter(&param)
+    Ok(client.upsert_runtime_parameter(&param)?)
 }
 
 pub fn delete_federation_upstream(
     client: APIClient,
     vhost: &str,
     command_args: &ArgMatches,
-) -> ClientResult<()> {
-    let name = command_args.get_one::<String>("name").cloned().unwrap();
-    let idempotently = command_args
-        .get_one::<bool>("idempotently")
-        .cloned()
-        .unwrap_or(false);
-    client.clear_runtime_parameter(FEDERATION_UPSTREAM_COMPONENT, vhost, &name, idempotently)
+) -> CommandResult<()> {
+    let name = command_args.string_arg("name");
+    let idempotently = command_args.optional_typed_or::<bool>("idempotently", false);
+    Ok(
+        client.clear_runtime_parameter(
+            FEDERATION_UPSTREAM_COMPONENT,
+            vhost,
+            &name,
+            idempotently,
+        )?,
+    )
 }
 
 pub fn disable_tls_peer_verification_for_all_federation_upstreams(
@@ -1093,13 +988,13 @@ pub fn enable_tls_peer_verification_for_all_destination_uris(
 // Feature flags
 //
 
-pub fn enable_feature_flag(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
-    let name = command_args.get_one::<String>("name").cloned().unwrap();
-    client.enable_feature_flag(&name)
+pub fn enable_feature_flag(client: APIClient, command_args: &ArgMatches) -> CommandResult<()> {
+    let name = command_args.string_arg("name");
+    Ok(client.enable_feature_flag(&name)?)
 }
 
-pub fn enable_all_stable_feature_flags(client: APIClient) -> ClientResult<()> {
-    client.enable_all_stable_feature_flags()
+pub fn enable_all_stable_feature_flags(client: APIClient) -> CommandResult<()> {
+    Ok(client.enable_all_stable_feature_flags()?)
 }
 
 //
@@ -1108,14 +1003,14 @@ pub fn enable_all_stable_feature_flags(client: APIClient) -> ClientResult<()> {
 
 pub fn list_deprecated_features(
     client: APIClient,
-) -> ClientResult<responses::DeprecatedFeatureList> {
-    client.list_all_deprecated_features()
+) -> CommandResult<responses::DeprecatedFeatureList> {
+    Ok(client.list_all_deprecated_features()?)
 }
 
 pub fn list_deprecated_features_in_use(
     client: APIClient,
-) -> ClientResult<responses::DeprecatedFeatureList> {
-    client.list_deprecated_features_in_use()
+) -> CommandResult<responses::DeprecatedFeatureList> {
+    Ok(client.list_deprecated_features_in_use()?)
 }
 
 //
@@ -1132,8 +1027,8 @@ pub struct PluginOnNode {
 pub fn list_plugins_on_node(
     client: APIClient,
     command_args: &ArgMatches,
-) -> ClientResult<Vec<PluginOnNode>> {
-    let node = command_args.get_one::<String>("node").cloned().unwrap();
+) -> CommandResult<Vec<PluginOnNode>> {
+    let node = command_args.string_arg("node");
     let plugins = client.list_node_plugins(&node)?;
 
     Ok(plugins
@@ -1146,7 +1041,7 @@ pub fn list_plugins_on_node(
         .collect())
 }
 
-pub fn list_plugins_across_cluster(client: APIClient) -> ClientResult<Vec<PluginOnNode>> {
+pub fn list_plugins_across_cluster(client: APIClient) -> CommandResult<Vec<PluginOnNode>> {
     let nodes = client.list_nodes()?;
     let mut result = Vec::new();
 
@@ -1168,19 +1063,16 @@ pub fn list_plugins_across_cluster(client: APIClient) -> ClientResult<Vec<Plugin
 // Declaration of core resources
 //
 
-pub fn declare_vhost(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
-    let name = command_args.get_one::<String>("name").unwrap();
+pub fn declare_vhost(client: APIClient, command_args: &ArgMatches) -> CommandResult<()> {
+    let name = command_args.str_arg("name");
     let description = command_args
         .get_one::<String>("description")
         .map(|s| s.as_str());
     let dqt = command_args
-        .get_one::<String>("default_queue_type")
+        .optional_string("default_queue_type")
         .map(|s| Into::<QueueType>::into(s.as_str()));
     // TODO: tags
-    let tracing = command_args
-        .get_one::<bool>("tracing")
-        .cloned()
-        .unwrap_or(false);
+    let tracing = command_args.optional_typed_or::<bool>("tracing", false);
 
     let params = requests::VirtualHostParams {
         name,
@@ -1190,7 +1082,7 @@ pub fn declare_vhost(client: APIClient, command_args: &ArgMatches) -> ClientResu
         tracing,
     };
 
-    client.create_vhost(&params)
+    Ok(client.create_vhost(&params)?)
 }
 
 pub fn declare_exchange(
@@ -1198,20 +1090,14 @@ pub fn declare_exchange(
     vhost: &str,
     command_args: &ArgMatches,
 ) -> Result<(), CommandRunError> {
-    let name = command_args.get_one::<String>("name").unwrap();
+    let name = command_args.str_arg("name");
     let exchange_type = command_args
         .get_one::<ExchangeType>("type")
         .cloned()
         .unwrap_or(commons::ExchangeType::Direct);
-    let durable = command_args
-        .get_one::<bool>("durable")
-        .cloned()
-        .unwrap_or(true);
-    let auto_delete = command_args
-        .get_one::<bool>("auto_delete")
-        .cloned()
-        .unwrap_or(false);
-    let arguments = command_args.get_one::<String>("arguments").unwrap();
+    let durable = command_args.optional_typed_or::<bool>("durable", true);
+    let auto_delete = command_args.optional_typed_or::<bool>("auto_delete", false);
+    let arguments = command_args.str_arg("arguments");
 
     let params = requests::ExchangeParams {
         name,
@@ -1229,13 +1115,13 @@ pub fn declare_binding(
     vhost: &str,
     command_args: &ArgMatches,
 ) -> Result<(), CommandRunError> {
-    let source = command_args.get_one::<String>("source").unwrap();
+    let source = command_args.str_arg("source");
     let destination_type = command_args
         .get_one::<BindingDestinationType>("destination_type")
         .unwrap();
-    let destination = command_args.get_one::<String>("destination").unwrap();
-    let routing_key = command_args.get_one::<String>("routing_key").unwrap();
-    let arguments = command_args.get_one::<String>("arguments").unwrap();
+    let destination = command_args.str_arg("destination");
+    let routing_key = command_args.str_arg("routing_key");
+    let arguments = command_args.str_arg("arguments");
     let parsed_arguments = parse_json_from_arg(arguments)?;
 
     match destination_type {
@@ -1265,8 +1151,8 @@ pub fn declare_vhost_limit(
     vhost: &str,
     command_args: &ArgMatches,
 ) -> Result<(), CommandRunError> {
-    let name = command_args.get_one::<String>("name").unwrap();
-    let value = command_args.get_one::<String>("value").unwrap();
+    let name = command_args.str_arg("name");
+    let value = command_args.str_arg("value");
 
     let parsed_value = str::parse(value).map_err(|_| CommandRunError::JsonParseError {
         message: format!("'{}' is not a valid integer value", value),
@@ -1281,9 +1167,9 @@ pub fn declare_user_limit(
     client: APIClient,
     command_args: &ArgMatches,
 ) -> Result<(), CommandRunError> {
-    let user = command_args.get_one::<String>("user").unwrap();
-    let name = command_args.get_one::<String>("name").unwrap();
-    let value = command_args.get_one::<String>("value").unwrap();
+    let user = command_args.str_arg("user");
+    let name = command_args.str_arg("name");
+    let value = command_args.str_arg("value");
 
     let parsed_value = str::parse(value).map_err(|_| CommandRunError::JsonParseError {
         message: format!("'{}' is not a valid integer value", value),
@@ -1298,63 +1184,57 @@ pub fn delete_vhost_limit(
     client: APIClient,
     vhost: &str,
     command_args: &ArgMatches,
-) -> ClientResult<()> {
-    let name = command_args.get_one::<String>("name").unwrap();
+) -> CommandResult<()> {
+    let name = command_args.str_arg("name");
 
-    client.clear_vhost_limit(vhost, VirtualHostLimitTarget::from(name.as_str()))
+    Ok(client.clear_vhost_limit(vhost, VirtualHostLimitTarget::from(name.as_str()))?)
 }
 
-pub fn delete_user_limit(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
-    let user = command_args.get_one::<String>("user").unwrap();
-    let name = command_args.get_one::<String>("name").unwrap();
+pub fn delete_user_limit(client: APIClient, command_args: &ArgMatches) -> CommandResult<()> {
+    let user = command_args.str_arg("user");
+    let name = command_args.str_arg("name");
 
-    client.clear_user_limit(user, UserLimitTarget::from(name.as_str()))
+    Ok(client.clear_user_limit(user, UserLimitTarget::from(name.as_str()))?)
 }
 
 pub fn delete_parameter(
     client: APIClient,
     vhost: &str,
     command_args: &ArgMatches,
-) -> ClientResult<()> {
-    let component = command_args.get_one::<String>("component").unwrap();
-    let name = command_args.get_one::<String>("name").unwrap();
-    let idempotently = command_args
-        .get_one::<bool>("idempotently")
-        .cloned()
-        .unwrap_or(false);
+) -> CommandResult<()> {
+    let component = command_args.str_arg("component");
+    let name = command_args.str_arg("name");
+    let idempotently = command_args.optional_typed_or::<bool>("idempotently", false);
 
-    client.clear_runtime_parameter(component, vhost, name, idempotently)
+    Ok(client.clear_runtime_parameter(component, vhost, name, idempotently)?)
 }
 
-pub fn delete_global_parameter(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
-    let name = command_args.get_one::<String>("name").unwrap();
+pub fn delete_global_parameter(client: APIClient, command_args: &ArgMatches) -> CommandResult<()> {
+    let name = command_args.str_arg("name");
 
-    client.clear_global_runtime_parameter(name)
+    Ok(client.clear_global_runtime_parameter(name)?)
 }
 
-pub fn delete_vhost(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
-    let name = command_args.get_one::<String>("name").unwrap();
-    let idempotently = command_args
-        .get_one::<bool>("idempotently")
-        .cloned()
-        .unwrap_or(false);
-    client.delete_vhost(name, idempotently)
+pub fn delete_vhost(client: APIClient, command_args: &ArgMatches) -> CommandResult<()> {
+    let name = command_args.str_arg("name");
+    let idempotently = command_args.optional_typed_or::<bool>("idempotently", false);
+    Ok(client.delete_vhost(name, idempotently)?)
 }
 
 pub fn enable_vhost_deletion_protection(
     client: APIClient,
     command_args: &ArgMatches,
-) -> ClientResult<()> {
-    let name = command_args.get_one::<String>("name").unwrap();
-    client.enable_vhost_deletion_protection(name)
+) -> CommandResult<()> {
+    let name = command_args.str_arg("name");
+    Ok(client.enable_vhost_deletion_protection(name)?)
 }
 
 pub fn disable_vhost_deletion_protection(
     client: APIClient,
     command_args: &ArgMatches,
-) -> ClientResult<()> {
-    let name = command_args.get_one::<String>("name").unwrap();
-    client.disable_vhost_deletion_protection(name)
+) -> CommandResult<()> {
+    let name = command_args.str_arg("name");
+    Ok(client.disable_vhost_deletion_protection(name)?)
 }
 
 pub fn delete_multiple_vhosts(
@@ -1362,22 +1242,12 @@ pub fn delete_multiple_vhosts(
     command_args: &ArgMatches,
     prog_rep: &mut dyn ProgressReporter,
 ) -> Result<Option<Vec<responses::VirtualHost>>, CommandRunError> {
-    let name_pattern = command_args.get_one::<String>("name_pattern").unwrap();
-    let approve = command_args
-        .get_one::<bool>("approve")
-        .cloned()
-        .unwrap_or(false);
-    let dry_run = command_args
-        .get_one::<bool>("dry_run")
-        .cloned()
-        .unwrap_or(false);
-    let idempotently = command_args
-        .get_one::<bool>("idempotently")
-        .cloned()
-        .unwrap_or(false);
+    let name_pattern = command_args.str_arg("name_pattern");
+    let approve = command_args.optional_typed_or::<bool>("approve", false);
+    let dry_run = command_args.optional_typed_or::<bool>("dry_run", false);
+    let idempotently = command_args.optional_typed_or::<bool>("idempotently", false);
     let non_interactive_cli = command_args
-        .get_one::<bool>("non_interactive")
-        .cloned()
+        .optional_typed::<bool>("non_interactive")
         .unwrap_or_else(|| pre_flight::InteractivityMode::from_env().is_non_interactive());
 
     let regex =
@@ -1439,45 +1309,41 @@ pub fn delete_multiple_vhosts(
     Ok(None)
 }
 
-pub fn delete_user(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
-    let name = command_args.get_one::<String>("name").unwrap();
-    let idempotently = command_args
-        .get_one::<bool>("idempotently")
-        .cloned()
-        .unwrap_or(false);
-    client.delete_user(name, idempotently)
+pub fn delete_user(client: APIClient, command_args: &ArgMatches) -> CommandResult<()> {
+    let name = command_args.str_arg("name");
+    let idempotently = command_args.optional_typed_or::<bool>("idempotently", false);
+    Ok(client.delete_user(name, idempotently)?)
 }
 
 pub fn delete_permissions(
     client: APIClient,
     vhost: &str,
     command_args: &ArgMatches,
-) -> ClientResult<()> {
-    let user = command_args.get_one::<String>("user").unwrap();
-    let idempotently = command_args
-        .get_one::<bool>("idempotently")
-        .cloned()
-        .unwrap_or(false);
-    client.clear_permissions(vhost, user, idempotently)
+) -> CommandResult<()> {
+    let user = command_args.str_arg("user");
+    let idempotently = command_args.optional_typed_or::<bool>("idempotently", false);
+    Ok(client.clear_permissions(vhost, user, idempotently)?)
 }
 
-pub fn declare_user(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
-    let name = command_args.get_one::<String>("name").unwrap();
-    let password = command_args.get_one::<String>("password").unwrap();
-    let provided_hash = command_args.get_one::<String>("password_hash").unwrap();
-    let tags = command_args.get_one::<String>("tags").unwrap();
+pub fn declare_user(client: APIClient, command_args: &ArgMatches) -> CommandResult<()> {
+    let name = command_args.str_arg("name");
+    let password = command_args.str_arg("password");
+    let provided_hash = command_args.str_arg("password_hash");
+    let tags = command_args.str_arg("tags");
 
     let has_password = !password.is_empty();
     let has_hash = !provided_hash.is_empty();
 
     if !has_password && !has_hash {
-        eprintln!("Please provide either --password or --password-hash");
-        process::exit(1);
+        return Err(CommandRunError::MissingOptions {
+            message: "Please provide either --password or --password-hash".to_string(),
+        });
     }
 
     if has_password && has_hash {
-        eprintln!("Please provide either --password or --password-hash");
-        process::exit(1);
+        return Err(CommandRunError::ConflictingOptions {
+            message: "Please provide either --password or --password-hash, not both".to_string(),
+        });
     }
 
     let password_hash = if provided_hash.is_empty() {
@@ -1485,7 +1351,11 @@ pub fn declare_user(client: APIClient, command_args: &ArgMatches) -> ClientResul
             .get_one::<HashingAlgorithm>("hashing_algorithm")
             .unwrap();
         let salt = password_hashing::salt();
-        hashing_algo.salt_and_hash(&salt, password).unwrap()
+        hashing_algo.salt_and_hash(&salt, password).map_err(|e| {
+            CommandRunError::FailureDuringExecution {
+                message: format!("Password hashing failed: {}", e),
+            }
+        })?
     } else {
         provided_hash.to_owned()
     };
@@ -1495,11 +1365,11 @@ pub fn declare_user(client: APIClient, command_args: &ArgMatches) -> ClientResul
         password_hash: password_hash.as_str(),
         tags,
     };
-    client.create_user(&params)
+    Ok(client.create_user(&params)?)
 }
 
 pub fn salt_and_hash_password(command_args: &ArgMatches) -> Result<String, HashingError> {
-    let password = command_args.get_one::<String>("password").cloned().unwrap();
+    let password = command_args.string_arg("password");
     let hashing_algo = command_args
         .get_one::<HashingAlgorithm>("hashing_algorithm")
         .unwrap();
@@ -1514,11 +1384,11 @@ pub fn declare_permissions(
     client: APIClient,
     vhost: &str,
     command_args: &ArgMatches,
-) -> ClientResult<()> {
-    let user = command_args.get_one::<String>("user").unwrap();
-    let configure = command_args.get_one::<String>("configure").unwrap();
-    let read = command_args.get_one::<String>("read").unwrap();
-    let write = command_args.get_one::<String>("write").unwrap();
+) -> CommandResult<()> {
+    let user = command_args.str_arg("user");
+    let configure = command_args.str_arg("configure");
+    let read = command_args.str_arg("read");
+    let write = command_args.str_arg("write");
 
     let params = requests::Permissions {
         user,
@@ -1528,7 +1398,7 @@ pub fn declare_permissions(
         write,
     };
 
-    client.declare_permissions(&params)
+    Ok(client.declare_permissions(&params)?)
 }
 
 pub fn declare_queue(
@@ -1536,18 +1406,12 @@ pub fn declare_queue(
     vhost: &str,
     command_args: &ArgMatches,
 ) -> Result<(), CommandRunError> {
-    let name = command_args.get_one::<String>("name").unwrap();
+    let name = command_args.str_arg("name");
     let queue_type = command_args.get_one::<QueueType>("type").cloned().unwrap();
 
-    let durable = command_args
-        .get_one::<bool>("durable")
-        .cloned()
-        .unwrap_or(true);
-    let auto_delete = command_args
-        .get_one::<bool>("auto_delete")
-        .cloned()
-        .unwrap_or(false);
-    let arguments = command_args.get_one::<String>("arguments").unwrap();
+    let durable = command_args.optional_typed_or::<bool>("durable", true);
+    let auto_delete = command_args.optional_typed_or::<bool>("auto_delete", false);
+    let arguments = command_args.str_arg("arguments");
     let parsed_args = parse_json_from_arg(arguments)?;
 
     let params = requests::QueueParams::new(name, queue_type, durable, auto_delete, parsed_args);
@@ -1560,13 +1424,11 @@ pub fn declare_stream(
     vhost: &str,
     command_args: &ArgMatches,
 ) -> Result<(), CommandRunError> {
-    let name = command_args.get_one::<String>("name").unwrap();
-    let expiration = command_args.get_one::<String>("expiration").unwrap();
-    let max_length_bytes = command_args.get_one::<u64>("max_length_bytes").cloned();
-    let max_segment_length_bytes = command_args
-        .get_one::<u64>("max_segment_length_bytes")
-        .cloned();
-    let arguments = command_args.get_one::<String>("arguments").unwrap();
+    let name = command_args.str_arg("name");
+    let expiration = command_args.str_arg("expiration");
+    let max_length_bytes = command_args.optional_typed::<u64>("max_length_bytes");
+    let max_segment_length_bytes = command_args.optional_typed::<u64>("max_segment_length_bytes");
+    let arguments = command_args.str_arg("arguments");
     let parsed_args = parse_json_from_arg(arguments)?;
 
     let params = requests::StreamParams {
@@ -1585,14 +1447,14 @@ pub fn declare_policy(
     vhost: &str,
     command_args: &ArgMatches,
 ) -> Result<(), CommandRunError> {
-    let name = command_args.get_one::<String>("name").unwrap();
-    let pattern = command_args.get_one::<String>("pattern").unwrap();
+    let name = command_args.str_arg("name");
+    let pattern = command_args.str_arg("pattern");
     let apply_to = command_args
         .get_one::<PolicyTarget>("apply_to")
         .cloned()
         .unwrap();
-    let priority = command_args.get_one::<String>("priority").unwrap();
-    let definition = command_args.get_one::<String>("definition").unwrap();
+    let priority: i32 = command_args.parse_required("priority")?;
+    let definition = command_args.str_arg("definition");
 
     let parsed_definition = parse_json_from_arg(definition)?;
 
@@ -1601,7 +1463,7 @@ pub fn declare_policy(
         name,
         pattern,
         apply_to,
-        priority: priority.parse::<i32>().unwrap(),
+        priority,
         definition: parsed_definition,
     };
 
@@ -1613,14 +1475,14 @@ pub fn declare_operator_policy(
     vhost: &str,
     command_args: &ArgMatches,
 ) -> Result<(), CommandRunError> {
-    let name = command_args.get_one::<String>("name").cloned().unwrap();
-    let pattern = command_args.get_one::<String>("pattern").cloned().unwrap();
+    let name = command_args.string_arg("name");
+    let pattern = command_args.string_arg("pattern");
     let apply_to = command_args
         .get_one::<PolicyTarget>("apply_to")
         .cloned()
         .unwrap();
-    let priority = command_args.get_one::<String>("priority").unwrap();
-    let definition = command_args.get_one::<String>("definition").unwrap();
+    let priority: i32 = command_args.parse_required("priority")?;
+    let definition = command_args.str_arg("definition");
 
     let parsed_definition = parse_json_from_arg(definition)?;
 
@@ -1629,7 +1491,7 @@ pub fn declare_operator_policy(
         name: &name,
         pattern: &pattern,
         apply_to,
-        priority: priority.parse::<i32>().unwrap(),
+        priority,
         definition: parsed_definition,
     };
 
@@ -1641,18 +1503,17 @@ pub fn declare_policy_override(
     vhost: &str,
     command_args: &ArgMatches,
 ) -> Result<(), CommandRunError> {
-    let original_pol_name = command_args.get_one::<String>("name").cloned().unwrap();
+    let original_pol_name = command_args.string_arg("name");
     let override_pol_name = command_args
-        .get_one::<String>("override_name")
-        .cloned()
-        .unwrap_or(override_policy_name(&original_pol_name));
+        .optional_string("override_name")
+        .unwrap_or_else(|| override_policy_name(&original_pol_name));
 
     let existing_policy = client
         .get_policy(vhost, &original_pol_name)
         .map_err(CommandRunError::from)?;
 
     let new_priority = existing_policy.priority + 100;
-    let definition = command_args.get_one::<String>("definition").unwrap();
+    let definition = command_args.str_arg("definition");
 
     let parsed_definition = parse_json_from_arg(definition)?;
 
@@ -1667,7 +1528,6 @@ pub fn declare_blanket_policy(
     vhost: &str,
     command_args: &ArgMatches,
 ) -> Result<(), CommandRunError> {
-    // find the lowest policy priority in the target virtual host
     let existing_policies = client
         .list_policies_in(vhost)
         .map_err(CommandRunError::from)?;
@@ -1684,12 +1544,12 @@ pub fn declare_blanket_policy(
         .cloned()
         .unwrap();
 
-    let name = command_args.get_one::<String>("name").cloned().unwrap();
+    let name = command_args.string_arg("name");
     let apply_to = command_args
         .get_one::<PolicyTarget>("apply_to")
         .cloned()
         .unwrap();
-    let definition = command_args.get_one::<String>("definition").unwrap();
+    let definition = command_args.str_arg("definition");
 
     let parsed_definition = parse_json_from_arg(definition)?;
 
@@ -1710,18 +1570,12 @@ pub fn update_policy_definition(
     vhost: &str,
     command_args: &ArgMatches,
 ) -> Result<(), CommandRunError> {
-    let name = command_args.get_one::<String>("name").cloned().unwrap();
-    let key = command_args
-        .get_one::<String>("definition_key")
-        .cloned()
-        .unwrap();
-    let value = command_args
-        .get_one::<String>("definition_value")
-        .cloned()
-        .unwrap();
+    let name = command_args.string_arg("name");
+    let key = command_args.string_arg("definition_key");
+    let value = command_args.string_arg("definition_value");
     let parsed_value = parse_json_from_arg::<Value>(&value)?;
 
-    update_policy_definition_with(&client, vhost, &name, &key, &parsed_value).map_err(Into::into)
+    update_policy_definition_with(&client, vhost, &name, &key, &parsed_value)
 }
 
 pub fn update_operator_policy_definition(
@@ -1729,19 +1583,12 @@ pub fn update_operator_policy_definition(
     vhost: &str,
     command_args: &ArgMatches,
 ) -> Result<(), CommandRunError> {
-    let name = command_args.get_one::<String>("name").cloned().unwrap();
-    let key = command_args
-        .get_one::<String>("definition_key")
-        .cloned()
-        .unwrap();
-    let value = command_args
-        .get_one::<String>("definition_value")
-        .cloned()
-        .unwrap();
+    let name = command_args.string_arg("name");
+    let key = command_args.string_arg("definition_key");
+    let value = command_args.string_arg("definition_value");
     let parsed_value = parse_json_from_arg::<Value>(&value)?;
 
     update_operator_policy_definition_with(&client, vhost, &name, &key, &parsed_value)
-        .map_err(Into::into)
 }
 
 pub fn patch_policy_definition(
@@ -1749,11 +1596,8 @@ pub fn patch_policy_definition(
     vhost: &str,
     command_args: &ArgMatches,
 ) -> Result<(), CommandRunError> {
-    let name = command_args.get_one::<String>("name").cloned().unwrap();
-    let value = command_args
-        .get_one::<String>("definition")
-        .cloned()
-        .unwrap();
+    let name = command_args.string_arg("name");
+    let value = command_args.string_arg("definition");
     let parsed_value = parse_json_from_arg::<Value>(&value)?;
 
     let mut pol = client
@@ -1780,14 +1624,8 @@ pub fn update_all_policy_definitions_in(
     let pols = client
         .list_policies_in(vhost)
         .map_err(CommandRunError::from)?;
-    let key = command_args
-        .get_one::<String>("definition_key")
-        .cloned()
-        .unwrap();
-    let value = command_args
-        .get_one::<String>("definition_value")
-        .cloned()
-        .unwrap();
+    let key = command_args.string_arg("definition_key");
+    let value = command_args.string_arg("definition_value");
     let parsed_value = parse_json_from_arg::<Value>(&value)?;
 
     for pol in pols {
@@ -1802,11 +1640,8 @@ pub fn patch_operator_policy_definition(
     vhost: &str,
     command_args: &ArgMatches,
 ) -> Result<(), CommandRunError> {
-    let name = command_args.get_one::<String>("name").cloned().unwrap();
-    let value = command_args
-        .get_one::<String>("definition")
-        .cloned()
-        .unwrap();
+    let name = command_args.string_arg("name");
+    let value = command_args.string_arg("definition");
     let parsed_value = parse_json_from_arg::<Value>(&value)?;
 
     let mut pol = client
@@ -1833,14 +1668,8 @@ pub fn update_all_operator_policy_definitions_in(
     let pols = client
         .list_operator_policies_in(vhost)
         .map_err(CommandRunError::from)?;
-    let key = command_args
-        .get_one::<String>("definition_key")
-        .cloned()
-        .unwrap();
-    let value = command_args
-        .get_one::<String>("definition_value")
-        .cloned()
-        .unwrap();
+    let key = command_args.string_arg("definition_key");
+    let value = command_args.string_arg("definition_value");
     let parsed_value = parse_json_from_arg::<Value>(&value)?;
 
     for pol in pols {
@@ -1854,37 +1683,35 @@ pub fn delete_policy_definition_keys(
     client: APIClient,
     vhost: &str,
     command_args: &ArgMatches,
-) -> ClientResult<()> {
-    let name = command_args.get_one::<String>("name").cloned().unwrap();
-    let keys = command_args
+) -> CommandResult<()> {
+    let name = command_args.string_arg("name");
+    let keys: Vec<&str> = command_args
         .get_many::<String>("definition_keys")
         .unwrap()
-        .map(String::from)
-        .collect::<Vec<_>>();
-    let str_keys: Vec<&str> = keys.iter().map(AsRef::as_ref).collect::<Vec<_>>();
+        .map(String::as_str)
+        .collect();
 
     let pol = client.get_policy(vhost, &name)?;
-    let updated_pol = pol.without_keys(&str_keys);
+    let updated_pol = pol.without_keys(&keys);
 
     let params = PolicyParams::from(&updated_pol);
-    client.declare_policy(&params)
+    Ok(client.declare_policy(&params)?)
 }
 
 pub fn delete_policy_definition_keys_in(
     client: APIClient,
     vhost: &str,
     command_args: &ArgMatches,
-) -> ClientResult<()> {
+) -> CommandResult<()> {
     let pols = client.list_policies_in(vhost)?;
-    let keys = command_args
+    let keys: Vec<&str> = command_args
         .get_many::<String>("definition_keys")
         .unwrap()
-        .map(String::from)
-        .collect::<Vec<_>>();
-    let str_keys: Vec<&str> = keys.iter().map(AsRef::as_ref).collect::<Vec<_>>();
+        .map(String::as_str)
+        .collect();
 
     for pol in pols {
-        let updated_pol = pol.without_keys(&str_keys);
+        let updated_pol = pol.without_keys(&keys);
 
         let params = PolicyParams::from(&updated_pol);
         client.declare_policy(&params)?
@@ -1897,37 +1724,35 @@ pub fn delete_operator_policy_definition_keys(
     client: APIClient,
     vhost: &str,
     command_args: &ArgMatches,
-) -> ClientResult<()> {
-    let name = command_args.get_one::<String>("name").cloned().unwrap();
-    let keys = command_args
+) -> CommandResult<()> {
+    let name = command_args.string_arg("name");
+    let keys: Vec<&str> = command_args
         .get_many::<String>("definition_keys")
         .unwrap()
-        .map(String::from)
-        .collect::<Vec<_>>();
-    let str_keys: Vec<&str> = keys.iter().map(AsRef::as_ref).collect::<Vec<_>>();
+        .map(String::as_str)
+        .collect();
 
     let pol = client.get_operator_policy(vhost, &name)?;
-    let updated_pol = pol.without_keys(&str_keys);
+    let updated_pol = pol.without_keys(&keys);
 
     let params = PolicyParams::from(&updated_pol);
-    client.declare_operator_policy(&params)
+    Ok(client.declare_operator_policy(&params)?)
 }
 
 pub fn delete_operator_policy_definition_keys_in(
     client: APIClient,
     vhost: &str,
     command_args: &ArgMatches,
-) -> ClientResult<()> {
+) -> CommandResult<()> {
     let pols = client.list_operator_policies_in(vhost)?;
-    let keys = command_args
+    let keys: Vec<&str> = command_args
         .get_many::<String>("definition_keys")
         .unwrap()
-        .map(String::from)
-        .collect::<Vec<_>>();
-    let str_keys: Vec<&str> = keys.iter().map(AsRef::as_ref).collect::<Vec<_>>();
+        .map(String::as_str)
+        .collect();
 
     for pol in pols {
-        let updated_pol = pol.without_keys(&str_keys);
+        let updated_pol = pol.without_keys(&keys);
 
         let params = PolicyParams::from(&updated_pol);
         client.declare_operator_policy(&params)?
@@ -1942,12 +1767,12 @@ fn update_policy_definition_with(
     name: &str,
     key: &str,
     parsed_value: &Value,
-) -> ClientResult<()> {
+) -> CommandResult<()> {
     let mut policy = client.get_policy(vhost, name)?;
     policy.insert_definition_key(key.to_owned(), parsed_value.clone());
 
     let params = PolicyParams::from(&policy);
-    client.declare_policy(&params)
+    Ok(client.declare_policy(&params)?)
 }
 
 fn update_operator_policy_definition_with(
@@ -1956,12 +1781,12 @@ fn update_operator_policy_definition_with(
     name: &str,
     key: &str,
     parsed_value: &Value,
-) -> ClientResult<()> {
+) -> CommandResult<()> {
     let mut policy = client.get_operator_policy(vhost, name)?;
     policy.insert_definition_key(key.to_owned(), parsed_value.clone());
 
     let params = PolicyParams::from(&policy);
-    client.declare_operator_policy(&params)
+    Ok(client.declare_operator_policy(&params)?)
 }
 
 pub fn declare_parameter(
@@ -1969,9 +1794,9 @@ pub fn declare_parameter(
     vhost: &str,
     command_args: &ArgMatches,
 ) -> Result<(), CommandRunError> {
-    let component = command_args.get_one::<String>("component").unwrap();
-    let name = command_args.get_one::<String>("name").unwrap();
-    let value = command_args.get_one::<String>("value").unwrap();
+    let component = command_args.str_arg("component");
+    let name = command_args.str_arg("name");
+    let value = command_args.str_arg("value");
     let parsed_value = parse_json_from_arg(value)?;
 
     let params = requests::RuntimeParameterDefinition {
@@ -1988,8 +1813,8 @@ pub fn declare_global_parameter(
     client: APIClient,
     command_args: &ArgMatches,
 ) -> Result<(), CommandRunError> {
-    let name = command_args.get_one::<String>("name").unwrap();
-    let value = command_args.get_one::<String>("value").unwrap();
+    let name = command_args.str_arg("name");
+    let value = command_args.str_arg("value");
     // TODO: global runtime parameter values can be regular strings (not JSON documents)
     //       but we don't support that yet in the HTTP API client.
     let parsed_value = parse_json_from_arg(value)?;
@@ -2004,20 +1829,21 @@ pub fn declare_global_parameter(
         .map_err(Into::into)
 }
 
-pub fn delete_queue(client: APIClient, vhost: &str, command_args: &ArgMatches) -> ClientResult<()> {
-    let name = command_args.get_one::<String>("name").unwrap();
-    let idempotently = command_args
-        .get_one::<bool>("idempotently")
-        .cloned()
-        .unwrap_or(false);
-    client.delete_queue(vhost, name, idempotently)
+pub fn delete_queue(
+    client: APIClient,
+    vhost: &str,
+    command_args: &ArgMatches,
+) -> CommandResult<()> {
+    let name = command_args.str_arg("name");
+    let idempotently = command_args.optional_typed_or::<bool>("idempotently", false);
+    Ok(client.delete_queue(vhost, name, idempotently)?)
 }
 
 pub fn delete_stream(
     client: APIClient,
     vhost: &str,
     command_args: &ArgMatches,
-) -> ClientResult<()> {
+) -> CommandResult<()> {
     delete_queue(client, vhost, command_args)
 }
 
@@ -2026,25 +1852,22 @@ pub fn delete_binding(
     vhost: &str,
     command_args: &ArgMatches,
 ) -> Result<(), CommandRunError> {
-    let source = command_args.get_one::<String>("source").unwrap();
-    let destination_type = command_args.get_one::<String>("destination_type").unwrap();
-    let destination = command_args.get_one::<String>("destination").unwrap();
-    let routing_key = command_args.get_one::<String>("routing_key").unwrap();
-    let arguments = command_args.get_one::<String>("arguments").unwrap();
+    let source = command_args.str_arg("source");
+    let destination_type = command_args.string_arg("destination_type");
+    let destination = command_args.str_arg("destination");
+    let routing_key = command_args.str_arg("routing_key");
+    let arguments = command_args.str_arg("arguments");
     let parsed_arguments = parse_json_from_arg(arguments)?;
 
     let params = BindingDeletionParams {
         virtual_host: vhost,
         source,
         destination,
-        destination_type: BindingDestinationType::from(destination_type.clone()),
+        destination_type: BindingDestinationType::from(destination_type),
         routing_key,
         arguments: parsed_arguments,
     };
-    let idempotently = command_args
-        .get_one::<bool>("idempotently")
-        .cloned()
-        .unwrap_or(false);
+    let idempotently = command_args.optional_typed_or::<bool>("idempotently", false);
 
     client
         .delete_binding(&params, idempotently)
@@ -2056,97 +1879,86 @@ pub fn delete_exchange(
     client: APIClient,
     vhost: &str,
     command_args: &ArgMatches,
-) -> ClientResult<()> {
-    let name = command_args.get_one::<String>("name").unwrap();
-    let idempotent = command_args
-        .get_one::<bool>("idempotently")
-        .cloned()
-        .unwrap_or(false);
-    client.delete_exchange(vhost, name, idempotent)
+) -> CommandResult<()> {
+    let name = command_args.str_arg("name");
+    let idempotent = command_args.optional_typed_or::<bool>("idempotently", false);
+    Ok(client.delete_exchange(vhost, name, idempotent)?)
 }
 
 pub fn delete_policy(
     client: APIClient,
     vhost: &str,
     command_args: &ArgMatches,
-) -> ClientResult<()> {
-    let name = command_args.get_one::<String>("name").unwrap();
-    let idempotently = command_args
-        .get_one::<bool>("idempotently")
-        .cloned()
-        .unwrap_or(false);
-    client.delete_policy(vhost, name, idempotently)
+) -> CommandResult<()> {
+    let name = command_args.str_arg("name");
+    let idempotently = command_args.optional_typed_or::<bool>("idempotently", false);
+    Ok(client.delete_policy(vhost, name, idempotently)?)
 }
 
 pub fn delete_operator_policy(
     client: APIClient,
     vhost: &str,
     command_args: &ArgMatches,
-) -> ClientResult<()> {
-    let name = command_args.get_one::<String>("name").unwrap();
-    let idempotently = command_args
-        .get_one::<bool>("idempotently")
-        .cloned()
-        .unwrap_or(false);
-    client.delete_operator_policy(vhost, name, idempotently)
+) -> CommandResult<()> {
+    let name = command_args.str_arg("name");
+    let idempotently = command_args.optional_typed_or::<bool>("idempotently", false);
+    Ok(client.delete_operator_policy(vhost, name, idempotently)?)
 }
 
-pub fn purge_queue(client: APIClient, vhost: &str, command_args: &ArgMatches) -> ClientResult<()> {
-    let name = command_args.get_one::<String>("name").unwrap();
-    client.purge_queue(vhost, name)
+pub fn purge_queue(client: APIClient, vhost: &str, command_args: &ArgMatches) -> CommandResult<()> {
+    let name = command_args.str_arg("name");
+    Ok(client.purge_queue(vhost, name)?)
 }
 
-pub fn health_check_local_alarms(client: APIClient) -> ClientResult<()> {
-    client.health_check_local_alarms()
+pub fn health_check_local_alarms(client: APIClient) -> CommandResult<()> {
+    Ok(client.health_check_local_alarms()?)
 }
 
-pub fn health_check_cluster_wide_alarms(client: APIClient) -> ClientResult<()> {
-    client.health_check_cluster_wide_alarms()
+pub fn health_check_cluster_wide_alarms(client: APIClient) -> CommandResult<()> {
+    Ok(client.health_check_cluster_wide_alarms()?)
 }
 
-pub fn health_check_node_is_quorum_critical(client: APIClient) -> ClientResult<()> {
-    client.health_check_if_node_is_quorum_critical()
+pub fn health_check_node_is_quorum_critical(client: APIClient) -> CommandResult<()> {
+    Ok(client.health_check_if_node_is_quorum_critical()?)
 }
 
 pub fn health_check_port_listener(
     client: APIClient,
     command_args: &ArgMatches,
-) -> ClientResult<()> {
+) -> CommandResult<()> {
     let port = command_args.get_one::<u16>("port").cloned().unwrap();
-    client.health_check_port_listener(port)
+    Ok(client.health_check_port_listener(port)?)
 }
 
 pub fn health_check_protocol_listener(
     client: APIClient,
     command_args: &ArgMatches,
-) -> ClientResult<()> {
+) -> CommandResult<()> {
     let proto = command_args
         .get_one::<SupportedProtocol>("protocol")
         .cloned()
         .unwrap();
-    client.health_check_protocol_listener(proto)
+    Ok(client.health_check_protocol_listener(proto)?)
 }
 
-pub fn close_connection(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
-    let name = command_args.get_one::<String>("name").unwrap();
-    let idempotently = command_args
-        .get_one::<bool>("idempotently")
-        .cloned()
-        .unwrap_or(false);
-    client.close_connection(name, Some("closed via rabbitmqadmin v2"), idempotently)
+pub fn close_connection(client: APIClient, command_args: &ArgMatches) -> CommandResult<()> {
+    let name = command_args.str_arg("name");
+    let idempotently = command_args.optional_typed_or::<bool>("idempotently", false);
+    Ok(client.close_connection(name, Some("closed via rabbitmqadmin v2"), idempotently)?)
 }
 
-pub fn close_user_connections(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
-    let username = command_args.get_one::<String>("username").unwrap();
-    let idempotently = command_args
-        .get_one::<bool>("idempotently")
-        .cloned()
-        .unwrap_or(false);
-    client.close_user_connections(username, Some("closed via rabbitmqadmin v2"), idempotently)
+pub fn close_user_connections(client: APIClient, command_args: &ArgMatches) -> CommandResult<()> {
+    let username = command_args.str_arg("username");
+    let idempotently = command_args.optional_typed_or::<bool>("idempotently", false);
+    Ok(client.close_user_connections(
+        username,
+        Some("closed via rabbitmqadmin v2"),
+        idempotently,
+    )?)
 }
 
-pub fn rebalance_queues(client: APIClient) -> ClientResult<()> {
-    client.rebalance_queue_leaders()
+pub fn rebalance_queues(client: APIClient) -> CommandResult<()> {
+    Ok(client.rebalance_queue_leaders()?)
 }
 
 pub fn export_cluster_wide_definitions(
@@ -2177,7 +1989,7 @@ fn export_and_transform_cluster_wide_definitions(
             let defs1 = chain.apply(&mut defs0);
             let json = serde_json::to_string_pretty(&defs1).unwrap();
 
-            let path = command_args.get_one::<String>("file").unwrap();
+            let path = command_args.str_arg("file");
             match path.as_str() {
                 "-" => {
                     println!("{}", &json);
@@ -2199,8 +2011,8 @@ fn export_cluster_wide_definitions_without_transformations(
 ) -> Result<(), CommandRunError> {
     match client.export_cluster_wide_definitions() {
         Ok(definitions) => {
-            let path = command_args.get_one::<String>("file").cloned();
-            let use_stdout = command_args.get_one::<bool>("stdout").copied();
+            let path = command_args.optional_string("file");
+            let use_stdout = command_args.optional_typed::<bool>("stdout");
             match (path, use_stdout) {
                 (Some(_val), Some(true)) => {
                     println!("{}", &definitions);
@@ -2220,10 +2032,9 @@ fn export_cluster_wide_definitions_without_transformations(
                     println!("{}", &definitions);
                     Ok(())
                 }
-                _ => {
-                    eprintln!("either --file or --stdout must be provided");
-                    process::exit(1)
-                }
+                _ => Err(CommandRunError::MissingOptions {
+                    message: "either --file or --stdout must be provided".to_string(),
+                }),
             }
         }
         Err(err) => Err(err.into()),
@@ -2261,7 +2072,7 @@ fn export_and_transform_vhost_definitions(
 
             let json = serde_json::to_string_pretty(&defs0).unwrap();
 
-            let path = command_args.get_one::<String>("file").unwrap();
+            let path = command_args.str_arg("file");
             match path.as_str() {
                 "-" => {
                     println!("{}", &json);
@@ -2284,7 +2095,7 @@ fn export_vhost_definitions_without_transformations(
 ) -> Result<(), CommandRunError> {
     match client.export_vhost_definitions(vhost) {
         Ok(definitions) => {
-            let path = command_args.get_one::<String>("file").unwrap();
+            let path = command_args.str_arg("file");
             match path.as_str() {
                 "-" => {
                     println!("{}", &definitions);
@@ -2320,12 +2131,16 @@ pub fn import_vhost_definitions(
 }
 
 fn read_and_parse_definitions(command_args: &ArgMatches) -> Result<Value, CommandRunError> {
-    let path = command_args
-        .get_one::<String>("file")
-        .map(|s| s.trim_ascii().trim_matches('\'').trim_matches('"'));
-    let use_stdin = command_args.get_one::<bool>("stdin").copied();
-    let definitions = read_definitions(path, use_stdin).map_err(|err| {
-        let message = match path {
+    let path = command_args.optional_string("file").map(|s| {
+        s.trim_ascii()
+            .trim_matches('\'')
+            .trim_matches('"')
+            .to_string()
+    });
+    let path_ref = path.as_deref();
+    let use_stdin = command_args.optional_typed::<bool>("stdin");
+    let definitions = read_definitions(path_ref, use_stdin).map_err(|err| {
+        let message = match path_ref {
             None => format!("could not read from standard input: {}", err),
             Some(val) => format!("`{}` does not exist or is not readable: {}", val, err),
         };
@@ -2333,7 +2148,7 @@ fn read_and_parse_definitions(command_args: &ArgMatches) -> Result<Value, Comman
     })?;
 
     serde_json::from_str(definitions.as_str()).map_err(|err| {
-        let message = match path {
+        let message = match path_ref {
             None => format!("could not parse JSON from standard input: {}", err),
             Some(val) => format!("`{}` is not a valid JSON file: {}", val, err),
         };
@@ -2357,15 +2172,13 @@ fn read_definitions(path: Option<&str>, use_stdin: Option<bool>) -> io::Result<S
     match (path, use_stdin) {
         (_, Some(true)) => {
             let mut buffer = String::new();
-            read_stdin_lines(&mut buffer);
-
+            read_stdin_lines(&mut buffer)?;
             Ok(buffer)
         }
         (Some(val), _) => match val {
             "-" => {
                 let mut buffer = String::new();
-                read_stdin_lines(&mut buffer);
-
+                read_stdin_lines(&mut buffer)?;
                 Ok(buffer)
             }
             _ => fs::read_to_string(val),
@@ -2377,18 +2190,13 @@ fn read_definitions(path: Option<&str>, use_stdin: Option<bool>) -> io::Result<S
     }
 }
 
-fn read_stdin_lines(buffer: &mut String) {
+fn read_stdin_lines(buffer: &mut String) -> io::Result<()> {
     let stdin = io::stdin();
     let lines = stdin.lines();
     for ln in lines {
-        match ln {
-            Ok(line) => buffer.push_str(&line),
-            Err(err) => {
-                eprintln!("Error reading from standard input: {}", err);
-                process::exit(1);
-            }
-        }
+        buffer.push_str(&ln?);
     }
+    Ok(())
 }
 
 pub fn publish_message(
@@ -2396,10 +2204,10 @@ pub fn publish_message(
     vhost: &str,
     command_args: &ArgMatches,
 ) -> Result<responses::MessageRouted, CommandRunError> {
-    let exchange = command_args.get_one::<String>("exchange").unwrap();
-    let routing_key = command_args.get_one::<String>("routing_key").unwrap();
-    let payload = command_args.get_one::<String>("payload").unwrap();
-    let properties = command_args.get_one::<String>("properties").unwrap();
+    let exchange = command_args.str_arg("exchange");
+    let routing_key = command_args.str_arg("routing_key");
+    let payload = command_args.str_arg("payload");
+    let properties = command_args.str_arg("properties");
     let parsed_properties = parse_json_from_arg(properties)?;
 
     client
@@ -2411,11 +2219,11 @@ pub fn get_messages(
     client: APIClient,
     vhost: &str,
     command_args: &ArgMatches,
-) -> ClientResult<Vec<responses::GetMessage>> {
-    let queue = command_args.get_one::<String>("queue").unwrap();
-    let count = command_args.get_one::<String>("count").unwrap();
-    let ack_mode = command_args.get_one::<String>("ack_mode").unwrap();
-    client.get_messages(vhost, queue, count.parse::<u32>().unwrap(), ack_mode)
+) -> CommandResult<Vec<responses::GetMessage>> {
+    let queue = command_args.str_arg("queue");
+    let count: u32 = command_args.parse_required("count")?;
+    let ack_mode = command_args.str_arg("ack_mode");
+    Ok(client.get_messages(vhost, queue, count, ack_mode)?)
 }
 
 fn parse_json_from_arg<T: DeserializeOwned>(input: &str) -> Result<T, CommandRunError> {
@@ -2532,7 +2340,7 @@ fn extract_node_settings_from_args(command_args: &ArgMatches) -> (String, Shared
         username,
         password,
         virtual_host: vhost,
-        scheme: scheme.unwrap_or_default(),
+        scheme: scheme.map(|s| Scheme::from(s.as_str())).unwrap_or_default(),
         path_prefix: path_prefix.unwrap_or_default(),
         tls,
         ca_certificate_bundle_path,
@@ -2578,7 +2386,7 @@ pub fn config_file_delete_node(
     config_path: &Path,
     command_args: &ArgMatches,
 ) -> Result<(), CommandRunError> {
-    let node_name = command_args.get_one::<String>("node").unwrap();
+    let node_name = command_args.str_arg("node");
     let create_file_if_missing = command_args.get_flag("create_file_if_missing");
 
     delete_node_from_config_file(config_path, node_name, create_file_if_missing).map_err(|e| {

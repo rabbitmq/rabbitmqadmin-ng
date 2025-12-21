@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Re-export modules for testing
+pub mod arg_helpers;
 pub mod config;
 pub mod constants;
 pub mod errors;

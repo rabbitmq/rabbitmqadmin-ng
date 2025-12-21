@@ -14,6 +14,7 @@
 #![allow(clippy::result_large_err)]
 
 use crate::APIClient;
+use crate::arg_helpers::ArgMatchesExt;
 use clap::ArgMatches;
 
 use rabbitmq_http_client::blocking_api::Result as ClientResult;
@@ -36,12 +37,12 @@ pub fn sds_disable_cluster_wide(client: APIClient) -> ClientResult<()> {
 }
 
 pub fn sds_enable_on_node(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
-    let node = command_args.get_one::<String>("node").unwrap();
+    let node = command_args.str_arg("node");
     client.enable_schema_definition_sync_on_node(Some(node))
 }
 
 pub fn sds_disable_on_node(client: APIClient, command_args: &ArgMatches) -> ClientResult<()> {
-    let node = command_args.get_one::<String>("node").unwrap();
+    let node = command_args.str_arg("node");
     client.disable_schema_definition_sync_on_node(Some(node))
 }
 

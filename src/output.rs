@@ -15,13 +15,12 @@ use crate::config::SharedSettings;
 use crate::errors::CommandRunError;
 use crate::tables;
 use clap::ArgMatches;
-use rabbitmq_http_client::blocking_api::{HttpClientError, Result as ClientResult};
-use rabbitmq_http_client::error::Error as ClientError;
 use rabbitmq_http_client::password_hashing::HashingError;
+
+type CommandResult<T> = Result<T, CommandRunError>;
 use rabbitmq_http_client::responses::{
     NodeMemoryBreakdown, Overview, SchemaDefinitionSyncStatus, WarmStandbyReplicationStatus,
 };
-use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use sysexits::ExitCode;
@@ -185,7 +184,7 @@ impl<'a> ResultHandler<'a> {
         }
     }
 
-    pub fn show_overview(&mut self, result: ClientResult<Overview>) {
+    pub fn show_overview(&mut self, result: CommandResult<Overview>) {
         match result {
             Ok(ov) => {
                 self.exit_code = Some(ExitCode::Ok);
@@ -195,11 +194,11 @@ impl<'a> ResultHandler<'a> {
 
                 println!("{}", table);
             }
-            Err(error) => self.report_command_run_error(&error),
+            Err(error) => self.report_pre_command_run_error(&error),
         }
     }
 
-    pub fn show_churn(&mut self, result: ClientResult<Overview>) {
+    pub fn show_churn(&mut self, result: CommandResult<Overview>) {
         match result {
             Ok(ov) => {
                 self.exit_code = Some(ExitCode::Ok);
@@ -209,7 +208,7 @@ impl<'a> ResultHandler<'a> {
 
                 println!("{}", table);
             }
-            Err(error) => self.report_command_run_error(&error),
+            Err(error) => self.report_pre_command_run_error(&error),
         }
     }
 
@@ -227,7 +226,7 @@ impl<'a> ResultHandler<'a> {
         }
     }
 
-    pub fn tabular_result<T>(&mut self, result: ClientResult<Vec<T>>)
+    pub fn tabular_result<T>(&mut self, result: CommandResult<Vec<T>>)
     where
         T: fmt::Debug + Tabled,
     {
@@ -240,7 +239,7 @@ impl<'a> ResultHandler<'a> {
 
                 println!("{}", table);
             }
-            Err(error) => self.report_command_run_error(&error),
+            Err(error) => self.report_pre_command_run_error(&error),
         }
     }
 
@@ -259,7 +258,7 @@ impl<'a> ResultHandler<'a> {
 
     pub fn memory_breakdown_in_bytes_result(
         &mut self,
-        result: ClientResult<Option<NodeMemoryBreakdown>>,
+        result: CommandResult<Option<NodeMemoryBreakdown>>,
     ) {
         match result {
             Ok(Some(output)) => {
@@ -278,13 +277,13 @@ impl<'a> ResultHandler<'a> {
 
                 println!("{}", table);
             }
-            Err(error) => self.report_command_run_error(&error),
+            Err(error) => self.report_pre_command_run_error(&error),
         }
     }
 
     pub fn memory_breakdown_in_percent_result(
         &mut self,
-        result: ClientResult<Option<NodeMemoryBreakdown>>,
+        result: CommandResult<Option<NodeMemoryBreakdown>>,
     ) {
         match result {
             Ok(Some(output)) => {
@@ -303,13 +302,13 @@ impl<'a> ResultHandler<'a> {
 
                 println!("{}", table);
             }
-            Err(error) => self.report_command_run_error(&error),
+            Err(error) => self.report_pre_command_run_error(&error),
         }
     }
 
     pub fn schema_definition_sync_status_result(
         &mut self,
-        result: ClientResult<SchemaDefinitionSyncStatus>,
+        result: CommandResult<SchemaDefinitionSyncStatus>,
     ) {
         match result {
             Ok(output) => {
@@ -320,13 +319,13 @@ impl<'a> ResultHandler<'a> {
 
                 println!("{}", table);
             }
-            Err(error) => self.report_command_run_error(&error),
+            Err(error) => self.report_pre_command_run_error(&error),
         }
     }
 
     pub fn warm_standby_replication_status_result(
         &mut self,
-        result: ClientResult<WarmStandbyReplicationStatus>,
+        result: CommandResult<WarmStandbyReplicationStatus>,
     ) {
         match result {
             Ok(data) => {
@@ -339,11 +338,11 @@ impl<'a> ResultHandler<'a> {
 
                 println!("{}", table);
             }
-            Err(error) => self.report_command_run_error(&error),
+            Err(error) => self.report_pre_command_run_error(&error),
         }
     }
 
-    pub fn no_output_on_success<T>(&mut self, result: Result<T, CommandRunError>) {
+    pub fn no_output_on_success<T>(&mut self, result: CommandResult<T>) {
         match result {
             Ok(_) => {
                 self.exit_code = Some(ExitCode::Ok);
@@ -352,30 +351,24 @@ impl<'a> ResultHandler<'a> {
         }
     }
 
-    pub fn delete_operation_result<T>(&mut self, result: ClientResult<T>) {
+    pub fn delete_operation_result<T>(&mut self, result: CommandResult<T>) {
         match result {
             Ok(_) => {
                 self.exit_code = Some(ExitCode::Ok);
             }
-            Err(error) => {
-                let is_not_found = matches!(
-                    error,
-                    ClientError::ClientErrorResponse {
-                        status_code: StatusCode::NOT_FOUND,
-                        ..
-                    } | ClientError::NotFound
-                );
+            Err(ref error) => {
+                let is_not_found = matches!(error, CommandRunError::NotFound);
 
                 if is_not_found && self.idempotently {
                     self.exit_code = Some(ExitCode::Ok)
                 } else {
-                    self.report_command_run_error(&error)
+                    self.report_pre_command_run_error(error)
                 }
             }
         }
     }
 
-    pub fn health_check_result(&mut self, result: ClientResult<()>) {
+    pub fn health_check_result(&mut self, result: CommandResult<()>) {
         match result {
             Ok(_) => {
                 self.exit_code = Some(ExitCode::Ok);
@@ -383,19 +376,19 @@ impl<'a> ResultHandler<'a> {
                     println!("health check passed");
                 }
             }
-            Err(ClientError::HealthCheckFailed {
-                path,
-                details,
-                status_code,
-            }) => {
+            Err(CommandRunError::HealthCheckFailed(ref info)) => {
                 self.exit_code = Some(ExitCode::Unavailable);
 
-                let mut table = tables::health_check_failure(&path, status_code, details);
+                let mut table = tables::health_check_failure(
+                    &info.health_check_path,
+                    info.status_code,
+                    info.details.clone(),
+                );
                 self.table_styler.apply(&mut table);
 
                 println!("{}", table);
             }
-            Err(e) => {
+            Err(ref e) => {
                 println!("Error: {:?}", e);
                 self.exit_code = Some(ExitCode::Unavailable);
             }
@@ -451,37 +444,11 @@ impl<'a> ResultHandler<'a> {
     // Implementation
     //
 
-    fn report_command_run_error(&mut self, error: &HttpClientError) {
-        let mut table = tables::failure_details(error);
-        self.table_styler.apply(&mut table);
-        eprintln!("{}", table);
-        let code = client_error_to_exit_code(error);
-        self.exit_code = Some(code);
-    }
-
     fn report_hashing_error(&mut self, error: &HashingError) {
         let mut table = tables::hashing_error_details(error);
         self.table_styler.apply(&mut table);
         eprintln!("{}", table);
         self.exit_code = Some(ExitCode::DataErr);
-    }
-}
-
-// We cannot implement From<T> for two types in other crates, so…
-pub(crate) fn client_error_to_exit_code(error: &HttpClientError) -> ExitCode {
-    match error {
-        ClientError::MissingProperty { .. } => ExitCode::DataErr,
-        ClientError::UnsupportedArgumentValue { .. } => ExitCode::DataErr,
-        ClientError::ClientErrorResponse { .. } => ExitCode::DataErr,
-        ClientError::ServerErrorResponse { .. } => ExitCode::Unavailable,
-        ClientError::HealthCheckFailed { .. } => ExitCode::Unavailable,
-        ClientError::NotFound => ExitCode::DataErr,
-        ClientError::MultipleMatchingBindings => ExitCode::DataErr,
-        ClientError::InvalidHeaderValue { error: _ } => ExitCode::DataErr,
-        ClientError::IncompatibleBody { .. } => ExitCode::DataErr,
-        ClientError::ParsingError { .. } => ExitCode::DataErr,
-        ClientError::RequestError { .. } => ExitCode::IoErr,
-        ClientError::Other => ExitCode::Usage,
     }
 }
 

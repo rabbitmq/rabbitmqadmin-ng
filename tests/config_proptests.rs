@@ -13,7 +13,7 @@
 // limitations under the License.
 
 use proptest::prelude::*;
-use rabbitmqadmin::config::SharedSettings;
+use rabbitmqadmin::config::{Scheme, SharedSettings};
 use std::path::PathBuf;
 use url::Url;
 
@@ -64,8 +64,8 @@ proptest! {
     }
 }
 
-fn scheme_strategy() -> impl Strategy<Value = String> {
-    prop_oneof![Just("http".to_string()), Just("https".to_string()),]
+fn scheme_strategy() -> impl Strategy<Value = Scheme> {
+    prop_oneof![Just(Scheme::Http), Just(Scheme::Https),]
 }
 
 fn hostname_strategy() -> impl Strategy<Value = String> {
@@ -114,12 +114,12 @@ proptest! {
         path_prefix in path_prefix_strategy(),
     ) {
         let settings = SharedSettings {
-            scheme: scheme.clone(),
+            scheme,
             hostname: Some(hostname.clone()),
             port: Some(port),
             path_prefix: path_prefix.clone(),
             base_uri: None,
-            tls: scheme == "https",
+            tls: scheme.is_https(),
             non_interactive: false,
             quiet: false,
             username: Some("guest".to_string()),
@@ -148,12 +148,12 @@ proptest! {
         path_prefix in path_prefix_strategy(),
     ) {
         let settings = SharedSettings {
-            scheme: scheme.clone(),
+            scheme,
             hostname: Some(hostname.clone()),
             port: Some(port),
             path_prefix: path_prefix.clone(),
             base_uri: None,
-            tls: scheme == "https",
+            tls: scheme.is_https(),
             non_interactive: false,
             quiet: false,
             username: Some("guest".to_string()),
@@ -182,12 +182,12 @@ proptest! {
         port in port_strategy(),
     ) {
         let settings = SharedSettings {
-            scheme: scheme.clone(),
+            scheme,
             hostname: Some(hostname.clone()),
             port: Some(port),
             path_prefix: "/api".to_string(),
             base_uri: None,
-            tls: scheme == "https",
+            tls: scheme.is_https(),
             non_interactive: false,
             quiet: false,
             username: Some("guest".to_string()),
@@ -209,7 +209,7 @@ proptest! {
 
         // URL parser returns None for default ports (80 for http, 443 for https)
         // but the endpoint string always includes a port
-        let expected_port = if (scheme == "http" && port == 80) || (scheme == "https" && port == 443) {
+        let expected_port = if (scheme == Scheme::Http && port == 80) || (scheme == Scheme::Https && port == 443) {
             None
         } else {
             Some(port)
@@ -259,7 +259,7 @@ proptest! {
         port in port_strategy(),
     ) {
         let settings = SharedSettings {
-            scheme: scheme.clone(),
+            scheme,
             hostname: Some(hostname.clone()),
             port: Some(port),
             path_prefix: "/api".to_string(),
@@ -361,7 +361,7 @@ proptest! {
         let config_defaults = SharedSettings {
             hostname: Some(config_hostname.clone()),
             port: Some(config_port),
-            scheme: "http".to_string(),
+            scheme: Scheme::Http,
             path_prefix: "/api".to_string(),
             tls: false,
             non_interactive: false,
@@ -398,7 +398,7 @@ proptest! {
             hostname: Some(config_hostname.clone()),
             port: Some(config_port),
             username: Some(config_username.clone()),
-            scheme: "http".to_string(),
+            scheme: Scheme::Http,
             path_prefix: "/api".to_string(),
             tls: false,
             non_interactive: false,
@@ -434,7 +434,7 @@ proptest! {
         let matches = parser.try_get_matches_from(args).unwrap();
 
         let config_defaults = SharedSettings {
-            scheme: "http".to_string(),
+            scheme: Scheme::Http,
             hostname: Some("localhost".to_string()),
             port: Some(15672),
             path_prefix: "/api".to_string(),
@@ -454,7 +454,7 @@ proptest! {
         let merged = SharedSettings::new_with_defaults(&matches, &config_defaults);
 
         if use_tls {
-            prop_assert_eq!(merged.scheme, "https",
+            prop_assert_eq!(merged.scheme, Scheme::Https,
                 "TLS flag should set scheme to https");
             prop_assert!(merged.tls, "TLS flag should set tls to true");
         }
@@ -475,7 +475,7 @@ proptest! {
         let config_defaults = SharedSettings {
             hostname: Some("localhost".to_string()),
             port: Some(config_port),
-            scheme: "http".to_string(),
+            scheme: Scheme::Http,
             path_prefix: "/api".to_string(),
             tls: false,
             non_interactive: false,
@@ -521,7 +521,7 @@ proptest! {
         let config_defaults = SharedSettings {
             hostname: Some("localhost".to_string()),
             port: Some(15672),
-            scheme: "http".to_string(),
+            scheme: Scheme::Http,
             path_prefix: "/api".to_string(),
             tls: false,
             non_interactive: false,
@@ -566,7 +566,7 @@ proptest! {
         let config_defaults = SharedSettings {
             hostname: Some("localhost".to_string()),
             port: Some(15672),
-            scheme: "http".to_string(),
+            scheme: Scheme::Http,
             path_prefix: "/api".to_string(),
             tls: false,
             non_interactive: false,
@@ -613,7 +613,7 @@ proptest! {
         let config_defaults = SharedSettings {
             hostname: Some("localhost".to_string()),
             port: Some(15672),
-            scheme: "http".to_string(),
+            scheme: Scheme::Http,
             path_prefix: "/api".to_string(),
             tls: false,
             non_interactive: config_non_interactive,

@@ -13,19 +13,68 @@
 // limitations under the License.
 use crate::constants::{
     DEFAULT_CONFIG_SECTION_NAME, DEFAULT_HOST, DEFAULT_HTTP_PORT, DEFAULT_HTTPS_PORT,
-    DEFAULT_PASSWORD, DEFAULT_PATH_PREFIX, DEFAULT_SCHEME, DEFAULT_USERNAME, DEFAULT_VHOST,
-    HTTPS_SCHEME,
+    DEFAULT_PASSWORD, DEFAULT_PATH_PREFIX, DEFAULT_USERNAME, DEFAULT_VHOST,
 };
 use crate::errors::CommandRunError;
 use crate::output::TableStyle;
 use clap::ArgMatches;
 use serde::{Deserialize, Serialize};
+use std::fmt;
 use std::path::{Path, PathBuf};
+use std::str::FromStr;
 use std::{collections::HashMap, fs, io};
 use tabled::Tabled;
 use thiserror::Error;
 use toml_edit::{DocumentMut, Item, Table, Value};
 use url::Url;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Scheme {
+    #[default]
+    Http,
+    Https,
+}
+
+impl Scheme {
+    pub fn is_https(&self) -> bool {
+        matches!(self, Scheme::Https)
+    }
+
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Scheme::Http => "http",
+            Scheme::Https => "https",
+        }
+    }
+}
+
+impl fmt::Display for Scheme {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
+impl FromStr for Scheme {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "http" => Ok(Scheme::Http),
+            "https" => Ok(Scheme::Https),
+            _ => Err(format!(
+                "Invalid scheme: '{}'. Expected 'http' or 'https'",
+                s
+            )),
+        }
+    }
+}
+
+impl From<&str> for Scheme {
+    fn from(s: &str) -> Self {
+        s.parse().unwrap_or_default()
+    }
+}
 
 /// A set of settings that must be set very early on.
 /// More specifically, before the command line argument parser is
@@ -91,8 +140,8 @@ pub struct SharedSettings {
     #[serde(default = "default_quiet")]
     pub quiet: bool,
 
-    #[serde(default = "default_scheme")]
-    pub scheme: String,
+    #[serde(default)]
+    pub scheme: Scheme,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub hostname: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -189,9 +238,9 @@ impl SharedSettings {
         let quiet = cli_args.get_one::<bool>("quiet").cloned().unwrap_or(false)
             || config_file_defaults.quiet;
         let scheme = if should_use_tls {
-            HTTPS_SCHEME.to_owned()
+            Scheme::Https
         } else {
-            config_file_defaults.scheme.to_owned()
+            config_file_defaults.scheme
         };
         let hostname = cli_args
             .get_one::<String>("host")
@@ -281,9 +330,9 @@ impl SharedSettings {
             || default_non_interactive();
         let quiet = cli_args.get_one::<bool>("quiet").cloned().unwrap_or(false) || default_quiet();
         let scheme = if should_use_tls {
-            HTTPS_SCHEME.to_owned()
+            Scheme::Https
         } else {
-            default_scheme()
+            Scheme::default()
         };
         let hostname = cli_args
             .get_one::<String>("host")
@@ -361,7 +410,7 @@ impl SharedSettings {
     ) -> Self {
         let should_use_tls = cli_args.get_one::<bool>("tls").cloned().unwrap_or(false)
             || config_file_defaults.tls
-            || url.scheme() == HTTPS_SCHEME;
+            || url.scheme() == "https";
         let non_interactive = cli_args
             .get_one::<bool>("non_interactive")
             .cloned()
@@ -371,9 +420,9 @@ impl SharedSettings {
             || config_file_defaults.quiet;
 
         let scheme = if should_use_tls {
-            HTTPS_SCHEME.to_owned()
+            Scheme::Https
         } else {
-            config_file_defaults.scheme.clone()
+            config_file_defaults.scheme
         };
         let hostname = url.host_str().unwrap_or(DEFAULT_HOST).to_string();
         let port = url
@@ -445,8 +494,8 @@ impl SharedSettings {
     }
 
     pub fn new_from_uri(url: &Url, cli_args: &ArgMatches) -> Self {
-        let should_use_tls = cli_args.get_one::<bool>("tls").cloned().unwrap_or(false)
-            || url.scheme() == HTTPS_SCHEME;
+        let should_use_tls =
+            cli_args.get_one::<bool>("tls").cloned().unwrap_or(false) || url.scheme() == "https";
         let non_interactive = cli_args
             .get_one::<bool>("non_interactive")
             .cloned()
@@ -457,9 +506,9 @@ impl SharedSettings {
             .unwrap_or(default_quiet());
 
         let scheme = if should_use_tls {
-            "https".to_owned()
+            Scheme::Https
         } else {
-            url.scheme().to_string()
+            Scheme::from(url.scheme())
         };
         let hostname = url.host_str().unwrap_or(DEFAULT_HOST).to_string();
         let port = url
@@ -559,10 +608,6 @@ fn read_from_local_path(path: &PathBuf) -> Result<ConfigurationMap<'_>, ConfigFi
     toml::from_str(&contents).map_err(ConfigFileError::from)
 }
 
-fn default_scheme() -> String {
-    DEFAULT_SCHEME.to_string()
-}
-
 fn default_tls() -> bool {
     false
 }
@@ -615,10 +660,10 @@ impl NodeConfigEntry {
             name: name.to_string(),
             hostname: settings.hostname.clone().unwrap_or_default(),
             port: settings.port.map(|p| p.to_string()).unwrap_or_default(),
-            scheme: if settings.scheme == DEFAULT_SCHEME {
+            scheme: if settings.scheme == Scheme::Http {
                 String::new()
             } else {
-                settings.scheme.clone()
+                settings.scheme.to_string()
             },
             base_uri: settings.base_uri.clone().unwrap_or_default(),
             username: settings.username.clone().unwrap_or_default(),
@@ -739,7 +784,7 @@ fn merge_settings_into_table(table: &mut Table, settings: &SharedSettings) {
     if let Some(ref vhost) = settings.virtual_host {
         table.insert("virtual_host", Value::from(vhost.as_str()).into());
     }
-    if !settings.scheme.is_empty() {
+    if settings.scheme != Scheme::Http {
         table.insert("scheme", Value::from(settings.scheme.as_str()).into());
     }
     if !settings.path_prefix.is_empty() {
@@ -791,7 +836,7 @@ fn build_node_table(settings: &SharedSettings) -> Table {
     if let Some(ref vhost) = settings.virtual_host {
         node_table.insert("virtual_host", Value::from(vhost.as_str()).into());
     }
-    if !settings.scheme.is_empty() && settings.scheme != DEFAULT_SCHEME {
+    if settings.scheme != Scheme::Http {
         node_table.insert("scheme", Value::from(settings.scheme.as_str()).into());
     }
     if !settings.path_prefix.is_empty() && settings.path_prefix != DEFAULT_PATH_PREFIX {
