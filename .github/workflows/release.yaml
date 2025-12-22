@@ -26,9 +26,13 @@ jobs:
           - target: aarch64-apple-darwin
             os: macos-latest
             target_rustflags: ''
-          # Windoze, x86-64
+          # Windows, x86-64
           - target: x86_64-pc-windows-msvc
             os: windows-latest
+            target_rustflags: ''
+          # Windows, aarch64
+          - target: aarch64-pc-windows-msvc
+            os: windows-11-arm
             target_rustflags: ''
           # Linux, x86-64
           - target: x86_64-unknown-linux-gnu
@@ -159,7 +163,7 @@ jobs:
 
       - name: Build an rabbitmqadmin release archive on Windows
         id: release-build-windows
-        if: ${{ matrix.os == 'windows-latest' }}
+        if: ${{ contains(matrix.target, 'windows') }}
         run: nu ./scripts/release-windows.nu
         env:
           OS: ${{ matrix.os }}
@@ -168,7 +172,7 @@ jobs:
           SRC: ${{ github.workspace }}
       - name: Store Windows build artifact
         id: upload-windows-artifact
-        if: ${{ matrix.os == 'windows-latest' }}
+        if: ${{ contains(matrix.target, 'windows') }}
         uses: actions/upload-artifact@v4
         with:
           name: "rabbitmqadmin-${{ vars.NEXT_RELEASE_VERSION }}-${{ matrix.target }}.exe"
@@ -204,10 +208,15 @@ jobs:
       with:
         name: "rabbitmqadmin-${{ vars.NEXT_RELEASE_VERSION }}-aarch64-unknown-linux-musl"
         path: ./artifacts
-    - name: Fetch Windows archive
+    - name: Fetch Windows x86-64 archive
       uses: actions/download-artifact@v4
       with:
         name: "rabbitmqadmin-${{ vars.NEXT_RELEASE_VERSION }}-x86_64-pc-windows-msvc.exe"
+        path: ./artifacts
+    - name: Fetch Windows aarch64 archive
+      uses: actions/download-artifact@v4
+      with:
+        name: "rabbitmqadmin-${{ vars.NEXT_RELEASE_VERSION }}-aarch64-pc-windows-msvc.exe"
         path: ./artifacts
     - name: Publish rabbitmqadmin release archive
       uses: softprops/action-gh-release@v2
