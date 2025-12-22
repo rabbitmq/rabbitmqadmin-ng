@@ -36,7 +36,7 @@ serde = { version = "1.0", features = ["derive", "std"] }
 serde_json = "1"
 tabled = "0.20"
 toml = "0.9"
-toml_edit = "0.22"
+toml_edit = "0.24"
 color-print = "0.3"
 thiserror = "2"
 shellexpand = "3.1"
