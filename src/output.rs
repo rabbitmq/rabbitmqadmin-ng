@@ -14,61 +14,27 @@
 use crate::config::SharedSettings;
 use crate::errors::CommandRunError;
 use crate::tables;
+use bel7_cli::Padding;
 use clap::ArgMatches;
+use indicatif::{ProgressBar, ProgressStyle};
 use rabbitmq_http_client::password_hashing::HashingError;
-
-type CommandResult<T> = Result<T, CommandRunError>;
 use rabbitmq_http_client::responses::{
     NodeMemoryBreakdown, Overview, SchemaDefinitionSyncStatus, WarmStandbyReplicationStatus,
 };
-use serde::{Deserialize, Serialize};
 use std::fmt;
 use sysexits::ExitCode;
-use tabled::settings::object::Rows;
+use tabled::settings::object::{Rows, Segment};
+use tabled::settings::{Format, Modify, Panel, Remove};
+use tabled::{Table, Tabled};
 
-use indicatif::{ProgressBar, ProgressStyle};
-use tabled::settings::{Panel, Remove, Style};
-use tabled::{
-    Table, Tabled,
-    settings::{Format, Modify, object::Segment},
-};
+pub use bel7_cli::TableStyle;
 
-#[derive(Default, Serialize, Deserialize, Debug, PartialEq, Eq, Clone, Copy)]
-pub enum TableStyle {
-    #[default]
-    Modern,
-    Borderless,
-    Markdown,
-    Sharp,
-    Ascii,
-    Psql,
-    Dots,
-}
-
-impl From<&str> for TableStyle {
-    fn from(s: &str) -> Self {
-        match s {
-            "modern" => TableStyle::Modern,
-            "borderless" => TableStyle::Borderless,
-            "ascii" => TableStyle::Ascii,
-            "markdown" => TableStyle::Markdown,
-            "sharp" => TableStyle::Sharp,
-            "psql" => TableStyle::Psql,
-            "dots" => TableStyle::Dots,
-            _ => TableStyle::default(),
-        }
-    }
-}
-
-impl From<String> for TableStyle {
-    fn from(value: String) -> Self {
-        TableStyle::from(value.as_str())
-    }
-}
+type CommandResult<T> = Result<T, CommandRunError>;
 
 #[derive(Copy, Clone)]
 pub struct TableStyler {
     pub style: TableStyle,
+    pub non_interactive: bool,
 }
 
 impl TableStyler {
@@ -76,69 +42,24 @@ impl TableStyler {
         if args.non_interactive {
             return Self {
                 style: TableStyle::Borderless,
+                non_interactive: true,
             };
         };
 
         Self {
             style: args.table_style.unwrap_or_default(),
+            non_interactive: false,
         }
     }
 
     pub fn apply(self, table: &mut Table) {
-        match self.style {
-            TableStyle::Modern => {
-                self.apply_modern(table);
-            }
-            TableStyle::Borderless => {
-                self.apply_borderless(table);
-            }
-            TableStyle::Markdown => {
-                self.apply_markdown(table);
-            }
-            TableStyle::Sharp => {
-                self.apply_sharp(table);
-            }
-            TableStyle::Ascii => {
-                self.apply_ascii(table);
-            }
-            TableStyle::Psql => {
-                self.apply_psql(table);
-            }
-            TableStyle::Dots => {
-                self.apply_dots(table);
-            }
+        self.style.apply(table);
+
+        if self.non_interactive {
+            table.with(Padding::new(0, 1, 0, 0));
+            table.with(Remove::row(Rows::first()));
+            table.with(Modify::new(Segment::all()).with(Format::content(|s| s.replace('\n', ","))));
         }
-    }
-
-    fn apply_modern(self, table: &mut Table) -> &Table {
-        table.with(Style::modern())
-    }
-
-    fn apply_borderless(self, table: &mut Table) -> &Table {
-        table.with(Style::empty());
-        table.with(tabled::settings::Padding::new(0, 1, 0, 0));
-        table.with(Remove::row(Rows::first()));
-        table.with(Modify::new(Segment::all()).with(Format::content(|s| s.replace("\n", ","))))
-    }
-
-    fn apply_markdown(self, table: &mut Table) -> &Table {
-        table.with(Style::markdown())
-    }
-
-    fn apply_sharp(self, table: &mut Table) -> &Table {
-        table.with(Style::sharp())
-    }
-
-    fn apply_psql(self, table: &mut Table) -> &Table {
-        table.with(Style::psql())
-    }
-
-    fn apply_dots(self, table: &mut Table) -> &Table {
-        table.with(Style::dots())
-    }
-
-    fn apply_ascii(self, table: &mut Table) -> &Table {
-        table.with(Style::ascii())
     }
 }
 
@@ -184,43 +105,39 @@ impl<'a> ResultHandler<'a> {
         }
     }
 
-    pub fn show_overview(&mut self, result: CommandResult<Overview>) {
+    fn print_styled_table(&self, table: &mut Table) {
+        self.table_styler.apply(table);
+        println!("{}", table);
+    }
+
+    fn handle_table_result<T, F>(&mut self, result: CommandResult<T>, table_builder: F)
+    where
+        F: FnOnce(T) -> Table,
+    {
         match result {
-            Ok(ov) => {
+            Ok(data) => {
                 self.exit_code = Some(ExitCode::Ok);
-
-                let mut table = tables::overview(ov);
-                self.table_styler.apply(&mut table);
-
-                println!("{}", table);
+                let mut table = table_builder(data);
+                self.print_styled_table(&mut table);
             }
             Err(error) => self.report_pre_command_run_error(&error),
         }
     }
 
+    pub fn show_overview(&mut self, result: CommandResult<Overview>) {
+        self.handle_table_result(result, tables::overview);
+    }
+
     pub fn show_churn(&mut self, result: CommandResult<Overview>) {
-        match result {
-            Ok(ov) => {
-                self.exit_code = Some(ExitCode::Ok);
-
-                let mut table = tables::churn_overview(ov);
-                self.table_styler.apply(&mut table);
-
-                println!("{}", table);
-            }
-            Err(error) => self.report_pre_command_run_error(&error),
-        }
+        self.handle_table_result(result, tables::churn_overview);
     }
 
     pub fn show_salted_and_hashed_value(&mut self, result: Result<String, HashingError>) {
         match result {
             Ok(value) => {
                 self.exit_code = Some(ExitCode::Ok);
-
                 let mut table = tables::show_salted_and_hashed_value(value);
-                self.table_styler.apply(&mut table);
-
-                println!("{}", table);
+                self.print_styled_table(&mut table);
             }
             Err(error) => self.report_hashing_error(&error),
         }
@@ -230,17 +147,7 @@ impl<'a> ResultHandler<'a> {
     where
         T: fmt::Debug + Tabled,
     {
-        match result {
-            Ok(rows) => {
-                self.exit_code = Some(ExitCode::Ok);
-
-                let mut table = Table::new(rows);
-                self.table_styler.apply(&mut table);
-
-                println!("{}", table);
-            }
-            Err(error) => self.report_pre_command_run_error(&error),
-        }
+        self.handle_table_result(result, Table::new);
     }
 
     pub fn single_value_output_with_result<T: fmt::Display>(
@@ -263,19 +170,13 @@ impl<'a> ResultHandler<'a> {
         match result {
             Ok(Some(output)) => {
                 self.exit_code = Some(ExitCode::Ok);
-
                 let mut table = tables::memory_breakdown_in_bytes(output);
-                self.table_styler.apply(&mut table);
-
-                println!("{}", table);
+                self.print_styled_table(&mut table);
             }
             Ok(None) => {
                 self.exit_code = Some(ExitCode::Ok);
-
                 let mut table = tables::memory_breakdown_not_available();
-                self.table_styler.apply(&mut table);
-
-                println!("{}", table);
+                self.print_styled_table(&mut table);
             }
             Err(error) => self.report_pre_command_run_error(&error),
         }
@@ -288,19 +189,13 @@ impl<'a> ResultHandler<'a> {
         match result {
             Ok(Some(output)) => {
                 self.exit_code = Some(ExitCode::Ok);
-
                 let mut table = tables::memory_breakdown_in_percent(output);
-                self.table_styler.apply(&mut table);
-
-                println!("{}", table);
+                self.print_styled_table(&mut table);
             }
             Ok(None) => {
                 self.exit_code = Some(ExitCode::Ok);
-
                 let mut table = tables::memory_breakdown_not_available();
-                self.table_styler.apply(&mut table);
-
-                println!("{}", table);
+                self.print_styled_table(&mut table);
             }
             Err(error) => self.report_pre_command_run_error(&error),
         }
@@ -310,17 +205,7 @@ impl<'a> ResultHandler<'a> {
         &mut self,
         result: CommandResult<SchemaDefinitionSyncStatus>,
     ) {
-        match result {
-            Ok(output) => {
-                self.exit_code = Some(ExitCode::Ok);
-
-                let mut table = tables::schema_definition_sync_status(output);
-                self.table_styler.apply(&mut table);
-
-                println!("{}", table);
-            }
-            Err(error) => self.report_pre_command_run_error(&error),
-        }
+        self.handle_table_result(result, tables::schema_definition_sync_status);
     }
 
     pub fn warm_standby_replication_status_result(
@@ -330,13 +215,10 @@ impl<'a> ResultHandler<'a> {
         match result {
             Ok(data) => {
                 self.exit_code = Some(ExitCode::Ok);
-
                 let tb = Table::builder(data.virtual_hosts);
                 let mut table = tb.build();
                 table.with(Panel::header("Warm Standby Replication Status"));
-                self.table_styler.apply(&mut table);
-
-                println!("{}", table);
+                self.print_styled_table(&mut table);
             }
             Err(error) => self.report_pre_command_run_error(&error),
         }
@@ -418,17 +300,7 @@ impl<'a> ResultHandler<'a> {
     where
         T: fmt::Debug + Tabled,
     {
-        match result {
-            Ok(rows) => {
-                self.exit_code = Some(ExitCode::Ok);
-
-                let mut table = Table::new(rows);
-                self.table_styler.apply(&mut table);
-
-                println!("{}", table);
-            }
-            Err(error) => self.report_pre_command_run_error(&error),
-        }
+        self.handle_table_result(result, Table::new);
     }
 
     pub fn local_no_output_on_success(&mut self, result: Result<(), CommandRunError>) {

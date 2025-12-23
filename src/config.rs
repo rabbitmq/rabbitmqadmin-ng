@@ -765,7 +765,7 @@ pub fn update_node_in_config_file(
     Ok(())
 }
 
-fn merge_settings_into_table(table: &mut Table, settings: &SharedSettings) {
+fn apply_settings_to_table(table: &mut Table, settings: &SharedSettings, skip_defaults: bool) {
     if let Some(ref base_uri) = settings.base_uri {
         table.insert("base_uri", Value::from(base_uri.as_str()).into());
     }
@@ -787,7 +787,12 @@ fn merge_settings_into_table(table: &mut Table, settings: &SharedSettings) {
     if settings.scheme != Scheme::Http {
         table.insert("scheme", Value::from(settings.scheme.as_str()).into());
     }
-    if !settings.path_prefix.is_empty() {
+    let include_path_prefix = if skip_defaults {
+        !settings.path_prefix.is_empty() && settings.path_prefix != DEFAULT_PATH_PREFIX
+    } else {
+        !settings.path_prefix.is_empty()
+    };
+    if include_path_prefix {
         table.insert(
             "path_prefix",
             Value::from(settings.path_prefix.as_str()).into(),
@@ -816,57 +821,14 @@ fn merge_settings_into_table(table: &mut Table, settings: &SharedSettings) {
     }
 }
 
+fn merge_settings_into_table(table: &mut Table, settings: &SharedSettings) {
+    apply_settings_to_table(table, settings, false);
+}
+
 fn build_node_table(settings: &SharedSettings) -> Table {
-    let mut node_table = Table::new();
-    if let Some(ref base_uri) = settings.base_uri {
-        node_table.insert("base_uri", Value::from(base_uri.as_str()).into());
-    }
-    if let Some(ref hostname) = settings.hostname {
-        node_table.insert("hostname", Value::from(hostname.as_str()).into());
-    }
-    if let Some(port) = settings.port {
-        node_table.insert("port", Value::from(port as i64).into());
-    }
-    if let Some(ref username) = settings.username {
-        node_table.insert("username", Value::from(username.as_str()).into());
-    }
-    if let Some(ref password) = settings.password {
-        node_table.insert("password", Value::from(password.as_str()).into());
-    }
-    if let Some(ref vhost) = settings.virtual_host {
-        node_table.insert("virtual_host", Value::from(vhost.as_str()).into());
-    }
-    if settings.scheme != Scheme::Http {
-        node_table.insert("scheme", Value::from(settings.scheme.as_str()).into());
-    }
-    if !settings.path_prefix.is_empty() && settings.path_prefix != DEFAULT_PATH_PREFIX {
-        node_table.insert(
-            "path_prefix",
-            Value::from(settings.path_prefix.as_str()).into(),
-        );
-    }
-    if settings.tls {
-        node_table.insert("tls", Value::from(true).into());
-    }
-    if let Some(ref path) = settings.ca_certificate_bundle_path {
-        node_table.insert(
-            "ca_certificate_bundle_path",
-            Value::from(path.to_string_lossy().as_ref()).into(),
-        );
-    }
-    if let Some(ref path) = settings.client_certificate_file_path {
-        node_table.insert(
-            "client_certificate_file_path",
-            Value::from(path.to_string_lossy().as_ref()).into(),
-        );
-    }
-    if let Some(ref path) = settings.client_private_key_file_path {
-        node_table.insert(
-            "client_private_key_file_path",
-            Value::from(path.to_string_lossy().as_ref()).into(),
-        );
-    }
-    node_table
+    let mut table = Table::new();
+    apply_settings_to_table(&mut table, settings, true);
+    table
 }
 
 pub fn delete_node_from_config_file(

@@ -50,7 +50,7 @@ fn test_disable_tls_peer_verification_for_all_upstreams_basic() -> Result<(), Bo
     let params = client.list_runtime_parameters()?;
     let upstream_param = params
         .iter()
-        .find(|p| p.name == upstream_name && p.component == "federation-upstream")
+        .find(|p| p.name == upstream_name && p.is_federation_upstream())
         .expect("Federation upstream parameter should exist");
 
     let uri = upstream_param.value["uri"]
@@ -103,7 +103,7 @@ fn test_disable_tls_peer_verification_for_all_upstreams_with_existing_verify_par
     let params = client.list_runtime_parameters()?;
     let upstream_param = params
         .iter()
-        .find(|p| p.name == upstream_name && p.component == "federation-upstream")
+        .find(|p| p.name == upstream_name && p.is_federation_upstream())
         .expect("Federation upstream parameter should exist");
 
     let uri = upstream_param.value["uri"]
@@ -162,7 +162,7 @@ fn test_disable_tls_peer_verification_for_all_upstreams_queue_federation_basic()
     let params = client.list_runtime_parameters()?;
     let upstream_param = params
         .iter()
-        .find(|p| p.name == upstream_name && p.component == "federation-upstream")
+        .find(|p| p.name == upstream_name && p.is_federation_upstream())
         .expect("Federation upstream parameter should exist");
 
     let uri = upstream_param.value["uri"]
@@ -215,7 +215,7 @@ fn test_disable_tls_peer_verification_for_all_upstreams_queue_federation_with_pa
     let params = client.list_runtime_parameters()?;
     let upstream_param = params
         .iter()
-        .find(|p| p.name == upstream_name && p.component == "federation-upstream")
+        .find(|p| p.name == upstream_name && p.is_federation_upstream())
         .expect("Federation upstream parameter should exist");
 
     let uri = upstream_param.value["uri"]
@@ -295,11 +295,11 @@ fn test_disable_tls_peer_verification_for_all_upstreams_mixed_federation()
 
     let exchange_upstream_param = params
         .iter()
-        .find(|p| p.name == exchange_upstream_name && p.component == "federation-upstream")
+        .find(|p| p.name == exchange_upstream_name && p.is_federation_upstream())
         .expect("Exchange upstream parameter should exist");
     let queue_upstream_param = params
         .iter()
-        .find(|p| p.name == queue_upstream_name && p.component == "federation-upstream")
+        .find(|p| p.name == queue_upstream_name && p.is_federation_upstream())
         .expect("Queue upstream parameter should exist");
 
     let exchange_uri = exchange_upstream_param.value["uri"]
@@ -362,7 +362,7 @@ fn test_enable_tls_peer_verification_for_all_upstreams_basic() -> Result<(), Box
     let params = client.list_runtime_parameters()?;
     let upstream_param = params
         .iter()
-        .find(|p| p.name == upstream_name && p.component == "federation-upstream")
+        .find(|p| p.name == upstream_name && p.is_federation_upstream())
         .expect("Federation upstream parameter should exist");
 
     let uri = upstream_param.value["uri"]
@@ -425,7 +425,7 @@ fn test_enable_tls_peer_verification_for_all_upstreams_with_existing_params()
     let params = client.list_runtime_parameters()?;
     let upstream_param = params
         .iter()
-        .find(|p| p.name == upstream_name && p.component == "federation-upstream")
+        .find(|p| p.name == upstream_name && p.is_federation_upstream())
         .expect("Federation upstream parameter should exist");
 
     let uri = upstream_param.value["uri"]
@@ -489,7 +489,7 @@ fn test_enable_tls_peer_verification_for_all_upstreams_queue_federation()
     let params = client.list_runtime_parameters()?;
     let upstream_param = params
         .iter()
-        .find(|p| p.name == upstream_name && p.component == "federation-upstream")
+        .find(|p| p.name == upstream_name && p.is_federation_upstream())
         .expect("Federation upstream parameter should exist");
 
     let uri = upstream_param.value["uri"]
@@ -573,11 +573,11 @@ fn test_enable_tls_peer_verification_for_all_upstreams_mixed_federation()
 
     let exchange_upstream_param = params
         .iter()
-        .find(|p| p.name == exchange_upstream_name && p.component == "federation-upstream")
+        .find(|p| p.name == exchange_upstream_name && p.is_federation_upstream())
         .expect("Exchange upstream parameter should exist");
     let queue_upstream_param = params
         .iter()
-        .find(|p| p.name == queue_upstream_name && p.component == "federation-upstream")
+        .find(|p| p.name == queue_upstream_name && p.is_federation_upstream())
         .expect("Queue upstream parameter should exist");
 
     let exchange_uri = exchange_upstream_param.value["uri"]
@@ -598,6 +598,24 @@ fn test_enable_tls_peer_verification_for_all_upstreams_mixed_federation()
     assert!(queue_uri.contains("cacertfile=/path/to/ca.pem"));
     assert!(queue_uri.contains("certfile=/path/to/client.pem"));
     assert!(queue_uri.contains("keyfile=/path/to/client.key"));
+
+    delete_vhost(vh).expect("failed to delete a virtual host");
+
+    Ok(())
+}
+
+#[test]
+fn test_disable_tls_peer_verification_for_all_upstreams_no_upstreams() -> Result<(), Box<dyn Error>>
+{
+    let vh = "rabbitmqadmin.federation.modifications.test_no_upstreams";
+
+    delete_vhost(vh).ok();
+    run_succeeds(["declare", "vhost", "--name", vh]);
+
+    run_succeeds([
+        "federation",
+        "disable_tls_peer_verification_for_all_upstreams",
+    ]);
 
     delete_vhost(vh).expect("failed to delete a virtual host");
 

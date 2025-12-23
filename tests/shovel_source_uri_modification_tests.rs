@@ -55,7 +55,7 @@ fn test_disable_tls_peer_verification_for_all_shovels_basic() -> Result<(), Box<
     let params = client.list_runtime_parameters()?;
     let shovel_param = params
         .iter()
-        .find(|p| p.name == shovel_name && p.component == "shovel")
+        .find(|p| p.name == shovel_name && p.is_shovel())
         .expect("Shovel parameter should exist");
 
     let source_uri = shovel_param.value["src-uri"]
@@ -116,7 +116,7 @@ fn test_disable_tls_peer_verification_for_all_shovels_with_existing_verify_param
     let params_after = client.list_runtime_parameters()?;
     let shovel_param = params_after
         .iter()
-        .find(|p| p.name == shovel_name && p.component == "shovel")
+        .find(|p| p.name == shovel_name && p.is_shovel())
         .expect("Shovel parameter should exist");
 
     let source_uri_after = shovel_param.value["src-uri"]
@@ -193,7 +193,7 @@ fn test_disable_tls_peer_verification_for_all_shovels_amqp10() -> Result<(), Box
     let params = client.list_runtime_parameters()?;
     let shovel_param = params
         .iter()
-        .find(|p| p.name == shovel_name && p.component == "shovel")
+        .find(|p| p.name == shovel_name && p.is_shovel())
         .expect("Shovel parameter should exist");
 
     let source_uri = shovel_param.value["src-uri"]
@@ -289,11 +289,11 @@ fn test_disable_tls_peer_verification_for_all_shovels_mixed_protocols() -> Resul
 
     let shovel_091_param = params
         .iter()
-        .find(|p| p.name == shovel_091_name && p.component == "shovel")
+        .find(|p| p.name == shovel_091_name && p.is_shovel())
         .expect("091 shovel parameter should exist");
     let shovel_10_param = params
         .iter()
-        .find(|p| p.name == shovel_10_name && p.component == "shovel")
+        .find(|p| p.name == shovel_10_name && p.is_shovel())
         .expect("10 shovel parameter should exist");
 
     let uri_091_src = shovel_091_param.value["src-uri"]
@@ -382,7 +382,7 @@ fn test_disable_tls_peer_verification_for_all_shovels_with_dummy_query_params()
     let params = client.list_runtime_parameters()?;
     let shovel_param = params
         .iter()
-        .find(|p| p.name == shovel_name && p.component == "shovel")
+        .find(|p| p.name == shovel_name && p.is_shovel())
         .expect("Shovel parameter should exist");
 
     let source_uri_after = shovel_param.value["src-uri"]
@@ -445,7 +445,7 @@ fn test_enable_tls_peer_verification_for_all_source_uris_basic() -> Result<(), B
     let params = client.list_runtime_parameters()?;
     let shovel_param = params
         .iter()
-        .find(|p| p.name == shovel_name && p.component == "shovel")
+        .find(|p| p.name == shovel_name && p.is_shovel())
         .expect("Shovel parameter should exist");
 
     let source_uri = shovel_param.value["src-uri"]
@@ -513,7 +513,7 @@ fn test_enable_tls_peer_verification_for_all_source_uris_with_existing_params()
     let params = client.list_runtime_parameters()?;
     let shovel_param = params
         .iter()
-        .find(|p| p.name == shovel_name && p.component == "shovel")
+        .find(|p| p.name == shovel_name && p.is_shovel())
         .expect("Shovel parameter should exist");
 
     let source_uri_after = shovel_param.value["src-uri"]

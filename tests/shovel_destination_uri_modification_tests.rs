@@ -56,7 +56,7 @@ fn test_disable_tls_peer_verification_for_all_destination_uris_basic() -> Result
     let params = client.list_runtime_parameters()?;
     let shovel_param = params
         .iter()
-        .find(|p| p.name == shovel_name && p.component == "shovel")
+        .find(|p| p.name == shovel_name && p.is_shovel())
         .expect("Shovel parameter should exist");
 
     let dest_uri = shovel_param.value["dest-uri"]
@@ -114,7 +114,7 @@ fn test_disable_tls_peer_verification_for_all_destination_uris_with_existing_ver
     let params = client.list_runtime_parameters()?;
     let shovel_param = params
         .iter()
-        .find(|p| p.name == shovel_name && p.component == "shovel")
+        .find(|p| p.name == shovel_name && p.is_shovel())
         .expect("Shovel parameter should exist");
 
     let source_uri_after = shovel_param.value["src-uri"]
@@ -189,7 +189,7 @@ fn test_disable_tls_peer_verification_for_all_destination_uris_amqp10() -> Resul
     let params = client.list_runtime_parameters()?;
     let shovel_param = params
         .iter()
-        .find(|p| p.name == shovel_name && p.component == "shovel")
+        .find(|p| p.name == shovel_name && p.is_shovel())
         .expect("Shovel parameter should exist");
 
     let dest_uri = shovel_param.value["dest-uri"]
@@ -249,7 +249,7 @@ fn test_disable_tls_peer_verification_for_all_destination_uris_with_dummy_query_
     let params = client.list_runtime_parameters()?;
     let shovel_param = params
         .iter()
-        .find(|p| p.name == shovel_name && p.component == "shovel")
+        .find(|p| p.name == shovel_name && p.is_shovel())
         .expect("Shovel parameter should exist");
 
     let dest_uri_after = shovel_param.value["dest-uri"]
@@ -331,7 +331,7 @@ fn test_enable_tls_peer_verification_for_all_destination_uris_basic() -> Result<
     let params = client.list_runtime_parameters()?;
     let shovel_param = params
         .iter()
-        .find(|p| p.name == shovel_name && p.component == "shovel")
+        .find(|p| p.name == shovel_name && p.is_shovel())
         .expect("Shovel parameter should exist");
 
     let dest_uri = shovel_param.value["dest-uri"]
@@ -399,7 +399,7 @@ fn test_enable_tls_peer_verification_for_all_destination_uris_with_existing_para
     let params = client.list_runtime_parameters()?;
     let shovel_param = params
         .iter()
-        .find(|p| p.name == shovel_name && p.component == "shovel")
+        .find(|p| p.name == shovel_name && p.is_shovel())
         .expect("Shovel parameter should exist");
 
     let dest_uri2 = shovel_param.value["dest-uri"]
