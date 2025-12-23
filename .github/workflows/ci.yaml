@@ -28,6 +28,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+
+      - name: Free up disk space
+        run: .github/scripts/free_disk_space.sh
+
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
@@ -64,6 +68,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+
+      - name: Free up disk space
+        run: .github/scripts/free_disk_space.sh
+
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
         with:
@@ -78,7 +86,7 @@ jobs:
         run: RUST_HTTP_API_CLIENT_RABBITMQCTL=DOCKER:${{job.services.rabbitmq.id}} bin/ci/before_build.sh
 
       - name: Run tests
-        run: RUST_BACKTRACE=1 NEXTEST_RETRIES=2 cargo nextest run --workspace --no-fail-fast --all-features
+        run: RUST_BACKTRACE=1 NEXTEST_RETRIES=2 cargo nextest run --cargo-profile ci --workspace --no-fail-fast --all-features
 
   tls-tests:
     name: TLS tests
@@ -98,6 +106,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+
+      - name: Free up disk space
+        run: .github/scripts/free_disk_space.sh
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
@@ -197,7 +208,7 @@ jobs:
         run: |
           TLS_CERTS_DIR=${{ github.workspace }}/tests/tls/certs \
           RUST_BACKTRACE=1 \
-          cargo nextest run -E 'binary(tls_tests)' --run-ignored=only --no-fail-fast
+          cargo nextest run --cargo-profile ci -E 'binary(tls_tests)' --run-ignored=only --no-fail-fast
 
       - name: Stop RabbitMQ container
         if: always()
