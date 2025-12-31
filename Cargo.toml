@@ -18,16 +18,15 @@ url = "2"
 sysexits = "0.10"
 # For reqwest, we disable defaults to control what TLS features are enabled explicitly at build time.
 # Base features always included; native-tls is added via the native-tls feature above.
-reqwest = { version = "0.12", default-features = false, features = [
+reqwest = { version = "0.13", default-features = false, features = [
     "blocking",
     "json",
     "multipart",
     "http2",
     "charset",
-    "macos-system-configuration",
-    "rustls-tls-native-roots",
+    "rustls-native-certs",
 ] }
-rabbitmq_http_client = { version = "0.72.0", default-features = false, features = [
+rabbitmq_http_client = { version = "0.73.0", default-features = false, features = [
     "blocking",
     "tabled",
     "rustls-tls",

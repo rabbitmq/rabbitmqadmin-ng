@@ -2,6 +2,11 @@
 
 ## v2.21.0 (in development)
 
+### Dependency Upgrades
+
+ * `rabbitmq_http_client` upgraded to `0.73.0`
+ * `reqwest` upgraded to `0.13.x`
+
 ### Enhancements
 
  * A new set of commands for operations on `rabbitmqadmin` configuration files are now available under the `config_file` command group:

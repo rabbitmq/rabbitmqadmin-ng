@@ -262,14 +262,12 @@ fn build_http_client(
 
         let mut builder = HTTPClient::builder()
             .user_agent(user_agent)
-            .use_rustls_tls()
+            .tls_backend_rustls()
             .tls_info(true)
             .tls_sni(true)
-            .min_tls_version(TlsVersion::TLS_1_2)
-            .tls_built_in_native_certs(true)
-            .tls_built_in_root_certs(true)
-            .danger_accept_invalid_certs(disable_peer_verification)
-            .danger_accept_invalid_hostnames(disable_peer_verification);
+            .tls_version_min(TlsVersion::TLS_1_2)
+            .tls_danger_accept_invalid_certs(disable_peer_verification)
+            .tls_danger_accept_invalid_hostnames(disable_peer_verification);
 
         if let Some(ca_certs_path) = ca_certs_path_opt {
             let ca_certs_path_str = ca_certs_path.to_string_lossy().to_string();
