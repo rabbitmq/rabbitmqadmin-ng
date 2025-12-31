@@ -6,6 +6,7 @@
 
  * `rabbitmq_http_client` upgraded to `0.73.0`
  * `reqwest` upgraded to `0.13.x`
+ * When `--tls-ca-cert-file` is provided, only that CA is trusted (previously it was added to the system trust store)
 
 ### Enhancements
 

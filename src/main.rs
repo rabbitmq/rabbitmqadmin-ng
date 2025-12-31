@@ -272,7 +272,7 @@ fn build_http_client(
         if let Some(ca_certs_path) = ca_certs_path_opt {
             let ca_certs_path_str = ca_certs_path.to_string_lossy().to_string();
             let cert = load_ca_certificate(&ca_certs_path_str)?;
-            builder = builder.add_root_certificate(cert);
+            builder = builder.tls_certs_only([cert]);
         }
 
         // --tls-cert-file, --tls-key-file
