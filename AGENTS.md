@@ -59,7 +59,7 @@ Test suites require a RabbitMQ node running on `localhost:15672` with `rabbitmq_
 
 ## Target Rust Version
 
- * This tool targets cutting edge Rust (currently `1.91.0`)
+ * This tool targets very recent Rust (such as `1.92`)
 
 ## Rust Code Style
 
