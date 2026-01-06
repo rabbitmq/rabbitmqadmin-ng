@@ -654,6 +654,14 @@ fn pagination_args() -> [Arg; 2] {
     ]
 }
 
+fn columns_arg() -> Arg {
+    Arg::new("columns")
+        .long("columns")
+        .help("comma-separated list of columns to display")
+        .required(false)
+        .value_parser(value_parser!(String))
+}
+
 fn list_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     let nodes_cmd = Command::new("nodes").long_about("Lists cluster members");
     let vhosts_cmd = Command::new("vhosts")
@@ -848,7 +856,7 @@ fn declare_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
         );
     let vhost_cmd = Command::new("vhost")
         .about("Creates a virtual host")
-        .after_help(color_print::cformat!("<bold>Doc guide:</bold>: {}", VIRTUAL_HOST_GUIDE_URL))
+        .after_help(color_print::cformat!("<bold>Doc guide</bold>: {}", VIRTUAL_HOST_GUIDE_URL))
         .arg(
             Arg::new("name")
                 .long("name")
@@ -877,7 +885,7 @@ fn declare_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     let permissions_cmd = Command::new("permissions")
         .about("grants permissions to a user")
         .after_help(color_print::cformat!(
-            "<bold>Doc guide:</bold>: {}",
+            "<bold>Doc guide</bold>: {}",
             ACCESS_CONTROL_GUIDE_URL
         ))
         .arg(
@@ -907,7 +915,7 @@ fn declare_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     let queue_cmd = Command::new("queue")
         .about("Declares a queue or a stream")
         .after_help(color_print::cformat!(
-            "<bold>Doc guide:</bold>: {}",
+            "<bold>Doc guide</bold>: {}",
             QUEUE_GUIDE_URL
         ))
         .arg(Arg::new("name").long("name").required(true).help("name"))
@@ -936,7 +944,7 @@ fn declare_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
         .arg(
             Arg::new("arguments")
                 .long("arguments")
-                .help("additional exchange arguments")
+                .help("additional queue arguments")
                 .required(false)
                 .default_value("{}")
                 .value_parser(value_parser!(String)),
@@ -944,7 +952,7 @@ fn declare_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     let stream_cmd = Command::new("stream")
         .about("Declares a stream")
         .after_help(color_print::cformat!(
-            "<bold>Doc guide:</bold>: {}",
+            "<bold>Doc guide</bold>: {}",
             STREAM_GUIDE_URL
         ))
         .arg(Arg::new("name").long("name").required(true).help("name"))
@@ -972,7 +980,7 @@ fn declare_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
         .arg(
             Arg::new("arguments")
                 .long("arguments")
-                .help("additional exchange arguments")
+                .help("additional stream arguments")
                 .required(false)
                 .default_value("{}")
                 .value_parser(value_parser!(String)),
@@ -1052,7 +1060,7 @@ fn declare_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     let parameter_cmd = Command::new("parameter")
         .about("Sets a runtime parameter")
         .after_help(color_print::cformat!(
-            "<bold>Doc guide:</bold>: {}",
+            "<bold>Doc guide</bold>: {}",
             RUNTIME_PARAMETER_GUIDE_URL
         ))
         .arg(
@@ -1075,7 +1083,7 @@ fn declare_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
         );
     let policy_cmd = Command::new("policy")
         .about("Creates or updates a policy")
-        .after_help(color_print::cformat!("<bold>Doc guide:</bold>: {}", POLICY_GUIDE_URL))
+        .after_help(color_print::cformat!("<bold>Doc guide</bold>: {}", POLICY_GUIDE_URL))
         .arg(
             Arg::new("name")
                 .long("name")
@@ -1111,7 +1119,7 @@ fn declare_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
         );
     let operator_policy_cmd = Command::new("operator_policy")
         .about("Creates or updates an operator policy")
-        .after_help(color_print::cformat!("<bold>Doc guide:</bold>: {}", OPERATOR_POLICY_GUIDE_URL))
+        .after_help(color_print::cformat!("<bold>Doc guide</bold>: {}", OPERATOR_POLICY_GUIDE_URL))
         .arg(
             Arg::new("name")
                 .long("name")
@@ -1148,7 +1156,7 @@ fn declare_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     let vhost_limit_cmd = Command::new("vhost_limit")
         .about("Set a vhost limit")
         .after_help(color_print::cformat!(
-            "<bold>Doc guide:</bold>: {}",
+            "<bold>Doc guide</bold>: {}",
             VIRTUAL_HOST_LIMIT_GUIDE_URL
         ))
         .arg(
@@ -1166,7 +1174,7 @@ fn declare_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     let user_limit_cmd = Command::new("user_limit")
         .about("Set a user limit")
         .after_help(color_print::cformat!(
-            "<bold>Doc guide:</bold>: {}",
+            "<bold>Doc guide</bold>: {}",
             USER_LIMIT_GUIDE_URL
         ))
         .arg(
@@ -1221,7 +1229,7 @@ fn show_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
                 .required(true),
         )
         .after_help(color_print::cformat!(
-            "<bold>Doc guide:</bold>: {}",
+            "<bold>Doc guide</bold>: {}",
             MEMORY_FOOTPRINT_GUIDE_URL
         ));
 
@@ -1234,7 +1242,7 @@ fn show_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
                 .required(true),
         )
         .after_help(color_print::cformat!(
-            "<bold>Doc guide:</bold>: {}",
+            "<bold>Doc guide</bold>: {}",
             MEMORY_FOOTPRINT_GUIDE_URL
         ));
 
@@ -1556,7 +1564,7 @@ fn queues_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     let declare_cmd = Command::new("declare")
         .about("Declares a queue or a stream")
         .after_help(color_print::cformat!(
-            "<bold>Doc guide:</bold>: {}",
+            "<bold>Doc guide</bold>: {}",
             QUEUE_GUIDE_URL
         ))
         .arg(Arg::new("name").long("name").required(true).help("name"))
@@ -1585,7 +1593,7 @@ fn queues_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
         .arg(
             Arg::new("arguments")
                 .long("arguments")
-                .help("additional exchange arguments")
+                .help("additional queue arguments")
                 .required(false)
                 .default_value("{}")
                 .value_parser(value_parser!(String)),
@@ -1611,7 +1619,21 @@ fn queues_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
             "<bold>Doc guide</bold>: {}",
             QUEUE_GUIDE_URL
         ))
-        .args(pagination_args());
+        .args(pagination_args())
+        .arg(columns_arg());
+    let show_cmd = Command::new("show")
+        .about("Shows details for a single queue")
+        .after_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            QUEUE_GUIDE_URL
+        ))
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("queue name")
+                .required(true),
+        )
+        .arg(columns_arg());
     let purge_cmd = Command::new("purge")
         .long_about("Purges (permanently removes unacknowledged messages from) a queue")
         .arg(
@@ -1621,17 +1643,24 @@ fn queues_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
                 .required(true),
         );
     let rebalance_cmd = Command::new("rebalance").about("Rebalances queue leaders");
-    [declare_cmd, delete_cmd, list_cmd, purge_cmd, rebalance_cmd]
-        .into_iter()
-        .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
-        .collect()
+    [
+        declare_cmd,
+        delete_cmd,
+        list_cmd,
+        purge_cmd,
+        rebalance_cmd,
+        show_cmd,
+    ]
+    .into_iter()
+    .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
+    .collect()
 }
 
 fn streams_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     let declare_cmd = Command::new("declare")
         .about("Declares a stream")
         .after_help(color_print::cformat!(
-            "<bold>Doc guide:</bold>: {}",
+            "<bold>Doc guide</bold>: {}",
             STREAM_GUIDE_URL
         ))
         .arg(Arg::new("name").long("name").required(true).help("name"))
@@ -1659,7 +1688,7 @@ fn streams_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
         .arg(
             Arg::new("arguments")
                 .long("arguments")
-                .help("additional exchange arguments")
+                .help("additional stream arguments")
                 .required(false)
                 .default_value("{}")
                 .value_parser(value_parser!(String)),
@@ -1671,22 +1700,36 @@ fn streams_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
         .help("do not consider 404 Not Found API responses to be errors")
         .required(false);
     let delete_cmd = Command::new("delete")
-        .about("Deletes a queue")
+        .about("Deletes a stream")
         .arg(
             Arg::new("name")
                 .long("name")
-                .help("queue name")
+                .help("stream name")
                 .required(true),
         )
         .arg(idempotently_arg.clone());
     let list_cmd = Command::new("list")
-        .long_about("Lists streams and queues")
+        .long_about("Lists streams")
         .after_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             STREAM_GUIDE_URL
         ))
-        .args(pagination_args());
-    [declare_cmd, delete_cmd, list_cmd]
+        .args(pagination_args())
+        .arg(columns_arg());
+    let show_cmd = Command::new("show")
+        .about("Shows details for a single stream")
+        .after_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            STREAM_GUIDE_URL
+        ))
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("stream name")
+                .required(true),
+        )
+        .arg(columns_arg());
+    [declare_cmd, delete_cmd, list_cmd, show_cmd]
         .into_iter()
         .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
         .collect()
@@ -1735,7 +1778,7 @@ fn parameters_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command
         .alias("declare")
         .about("Sets a runtime parameter")
         .after_help(color_print::cformat!(
-            "<bold>Doc guide:</bold>: {}",
+            "<bold>Doc guide</bold>: {}",
             RUNTIME_PARAMETER_GUIDE_URL
         ))
         .arg(
@@ -1799,7 +1842,7 @@ fn global_parameters_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<
         .alias("declare")
         .about("Sets a global runtime parameter")
         .after_help(color_print::cformat!(
-            "<bold>Doc guide:</bold>: {}",
+            "<bold>Doc guide</bold>: {}",
             RUNTIME_PARAMETER_GUIDE_URL
         ))
         .arg(
@@ -1843,7 +1886,7 @@ fn operator_policies_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<
     let declare_cmd = Command::new("declare")
         .visible_aliases(vec!["update", "set"])
         .about("Creates or updates an operator policy")
-        .after_help(color_print::cformat!("<bold>Doc guide:</bold>: {}", POLICY_GUIDE_URL))
+        .after_help(color_print::cformat!("<bold>Doc guide</bold>: {}", POLICY_GUIDE_URL))
         .arg(
             Arg::new("name")
                 .long("name")
@@ -2026,7 +2069,7 @@ fn policies_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> 
     let declare_cmd = Command::new("declare")
         .visible_aliases(vec!["update", "set"])
         .about("Creates or updates a policy")
-        .after_help(color_print::cformat!("<bold>Doc guide:</bold>: {}", POLICY_GUIDE_URL))
+        .after_help(color_print::cformat!("<bold>Doc guide</bold>: {}", POLICY_GUIDE_URL))
         .arg(
             Arg::new("name")
                 .long("name")
@@ -2083,7 +2126,7 @@ fn policies_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> 
 
     let declare_blanket_cmd = Command::new("declare_blanket")
         .about("Creates a low priority blanket policy, a policy that matches all objects not matched by any other policy")
-        .after_help(color_print::cformat!("<bold>Doc guide:</bold>: {}", POLICY_GUIDE_URL))
+        .after_help(color_print::cformat!("<bold>Doc guide</bold>: {}", POLICY_GUIDE_URL))
         .arg(
             Arg::new("name")
                 .long("name")
@@ -3077,7 +3120,7 @@ pub fn nodes_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command>
                 .required(true),
         )
         .after_help(color_print::cformat!(
-            "<bold>Doc guide:</bold>: {}",
+            "<bold>Doc guide</bold>: {}",
             MEMORY_FOOTPRINT_GUIDE_URL
         ));
 
@@ -3090,7 +3133,7 @@ pub fn nodes_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command>
                 .required(true),
         )
         .after_help(color_print::cformat!(
-            "<bold>Doc guide:</bold>: {}",
+            "<bold>Doc guide</bold>: {}",
             MEMORY_FOOTPRINT_GUIDE_URL
         ));
 
@@ -3114,7 +3157,7 @@ pub fn vhosts_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command
 
     let declare_cmd = Command::new("declare")
         .about("Creates a virtual host")
-        .after_help(color_print::cformat!("<bold>Doc guide:</bold>: {}", VIRTUAL_HOST_GUIDE_URL))
+        .after_help(color_print::cformat!("<bold>Doc guide</bold>: {}", VIRTUAL_HOST_GUIDE_URL))
         .arg(
             Arg::new("name")
                 .long("name")
@@ -3159,7 +3202,7 @@ pub fn vhosts_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command
 
     let bulk_delete_cmd = Command::new("delete_multiple")
         .about(color_print::cstr!("<bold><red>DANGER ZONE.</red></bold> Deletes multiple virtual hosts at once using a name matching pattern"))
-        .after_help(color_print::cformat!("<bold>Doc guide:</bold>: {}", VIRTUAL_HOST_GUIDE_URL))
+        .after_help(color_print::cformat!("<bold>Doc guide</bold>: {}", VIRTUAL_HOST_GUIDE_URL))
         .arg(
             Arg::new("name_pattern")
                 .long("name-pattern")
@@ -3184,7 +3227,7 @@ pub fn vhosts_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command
     let enable_deletion_protection_cmd = Command::new("enable_deletion_protection")
         .about("Enables deletion protection for a virtual host")
         .after_help(color_print::cformat!(
-            "<bold>Doc guide:</bold>: {}",
+            "<bold>Doc guide</bold>: {}",
             VHOST_DELETION_PROTECTION_GUIDE_URL
         ))
         .arg(
@@ -3196,7 +3239,7 @@ pub fn vhosts_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command
     let disable_deletion_protection_cmd = Command::new("disable_deletion_protection")
         .about("Disables deletion protection for a virtual host")
         .after_help(color_print::cformat!(
-            "<bold>Doc guide:</bold>: {}",
+            "<bold>Doc guide</bold>: {}",
             VHOST_DELETION_PROTECTION_GUIDE_URL
         ))
         .arg(
@@ -3368,7 +3411,7 @@ pub fn permissions_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Co
     let declare_cmd = Command::new("declare")
         .about("grants permissions to a user")
         .after_help(color_print::cformat!(
-            "<bold>Doc guide:</bold>: {}",
+            "<bold>Doc guide</bold>: {}",
             ACCESS_CONTROL_GUIDE_URL
         ))
         .arg(
@@ -3429,7 +3472,7 @@ pub fn user_limits_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Co
     let declare_cmd = Command::new("declare")
         .about("Set a user limit")
         .after_help(color_print::cformat!(
-            "<bold>Doc guide:</bold>: {}",
+            "<bold>Doc guide</bold>: {}",
             USER_LIMIT_GUIDE_URL
         ))
         .arg(
@@ -3483,7 +3526,7 @@ pub fn vhost_limits_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<C
     let declare_cmd = Command::new("declare")
         .about("Set a vhost limit")
         .after_help(color_print::cformat!(
-            "<bold>Doc guide:</bold>: {}",
+            "<bold>Doc guide</bold>: {}",
             VIRTUAL_HOST_LIMIT_GUIDE_URL
         ))
         .arg(

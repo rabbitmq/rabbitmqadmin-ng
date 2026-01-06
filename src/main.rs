@@ -25,6 +25,7 @@ use rustls::pki_types::pem::PemObject;
 
 mod arg_helpers;
 mod cli;
+mod columns;
 mod commands;
 mod config;
 mod constants;

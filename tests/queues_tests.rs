@@ -124,3 +124,76 @@ fn test_queues_delete_idempotently() -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
+
+#[test]
+fn test_queues_list_with_columns() -> Result<(), Box<dyn Error>> {
+    let vh = "rabbitmqadmin.queues.columns_test";
+    let q = "test_queue_columns";
+
+    delete_vhost(vh).expect("failed to delete a virtual host");
+    run_succeeds(["declare", "vhost", "--name", vh]);
+
+    run_succeeds([
+        "-V", vh, "queues", "declare", "--name", q, "--type", "classic",
+    ]);
+
+    await_queue_metric_emission();
+
+    run_succeeds(["-V", vh, "queues", "list", "--columns", "name,queue_type"])
+        .stdout(output_includes(q).and(output_includes("classic")));
+
+    run_succeeds(["-V", vh, "queues", "list", "--columns", "name"]).stdout(output_includes(q));
+
+    run_succeeds(["-V", vh, "queues", "list", "--columns", "NAME,Queue_Type"])
+        .stdout(output_includes(q).and(output_includes("classic")));
+
+    run_succeeds([
+        "-V",
+        vh,
+        "queues",
+        "list",
+        "--columns",
+        "name,nonexistent_column",
+    ])
+    .stdout(output_includes(q).and(output_includes("nonexistent_column").not()));
+
+    delete_vhost(vh).expect("failed to delete a virtual host");
+
+    Ok(())
+}
+
+#[test]
+fn test_queues_show() -> Result<(), Box<dyn Error>> {
+    let vh = "rabbitmqadmin.queues.show_test";
+    let q = "test_queue_show";
+
+    delete_vhost(vh).expect("failed to delete a virtual host");
+    run_succeeds(["declare", "vhost", "--name", vh]);
+
+    run_succeeds([
+        "-V", vh, "queues", "declare", "--name", q, "--type", "classic",
+    ]);
+
+    await_queue_metric_emission();
+
+    run_succeeds(["-V", vh, "queues", "show", "--name", q])
+        .stdout(output_includes(q).and(output_includes("classic")));
+
+    run_succeeds([
+        "-V",
+        vh,
+        "queues",
+        "show",
+        "--name",
+        q,
+        "--columns",
+        "name,queue_type",
+    ])
+    .stdout(output_includes(q).and(output_includes("classic")));
+
+    run_fails(["-V", vh, "queues", "show", "--name", "nonexistent_queue"]);
+
+    delete_vhost(vh).expect("failed to delete a virtual host");
+
+    Ok(())
+}

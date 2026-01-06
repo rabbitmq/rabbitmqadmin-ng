@@ -11,6 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+use crate::columns;
 use crate::config::SharedSettings;
 use crate::errors::CommandRunError;
 use crate::tables;
@@ -148,6 +149,42 @@ impl<'a> ResultHandler<'a> {
         T: fmt::Debug + Tabled,
     {
         self.handle_table_result(result, Table::new);
+    }
+
+    pub fn tabular_result_with_columns<T>(
+        &mut self,
+        result: CommandResult<Vec<T>>,
+        columns_arg: Option<String>,
+    ) where
+        T: fmt::Debug + Tabled,
+    {
+        match columns_arg {
+            Some(cols) => {
+                let column_list = columns::parse_columns(&cols);
+                self.handle_table_result(result, |data| {
+                    columns::build_table_with_columns(&data, &column_list)
+                });
+            }
+            None => self.tabular_result(result),
+        }
+    }
+
+    pub fn single_item_tabular_result_with_columns<T>(
+        &mut self,
+        result: CommandResult<T>,
+        columns_arg: Option<String>,
+    ) where
+        T: fmt::Debug + Tabled,
+    {
+        match columns_arg {
+            Some(cols) => {
+                let column_list = columns::parse_columns(&cols);
+                self.handle_table_result(result, |data| {
+                    columns::build_table_with_columns(&[data], &column_list)
+                });
+            }
+            None => self.handle_table_result(result, |data| Table::new([data])),
+        }
     }
 
     pub fn single_value_output_with_result<T: fmt::Display>(

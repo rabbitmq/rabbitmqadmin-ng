@@ -8,7 +8,39 @@
 
 ### Enhancements
 
- * A new set of commands for operations on `rabbitmqadmin` configuration files are now available under the `config_file` command group:
+ * `queues list` now supports `--columns` for selecting specific columns to display:
+
+   ```shell
+   rabbitmqadmin queues list --columns name,queue_type,message_count
+
+   rabbitmqadmin queues list --columns name
+   ```
+
+   Column names are case-insensitive. Unknown columns are silently ignored.
+
+ * `queues show` is a new command that displays select metrics of a single queue:
+
+   ```shell
+   rabbitmqadmin queues show --name "events.incoming"
+
+   rabbitmqadmin queues show --name "orders.pending" --columns name,queue_type,message_count
+   ```
+
+ * `streams list` now supports `--columns` for consistency with `queues list`:
+
+   ```shell
+   rabbitmqadmin streams list --columns name,queue_type
+   ```
+
+ * `streams show` is a stream equivalent of `queues show`:
+
+   ```shell
+   rabbitmqadmin streams show --name "events.stream"
+
+   rabbitmqadmin streams show --name "events.stream" --columns name,queue_type
+   ```
+
+ * `config_file` is a new command group for operations on `rabbitmqadmin` configuration files:
 
    ```shell
    rabbitmqadmin config_file show_path
@@ -33,6 +65,10 @@
    # Delete a node (a configuration file entry)
    rabbitmqadmin config_file delete_node --node experiment-001
    ```
+
+### Bug Fixes
+
+ * Fixed a few copy-paste errors in command descriptions in the `stream` group
 
 ### Dependency Upgrades
 

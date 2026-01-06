@@ -414,6 +414,14 @@ pub fn list_queues(
     }
 }
 
+pub fn get_queue_info(
+    client: APIClient,
+    vhost: &str,
+    name: &str,
+) -> CommandResult<responses::QueueInfo> {
+    Ok(client.get_queue_info(vhost, name)?)
+}
+
 pub fn list_exchanges(
     client: APIClient,
     vhost: &str,

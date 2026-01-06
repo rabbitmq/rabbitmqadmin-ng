@@ -13,6 +13,7 @@
 // limitations under the License.
 
 pub mod arg_helpers;
+pub mod columns;
 pub mod config;
 pub mod constants;
 pub mod errors;

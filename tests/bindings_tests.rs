@@ -25,8 +25,8 @@ fn test_list_bindings() -> Result<(), Box<dyn Error>> {
     let q1 = "new_queue_1";
     let q2 = "new_queue_2";
 
-    delete_vhost(vh1).expect("failed to delete a virtual host");
-    delete_vhost(vh2).expect("failed to delete a virtual host");
+    let _ = delete_vhost(vh1);
+    let _ = delete_vhost(vh2);
 
     run_succeeds(["declare", "vhost", "--name", vh1]);
 
@@ -72,7 +72,7 @@ fn test_list_bindings() -> Result<(), Box<dyn Error>> {
 
     await_queue_metric_emission();
 
-    run_succeeds(["-V", "bindings_vhost_1", "list", "bindings"]).stdout(
+    run_succeeds(["-V", vh1, "list", "bindings"]).stdout(
         output_includes("new_queue_1")
             .and(output_includes("routing_key_queue"))
             .and(output_includes("routing_key_exchange")),
@@ -80,7 +80,7 @@ fn test_list_bindings() -> Result<(), Box<dyn Error>> {
 
     run_succeeds(["-V", vh1, "queues", "delete", "--name", q1]);
 
-    run_succeeds(["-V", "bindings_vhost_1", "list", "bindings"]).stdout(
+    run_succeeds(["-V", vh1, "list", "bindings"]).stdout(
         output_includes("new_queue_1")
             .not()
             .and(output_includes("routing_key_queue"))
@@ -88,8 +88,8 @@ fn test_list_bindings() -> Result<(), Box<dyn Error>> {
             .and(output_includes("routing_key_exchange")),
     );
 
-    delete_vhost(vh1).expect("failed to delete a virtual host");
-    delete_vhost(vh2).expect("failed to delete a virtual host");
+    let _ = delete_vhost(vh1);
+    let _ = delete_vhost(vh2);
 
     Ok(())
 }
@@ -101,8 +101,8 @@ fn test_bindings_list() -> Result<(), Box<dyn Error>> {
     let q1 = "new_queue_1";
     let q2 = "new_queue_2";
 
-    delete_vhost(vh1).expect("failed to delete a virtual host");
-    delete_vhost(vh2).expect("failed to delete a virtual host");
+    let _ = delete_vhost(vh1);
+    let _ = delete_vhost(vh2);
 
     run_succeeds(["vhosts", "declare", "--name", vh1]);
 
@@ -177,8 +177,8 @@ fn test_bindings_list() -> Result<(), Box<dyn Error>> {
             .and(output_includes("routing_key_exchange")),
     );
 
-    delete_vhost(vh1).expect("failed to delete a virtual host");
-    delete_vhost(vh2).expect("failed to delete a virtual host");
+    let _ = delete_vhost(vh1);
+    let _ = delete_vhost(vh2);
 
     Ok(())
 }
@@ -190,7 +190,7 @@ fn test_bindings_delete_idempotently() -> Result<(), Box<dyn Error>> {
     let dest_queue = "test_dest_queue";
     let routing_key = "test.routing.key";
 
-    delete_vhost(vh).expect("failed to delete a virtual host");
+    let _ = delete_vhost(vh);
     run_succeeds(["declare", "vhost", "--name", vh]);
 
     run_succeeds([
@@ -306,7 +306,7 @@ fn test_bindings_delete_idempotently() -> Result<(), Box<dyn Error>> {
         "--idempotently",
     ]);
 
-    delete_vhost(vh).expect("failed to delete a virtual host");
+    let _ = delete_vhost(vh);
 
     Ok(())
 }

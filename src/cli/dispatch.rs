@@ -977,8 +977,9 @@ fn dispatch_queues(
             res_handler.delete_operation_result(result);
         }
         "list" => {
+            let columns = args.optional_string("columns");
             let result = commands::list_queues(client, vhost, args);
-            res_handler.tabular_result(result);
+            res_handler.tabular_result_with_columns(result, columns);
         }
         "purge" => {
             let result = commands::purge_queue(client, vhost, args);
@@ -987,6 +988,12 @@ fn dispatch_queues(
         "rebalance" => {
             let result = commands::rebalance_queues(client);
             res_handler.no_output_on_success(result);
+        }
+        "show" => {
+            let name = args.string_arg("name");
+            let columns = args.optional_string("columns");
+            let result = commands::get_queue_info(client, vhost, &name);
+            res_handler.single_item_tabular_result_with_columns(result, columns);
         }
         _ => return unknown_subcommand("queues", subcommand, res_handler),
     }
@@ -1145,8 +1152,15 @@ fn dispatch_streams(
             res_handler.delete_operation_result(result);
         }
         "list" => {
+            let columns = args.optional_string("columns");
             let result = commands::list_queues(client, vhost, args);
-            res_handler.tabular_result(result);
+            res_handler.tabular_result_with_columns(result, columns);
+        }
+        "show" => {
+            let name = args.string_arg("name");
+            let columns = args.optional_string("columns");
+            let result = commands::get_queue_info(client, vhost, &name);
+            res_handler.single_item_tabular_result_with_columns(result, columns);
         }
         _ => return unknown_subcommand("streams", subcommand, res_handler),
     }

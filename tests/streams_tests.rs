@@ -162,3 +162,75 @@ fn test_streams_delete_idempotently() -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
+
+#[test]
+fn test_streams_list_with_columns() -> Result<(), Box<dyn Error>> {
+    let vh = "rabbitmqadmin.streams.columns_test";
+    let s = "test_stream_columns";
+
+    delete_vhost(vh).expect("failed to delete a virtual host");
+    run_succeeds(["declare", "vhost", "--name", vh]);
+
+    run_succeeds([
+        "-V",
+        vh,
+        "streams",
+        "declare",
+        "--name",
+        s,
+        "--expiration",
+        "2D",
+    ]);
+
+    await_queue_metric_emission();
+
+    run_succeeds(["-V", vh, "streams", "list", "--columns", "name,queue_type"])
+        .stdout(output_includes(s).and(output_includes("stream")));
+
+    run_succeeds(["-V", vh, "streams", "list", "--columns", "name"]).stdout(output_includes(s));
+
+    delete_vhost(vh).expect("failed to delete a virtual host");
+
+    Ok(())
+}
+
+#[test]
+fn test_streams_show() -> Result<(), Box<dyn Error>> {
+    let vh = "rabbitmqadmin.streams.show_test";
+    let s = "test_stream_show";
+
+    let _ = delete_vhost(vh);
+    run_succeeds(["declare", "vhost", "--name", vh]);
+
+    run_succeeds([
+        "-V",
+        vh,
+        "streams",
+        "declare",
+        "--name",
+        s,
+        "--expiration",
+        "2D",
+    ]);
+
+    await_queue_metric_emission();
+
+    run_succeeds(["-V", vh, "streams", "show", "--name", s])
+        .stdout(output_includes(s).and(output_includes("stream")));
+
+    run_succeeds([
+        "-V",
+        vh,
+        "streams",
+        "show",
+        "--name",
+        s,
+        "--columns",
+        "name,queue_type",
+    ])
+    .stdout(output_includes(s).and(output_includes("stream")));
+
+    let _ = delete_vhost(vh);
+
+    Ok(())
+}
