@@ -302,6 +302,21 @@ rabbitmqadmin queues list
 rabbitmqadmin --vhost "monitoring" queues list
 ```
 
+``` shell
+# List queues with specific columns only
+rabbitmqadmin queues list --columns name,queue_type,message_count
+```
+
+### Show Queue Details
+
+``` shell
+rabbitmqadmin queues show --name "events.incoming"
+```
+
+``` shell
+rabbitmqadmin queues show --name "orders.pending" --columns name,queue_type,message_count
+```
+
 ### List Exchanges
 
 ``` shell
@@ -1210,6 +1225,16 @@ rabbitmqadmin streams list
 ```
 
 ```shell
+# List streams with specific columns only
+rabbitmqadmin streams list --columns name,queue_type
+```
+
+```shell
+# Show details for a single stream
+rabbitmqadmin streams show --name "events.stream"
+```
+
+```shell
 # Declare a stream
 rabbitmqadmin --vhost "logs" streams declare --name "application.logs" --expiration "7D" --max-length-bytes "10737418240"
 ```
@@ -1343,6 +1368,32 @@ the original version of `rabbitmqadmin`. It can be overridden on the command lin
 rabbitmqadmin --config $HOME/.configuration/rabbitmqadmin.conf --node staging show churn
 ```
 
+### Managing Configuration Files
+
+The `config_file` command group provides operations for managing `rabbitmqadmin` configuration files:
+
+```shell
+# Show the path to the configuration file
+rabbitmqadmin config_file show_path
+
+# Show all configured nodes (passwords masked by default)
+rabbitmqadmin config_file show
+rabbitmqadmin config_file show --reveal-passwords
+
+# Add a new node (fails if an entry with this name already exists)
+rabbitmqadmin config_file add_node --node experiment-001 --host rabbit.eng.example.com --port 15672 --username admin --password secret --vhost /
+
+# Update an existing node (or create one if it does not exist)
+# Only the specified fields are updated; unspecified fields are preserved
+rabbitmqadmin config_file update_node --node experiment-001 --host new-rabbit.eng.example.com --port 15673
+
+# Enable TLS for a node (other settings like username, password are preserved)
+rabbitmqadmin config_file update_node --node experiment-001 --use-tls --port 15671
+
+# Delete a node (a configuration file entry)
+rabbitmqadmin config_file delete_node --node experiment-001
+```
+
 ## Intentionally Restricted Environment Variable Support
 
 Environment variables have a number of serious downsides compared to a `rabbitmqadmin.conf`
@@ -1407,7 +1458,7 @@ This version of `rabbitmqadmin` has a few ideas in mind:
  * Sorting of results. Instead, use `--non-interactive` and parse the spaces-separated
    output. Many modern tools for working with data parse it into a table, sort the data set,
    filter the results, and son. In fact, these features for data processing are ready available [in some shells](https://www.nushell.sh/)
- * Column selection. This feature may be reintroduced
+ * Column selection for most commands. `queues list`, `queues show`, `streams list`, and `streams show` do support `--columns`
  * JSON output for arbitrary commands (with the exception of `definitions` commands).
    Use the HTTP API directly if you need to work with JSON
  * CSV output for arbitrary commands. This format may be reintroduced
