@@ -50,7 +50,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
     );
 
     let auth_attempts_group = Command::new("auth_attempts")
-        .about("Operations on authentication attempt statistics")
+        .about("Authentication attempt statistics")
         .infer_subcommands(pre_flight_settings.infer_subcommands)
         .infer_long_args(pre_flight_settings.infer_long_options)
         .after_help(color_print::cformat!(
