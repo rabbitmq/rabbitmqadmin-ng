@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     tags:
-    - 'v\d\.\d\.\d'
+    - 'v*.*.*'
 
 defaults:
   run:
