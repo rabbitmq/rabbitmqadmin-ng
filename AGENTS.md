@@ -34,13 +34,20 @@ Test suites require a RabbitMQ node running on `localhost:15672` with `rabbitmq_
 ### Implementation
 
  * `src/main.rs`: the entry point
- * `src/cli.rs`: `clap`-based CLI
+ * `src/cli/mod.rs`: `clap`-based CLI parser
+ * `src/cli/dispatch.rs`: command dispatching
  * `src/commands.rs`: command implementations
  * `src/config.rs`: configuration file support
  * `src/errors.rs`: error types
  * `src/output.rs`: table styling, output formatting
  * `src/tables.rs`: custom tables for certain commands
- * `src/tanzu_*.rs`: Tanzu RabbitMQ-specific commands
+ * `src/arg_helpers.rs`: argument parsing helpers
+ * `src/columns.rs`: selects individual columns for output
+ * `src/constants.rs`: default values and constants
+ * `src/pre_flight.rs`: interactivity mode detection
+ * `src/static_urls.rs`: documentation and resource URLs
+ * `src/tanzu_cli.rs`: Tanzu RabbitMQ-specific CLI parser
+ * `src/tanzu_commands.rs`: Tanzu RabbitMQ-specific commands dispatching
 
 ### Testing
 
@@ -81,3 +88,14 @@ Test suites require a RabbitMQ node running on `localhost:15672` with `rabbitmq_
 ## Style Guide
 
  * Never add full stops to Markdown list items
+
+## After Completing a Task
+
+### Iterative Reviews
+
+After completing a task, perform up to twenty iterative reviews of your changes.
+In every iteration, look for meaningful improvements that were missed, for gaps in test coverage,
+and for deviations from the instructions in this file.
+
+If no meaningful improvements are found for three iterations in a row,
+report it and stop iterating.
