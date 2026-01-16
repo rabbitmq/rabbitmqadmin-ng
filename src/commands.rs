@@ -1636,6 +1636,9 @@ pub fn delete_policy_definition_keys_in(
 
     for pol in pols {
         let updated_pol = pol.without_keys(&keys);
+        if updated_pol.definition.is_empty() {
+            continue;
+        }
 
         let params = PolicyParams::from(&updated_pol);
         client.declare_policy(&params)?
@@ -1677,9 +1680,52 @@ pub fn delete_operator_policy_definition_keys_in(
 
     for pol in pols {
         let updated_pol = pol.without_keys(&keys);
+        if updated_pol.definition.is_empty() {
+            continue;
+        }
 
         let params = PolicyParams::from(&updated_pol);
         client.declare_operator_policy(&params)?
+    }
+
+    Ok(())
+}
+
+pub fn delete_policy_definition_keys_from_all(
+    client: APIClient,
+    command_args: &ArgMatches,
+) -> CommandResult<()> {
+    let pols = client.list_policies()?;
+    let keys: Vec<&str> = command_args
+        .get_many::<String>("definition_keys")
+        .unwrap()
+        .map(String::as_str)
+        .collect();
+
+    for pol in pols {
+        let updated_pol = pol.without_keys(&keys);
+        if updated_pol.definition.is_empty() {
+            continue;
+        }
+
+        let params = PolicyParams::from(&updated_pol);
+        client.declare_policy(&params)?
+    }
+
+    Ok(())
+}
+
+pub fn update_all_policy_definitions(
+    client: APIClient,
+    command_args: &ArgMatches,
+) -> Result<(), CommandRunError> {
+    let pols = client.list_policies().map_err(CommandRunError::from)?;
+    let key = command_args.string_arg("definition_key");
+    let value = command_args.string_arg("definition_value");
+    let parsed_value = parse_json_from_arg::<Value>(&value)?;
+
+    for pol in pols {
+        update_policy_definition_with(&client, &pol.vhost, &pol.name, &key, &parsed_value)?
     }
 
     Ok(())

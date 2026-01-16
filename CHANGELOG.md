@@ -2,7 +2,26 @@
 
 ## v2.22.0 (in development)
 
-No changes yet.
+### Enhancements
+
+ * `policies delete_definition_keys_from_all` is an equivalent of `policies delete_definition_keys_from_all_in`
+   that deletes definition keys from all policies across all virtual hosts in the cluster:
+
+   ```shell
+   rabbitmqadmin policies delete_definition_keys_from_all --definition-keys federation-upstream-set
+   ```
+
+   For example, this command can be used to temporarily disable federation across all virtual hosts.
+
+ * `policies update_definitions_of_all` is an equivalent of `policies update_definitions_of_all_in`
+   that updates definitions of all policies across all virtual hosts in the cluster:
+
+   ```shell
+   rabbitmqadmin policies update_definitions_of_all --definition-key federation-upstream-set --new-value all
+   ```
+
+   Similarly to `policies delete_definition_keys_from_all`, this command can be used to [re-]enable federation
+   across all virtual hosts.
 
 
 ## v2.21.0 (Jan 6, 2026)
