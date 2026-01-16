@@ -738,10 +738,25 @@ rabbitmqadmin --vhost "vh-1" policies update_definitions_of_all_in \
   --new-value "5000000"
 ```
 
+### Update a Definition Key in All Policies in the Cluster
+
+```shell
+rabbitmqadmin policies update_definitions_of_all \
+  --definition-key "max-length" \
+  --new-value "5000000"
+```
+
 ### Delete Definition Keys from All Policies in a Virtual Host
 
 ```shell
 rabbitmqadmin --vhost "vh-1" policies delete_definition_keys_from_all_in \
+  --definition-keys max-length,max-length-bytes
+```
+
+### Delete Definition Keys from All Policies in the Cluster
+
+```shell
+rabbitmqadmin policies delete_definition_keys_from_all \
   --definition-keys max-length,max-length-bytes
 ```
 
