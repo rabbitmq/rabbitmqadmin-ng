@@ -705,3 +705,280 @@ fn test_policy_validation_error() -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
+
+#[test]
+fn test_policies_cluster_wide_delete_definition_keys() -> Result<(), Box<dyn Error>> {
+    let vh1 = "rabbitmqadmin.test_cluster_wide_delete_keys.1";
+    let vh2 = "rabbitmqadmin.test_cluster_wide_delete_keys.2";
+    let vh3 = "rabbitmqadmin.test_cluster_wide_delete_keys.3";
+
+    run_succeeds(["delete", "vhost", "--name", vh1, "--idempotently"]);
+    run_succeeds(["declare", "vhost", "--name", vh1]);
+    run_succeeds(["delete", "vhost", "--name", vh2, "--idempotently"]);
+    run_succeeds(["declare", "vhost", "--name", vh2]);
+    run_succeeds(["delete", "vhost", "--name", vh3, "--idempotently"]);
+    run_succeeds(["declare", "vhost", "--name", vh3]);
+
+    let policy1 = "test_cluster_wide_delete_keys-1";
+    let policy2 = "test_cluster_wide_delete_keys-2";
+    let policy3 = "test_cluster_wide_delete_keys-3";
+
+    run_succeeds([
+        "--vhost",
+        vh1,
+        "policies",
+        "declare",
+        "--name",
+        policy1,
+        "--pattern",
+        "foo-.*",
+        "--apply-to",
+        "queues",
+        "--priority",
+        "10",
+        "--definition",
+        "{\"max-length\": 100, \"max-length-bytes\": 11111111}",
+    ]);
+    run_succeeds([
+        "--vhost",
+        vh2,
+        "policies",
+        "declare",
+        "--name",
+        policy2,
+        "--pattern",
+        "bar-.*",
+        "--apply-to",
+        "queues",
+        "--priority",
+        "20",
+        "--definition",
+        "{\"max-length\": 200, \"max-length-bytes\": 22222222}",
+    ]);
+    run_succeeds([
+        "--vhost",
+        vh3,
+        "policies",
+        "declare",
+        "--name",
+        policy3,
+        "--pattern",
+        "baz-.*",
+        "--apply-to",
+        "queues",
+        "--priority",
+        "30",
+        "--definition",
+        "{\"max-length\": 300, \"max-length-bytes\": 33333333}",
+    ]);
+
+    run_succeeds(["policies", "list"]).stdout(
+        output_includes("11111111")
+            .and(output_includes("22222222"))
+            .and(output_includes("33333333")),
+    );
+
+    run_succeeds([
+        "policies",
+        "delete_definition_keys_from_all",
+        "--definition-keys",
+        "max-length,non-existent-key",
+    ]);
+
+    run_succeeds(["policies", "list"]).stdout(
+        output_includes("11111111")
+            .and(output_includes("22222222"))
+            .and(output_includes("33333333"))
+            .and(output_includes("100").not())
+            .and(output_includes("200").not())
+            .and(output_includes("300").not()),
+    );
+
+    run_succeeds(["--vhost", vh1, "policies", "delete", "--name", policy1]);
+    run_succeeds(["--vhost", vh2, "policies", "delete", "--name", policy2]);
+    run_succeeds(["--vhost", vh3, "policies", "delete", "--name", policy3]);
+    run_succeeds(["delete", "vhost", "--name", vh1, "--idempotently"]);
+    run_succeeds(["delete", "vhost", "--name", vh2, "--idempotently"]);
+    run_succeeds(["delete", "vhost", "--name", vh3, "--idempotently"]);
+
+    Ok(())
+}
+
+#[test]
+fn test_policies_cluster_wide_update_definitions() -> Result<(), Box<dyn Error>> {
+    let vh1 = "rabbitmqadmin.test_cluster_wide_update.1";
+    let vh2 = "rabbitmqadmin.test_cluster_wide_update.2";
+    let vh3 = "rabbitmqadmin.test_cluster_wide_update.3";
+
+    run_succeeds(["delete", "vhost", "--name", vh1, "--idempotently"]);
+    run_succeeds(["declare", "vhost", "--name", vh1]);
+    run_succeeds(["delete", "vhost", "--name", vh2, "--idempotently"]);
+    run_succeeds(["declare", "vhost", "--name", vh2]);
+    run_succeeds(["delete", "vhost", "--name", vh3, "--idempotently"]);
+    run_succeeds(["declare", "vhost", "--name", vh3]);
+
+    let policy1 = "test_cluster_wide_update-1";
+    let policy2 = "test_cluster_wide_update-2";
+    let policy3 = "test_cluster_wide_update-3";
+
+    run_succeeds([
+        "--vhost",
+        vh1,
+        "policies",
+        "declare",
+        "--name",
+        policy1,
+        "--pattern",
+        "foo-.*",
+        "--apply-to",
+        "queues",
+        "--priority",
+        "10",
+        "--definition",
+        "{\"max-length\": 100}",
+    ]);
+    run_succeeds([
+        "--vhost",
+        vh2,
+        "policies",
+        "declare",
+        "--name",
+        policy2,
+        "--pattern",
+        "bar-.*",
+        "--apply-to",
+        "queues",
+        "--priority",
+        "20",
+        "--definition",
+        "{\"max-length\": 200}",
+    ]);
+    run_succeeds([
+        "--vhost",
+        vh3,
+        "policies",
+        "declare",
+        "--name",
+        policy3,
+        "--pattern",
+        "baz-.*",
+        "--apply-to",
+        "queues",
+        "--priority",
+        "30",
+        "--definition",
+        "{\"max-length\": 300}",
+    ]);
+
+    run_succeeds(["policies", "list"]).stdout(
+        output_includes("100")
+            .and(output_includes("200"))
+            .and(output_includes("300")),
+    );
+
+    run_succeeds([
+        "policies",
+        "update_definitions_of_all",
+        "--definition-key",
+        "max-length",
+        "--new-value",
+        "999",
+    ]);
+
+    run_succeeds(["policies", "list"]).stdout(
+        output_includes("100")
+            .not()
+            .and(output_includes("200").not())
+            .and(output_includes("300").not()),
+    );
+
+    let client = api_client();
+    let pol1 = client.get_policy(vh1, policy1).unwrap();
+    let pol2 = client.get_policy(vh2, policy2).unwrap();
+    let pol3 = client.get_policy(vh3, policy3).unwrap();
+
+    assert_eq!(pol1.definition.get("max-length").unwrap(), 999);
+    assert_eq!(pol2.definition.get("max-length").unwrap(), 999);
+    assert_eq!(pol3.definition.get("max-length").unwrap(), 999);
+
+    run_succeeds(["--vhost", vh1, "policies", "delete", "--name", policy1]);
+    run_succeeds(["--vhost", vh2, "policies", "delete", "--name", policy2]);
+    run_succeeds(["--vhost", vh3, "policies", "delete", "--name", policy3]);
+    run_succeeds(["delete", "vhost", "--name", vh1, "--idempotently"]);
+    run_succeeds(["delete", "vhost", "--name", vh2, "--idempotently"]);
+    run_succeeds(["delete", "vhost", "--name", vh3, "--idempotently"]);
+
+    Ok(())
+}
+
+#[test]
+fn test_policies_cluster_wide_update_adds_new_key() -> Result<(), Box<dyn Error>> {
+    let vh1 = "rabbitmqadmin.test_cluster_wide_add_key.1";
+    let vh2 = "rabbitmqadmin.test_cluster_wide_add_key.2";
+
+    run_succeeds(["delete", "vhost", "--name", vh1, "--idempotently"]);
+    run_succeeds(["declare", "vhost", "--name", vh1]);
+    run_succeeds(["delete", "vhost", "--name", vh2, "--idempotently"]);
+    run_succeeds(["declare", "vhost", "--name", vh2]);
+
+    let policy1 = "test_cluster_wide_add_key-1";
+    let policy2 = "test_cluster_wide_add_key-2";
+
+    run_succeeds([
+        "--vhost",
+        vh1,
+        "policies",
+        "declare",
+        "--name",
+        policy1,
+        "--pattern",
+        "foo-.*",
+        "--apply-to",
+        "queues",
+        "--priority",
+        "10",
+        "--definition",
+        "{\"max-length\": 100}",
+    ]);
+    run_succeeds([
+        "--vhost",
+        vh2,
+        "policies",
+        "declare",
+        "--name",
+        policy2,
+        "--pattern",
+        "bar-.*",
+        "--apply-to",
+        "queues",
+        "--priority",
+        "20",
+        "--definition",
+        "{\"max-length\": 200}",
+    ]);
+
+    run_succeeds([
+        "policies",
+        "update_definitions_of_all",
+        "--definition-key",
+        "max-length-bytes",
+        "--new-value",
+        "55555555",
+    ]);
+
+    let client = api_client();
+    let pol1 = client.get_policy(vh1, policy1).unwrap();
+    let pol2 = client.get_policy(vh2, policy2).unwrap();
+
+    assert_eq!(pol1.definition.get("max-length").unwrap(), 100);
+    assert_eq!(pol1.definition.get("max-length-bytes").unwrap(), 55555555);
+    assert_eq!(pol2.definition.get("max-length").unwrap(), 200);
+    assert_eq!(pol2.definition.get("max-length-bytes").unwrap(), 55555555);
+
+    run_succeeds(["--vhost", vh1, "policies", "delete", "--name", policy1]);
+    run_succeeds(["--vhost", vh2, "policies", "delete", "--name", policy2]);
+    run_succeeds(["delete", "vhost", "--name", vh1, "--idempotently"]);
+    run_succeeds(["delete", "vhost", "--name", vh2, "--idempotently"]);
+
+    Ok(())
+}

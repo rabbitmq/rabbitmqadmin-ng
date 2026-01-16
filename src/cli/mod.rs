@@ -2283,12 +2283,40 @@ fn policies_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> 
                 .required(true),
         );
 
+    let delete_definition_keys_from_all_cmd = Command::new("delete_definition_keys_from_all")
+        .about("Deletes definition keys from all policies in the cluster, unless it is the only policy key")
+        .arg(
+            Arg::new("definition_keys")
+                .long("definition-keys")
+                .help("comma-separated definition keys")
+                .num_args(1..)
+                .value_delimiter(',')
+                .action(ArgAction::Append)
+                .required(true),
+        );
+
+    let update_all_cmd = Command::new("update_definitions_of_all")
+        .about("Updates a definition key in all policies in the cluster")
+        .arg(
+            Arg::new("definition_key")
+                .long("definition-key")
+                .help("policy definition key to update")
+                .required(true),
+        )
+        .arg(
+            Arg::new("definition_value")
+                .long("new-value")
+                .help("new definition value to set")
+                .required(true),
+        );
+
     [
         declare_cmd,
         declare_override_cmd,
         declare_blanket_cmd,
         delete_cmd,
         delete_definition_keys_cmd,
+        delete_definition_keys_from_all_cmd,
         delete_definition_keys_from_all_in_cmd,
         list_cmd,
         list_conflicting_cmd,
@@ -2297,6 +2325,7 @@ fn policies_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> 
         list_matching_cmd,
         patch_cmd,
         update_cmd,
+        update_all_cmd,
         update_all_in_cmd,
     ]
     .into_iter()

@@ -879,6 +879,10 @@ fn dispatch_policies(
             let result = commands::delete_policy_definition_keys(client, vhost, args);
             res_handler.no_output_on_success(result);
         }
+        "delete_definition_keys_from_all" => {
+            let result = commands::delete_policy_definition_keys_from_all(client, args);
+            res_handler.no_output_on_success(result);
+        }
         "delete_definition_keys_from_all_in" => {
             let result = commands::delete_policy_definition_keys_in(client, vhost, args);
             res_handler.no_output_on_success(result);
@@ -915,6 +919,10 @@ fn dispatch_policies(
         }
         "update_definition" => {
             let result = commands::update_policy_definition(client, vhost, args);
+            res_handler.no_output_on_success(result);
+        }
+        "update_definitions_of_all" => {
+            let result = commands::update_all_policy_definitions(client, args);
             res_handler.no_output_on_success(result);
         }
         "update_definitions_of_all_in" => {
