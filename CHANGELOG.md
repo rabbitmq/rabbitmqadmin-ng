@@ -5,6 +5,8 @@
 ### Enhancements
 
  * RabbitMQ 3.12.x and 3.13.x compatibility for federation commands: `--queue-type` is now optional
+ * RabbitMQ 3.12.x compatibility for shovel commands: `--src-predeclared` and `--dest-predeclared` are no longer included
+   into RabbitMQ HTTP API requests when set to `false`
 
 ### Dependency Upgrades
 
