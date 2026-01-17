@@ -2,7 +2,13 @@
 
 ## v2.23.0 (in development)
 
-No changes yet.
+### Enhancements
+
+ * RabbitMQ 3.12.x and 3.13.x compatibility for federation commands: `--queue-type` is now optional
+
+### Dependency Upgrades
+
+ * `rabbitmq_http_client` upgraded to `0.76.0`
 
 
 ## v2.22.0 (Jan 15, 2026)

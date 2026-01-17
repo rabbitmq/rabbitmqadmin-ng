@@ -84,6 +84,8 @@ fn test_vhosts_delete() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn test_vhosts_enable_deletion_protection() -> Result<(), Box<dyn Error>> {
+    skip_if_rabbitmq_version_below!(4, 2, 0);
+
     let vh = "rabbitmqadmin.vhosts.test-deletion-protection-enable";
     run_succeeds(["vhosts", "delete", "--name", vh, "--idempotently"]);
 
@@ -99,6 +101,8 @@ fn test_vhosts_enable_deletion_protection() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn test_vhosts_disable_deletion_protection() -> Result<(), Box<dyn Error>> {
+    skip_if_rabbitmq_version_below!(4, 2, 0);
+
     let vh = "rabbitmqadmin.vhosts.test-deletion-protection-disable";
     run_succeeds(["vhosts", "delete", "--name", vh, "--idempotently"]);
 
@@ -114,6 +118,8 @@ fn test_vhosts_disable_deletion_protection() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn test_vhosts_protected_vhost_cannot_be_deleted() -> Result<(), Box<dyn Error>> {
+    skip_if_rabbitmq_version_below!(4, 2, 0);
+
     let vh = "rabbitmqadmin.vhosts.test-protected-cannot-delete";
     run_succeeds(["vhosts", "delete", "--name", vh, "--idempotently"]);
 

@@ -14,7 +14,9 @@
 
 mod test_helpers;
 
-use crate::test_helpers::*;
+use crate::test_helpers::{
+    api_client, await_metric_emission, delete_vhost, rabbitmq_version_is_at_least, run_succeeds,
+};
 use std::error::Error;
 #[test]
 fn test_disable_tls_peer_verification_for_all_upstreams_basic() -> Result<(), Box<dyn Error>> {
@@ -26,7 +28,7 @@ fn test_disable_tls_peer_verification_for_all_upstreams_basic() -> Result<(), Bo
 
     let amqp_endpoint = format!("amqp://localhost:5672/{}", vh);
 
-    run_succeeds([
+    let mut args = vec![
         "-V",
         vh,
         "federation",
@@ -37,9 +39,11 @@ fn test_disable_tls_peer_verification_for_all_upstreams_basic() -> Result<(), Bo
         &amqp_endpoint,
         "--exchange-name",
         "x.fanout",
-        "--queue-type",
-        "classic",
-    ]);
+    ];
+    if rabbitmq_version_is_at_least(3, 13, 0) {
+        args.extend(["--queue-type", "classic"]);
+    }
+    run_succeeds(args);
 
     run_succeeds([
         "federation",
@@ -78,7 +82,7 @@ fn test_disable_tls_peer_verification_for_all_upstreams_with_existing_verify_par
         amqp_endpoint
     );
 
-    run_succeeds([
+    let mut args = vec![
         "-V",
         vh,
         "federation",
@@ -89,9 +93,11 @@ fn test_disable_tls_peer_verification_for_all_upstreams_with_existing_verify_par
         &source_uri,
         "--exchange-name",
         "x.fanout",
-        "--queue-type",
-        "classic",
-    ]);
+    ];
+    if rabbitmq_version_is_at_least(3, 13, 0) {
+        args.extend(["--queue-type", "classic"]);
+    }
+    run_succeeds(args);
     await_metric_emission(500);
 
     run_succeeds([
@@ -254,7 +260,7 @@ fn test_disable_tls_peer_verification_for_all_upstreams_mixed_federation()
         amqp_endpoint
     );
 
-    run_succeeds([
+    let mut args = vec![
         "-V",
         vh,
         "federation",
@@ -265,9 +271,11 @@ fn test_disable_tls_peer_verification_for_all_upstreams_mixed_federation()
         &exchange_uri,
         "--exchange-name",
         "x.federated",
-        "--queue-type",
-        "classic",
-    ]);
+    ];
+    if rabbitmq_version_is_at_least(3, 13, 0) {
+        args.extend(["--queue-type", "classic"]);
+    }
+    run_succeeds(args);
 
     run_succeeds([
         "-V",
@@ -332,7 +340,7 @@ fn test_enable_tls_peer_verification_for_all_upstreams_basic() -> Result<(), Box
 
     let amqp_endpoint = format!("amqp://localhost:5672/{}", vh);
 
-    run_succeeds([
+    let mut args = vec![
         "-V",
         vh,
         "federation",
@@ -343,9 +351,11 @@ fn test_enable_tls_peer_verification_for_all_upstreams_basic() -> Result<(), Box
         &amqp_endpoint,
         "--exchange-name",
         "x.fanout",
-        "--queue-type",
-        "classic",
-    ]);
+    ];
+    if rabbitmq_version_is_at_least(3, 13, 0) {
+        args.extend(["--queue-type", "classic"]);
+    }
+    run_succeeds(args);
 
     run_succeeds([
         "federation",
@@ -394,7 +404,7 @@ fn test_enable_tls_peer_verification_for_all_upstreams_with_existing_params()
         amqp_endpoint
     );
 
-    run_succeeds([
+    let mut args = vec![
         "-V",
         vh,
         "federation",
@@ -405,9 +415,11 @@ fn test_enable_tls_peer_verification_for_all_upstreams_with_existing_params()
         &source_uri,
         "--exchange-name",
         "x.fanout",
-        "--queue-type",
-        "classic",
-    ]);
+    ];
+    if rabbitmq_version_is_at_least(3, 13, 0) {
+        args.extend(["--queue-type", "classic"]);
+    }
+    run_succeeds(args);
     await_metric_emission(500);
 
     run_succeeds([
@@ -526,7 +538,7 @@ fn test_enable_tls_peer_verification_for_all_upstreams_mixed_federation()
         amqp_endpoint
     );
 
-    run_succeeds([
+    let mut args = vec![
         "-V",
         vh,
         "federation",
@@ -537,9 +549,11 @@ fn test_enable_tls_peer_verification_for_all_upstreams_mixed_federation()
         &exchange_uri,
         "--exchange-name",
         "x.federated",
-        "--queue-type",
-        "classic",
-    ]);
+    ];
+    if rabbitmq_version_is_at_least(3, 13, 0) {
+        args.extend(["--queue-type", "classic"]);
+    }
+    run_succeeds(args);
 
     run_succeeds([
         "-V",

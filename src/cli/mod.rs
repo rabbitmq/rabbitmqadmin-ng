@@ -4025,13 +4025,11 @@ fn federation_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command
         .arg(
             Arg::new("queue_type")
                 .long("queue-type")
-                .help("exchange federation: the type of the internal queue to use")
-                .default_value(DEFAULT_QUEUE_TYPE)
-                .help(color_print::cformat!("default queue type, one of: <bold>classic</bold>, <bright-blue>quorum</bright-blue>, <bright-magenta>stream</bright-magenta>"))
+                .help(color_print::cformat!("exchange federation: the type of the internal queue to use, one of: <bold>classic</bold>, <bright-blue>quorum</bright-blue>, <bright-magenta>stream</bright-magenta>"))
         )
         .arg(
             Arg::new("max_hops")
-                .long("max_hops")
+                .long("max-hops")
                 .default_value("1")
                 .value_parser(value_parser!(u8))
         )
@@ -4202,9 +4200,7 @@ fn federation_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command
         .arg(
             Arg::new("queue_type")
                 .long("queue-type")
-                .help("exchange federation: the type of the internal queue to use")
-                .default_value(DEFAULT_QUEUE_TYPE)
-                .help(color_print::cformat!("default queue type, one of: <bold>classic</bold>, <bright-blue>quorum</bright-blue>, <bright-magenta>stream</bright-magenta>"))
+                .help(color_print::cformat!("exchange federation: the type of the internal queue to use, one of: <bold>classic</bold>, <bright-blue>quorum</bright-blue>, <bright-magenta>stream</bright-magenta>"))
         )
         .arg(
             Arg::new("max_hops")

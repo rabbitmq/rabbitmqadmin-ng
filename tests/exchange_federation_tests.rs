@@ -17,7 +17,9 @@ use rabbitmq_http_client::requests::{ExchangeFederationParams, FederationUpstrea
 use std::error::Error;
 
 mod test_helpers;
-use crate::test_helpers::{amqp_endpoint_with_vhost, delete_vhost, output_includes};
+use crate::test_helpers::{
+    amqp_endpoint_with_vhost, delete_vhost, output_includes, rabbitmq_version_is_at_least,
+};
 use test_helpers::{run_fails, run_succeeds};
 
 #[test]
@@ -67,8 +69,9 @@ fn test_federation_upstream_declaration_for_exchange_federation_case1a()
 
     run_succeeds(["declare", "vhost", "--name", vh]);
     let xfp = upstream.exchange_federation.unwrap();
+    let queue_type_str = xfp.queue_type.unwrap().to_string();
 
-    run_succeeds([
+    let mut args = vec![
         "-V",
         vh,
         "federation",
@@ -79,9 +82,11 @@ fn test_federation_upstream_declaration_for_exchange_federation_case1a()
         upstream.uri,
         "--exchange-name",
         x,
-        "--queue-type",
-        &xfp.queue_type.to_string(),
-    ]);
+    ];
+    if rabbitmq_version_is_at_least(3, 13, 0) {
+        args.extend(["--queue-type", &queue_type_str]);
+    }
+    run_succeeds(args);
 
     delete_vhost(vh).expect("failed to delete a virtual host");
 
@@ -104,8 +109,9 @@ fn test_federation_upstream_declaration_for_exchange_federation_case1b()
 
     run_succeeds(["declare", "vhost", "--name", vh]);
     let xfp = upstream.exchange_federation.unwrap();
+    let queue_type_str = xfp.queue_type.unwrap().to_string();
 
-    run_succeeds([
+    let mut args = vec![
         "-V",
         vh,
         "federation",
@@ -116,12 +122,13 @@ fn test_federation_upstream_declaration_for_exchange_federation_case1b()
         upstream.uri,
         "--exchange-name",
         x,
-        "--queue-type",
-        &xfp.queue_type.to_string(),
-        // queue federation
-        "--queue-name",
-        "overridden.queue.name",
-    ]);
+    ];
+    if rabbitmq_version_is_at_least(3, 13, 0) {
+        args.extend(["--queue-type", &queue_type_str]);
+    }
+    // queue federation
+    args.extend(["--queue-name", "overridden.queue.name"]);
+    run_succeeds(args);
 
     delete_vhost(vh).expect("failed to delete a virtual host");
 
@@ -144,8 +151,9 @@ fn test_federation_upstream_declaration_for_exchange_federation_case2() -> Resul
 
     run_succeeds(["declare", "vhost", "--name", vh]);
     let xfp = upstream.exchange_federation.unwrap();
+    let queue_type_str = xfp.queue_type.unwrap().to_string();
 
-    run_succeeds([
+    let mut args = vec![
         "-V",
         vh,
         "federation",
@@ -156,8 +164,11 @@ fn test_federation_upstream_declaration_for_exchange_federation_case2() -> Resul
         upstream.uri,
         "--exchange-name",
         x,
-        "--queue-type",
-        &xfp.queue_type.to_string(),
+    ];
+    if rabbitmq_version_is_at_least(3, 13, 0) {
+        args.extend(["--queue-type", &queue_type_str]);
+    }
+    args.extend([
         "--max-hops",
         "2",
         "--ttl",
@@ -165,6 +176,7 @@ fn test_federation_upstream_declaration_for_exchange_federation_case2() -> Resul
         "--message-ttl",
         "450000000",
     ]);
+    run_succeeds(args);
 
     delete_vhost(vh).expect("failed to delete a virtual host");
 
@@ -187,9 +199,10 @@ fn test_federation_upstream_declaration_for_exchange_federation_case3() -> Resul
 
     run_succeeds(["declare", "vhost", "--name", vh]);
     let xfp = upstream.exchange_federation.unwrap();
+    let queue_type_str = xfp.queue_type.unwrap().to_string();
 
     // missing --name
-    run_fails([
+    let mut args = vec![
         "-V",
         vh,
         "federation",
@@ -198,10 +211,11 @@ fn test_federation_upstream_declaration_for_exchange_federation_case3() -> Resul
         upstream.uri,
         "--exchange-name",
         x,
-        "--queue-type",
-        &xfp.queue_type.to_string(),
-    ])
-    .stderr(output_includes("required arguments were not provided"));
+    ];
+    if rabbitmq_version_is_at_least(3, 13, 0) {
+        args.extend(["--queue-type", &queue_type_str]);
+    }
+    run_fails(args).stderr(output_includes("required arguments were not provided"));
 
     delete_vhost(vh).expect("failed to delete a virtual host");
 
@@ -224,9 +238,10 @@ fn test_federation_upstream_declaration_for_exchange_federation_case4() -> Resul
 
     run_succeeds(["declare", "vhost", "--name", vh]);
     let xfp = upstream.exchange_federation.unwrap();
+    let queue_type_str = xfp.queue_type.unwrap().to_string();
 
     // missing --uri
-    run_fails([
+    let mut args = vec![
         "-V",
         vh,
         "federation",
@@ -235,8 +250,11 @@ fn test_federation_upstream_declaration_for_exchange_federation_case4() -> Resul
         upstream.name,
         "--exchange-name",
         x,
-        "--queue-type",
-        &xfp.queue_type.to_string(),
+    ];
+    if rabbitmq_version_is_at_least(3, 13, 0) {
+        args.extend(["--queue-type", &queue_type_str]);
+    }
+    args.extend([
         "--max-hops",
         "2",
         "--ttl",
@@ -244,6 +262,7 @@ fn test_federation_upstream_declaration_for_exchange_federation_case4() -> Resul
         "--message-ttl",
         "450000000",
     ]);
+    run_fails(args);
 
     delete_vhost(vh).expect("failed to delete a virtual host");
 
@@ -265,8 +284,9 @@ fn test_federation_list_all_upstreams_with_exchange_federation() -> Result<(), B
 
     run_succeeds(["declare", "vhost", "--name", vh]);
     let xfp = upstream.exchange_federation.unwrap();
+    let queue_type_str = xfp.queue_type.unwrap().to_string();
 
-    run_succeeds([
+    let mut args = vec![
         "-V",
         vh,
         "federation",
@@ -277,8 +297,11 @@ fn test_federation_list_all_upstreams_with_exchange_federation() -> Result<(), B
         upstream.uri,
         "--exchange-name",
         x,
-        "--queue-type",
-        &xfp.queue_type.to_string(),
+    ];
+    if rabbitmq_version_is_at_least(3, 13, 0) {
+        args.extend(["--queue-type", &queue_type_str]);
+    }
+    args.extend([
         "--max-hops",
         "2",
         "--ttl",
@@ -286,12 +309,15 @@ fn test_federation_list_all_upstreams_with_exchange_federation() -> Result<(), B
         "--message-ttl",
         "450000000",
     ]);
+    run_succeeds(args);
 
-    run_succeeds(["-V", vh, "federation", "list_all_upstreams"])
+    let result = run_succeeds(["-V", vh, "federation", "list_all_upstreams"])
         .stdout(output_includes(name))
         .stdout(output_includes(&endpoint1))
-        .stdout(output_includes(x))
-        .stdout(output_includes(&queue_type.to_string()));
+        .stdout(output_includes(x));
+    if rabbitmq_version_is_at_least(3, 13, 0) {
+        result.stdout(output_includes(&queue_type.to_string()));
+    }
 
     delete_vhost(vh).expect("failed to delete a virtual host");
 
@@ -314,8 +340,9 @@ fn test_federation_delete_an_upstream_with_exchange_federation_settings()
 
     run_succeeds(["declare", "vhost", "--name", vh]);
     let xfp = upstream.exchange_federation.unwrap();
+    let queue_type_str = xfp.queue_type.unwrap().to_string();
 
-    run_succeeds([
+    let mut args = vec![
         "-V",
         vh,
         "federation",
@@ -326,8 +353,11 @@ fn test_federation_delete_an_upstream_with_exchange_federation_settings()
         upstream.uri,
         "--exchange-name",
         x,
-        "--queue-type",
-        &xfp.queue_type.to_string(),
+    ];
+    if rabbitmq_version_is_at_least(3, 13, 0) {
+        args.extend(["--queue-type", &queue_type_str]);
+    }
+    args.extend([
         "--max-hops",
         "2",
         "--ttl",
@@ -335,12 +365,15 @@ fn test_federation_delete_an_upstream_with_exchange_federation_settings()
         "--message-ttl",
         "450000000",
     ]);
+    run_succeeds(args);
 
-    run_succeeds(["-V", vh, "federation", "list_all_upstreams"])
+    let result = run_succeeds(["-V", vh, "federation", "list_all_upstreams"])
         .stdout(output_includes(name))
         .stdout(output_includes(&endpoint1))
-        .stdout(output_includes(x))
-        .stdout(output_includes(&queue_type.to_string()));
+        .stdout(output_includes(x));
+    if rabbitmq_version_is_at_least(3, 13, 0) {
+        result.stdout(output_includes(&queue_type.to_string()));
+    }
 
     run_succeeds([
         "-V",

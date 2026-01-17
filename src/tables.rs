@@ -356,7 +356,7 @@ pub(crate) fn memory_breakdown_in_bytes(breakdown: NodeMemoryBreakdown) -> Table
     let metadata_store_ets_tables_val = breakdown.metadata_store_ets_tables;
     let metrics_val = breakdown.metrics;
     let mnesia_val = breakdown.mnesia;
-    let other_ets_tables_val = breakdown.other_ets_tables;
+    let other_ets_tables_val = breakdown.other_ets_tables.max(0) as u64;
     let other_system_val = breakdown.other_system;
     let other_procs_val = breakdown.other_procs;
     let quorum_queue_procs_val = breakdown.quorum_queue_procs;

@@ -136,6 +136,9 @@ fn test_shovel_declaration_with_overlapping_destination_types() -> Result<(), Bo
 
 #[test]
 fn test_amqp091_shovel_declaration_and_deletion() -> Result<(), Box<dyn Error>> {
+    // Shovel list command output format changed in RabbitMQ 4.0
+    skip_if_rabbitmq_version_below!(4, 0, 0);
+
     let vh = "rabbitmqadmin.shovels.test22";
     delete_vhost(vh).expect("failed to delete a virtual host");
 
@@ -199,6 +202,10 @@ fn test_amqp091_shovel_declaration_and_deletion() -> Result<(), Box<dyn Error>> 
 
 #[test]
 fn test_amqp10_shovel_declaration_and_deletion() -> Result<(), Box<dyn Error>> {
+    // AMQP 1.0 shovels with v2 address scheme (/queue/..., /exchange/...) require RabbitMQ 4.0+
+    // See https://github.com/rabbitmq/rabbitmq-server/pull/10873
+    skip_if_rabbitmq_version_below!(4, 0, 0);
+
     let vh = "rabbitmqadmin.shovels.test23";
     let name = "shovels.test_amqp10_shovel_declaration_and_deletion";
 

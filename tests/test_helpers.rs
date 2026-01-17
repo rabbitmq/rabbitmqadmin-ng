@@ -177,3 +177,43 @@ pub fn delete_vhosts_with_prefix(prefix: &str) -> CommandRunResult {
 pub fn output_includes(content: &str) -> predicates::str::ContainsPredicate {
     predicate::str::contains(content)
 }
+
+pub fn rabbitmq_version() -> (u32, u32, u32) {
+    let client = api_client();
+    let overview = client.overview().expect("failed to get RabbitMQ overview");
+    parse_version(&overview.rabbitmq_version)
+}
+
+pub fn rabbitmq_version_is_at_least(min_major: u32, min_minor: u32, min_patch: u32) -> bool {
+    let (major, minor, patch) = rabbitmq_version();
+    (major, minor, patch) >= (min_major, min_minor, min_patch)
+}
+
+fn parse_version(version_str: &str) -> (u32, u32, u32) {
+    let base_version = version_str.split('+').next().unwrap_or(version_str);
+    let parts: Vec<&str> = base_version.split('.').collect();
+    let parse_component = |s: &str| {
+        s.split('-')
+            .next()
+            .and_then(|n| n.parse().ok())
+            .unwrap_or(0)
+    };
+    let major = parts.first().map(|s| parse_component(s)).unwrap_or(0);
+    let minor = parts.get(1).map(|s| parse_component(s)).unwrap_or(0);
+    let patch = parts.get(2).map(|s| parse_component(s)).unwrap_or(0);
+    (major, minor, patch)
+}
+
+#[macro_export]
+macro_rules! skip_if_rabbitmq_version_below {
+    ($min_major:expr, $min_minor:expr, $min_patch:expr) => {{
+        let (major, minor, patch) = $crate::test_helpers::rabbitmq_version();
+        if (major, minor, patch) < ($min_major, $min_minor, $min_patch) {
+            println!(
+                "SKIPPED: test requires RabbitMQ >= {}.{}.{}, found {}.{}.{}",
+                $min_major, $min_minor, $min_patch, major, minor, patch
+            );
+            return Ok(());
+        }
+    }};
+}

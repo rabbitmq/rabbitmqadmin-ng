@@ -16,7 +16,9 @@ use rabbitmq_http_client::requests::{FederationUpstreamParams, QueueFederationPa
 use std::error::Error;
 
 mod test_helpers;
-use crate::test_helpers::{amqp_endpoint_with_vhost, await_ms, delete_vhost, output_includes};
+use crate::test_helpers::{
+    amqp_endpoint_with_vhost, await_ms, delete_vhost, output_includes, rabbitmq_version_is_at_least,
+};
 use test_helpers::{run_fails, run_succeeds};
 
 #[test]
@@ -110,8 +112,9 @@ fn test_federation_upstream_declaration_for_queue_federation_case1b() -> Result<
 
     run_succeeds(["declare", "vhost", "--name", vh]);
     let qfp = upstream.queue_federation.unwrap();
+    let consumer_tag = qfp.consumer_tag.unwrap();
 
-    run_succeeds([
+    let mut args = vec![
         "-V",
         vh,
         "federation",
@@ -125,11 +128,13 @@ fn test_federation_upstream_declaration_for_queue_federation_case1b() -> Result<
         "--queue-name",
         q,
         "--consumer-tag",
-        qfp.consumer_tag.unwrap(),
-        // exchange federation
-        "--queue-type",
-        "quorum",
-    ]);
+        consumer_tag,
+    ];
+    // --queue-type requires RabbitMQ 3.13+
+    if rabbitmq_version_is_at_least(3, 13, 0) {
+        args.extend(["--queue-type", "quorum"]);
+    }
+    run_succeeds(args);
 
     delete_vhost(vh).expect("failed to delete a virtual host");
 

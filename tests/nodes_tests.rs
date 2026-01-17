@@ -28,6 +28,8 @@ fn test_list_nodes() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn test_nodes_memory_breakdown_in_bytes_succeeds() -> Result<(), Box<dyn Error>> {
+    skip_if_rabbitmq_version_below!(4, 0, 0);
+
     let rc = api_client();
     let nodes = rc.list_nodes()?;
     let first = nodes.first().unwrap();
@@ -50,6 +52,8 @@ fn test_nodes_memory_breakdown_in_bytes_succeeds() -> Result<(), Box<dyn Error>>
 
 #[test]
 fn test_nodes_memory_breakdown_in_percent_succeeds() -> Result<(), Box<dyn Error>> {
+    skip_if_rabbitmq_version_below!(4, 0, 0);
+
     let rc = api_client();
     let nodes = rc.list_nodes()?;
     let first = nodes.first().unwrap();

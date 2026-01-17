@@ -15,8 +15,11 @@
 mod test_helpers;
 use crate::test_helpers::*;
 use std::error::Error;
+
 #[test]
 fn test_list_all_deprecated_features() -> Result<(), Box<dyn Error>> {
+    skip_if_rabbitmq_version_below!(3, 13, 0);
+
     run_succeeds(["deprecated_features", "list"]).stdout(output_includes("ram_node_type"));
 
     Ok(())
@@ -24,6 +27,8 @@ fn test_list_all_deprecated_features() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn test_list_all_deprecated_features_via_alias() -> Result<(), Box<dyn Error>> {
+    skip_if_rabbitmq_version_below!(3, 13, 0);
+
     run_succeeds(["list", "deprecated_features"]).stdout(output_includes("ram_node_type"));
 
     Ok(())

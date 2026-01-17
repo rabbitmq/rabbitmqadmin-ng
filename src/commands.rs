@@ -702,8 +702,7 @@ fn extract_exchange_federation_params(command_args: &ArgMatches) -> ExchangeFede
         .map(|s| s.as_str());
     let queue_type = command_args
         .optional_string("queue_type")
-        .map(|s| Into::<QueueType>::into(s.as_str()))
-        .unwrap_or_default();
+        .map(|s| Into::<QueueType>::into(s.as_str()));
     let max_hops = command_args.get_one::<u8>("max_hops").copied();
     let resource_cleanup_mode = command_args
         .get_one::<FederationResourceCleanupMode>("resource_cleanup_mode")

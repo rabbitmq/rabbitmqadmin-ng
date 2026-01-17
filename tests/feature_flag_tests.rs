@@ -19,6 +19,8 @@ use crate::test_helpers::*;
 
 #[test]
 fn test_list_feature_flags() -> Result<(), Box<dyn Error>> {
+    skip_if_rabbitmq_version_below!(4, 0, 0);
+
     run_succeeds(["list", "feature_flags"])
         .stdout(output_includes("rabbitmq_4.0.0").and(output_includes("khepri_db")));
 

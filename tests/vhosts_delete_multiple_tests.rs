@@ -320,6 +320,8 @@ fn test_vhosts_delete_multiple_continues_on_individual_failures() -> Result<(), 
 
 #[test]
 fn test_vhosts_delete_multiple_protects_deletion_protected_vhosts() -> Result<(), Box<dyn Error>> {
+    skip_if_rabbitmq_version_below!(4, 2, 0);
+
     let prefix = "rabbitmqadmin.test-vhosts-delete-multiple-protects-protected";
 
     // Clean up any existing test vhosts first (only our specific ones)
