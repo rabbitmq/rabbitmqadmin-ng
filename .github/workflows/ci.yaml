@@ -88,7 +88,7 @@ jobs:
         run: RUST_HTTP_API_CLIENT_RABBITMQCTL=DOCKER:${{job.services.rabbitmq.id}} bin/ci/before_build.sh
 
       - name: Run tests
-        run: RUST_BACKTRACE=1 NEXTEST_RETRIES=2 RABBITMQ_SERIES=${{ matrix.rabbitmq-series }} cargo nextest run --cargo-profile ci --workspace --no-fail-fast --all-features
+        run: RUST_BACKTRACE=1 NEXTEST_RETRIES=2 cargo nextest run --cargo-profile ci --workspace --no-fail-fast --all-features
 
   tls-tests:
     name: TLS tests
