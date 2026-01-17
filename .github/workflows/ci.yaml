@@ -212,7 +212,6 @@ jobs:
         run: |
           TLS_CERTS_DIR=${{ github.workspace }}/tests/tls/certs \
           RUST_BACKTRACE=1 \
-          RABBITMQ_SERIES=${{ matrix.rabbitmq-series }} \
           cargo nextest run --cargo-profile ci -E 'binary(tls_tests)' --run-ignored=only --no-fail-fast
 
       - name: Stop RabbitMQ container
