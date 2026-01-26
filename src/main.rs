@@ -14,11 +14,14 @@
 #![allow(clippy::result_large_err)]
 
 use clap::{ArgMatches, crate_name, crate_version};
+use clap_complete::Shell as ClapShell;
+use clap_complete::generate;
+use clap_complete_nushell::Nushell;
 use errors::CommandRunError;
 use reqwest::{Certificate, Identity, tls::Version as TlsVersion};
 use std::path::PathBuf;
 use std::time::Duration;
-use std::{fs, process};
+use std::{fs, io, process};
 use sysexits::ExitCode;
 
 use rustls::pki_types::pem::PemObject;
@@ -37,6 +40,7 @@ mod tables;
 mod tanzu_cli;
 mod tanzu_commands;
 
+use crate::cli::CompletionShell;
 use crate::config::{PreFlightSettings, SharedSettings};
 use crate::constants::{
     DEFAULT_CONFIG_FILE_PATH, DEFAULT_HTTPS_PORT, DEFAULT_NODE_ALIAS, DEFAULT_VHOST,
@@ -60,12 +64,18 @@ fn main() {
         }
     };
 
-    let parser = cli::parser(pre_flight_settings);
+    let parser = cli::parser(pre_flight_settings.clone());
     let cli = parser.get_matches();
 
     // Handle config_file commands before trying to build the API client
     if let Some(("config_file", config_file_args)) = cli.subcommand() {
         let exit_code = dispatch_config_file_command(&cli, config_file_args);
+        process::exit(exit_code.into())
+    }
+
+    // Handle shell commands before trying to build the API client
+    if let Some(("shell", shell_args)) = cli.subcommand() {
+        let exit_code = dispatch_shell_command(shell_args, pre_flight_settings);
         process::exit(exit_code.into())
     }
 
@@ -195,6 +205,48 @@ fn dispatch_config_file_command(cli: &ArgMatches, config_file_args: &ArgMatches)
     }
 
     res_handler.exit_code.unwrap_or(ExitCode::Usage)
+}
+
+fn dispatch_shell_command(
+    shell_args: &ArgMatches,
+    pre_flight_settings: PreFlightSettings,
+) -> ExitCode {
+    if let Some(("completions", completions_args)) = shell_args.subcommand() {
+        let shell = completions_args
+            .get_one::<CompletionShell>("shell")
+            .copied()
+            .unwrap_or_else(CompletionShell::detect);
+
+        let mut cmd = cli::parser(pre_flight_settings);
+        match shell {
+            CompletionShell::Bash => generate(
+                ClapShell::Bash,
+                &mut cmd,
+                "rabbitmqadmin",
+                &mut io::stdout(),
+            ),
+            CompletionShell::Elvish => generate(
+                ClapShell::Elvish,
+                &mut cmd,
+                "rabbitmqadmin",
+                &mut io::stdout(),
+            ),
+            CompletionShell::Fish => generate(
+                ClapShell::Fish,
+                &mut cmd,
+                "rabbitmqadmin",
+                &mut io::stdout(),
+            ),
+            CompletionShell::Nushell => {
+                generate(Nushell, &mut cmd, "rabbitmqadmin", &mut io::stdout())
+            }
+            CompletionShell::Zsh => {
+                generate(ClapShell::Zsh, &mut cmd, "rabbitmqadmin", &mut io::stdout())
+            }
+        }
+        return ExitCode::Ok;
+    }
+    ExitCode::Usage
 }
 
 fn dispatch_command(

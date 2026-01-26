@@ -14,20 +14,53 @@
 
 pub mod dispatch;
 
-use std::path::PathBuf;
+use std::env;
+use std::path::{Path, PathBuf};
 
 use super::constants::*;
 use super::static_urls::*;
 use super::tanzu_cli::tanzu_subcommands;
 use crate::config::PreFlightSettings;
 use crate::output::TableStyle;
-use clap::{Arg, ArgAction, ArgGroup, Command, crate_name, crate_version, value_parser};
+use clap::{Arg, ArgAction, ArgGroup, Command, ValueEnum, crate_name, crate_version, value_parser};
 use rabbitmq_http_client::commons::{
     BindingDestinationType, ChannelUseMode, ExchangeType, MessageTransferAcknowledgementMode,
     PolicyTarget, QueueType, SupportedProtocol,
 };
 use rabbitmq_http_client::password_hashing::HashingAlgorithm;
 use rabbitmq_http_client::requests::FederationResourceCleanupMode;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
+pub enum CompletionShell {
+    Bash,
+    Elvish,
+    Fish,
+    #[value(name = "nushell", alias = "nu")]
+    Nushell,
+    Zsh,
+}
+
+impl CompletionShell {
+    pub fn detect() -> Self {
+        env::var("SHELL")
+            .ok()
+            .and_then(|s| {
+                let shell_name = Path::new(&s)
+                    .file_name()
+                    .and_then(|n| n.to_str())
+                    .unwrap_or("");
+                match shell_name {
+                    "bash" => Some(CompletionShell::Bash),
+                    "zsh" => Some(CompletionShell::Zsh),
+                    "fish" => Some(CompletionShell::Fish),
+                    "elvish" => Some(CompletionShell::Elvish),
+                    "nu" | "nushell" => Some(CompletionShell::Nushell),
+                    _ => None,
+                }
+            })
+            .unwrap_or(CompletionShell::Bash)
+    }
+}
 
 pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
     let after_help = color_print::cformat!(
@@ -393,6 +426,12 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         .infer_long_args(pre_flight_settings.infer_long_options)
         .arg_required_else_help(true)
         .subcommands(vhosts_subcommands(pre_flight_settings.clone()));
+    let shell_group = Command::new("shell")
+        .about("Shell-related operations")
+        .infer_subcommands(pre_flight_settings.infer_subcommands)
+        .infer_long_args(pre_flight_settings.infer_long_options)
+        .arg_required_else_help(true)
+        .subcommands(shell_subcommands());
     let vhost_limits_group = Command::new("vhost_limits")
         .about("Operations on virtual host (resource) limits")
         .infer_subcommands(pre_flight_settings.infer_subcommands)
@@ -436,6 +475,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         purge_group,
         queues_group,
         rebalance_group,
+        shell_group,
         show_group,
         shovels_group,
         streams_group,
@@ -4333,4 +4373,23 @@ fn federation_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command
     .into_iter()
     .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))
     .collect()
+}
+
+fn shell_subcommands() -> Vec<Command> {
+    let completions_cmd = Command::new("completions")
+        .about("Generate shell completion scripts for the CLI")
+        .long_about(
+            "Generates shell completion scripts for bash, zsh, fish, elvish, or nushell.\n\n\
+             If --shell is not specified, the shell is detected from the SHELL environment variable.\n\
+             If detection fails, bash is used as the default.",
+        )
+        .arg(
+            Arg::new("shell")
+                .long("shell")
+                .help("Target shell (bash, zsh, fish, elvish, nushell)")
+                .required(false)
+                .value_parser(value_parser!(CompletionShell)),
+        );
+
+    vec![completions_cmd]
 }

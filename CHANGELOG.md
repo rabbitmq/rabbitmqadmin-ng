@@ -2,7 +2,26 @@
 
 ## v2.24.0 (in development)
 
-No changes yet.
+### Enhancements
+
+ * `shell completions` generates shell completion scripts for Nu shell, bash, zsh, fish, elvish:
+
+   ```shell
+   # Generate completions for a specific shell
+   rabbitmqadmin shell completions --shell nushell 
+   rabbitmqadmin shell completions --shell zsh
+   rabbitmqadmin shell completions --shell bash 
+   rabbitmqadmin shell completions --shell fish
+   rabbitmqadmin shell completions --shell elvish
+
+   # When invoked without --shell, tries to detect the shell using the SHELL environment variable
+   # and if that fails, defaults to bash
+   rabbitmqadmin shell completions
+   ```
+
+### Dependency Upgrades
+
+ * `clap_complete` `4.5` and `clap_complete_nushell` `4.5` for shell completion generation
 
 
 ## v2.23.0 (Jan 16, 2026)
