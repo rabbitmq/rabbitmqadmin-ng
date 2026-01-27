@@ -34,7 +34,7 @@ rabbitmq_http_client = { version = "0.76", default-features = false, features = 
 serde = { version = "1.0", features = ["derive", "std"] }
 serde_json = "1"
 tabled = "0.20"
-bel7-cli = { version = "0.6", features = ["tables", "serde", "clap"] }
+bel7-cli = { version = "0.7", features = ["tables", "serde", "clap"] }
 toml = "0.9"
 toml_edit = "0.24"
 color-print = "0.3"

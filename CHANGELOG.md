@@ -21,7 +21,8 @@
 
 ### Dependency Upgrades
 
- * `clap_complete` `4.5` and `clap_complete_nushell` `4.5` for shell completion generation
+ * `bel7-cli` upgraded to `0.7.0`
+ * New dependencies: `clap_complete` at `4.5` and `clap_complete_nushell` at `4.5`
 
 
 ## v2.23.0 (Jan 16, 2026)
