@@ -14,6 +14,7 @@
 
 mod test_helpers;
 
+use bel7_cli::CommandShellExt;
 use std::error::Error;
 use std::ffi::OsStr;
 use std::process::Command;
@@ -25,6 +26,7 @@ where
     S: AsRef<OsStr>,
 {
     let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("rabbitmqadmin"));
+    cmd.clear_shell_detection_env();
     cmd.env("SHELL", shell_path);
     cmd.args(args);
     assert_cmd::assert::Assert::new(cmd.output().unwrap())
@@ -126,7 +128,7 @@ fn shell_completions_defaults_to_bash_for_unknown_shell() -> Result<(), Box<dyn 
 #[test]
 fn shell_completions_defaults_to_bash_when_shell_env_unset() -> Result<(), Box<dyn Error>> {
     let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("rabbitmqadmin"));
-    cmd.env_remove("SHELL");
+    cmd.clear_shell_detection_env();
     cmd.args(["shell", "completions"]);
     let output = cmd.output().unwrap();
     assert!(output.status.success());
@@ -176,6 +178,7 @@ fn shell_completions_detects_shell_name_without_path() -> Result<(), Box<dyn Err
 }
 
 mod property_tests {
+    use bel7_cli::CommandShellExt;
     use proptest::prelude::*;
     use std::ffi::OsStr;
     use std::process::Command;
@@ -186,6 +189,7 @@ mod property_tests {
         S: AsRef<OsStr>,
     {
         let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("rabbitmqadmin"));
+        cmd.clear_shell_detection_env();
         cmd.env("SHELL", shell_path);
         cmd.args(args);
         assert_cmd::assert::Assert::new(cmd.output().unwrap())

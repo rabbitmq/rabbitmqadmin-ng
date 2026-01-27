@@ -14,15 +14,14 @@
 
 pub mod dispatch;
 
-use std::env;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use super::constants::*;
 use super::static_urls::*;
 use super::tanzu_cli::tanzu_subcommands;
 use crate::config::PreFlightSettings;
 use crate::output::TableStyle;
-use clap::{Arg, ArgAction, ArgGroup, Command, ValueEnum, crate_name, crate_version, value_parser};
+use clap::{Arg, ArgAction, ArgGroup, Command, crate_name, crate_version, value_parser};
 use rabbitmq_http_client::commons::{
     BindingDestinationType, ChannelUseMode, ExchangeType, MessageTransferAcknowledgementMode,
     PolicyTarget, QueueType, SupportedProtocol,
@@ -30,37 +29,7 @@ use rabbitmq_http_client::commons::{
 use rabbitmq_http_client::password_hashing::HashingAlgorithm;
 use rabbitmq_http_client::requests::FederationResourceCleanupMode;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
-pub enum CompletionShell {
-    Bash,
-    Elvish,
-    Fish,
-    #[value(name = "nushell", alias = "nu")]
-    Nushell,
-    Zsh,
-}
-
-impl CompletionShell {
-    pub fn detect() -> Self {
-        env::var("SHELL")
-            .ok()
-            .and_then(|s| {
-                let shell_name = Path::new(&s)
-                    .file_name()
-                    .and_then(|n| n.to_str())
-                    .unwrap_or("");
-                match shell_name {
-                    "bash" => Some(CompletionShell::Bash),
-                    "zsh" => Some(CompletionShell::Zsh),
-                    "fish" => Some(CompletionShell::Fish),
-                    "elvish" => Some(CompletionShell::Elvish),
-                    "nu" | "nushell" => Some(CompletionShell::Nushell),
-                    _ => None,
-                }
-            })
-            .unwrap_or(CompletionShell::Bash)
-    }
-}
+pub use bel7_cli::CompletionShell;
 
 pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
     let after_help = color_print::cformat!(

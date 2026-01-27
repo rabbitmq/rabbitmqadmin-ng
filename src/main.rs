@@ -13,15 +13,13 @@
 // limitations under the License.
 #![allow(clippy::result_large_err)]
 
+use bel7_cli::generate_completions_to_stdout;
 use clap::{ArgMatches, crate_name, crate_version};
-use clap_complete::Shell as ClapShell;
-use clap_complete::generate;
-use clap_complete_nushell::Nushell;
 use errors::CommandRunError;
 use reqwest::{Certificate, Identity, tls::Version as TlsVersion};
 use std::path::PathBuf;
 use std::time::Duration;
-use std::{fs, io, process};
+use std::{fs, process};
 use sysexits::ExitCode;
 
 use rustls::pki_types::pem::PemObject;
@@ -218,32 +216,7 @@ fn dispatch_shell_command(
             .unwrap_or_else(CompletionShell::detect);
 
         let mut cmd = cli::parser(pre_flight_settings);
-        match shell {
-            CompletionShell::Bash => generate(
-                ClapShell::Bash,
-                &mut cmd,
-                "rabbitmqadmin",
-                &mut io::stdout(),
-            ),
-            CompletionShell::Elvish => generate(
-                ClapShell::Elvish,
-                &mut cmd,
-                "rabbitmqadmin",
-                &mut io::stdout(),
-            ),
-            CompletionShell::Fish => generate(
-                ClapShell::Fish,
-                &mut cmd,
-                "rabbitmqadmin",
-                &mut io::stdout(),
-            ),
-            CompletionShell::Nushell => {
-                generate(Nushell, &mut cmd, "rabbitmqadmin", &mut io::stdout())
-            }
-            CompletionShell::Zsh => {
-                generate(ClapShell::Zsh, &mut cmd, "rabbitmqadmin", &mut io::stdout())
-            }
-        }
+        generate_completions_to_stdout(shell, &mut cmd, "rabbitmqadmin");
         return ExitCode::Ok;
     }
     ExitCode::Usage
