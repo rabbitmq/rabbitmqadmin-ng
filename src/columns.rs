@@ -12,41 +12,4 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use tabled::builder::Builder;
-use tabled::{Table, Tabled};
-
-pub fn parse_columns(columns_arg: &str) -> Vec<String> {
-    columns_arg
-        .split(',')
-        .map(|s| s.trim().to_lowercase())
-        .filter(|s| !s.is_empty())
-        .collect()
-}
-
-pub fn build_table_with_columns<T: Tabled>(data: &[T], columns: &[String]) -> Table {
-    let mut builder = Builder::default();
-
-    let headers: Vec<String> = T::headers()
-        .into_iter()
-        .map(|c| c.to_string().to_lowercase())
-        .collect();
-
-    let valid_columns: Vec<(usize, &String)> = columns
-        .iter()
-        .filter_map(|col| headers.iter().position(|h| h == col).map(|idx| (idx, col)))
-        .collect();
-
-    builder.push_record(valid_columns.iter().map(|(_, col)| col.as_str()));
-
-    for item in data {
-        let fields: Vec<String> = item.fields().into_iter().map(|c| c.to_string()).collect();
-
-        let row: Vec<&str> = valid_columns
-            .iter()
-            .map(|(idx, _)| fields[*idx].as_str())
-            .collect();
-        builder.push_record(row);
-    }
-
-    builder.build()
-}
+pub use bel7_cli::{build_table_with_columns, parse_columns};
