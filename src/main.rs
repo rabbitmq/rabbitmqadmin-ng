@@ -145,7 +145,7 @@ fn configure_http_api_client<'a>(
     endpoint: &'a str,
 ) -> Result<APIClient, CommandRunError> {
     let httpc = build_http_client(cli, merged_settings)?;
-    // Due to how SharedSettings are computed, these should safe to unwrap()
+    // Due to how SharedSettings are computed, these should be safe to unwrap()
     let username = merged_settings.username.clone().unwrap();
     let password = merged_settings.password.clone().unwrap();
 

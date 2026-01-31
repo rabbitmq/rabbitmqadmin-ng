@@ -59,7 +59,7 @@ pub enum CommandRunError {
         local_path: String,
         cause: rustls::pki_types::pem::Error,
     },
-    #[error("Run into an I/O error when loading a file: {0}")]
+    #[error("Ran into an I/O error when loading a file: {0}")]
     IoError(io::Error),
     #[error("TLS certificate file at {local_path} does not exist or is not readable")]
     CertificateFileNotFound { local_path: String },
@@ -93,7 +93,7 @@ pub enum CommandRunError {
     InvalidHeaderValue { error: InvalidHeaderValue },
     #[error("Response is incompatible with the target data type")]
     IncompatibleBody { error: ConversionError },
-    #[error("encountered an error when performing an HTTP request")]
+    #[error("Encountered an error when performing an HTTP request")]
     RequestError { error: reqwest::Error },
     #[error("Failed to build HTTP client: {0}")]
     HttpClientBuildError(reqwest::Error),
@@ -103,7 +103,7 @@ pub enum CommandRunError {
     InvalidBaseUri { uri: String, message: String },
     #[error("Command execution failed: {message}")]
     FailureDuringExecution { message: String },
-    #[error("an unspecified error")]
+    #[error("An unspecified error")]
     Other,
 }
 

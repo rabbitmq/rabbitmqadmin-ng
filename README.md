@@ -51,7 +51,7 @@ Please use GitHub Discussions in this repository and [RabbitMQ community Discord
 
 This version of `rabbitmqadmin` should be considered reasonably mature to be used.
 
-Before migrating, please see [Breaking or Potentially Breaking Changes](#breaking-or-potentially-breaking-changes) to learn about a few breaking change in the interface.
+Before migrating, please see [Breaking or Potentially Breaking Changes](#breaking-or-potentially-breaking-changes) to learn about a few breaking changes in the interface.
 
 
 ## Usage
@@ -222,7 +222,7 @@ passed before the command and subcommand name:
 rabbitmqadmin --non-interactive show overview
 ```
 
-The output of the above command will not include any table borders and will is much easier to parse
+The output of the above command will not include any table borders and is much easier to parse
 as a result:
 
 ```
@@ -793,7 +793,7 @@ rabbitmqadmin --vhost "events" definitions import_into_vhost --file /path/to/vho
 
 ### Declare an AMQP 0-9-1 Shovel
 
-To declare a [dynamic shovel](https://www.rabbitmq.com/docs/shovel-dynamic) that uses AMQP 0-9-1 for both source and desitnation, use
+To declare a [dynamic shovel](https://www.rabbitmq.com/docs/shovel-dynamic) that uses AMQP 0-9-1 for both source and destination, use
 `shovels declare_amqp091`:
 
 ```shell
@@ -807,7 +807,7 @@ rabbitmqadmin shovels declare_amqp091 --name my-amqp091-shovel \
 
 ### Declare an AMQP 1.0 Shovel
 
-To declare a [dynamic shovel](https://www.rabbitmq.com/docs/shovel-dynamic) that uses AMQP 1.0 for both source and desitnation, use
+To declare a [dynamic shovel](https://www.rabbitmq.com/docs/shovel-dynamic) that uses AMQP 1.0 for both source and destination, use
 `shovels declare_amqp10`.
 
 Note that
@@ -877,7 +877,7 @@ rabbitmqadmin --vhost "local-vhost" federation declare_upstream_for_queues --nam
                 --ack-mode 'on-publish' \
                 --prefetch-count 2000 \
                 --queue-name "overridden.name" \
-                --consumer-tag "overriden.ctag"
+                --consumer-tag "overridden.ctag"
 ```
 
 ### Create a Universal Federation Upstream
@@ -893,7 +893,7 @@ rabbitmqadmin --vhost "local-vhost" federation declare_upstream --name "pollux" 
                 --ack-mode 'on-publish' \
                 --prefetch-count 2000 \
                 --queue-name "overridden.name" \
-                --consumer-tag "overriden.ctag" \
+                --consumer-tag "overridden.ctag" \
                 --exchange-name "overridden.name" \
                 --queue-type quorum \
                 --bind-using-nowait true
@@ -919,7 +919,7 @@ rabbitmqadmin federation list_all_links
 ### Create a User
 
 ```shell
-# Salt and hash a cleartext password value, and output the resultign hash.
+# Salt and hash a cleartext password value, and output the resulting hash.
 # See https://www.rabbitmq.com/docs/passwords to learn more.
 rabbitmqadmin passwords salt_and_hash "cleartext value"
 ```
@@ -1472,7 +1472,7 @@ This version of `rabbitmqadmin` has a few ideas in mind:
 
  * Sorting of results. Instead, use `--non-interactive` and parse the spaces-separated
    output. Many modern tools for working with data parse it into a table, sort the data set,
-   filter the results, and son. In fact, these features for data processing are ready available [in some shells](https://www.nushell.sh/)
+   filter the results, and so on. In fact, these features for data processing are readily available [in some shells](https://www.nushell.sh/)
  * Column selection for most commands. `queues list`, `queues show`, `streams list`, and `streams show` do support `--columns`
  * JSON output for arbitrary commands (with the exception of `definitions` commands).
    Use the HTTP API directly if you need to work with JSON
