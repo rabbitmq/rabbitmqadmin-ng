@@ -17,9 +17,9 @@ use bel7_cli::generate_completions_to_stdout;
 use clap::{ArgMatches, crate_name, crate_version};
 use errors::CommandRunError;
 use reqwest::{Certificate, Identity, tls::Version as TlsVersion};
+use std::fs;
 use std::path::PathBuf;
 use std::time::Duration;
-use std::{fs, process};
 use sysexits::ExitCode;
 
 use rustls::pki_types::pem::PemObject;
@@ -52,7 +52,7 @@ use rustls::pki_types::PrivateKeyDer;
 
 type APIClient = GenericAPIClient<String, String, String>;
 
-fn main() {
+fn main() -> ExitCode {
     let pre_flight_settings = if pre_flight::is_non_interactive() {
         PreFlightSettings::non_interactive()
     } else {
@@ -67,33 +67,30 @@ fn main() {
 
     // Handle config_file commands before trying to build the API client
     if let Some(("config_file", config_file_args)) = cli.subcommand() {
-        let exit_code = dispatch_config_file_command(&cli, config_file_args);
-        process::exit(exit_code.into())
+        return dispatch_config_file_command(&cli, config_file_args);
     }
 
     // Handle shell commands before trying to build the API client
     if let Some(("shell", shell_args)) = cli.subcommand() {
-        let exit_code = dispatch_shell_command(shell_args, pre_flight_settings);
-        process::exit(exit_code.into())
+        return dispatch_shell_command(shell_args, pre_flight_settings);
     }
 
-    let (common_settings, endpoint) = resolve_run_configuration(&cli);
+    let (common_settings, endpoint) = match resolve_run_configuration(&cli) {
+        Ok(result) => result,
+        Err(code) => return code,
+    };
 
     match configure_http_api_client(&cli, &common_settings, &endpoint.clone()) {
-        Ok(client) => {
-            let exit_code = dispatch_command(&cli, client, &common_settings);
-            process::exit(exit_code.into())
-        }
+        Ok(client) => dispatch_command(&cli, client, &common_settings),
         Err(err) => {
             let mut res_handler = ResultHandler::new(&common_settings, &cli);
             res_handler.report_pre_command_run_error(&err);
-            let code = res_handler.exit_code.unwrap_or(ExitCode::DataErr);
-            process::exit(code.into())
+            res_handler.exit_code.unwrap_or(ExitCode::DataErr)
         }
     }
 }
 
-fn resolve_run_configuration(cli: &ArgMatches) -> (SharedSettings, String) {
+fn resolve_run_configuration(cli: &ArgMatches) -> Result<(SharedSettings, String), ExitCode> {
     let default_config_file_path = PathBuf::from(DEFAULT_CONFIG_FILE_PATH);
     let config_file_path = cli
         .get_one::<PathBuf>("config_file_path")
@@ -118,7 +115,7 @@ fn resolve_run_configuration(cli: &ArgMatches) -> (SharedSettings, String) {
             config_file_path.to_str().unwrap_or("<non-UTF-8 path>")
         );
         eprintln!("Underlying error: {}", e);
-        process::exit(ExitCode::DataErr.into())
+        return Err(ExitCode::DataErr);
     }
 
     let common_settings = match cf_ss {
@@ -130,13 +127,13 @@ fn resolve_run_configuration(cli: &ArgMatches) -> (SharedSettings, String) {
         Ok(settings) => settings,
         Err(e) => {
             eprintln!("{}", e);
-            process::exit(ExitCode::DataErr.into())
+            return Err(ExitCode::DataErr);
         }
     };
 
     let endpoint = common_settings.endpoint();
 
-    (common_settings, endpoint)
+    Ok((common_settings, endpoint))
 }
 
 fn configure_http_api_client<'a>(
