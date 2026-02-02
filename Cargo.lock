@@ -1427,7 +1427,6 @@ dependencies = [
  "color-print",
  "indicatif",
  "log",
- "mimalloc",
  "predicates",
  "proptest",
  "rabbitmq_http_client",
