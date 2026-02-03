@@ -53,8 +53,6 @@ jobs:
             os: macos-latest
           - target: x86_64-pc-windows-msvc
             os: windows-latest
-          - target: aarch64-pc-windows-msvc
-            os: windows-11-arm
           - target: x86_64-unknown-linux-gnu
             os: ubuntu-22.04
           - target: aarch64-unknown-linux-gnu
@@ -174,8 +172,6 @@ jobs:
           winget-tags: 'rabbitmq,cli,management'
           winget-x64-url: https://github.com/rabbitmq/rabbitmqadmin-ng/releases/download/v${{ needs.validate.outputs.version }}/rabbitmqadmin-${{ needs.validate.outputs.version }}-x86_64-pc-windows-msvc.zip
           winget-x64-sha256: ${{ steps.collect.outputs.windows_x64_sha256 }}
-          winget-arm64-url: https://github.com/rabbitmq/rabbitmqadmin-ng/releases/download/v${{ needs.validate.outputs.version }}/rabbitmqadmin-${{ needs.validate.outputs.version }}-aarch64-pc-windows-msvc.zip
-          winget-arm64-sha256: ${{ steps.collect.outputs.windows_arm64_sha256 }}
 
       - name: Upload package manager manifests (for testing)
         uses: actions/upload-artifact@v4
