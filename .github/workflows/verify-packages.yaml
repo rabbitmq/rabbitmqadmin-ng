@@ -49,10 +49,6 @@ jobs:
             container: ubuntu:22.04
             arch: amd64
             runner: ubuntu-latest
-          - distro: ubuntu-22.04
-            container: ubuntu:22.04
-            arch: arm64
-            runner: ubuntu-24.04-arm
           # Debian trixie (13)
           - distro: debian-trixie
             container: debian:trixie
