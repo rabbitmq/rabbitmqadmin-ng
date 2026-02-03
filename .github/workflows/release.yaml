@@ -150,7 +150,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.format }}-${{ matrix.target }}
-          path: ${{ steps.build.outputs.artifact_path }}
+          path: |
+            ${{ steps.build.outputs.artifact_path }}
+            ${{ steps.build.outputs.checksum_file }}
           retention-days: 2
 
   msi:
@@ -177,7 +179,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: msi-x86_64
-          path: ${{ steps.build.outputs.artifact_path }}
+          path: |
+            ${{ steps.build.outputs.artifact_path }}
+            ${{ steps.build.outputs.checksum_file }}
           retention-days: 2
 
   release:

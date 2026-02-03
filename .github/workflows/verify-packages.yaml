@@ -1,0 +1,150 @@
+name: Verify Packages
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to verify (without v prefix, empty for latest)'
+        required: false
+  schedule:
+    - cron: '0 6 * * 0,3'
+
+env:
+  BINARY_NAME: rabbitmqadmin
+
+jobs:
+  get-version:
+    name: Get Version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Get version
+        id: version
+        uses: michaelklishin/rust-release-action@v1
+        with:
+          command: get-release-version
+          version: ${{ inputs.version }}
+
+  test-deb:
+    name: deb (${{ matrix.distro }}, ${{ matrix.arch }})
+    needs: [get-version]
+    runs-on: ${{ matrix.runner }}
+    container: ${{ matrix.container }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - distro: ubuntu-24.04
+            container: ubuntu:24.04
+            arch: amd64
+            runner: ubuntu-latest
+          - distro: ubuntu-24.04
+            container: ubuntu:24.04
+            arch: arm64
+            runner: ubuntu-24.04-arm
+          - distro: ubuntu-22.04
+            container: ubuntu:22.04
+            arch: amd64
+            runner: ubuntu-latest
+          - distro: ubuntu-22.04
+            container: ubuntu:22.04
+            arch: arm64
+            runner: ubuntu-24.04-arm
+          - distro: debian-trixie
+            container: debian:trixie
+            arch: amd64
+            runner: ubuntu-latest
+          - distro: debian-trixie
+            container: debian:trixie
+            arch: arm64
+            runner: ubuntu-24.04-arm
+          - distro: debian-bullseye
+            container: debian:bullseye
+            arch: amd64
+            runner: ubuntu-latest
+          - distro: debian-bullseye
+            container: debian:bullseye
+            arch: arm64
+            runner: ubuntu-24.04-arm
+    steps:
+      - name: Test package
+        uses: michaelklishin/rust-release-action@v1
+        with:
+          command: test-deb
+          download-from-release: true
+          binary-name: ${{ env.BINARY_NAME }}
+          version: ${{ needs.get-version.outputs.version }}
+          arch: ${{ matrix.arch }}
+
+  test-rpm:
+    name: rpm (${{ matrix.distro }}, ${{ matrix.arch }})
+    needs: [get-version]
+    runs-on: ${{ matrix.runner }}
+    container: ${{ matrix.container }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - distro: fedora-42
+            container: fedora:42
+            arch: x86_64
+            runner: ubuntu-latest
+          - distro: fedora-42
+            container: fedora:42
+            arch: aarch64
+            runner: ubuntu-24.04-arm
+          - distro: rocky-9
+            container: rockylinux:9
+            arch: x86_64
+            runner: ubuntu-latest
+          - distro: rocky-9
+            container: rockylinux:9
+            arch: aarch64
+            runner: ubuntu-24.04-arm
+          - distro: alma-9
+            container: almalinux:9
+            arch: x86_64
+            runner: ubuntu-latest
+          - distro: alma-9
+            container: almalinux:9
+            arch: aarch64
+            runner: ubuntu-24.04-arm
+          - distro: ubi-9
+            container: registry.access.redhat.com/ubi9/ubi
+            arch: x86_64
+            runner: ubuntu-latest
+          - distro: ubi-9
+            container: registry.access.redhat.com/ubi9/ubi
+            arch: aarch64
+            runner: ubuntu-24.04-arm
+    steps:
+      - name: Test package
+        uses: michaelklishin/rust-release-action@v1
+        with:
+          command: test-rpm
+          download-from-release: true
+          binary-name: ${{ env.BINARY_NAME }}
+          version: ${{ needs.get-version.outputs.version }}
+          arch: ${{ matrix.arch }}
+
+  test-windows:
+    name: Windows (${{ matrix.version }})
+    needs: [get-version]
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - version: '2022'
+            runner: windows-2022
+          - version: '2025'
+            runner: windows-latest
+    steps:
+      - name: Test Windows artifacts
+        uses: michaelklishin/rust-release-action@v1
+        with:
+          command: test-windows
+          download-from-release: true
+          binary-name: ${{ env.BINARY_NAME }}
+          version: ${{ needs.get-version.outputs.version }}
