@@ -89,6 +89,12 @@ Test suites require a RabbitMQ node running on `localhost:15672` with `rabbitmq_
 
  * Never add full stops to Markdown list items
 
+## Release Workflow
+
+The release workflow uses [`michaelklishin/rust-release-action`](https://github.com/michaelklishin/rust-release-action) (its `@v1` tag).
+
+For verifying YAML file syntax, use `yq`, Ruby or Python YAML modules (whichever is available).
+
 ## After Completing a Task
 
 ### Iterative Reviews

@@ -4,261 +4,195 @@ on:
   workflow_dispatch:
   push:
     tags:
-    - 'v*.*.*'
-
-defaults:
-  run:
-    shell: bash
+      - 'v*.*.*'
+      - 'v*.*.*-*'
 
 permissions:
   contents: write
+  id-token: write
 
 jobs:
-  validate_version:
-    name: Validate Release Version
+  validate:
+    name: Validate
     runs-on: ubuntu-24.04
-    steps:
-    - uses: actions/checkout@v6
-
-    - name: Install Nu Shell
-      uses: hustcer/setup-nu@v3
-      with:
-        version: '0.100'
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Validate NEXT_RELEASE_VERSION matches tag
-      run: nu ./scripts/validate-release-version.nu
-      env:
-        NEXT_RELEASE_VERSION: ${{ vars.NEXT_RELEASE_VERSION }}
-        GITHUB_REF_NAME: ${{ github.ref_name }}
-
-  release:
-    name: Build and Archive
-    needs: [validate_version]
-
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      matrix:
-        include:
-          # macOS, aarch64
-          - target: aarch64-apple-darwin
-            os: macos-latest
-            target_rustflags: ''
-          # Windows, x86-64
-          - target: x86_64-pc-windows-msvc
-            os: windows-latest
-            target_rustflags: ''
-          # Windows, aarch64
-          - target: aarch64-pc-windows-msvc
-            os: windows-11-arm
-            target_rustflags: ''
-          # Linux, x86-64
-          - target: x86_64-unknown-linux-gnu
-            os: ubuntu-22.04
-            target_rustflags: ''
-          # Linux, aarch64
-          - target: aarch64-unknown-linux-gnu
-            os: ubuntu-24.04-arm
-            target_rustflags: ''
-          # Linux musl, x86-64 (static, for Alpine)
-          - target: x86_64-unknown-linux-musl
-            os: ubuntu-22.04
-            target_rustflags: ''
-          # Linux musl, aarch64 (static, for Alpine)
-          - target: aarch64-unknown-linux-musl
-            os: ubuntu-24.04-arm
-            target_rustflags: ''
-
-    permissions:
-      id-token: write
-      contents: write
-
+    outputs:
+      version: ${{ steps.validate.outputs.version }}
     steps:
       - uses: actions/checkout@v6
 
-      - name: Install Rust toolchains
-        uses: dtolnay/rust-toolchain@stable
+      - uses: michaelklishin/rust-release-action@v1
         with:
-          toolchain: stable
+          command: validate-changelog
+
+      - uses: michaelklishin/rust-release-action@v1
+        id: validate
+        with:
+          command: validate-version
+          expected-version: ${{ vars.NEXT_RELEASE_VERSION }}
+          validate-cargo-toml: 'true'
+
+      - uses: michaelklishin/rust-release-action@v1
+        with:
+          command: extract-changelog
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-notes
+          path: release_notes.md
+          retention-days: 2
+
+  build:
+    name: Build (${{ matrix.target }})
+    needs: [validate]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: aarch64-apple-darwin
+            os: macos-latest
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+          - target: aarch64-pc-windows-msvc
+            os: windows-11-arm
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-22.04
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-24.04-arm
+          - target: x86_64-unknown-linux-musl
+            os: ubuntu-22.04
+            no_default_features: 'true'
+          - target: aarch64-unknown-linux-musl
+            os: ubuntu-24.04-arm
+            no_default_features: 'true'
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
           targets: ${{ matrix.target }}
 
-      - name: Install Nu Shell
-        uses: hustcer/setup-nu@v3
+      - uses: michaelklishin/rust-release-action@v1
+        id: build
         with:
-          version: '0.100'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          command: release
+          target: ${{ matrix.target }}
+          binary-name: rabbitmqadmin
+          locked: 'true'
+          archive: 'true'
+          checksum: 'sha256'
+          include: 'README.md,LICENSE-MIT,LICENSE-APACHE'
+          no-default-features: ${{ matrix.no_default_features || 'false' }}
 
-      - name: Build an rabbitmqadmin release archive on macOS
-        id: release-build-macos
-        if: ${{ matrix.os == 'macos-latest' }}
-        run: nu ./scripts/release-macos.nu
-        env:
-          OS: ${{ matrix.os }}
-          TARGET: ${{ matrix.target }}
-          TARGET_RUSTFLAGS: ${{ matrix.target_rustflags }}
-          SRC: ${{ github.workspace }}
-      - name: Store macOS build artifact
-        id: upload-macos-artifact
-        if: ${{ matrix.os == 'macos-latest' }}
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
-          name: "rabbitmqadmin-${{ vars.NEXT_RELEASE_VERSION }}-${{ matrix.target }}"
-          path: "${{ github.workspace }}/target/${{ matrix.target }}/release/rabbitmqadmin-${{ vars.NEXT_RELEASE_VERSION }}-${{ matrix.target }}"
+          name: ${{ matrix.target }}
+          path: |
+            ${{ steps.build.outputs.artifact_path }}
+            ${{ steps.build.outputs.artifact_path }}.sha256
+            ${{ steps.build.outputs.bare_artifact_path }}
           retention-days: 2
 
-      - name: Build an rabbitmqadmin release archive on x86-64 Linux
-        id: release-build-amd64-linux
-        if: ${{ matrix.target == 'x86_64-unknown-linux-gnu' }}
-        run: nu ./scripts/release-linux.nu
-        env:
-          OS: ${{ matrix.os }}
-          TARGET: ${{ matrix.target }}
-          TARGET_RUSTFLAGS: ${{ matrix.target_rustflags }}
-          SRC: ${{ github.workspace }}
-      - name: Store x86-64 Linux build artifact
-        id: upload-amd64-linux-artifact
-        if: ${{ matrix.target == 'x86_64-unknown-linux-gnu' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: "rabbitmqadmin-${{ vars.NEXT_RELEASE_VERSION }}-${{ matrix.target }}"
-          path: "${{ github.workspace }}/target/${{ matrix.target }}/release/rabbitmqadmin-${{ vars.NEXT_RELEASE_VERSION }}-${{ matrix.target }}"
-          retention-days: 2
-
-      - name: Build an rabbitmqadmin release archive on aarch64 Linux
-        id: release-build-aarch64-linux
-        if: ${{ matrix.target == 'aarch64-unknown-linux-gnu' }}
-        run: nu ./scripts/release-linux.nu
-        env:
-          OS: ${{ matrix.os }}
-          TARGET: ${{ matrix.target }}
-          TARGET_RUSTFLAGS: ${{ matrix.target_rustflags }}
-          SRC: ${{ github.workspace }}
-      - name: Store aarch64 Linux build artifact
-        id: upload-aarch64-linux-artifact
-        if: ${{ matrix.target == 'aarch64-unknown-linux-gnu' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: "rabbitmqadmin-${{ vars.NEXT_RELEASE_VERSION }}-${{ matrix.target }}"
-          path: "${{ github.workspace }}/target/${{ matrix.target }}/release/rabbitmqadmin-${{ vars.NEXT_RELEASE_VERSION }}-${{ matrix.target }}"
-          retention-days: 2
-
-      - name: Build a static rabbitmqadmin release archive on x86-64 Linux (musl)
-        id: release-build-amd64-linux-musl
-        if: ${{ matrix.target == 'x86_64-unknown-linux-musl' }}
-        run: nu ./scripts/release-linux.nu
-        env:
-          OS: ${{ matrix.os }}
-          TARGET: ${{ matrix.target }}
-          TARGET_RUSTFLAGS: ${{ matrix.target_rustflags }}
-          SRC: ${{ github.workspace }}
-      - name: Store x86-64 Linux musl build artifact
-        id: upload-amd64-linux-musl-artifact
-        if: ${{ matrix.target == 'x86_64-unknown-linux-musl' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: "rabbitmqadmin-${{ vars.NEXT_RELEASE_VERSION }}-${{ matrix.target }}"
-          path: "${{ github.workspace }}/target/${{ matrix.target }}/release/rabbitmqadmin-${{ vars.NEXT_RELEASE_VERSION }}-${{ matrix.target }}"
-          retention-days: 2
-
-      - name: Build a static rabbitmqadmin release archive on aarch64 Linux (musl)
-        id: release-build-aarch64-linux-musl
-        if: ${{ matrix.target == 'aarch64-unknown-linux-musl' }}
-        run: nu ./scripts/release-linux.nu
-        env:
-          OS: ${{ matrix.os }}
-          TARGET: ${{ matrix.target }}
-          TARGET_RUSTFLAGS: ${{ matrix.target_rustflags }}
-          SRC: ${{ github.workspace }}
-      - name: Store aarch64 Linux musl build artifact
-        id: upload-aarch64-linux-musl-artifact
-        if: ${{ matrix.target == 'aarch64-unknown-linux-musl' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: "rabbitmqadmin-${{ vars.NEXT_RELEASE_VERSION }}-${{ matrix.target }}"
-          path: "${{ github.workspace }}/target/${{ matrix.target }}/release/rabbitmqadmin-${{ vars.NEXT_RELEASE_VERSION }}-${{ matrix.target }}"
-          retention-days: 2
-
-      - name: Build an rabbitmqadmin release archive on Windows
-        id: release-build-windows
-        if: ${{ contains(matrix.target, 'windows') }}
-        run: nu ./scripts/release-windows.nu
-        env:
-          OS: ${{ matrix.os }}
-          TARGET: ${{ matrix.target }}
-          TARGET_RUSTFLAGS: ${{ matrix.target_rustflags }}
-          SRC: ${{ github.workspace }}
-      - name: Store Windows build artifact
-        id: upload-windows-artifact
-        if: ${{ contains(matrix.target, 'windows') }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: "rabbitmqadmin-${{ vars.NEXT_RELEASE_VERSION }}-${{ matrix.target }}.exe"
-          path: "${{ github.workspace }}/target/${{ matrix.target }}/release/rabbitmqadmin-${{ vars.NEXT_RELEASE_VERSION }}-${{ matrix.target }}.exe"
-          retention-days: 2
-
-  create_gh_release:
-    needs: [release]
+  release:
+    name: Create Release
+    needs: [validate, build]
     runs-on: ubuntu-24.04
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v6
+      - uses: actions/checkout@v6
 
-    - name: Install Nu Shell
-      uses: hustcer/setup-nu@v3
-      with:
-        version: '0.100'
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
 
-    - name: Extract changelog for release
-      run: nu ./scripts/extract-changelog.nu
-      env:
-        VERSION: ${{ vars.NEXT_RELEASE_VERSION }}
+      - name: Collect release files
+        run: |
+          mkdir -p release
+          find artifacts -type f \( -name "rabbitmqadmin-*" -o -name "*.sha256" \) ! -name "release_notes.md" -exec cp {} release/ \;
 
-    - name: Fetch macOS archive
-      uses: actions/download-artifact@v4
-      with:
-        name: "rabbitmqadmin-${{ vars.NEXT_RELEASE_VERSION }}-aarch64-apple-darwin"
-        path: ./artifacts
-    - name: Fetch amd64 Linux archive
-      uses: actions/download-artifact@v4
-      with:
-        name: "rabbitmqadmin-${{ vars.NEXT_RELEASE_VERSION }}-x86_64-unknown-linux-gnu"
-        path: ./artifacts
-    - name: Fetch aarch64 Linux archive
-      uses: actions/download-artifact@v4
-      with:
-        name: "rabbitmqadmin-${{ vars.NEXT_RELEASE_VERSION }}-aarch64-unknown-linux-gnu"
-        path: ./artifacts
-    - name: Fetch x86-64 Linux musl (static) archive
-      uses: actions/download-artifact@v4
-      with:
-        name: "rabbitmqadmin-${{ vars.NEXT_RELEASE_VERSION }}-x86_64-unknown-linux-musl"
-        path: ./artifacts
-    - name: Fetch aarch64 Linux musl (static) archive
-      uses: actions/download-artifact@v4
-      with:
-        name: "rabbitmqadmin-${{ vars.NEXT_RELEASE_VERSION }}-aarch64-unknown-linux-musl"
-        path: ./artifacts
-    - name: Fetch Windows x86-64 archive
-      uses: actions/download-artifact@v4
-      with:
-        name: "rabbitmqadmin-${{ vars.NEXT_RELEASE_VERSION }}-x86_64-pc-windows-msvc.exe"
-        path: ./artifacts
-    - name: Fetch Windows aarch64 archive
-      uses: actions/download-artifact@v4
-      with:
-        name: "rabbitmqadmin-${{ vars.NEXT_RELEASE_VERSION }}-aarch64-pc-windows-msvc.exe"
-        path: ./artifacts
-    - name: Publish rabbitmqadmin release archive
-      uses: softprops/action-gh-release@v2
-      with:
-        tag_name: v${{ vars.NEXT_RELEASE_VERSION }}
-        draft: false
-        body_path: release_notes.md
-        files: ./artifacts/*
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: michaelklishin/rust-release-action@v1
+        id: collect
+        with:
+          command: collect-artifacts
+          binary-name: rabbitmqadmin
+          artifacts-dir: release
+          base-url: https://github.com/rabbitmq/rabbitmqadmin-ng/releases/download/v${{ needs.validate.outputs.version }}
+
+      - uses: michaelklishin/rust-release-action@v1
+        id: body
+        with:
+          command: format-release
+          artifacts-dir: release
+          notes-file: artifacts/release-notes/release_notes.md
+          include-checksums: 'true'
+
+      - name: Copy checksums
+        run: cp ${{ steps.collect.outputs.checksums_file }} release/ || true
+
+      # Package manager manifests - generated for testing, not published to release
+      - uses: michaelklishin/rust-release-action@v1
+        id: homebrew
+        with:
+          command: generate-homebrew
+          binary-name: rabbitmqadmin
+          version: ${{ needs.validate.outputs.version }}
+          pkg-description: 'rabbitmqadmin v2 is a modern CLI for RabbitMQ HTTP API'
+          pkg-homepage: 'https://www.rabbitmq.com/docs/management-cli'
+          pkg-license: 'MIT OR Apache-2.0'
+          brew-macos-arm64-url: https://github.com/rabbitmq/rabbitmqadmin-ng/releases/download/v${{ needs.validate.outputs.version }}/rabbitmqadmin-${{ needs.validate.outputs.version }}-aarch64-apple-darwin.tar.gz
+          brew-macos-arm64-sha256: ${{ steps.collect.outputs.macos_arm64_sha256 }}
+          brew-linux-arm64-url: https://github.com/rabbitmq/rabbitmqadmin-ng/releases/download/v${{ needs.validate.outputs.version }}/rabbitmqadmin-${{ needs.validate.outputs.version }}-aarch64-unknown-linux-gnu.tar.gz
+          brew-linux-arm64-sha256: ${{ steps.collect.outputs.linux_arm64_sha256 }}
+          brew-linux-x64-url: https://github.com/rabbitmq/rabbitmqadmin-ng/releases/download/v${{ needs.validate.outputs.version }}/rabbitmqadmin-${{ needs.validate.outputs.version }}-x86_64-unknown-linux-gnu.tar.gz
+          brew-linux-x64-sha256: ${{ steps.collect.outputs.linux_x64_sha256 }}
+
+      - uses: michaelklishin/rust-release-action@v1
+        id: aur
+        with:
+          command: generate-aur
+          binary-name: rabbitmqadmin
+          aur-name: rabbitmqadmin
+          version: ${{ needs.validate.outputs.version }}
+          pkg-description: 'rabbitmqadmin v2 is a modern CLI for RabbitMQ HTTP API'
+          pkg-homepage: 'https://www.rabbitmq.com/docs/management-cli'
+          pkg-license: 'MIT OR Apache-2.0'
+          aur-maintainer: 'RabbitMQ Team <info@rabbitmq.com>'
+          aur-source-url: https://github.com/rabbitmq/rabbitmqadmin-ng/archive/refs/tags/v${{ needs.validate.outputs.version }}.tar.gz
+          aur-source-sha256: 'SKIP'
+
+      - uses: michaelklishin/rust-release-action@v1
+        id: winget
+        with:
+          command: generate-winget
+          binary-name: rabbitmqadmin
+          winget-package-id: rabbitmqadmin
+          version: ${{ needs.validate.outputs.version }}
+          pkg-description: 'rabbitmqadmin v2 is a modern CLI for RabbitMQ HTTP API'
+          pkg-homepage: 'https://www.rabbitmq.com/docs/management-cli'
+          pkg-license: 'MIT OR Apache-2.0'
+          winget-publisher: 'RabbitMQ'
+          winget-license-url: 'https://github.com/rabbitmq/rabbitmqadmin-ng/blob/main/LICENSE-MIT'
+          winget-tags: 'rabbitmq,cli,management'
+          winget-x64-url: https://github.com/rabbitmq/rabbitmqadmin-ng/releases/download/v${{ needs.validate.outputs.version }}/rabbitmqadmin-${{ needs.validate.outputs.version }}-x86_64-pc-windows-msvc.zip
+          winget-x64-sha256: ${{ steps.collect.outputs.windows_x64_sha256 }}
+          winget-arm64-url: https://github.com/rabbitmq/rabbitmqadmin-ng/releases/download/v${{ needs.validate.outputs.version }}/rabbitmqadmin-${{ needs.validate.outputs.version }}-aarch64-pc-windows-msvc.zip
+          winget-arm64-sha256: ${{ steps.collect.outputs.windows_arm64_sha256 }}
+
+      - name: Upload package manager manifests (for testing)
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-manager-manifests
+          path: |
+            ${{ steps.homebrew.outputs.formula_file }}
+            ${{ steps.aur.outputs.pkgbuild_path }}
+            ${{ steps.aur.outputs.srcinfo_path }}
+            ${{ steps.winget.outputs.manifest_dir }}
+          retention-days: 7
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.validate.outputs.version }}
+          draft: false
+          body: ${{ steps.body.outputs.body }}
+          files: release/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
