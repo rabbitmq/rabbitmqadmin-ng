@@ -35,6 +35,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # Ubuntu 24.04 LTS
           - distro: ubuntu-24.04
             container: ubuntu:24.04
             arch: amd64
@@ -43,6 +44,7 @@ jobs:
             container: ubuntu:24.04
             arch: arm64
             runner: ubuntu-24.04-arm
+          # Ubuntu 22.04 LTS
           - distro: ubuntu-22.04
             container: ubuntu:22.04
             arch: amd64
@@ -51,6 +53,7 @@ jobs:
             container: ubuntu:22.04
             arch: arm64
             runner: ubuntu-24.04-arm
+          # Debian trixie (13)
           - distro: debian-trixie
             container: debian:trixie
             arch: amd64
@@ -59,6 +62,7 @@ jobs:
             container: debian:trixie
             arch: arm64
             runner: ubuntu-24.04-arm
+          # Debian bullseye (11)
           - distro: debian-bullseye
             container: debian:bullseye
             arch: amd64
@@ -86,6 +90,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # Fedora 42
           - distro: fedora-42
             container: fedora:42
             arch: x86_64
@@ -94,28 +99,31 @@ jobs:
             container: fedora:42
             arch: aarch64
             runner: ubuntu-24.04-arm
-          - distro: rocky-9
-            container: rockylinux:9
+          # Rocky Linux 10 (RHEL-compatible)
+          - distro: rocky-10
+            container: rockylinux:10
             arch: x86_64
             runner: ubuntu-latest
-          - distro: rocky-9
-            container: rockylinux:9
+          - distro: rocky-10
+            container: rockylinux:10
             arch: aarch64
             runner: ubuntu-24.04-arm
-          - distro: alma-9
-            container: almalinux:9
+          # AlmaLinux 10 (RHEL-compatible)
+          - distro: alma-10
+            container: almalinux:10
             arch: x86_64
             runner: ubuntu-latest
-          - distro: alma-9
-            container: almalinux:9
+          - distro: alma-10
+            container: almalinux:10
             arch: aarch64
             runner: ubuntu-24.04-arm
-          - distro: ubi-9
-            container: registry.access.redhat.com/ubi9/ubi
+          # Red Hat UBI 10
+          - distro: ubi-10
+            container: registry.access.redhat.com/ubi10/ubi
             arch: x86_64
             runner: ubuntu-latest
-          - distro: ubi-9
-            container: registry.access.redhat.com/ubi9/ubi
+          - distro: ubi-10
+            container: registry.access.redhat.com/ubi10/ubi
             arch: aarch64
             runner: ubuntu-24.04-arm
     steps:
