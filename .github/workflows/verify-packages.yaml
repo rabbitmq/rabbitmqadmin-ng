@@ -86,11 +86,6 @@ jobs:
             container: fedora:42
             arch: x86_64
             runner: ubuntu-latest
-          # Rocky Linux 10 (RHEL-compatible)
-          - distro: rocky-10
-            container: rockylinux:10
-            arch: x86_64
-            runner: ubuntu-latest
           # AlmaLinux 10 (RHEL-compatible)
           - distro: alma-10
             container: almalinux:10
