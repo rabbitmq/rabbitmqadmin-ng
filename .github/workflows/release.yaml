@@ -141,7 +141,7 @@ jobs:
           target: ${{ matrix.target }}
           binary-name: rabbitmqadmin
           locked: 'true'
-          pkg-maintainer: 'RabbitMQ Team <info@rabbitmq.com>'
+          pkg-maintainer: 'Team RabbitMQ <teamrabbitmq@gmail.com>'
           pkg-description: 'rabbitmqadmin v2 is a modern CLI for RabbitMQ HTTP API'
           pkg-homepage: 'https://www.rabbitmq.com/docs/management-cli'
           pkg-license: 'MIT OR Apache-2.0'
@@ -278,7 +278,7 @@ jobs:
           pkg-description: 'rabbitmqadmin v2 is a modern CLI for RabbitMQ HTTP API'
           pkg-homepage: 'https://www.rabbitmq.com/docs/management-cli'
           pkg-license: 'MIT OR Apache-2.0'
-          aur-maintainer: 'RabbitMQ Team <info@rabbitmq.com>'
+          aur-maintainer: 'Team RabbitMQ <teamrabbitmq@gmail.com>'
           aur-source-url: https://github.com/rabbitmq/rabbitmqadmin-ng/archive/refs/tags/v${{ needs.validate.outputs.version }}.tar.gz
           aur-source-sha256: 'SKIP'
 
