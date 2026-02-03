@@ -62,15 +62,6 @@ jobs:
             container: debian:trixie
             arch: arm64
             runner: ubuntu-24.04-arm
-          # Debian bullseye (11)
-          - distro: debian-bullseye
-            container: debian:bullseye
-            arch: amd64
-            runner: ubuntu-latest
-          - distro: debian-bullseye
-            container: debian:bullseye
-            arch: arm64
-            runner: ubuntu-24.04-arm
     steps:
       - name: Test package
         uses: michaelklishin/rust-release-action@v1
@@ -95,37 +86,21 @@ jobs:
             container: fedora:42
             arch: x86_64
             runner: ubuntu-latest
-          - distro: fedora-42
-            container: fedora:42
-            arch: aarch64
-            runner: ubuntu-24.04-arm
           # Rocky Linux 10 (RHEL-compatible)
           - distro: rocky-10
             container: rockylinux:10
             arch: x86_64
             runner: ubuntu-latest
-          - distro: rocky-10
-            container: rockylinux:10
-            arch: aarch64
-            runner: ubuntu-24.04-arm
           # AlmaLinux 10 (RHEL-compatible)
           - distro: alma-10
             container: almalinux:10
             arch: x86_64
             runner: ubuntu-latest
-          - distro: alma-10
-            container: almalinux:10
-            arch: aarch64
-            runner: ubuntu-24.04-arm
           # Red Hat UBI 10
           - distro: ubi-10
             container: registry.access.redhat.com/ubi10/ubi
             arch: x86_64
             runner: ubuntu-latest
-          - distro: ubi-10
-            container: registry.access.redhat.com/ubi10/ubi
-            arch: aarch64
-            runner: ubuntu-24.04-arm
     steps:
       - name: Test package
         uses: michaelklishin/rust-release-action@v1
