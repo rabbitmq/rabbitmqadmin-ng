@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to verify (without v prefix, empty for latest)'
+        description: 'Version to verify (without v prefix, empty to use the latest release)'
         required: false
   schedule:
     - cron: '0 6 * * 0,3'
