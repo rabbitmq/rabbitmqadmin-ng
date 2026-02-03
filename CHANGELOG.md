@@ -1,6 +1,6 @@
 # rabbitmqadmin-ng Change Log
 
-## v2.24.0 (in development)
+## v2.24.0 (Feb 2, 2026)
 
 ### Enhancements
 
@@ -8,9 +8,9 @@
 
    ```shell
    # Generate completions for a specific shell
-   rabbitmqadmin shell completions --shell nushell 
+   rabbitmqadmin shell completions --shell nushell
    rabbitmqadmin shell completions --shell zsh
-   rabbitmqadmin shell completions --shell bash 
+   rabbitmqadmin shell completions --shell bash
    rabbitmqadmin shell completions --shell fish
    rabbitmqadmin shell completions --shell elvish
 
@@ -19,9 +19,13 @@
    rabbitmqadmin shell completions
    ```
 
+### Internal Changes
+
+ * Release infrastructure: adopt [`michaelklishin/rust-release-action`](https://github.com/michaelklishin/rust-release-action)
+
 ### Dependency Upgrades
 
- * `bel7-cli` upgraded to `0.7.0`
+ * `bel7-cli` upgraded to `0.8.0`
  * New dependencies: `clap_complete` at `4.5` and `clap_complete_nushell` at `4.5`
 
 
