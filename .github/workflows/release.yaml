@@ -18,24 +18,29 @@ jobs:
     outputs:
       version: ${{ steps.validate.outputs.version }}
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout
+        uses: actions/checkout@v6
 
-      - uses: michaelklishin/rust-release-action@v1
+      - name: Validate changelog
+        uses: michaelklishin/rust-release-action@v1
         with:
           command: validate-changelog
 
-      - uses: michaelklishin/rust-release-action@v1
+      - name: Validate version
+        uses: michaelklishin/rust-release-action@v1
         id: validate
         with:
           command: validate-version
           expected-version: ${{ vars.NEXT_RELEASE_VERSION }}
           validate-cargo-toml: 'true'
 
-      - uses: michaelklishin/rust-release-action@v1
+      - name: Extract changelog
+        uses: michaelklishin/rust-release-action@v1
         with:
           command: extract-changelog
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload release notes
+        uses: actions/upload-artifact@v4
         with:
           name: release-notes
           path: release_notes.md
@@ -64,13 +69,16 @@ jobs:
             os: ubuntu-24.04-arm
             no_default_features: 'true'
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout
+        uses: actions/checkout@v6
 
-      - uses: dtolnay/rust-toolchain@stable
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
 
-      - uses: michaelklishin/rust-release-action@v1
+      - name: Build release
+        uses: michaelklishin/rust-release-action@v1
         id: build
         with:
           command: release
@@ -82,7 +90,8 @@ jobs:
           include: 'README.md,LICENSE-MIT,LICENSE-APACHE'
           no-default-features: ${{ matrix.no_default_features || 'false' }}
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.target }}
           path: |
@@ -91,23 +100,137 @@ jobs:
             ${{ steps.build.outputs.bare_artifact_path }}
           retention-days: 2
 
+  packages:
+    name: Package (${{ matrix.format }}, ${{ matrix.target }})
+    needs: [validate]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - format: deb
+            command: release-linux-deb
+            target: x86_64-unknown-linux-gnu
+            os: ubuntu-22.04
+          - format: deb
+            command: release-linux-deb
+            target: aarch64-unknown-linux-gnu
+            os: ubuntu-24.04-arm
+          - format: rpm
+            command: release-linux-rpm
+            target: x86_64-unknown-linux-gnu
+            os: ubuntu-22.04
+          - format: rpm
+            command: release-linux-rpm
+            target: aarch64-unknown-linux-gnu
+            os: ubuntu-24.04-arm
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Build ${{ matrix.format }} package
+        uses: michaelklishin/rust-release-action@v1
+        id: build
+        with:
+          command: ${{ matrix.command }}
+          target: ${{ matrix.target }}
+          binary-name: rabbitmqadmin
+          locked: 'true'
+          pkg-maintainer: 'RabbitMQ Team <info@rabbitmq.com>'
+          pkg-description: 'rabbitmqadmin v2 is a modern CLI for RabbitMQ HTTP API'
+          pkg-homepage: 'https://www.rabbitmq.com/docs/management-cli'
+          pkg-license: 'MIT OR Apache-2.0'
+
+      - name: Upload package
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.format }}-${{ matrix.target }}
+          path: ${{ steps.build.outputs.artifact_path }}
+          retention-days: 2
+
+  msi:
+    name: MSI Installer
+    needs: [validate]
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build MSI
+        uses: michaelklishin/rust-release-action@v1
+        id: build
+        with:
+          command: release-windows-msi
+          target: x86_64-pc-windows-msvc
+          binary-name: rabbitmqadmin
+          locked: 'true'
+
+      - name: Upload MSI
+        uses: actions/upload-artifact@v4
+        with:
+          name: msi-x86_64
+          path: ${{ steps.build.outputs.artifact_path }}
+          retention-days: 2
+
   release:
-    name: Create Release
-    needs: [validate, build]
+    name: Publish
+    needs: [validate, build, packages, msi]
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout
+        uses: actions/checkout@v6
 
-      - uses: actions/download-artifact@v4
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
         with:
           path: artifacts
 
       - name: Collect release files
         run: |
           mkdir -p release
-          find artifacts -type f \( -name "rabbitmqadmin-*" -o -name "*.sha256" \) ! -name "release_notes.md" -exec cp {} release/ \;
+          find artifacts -type f \( -name "rabbitmqadmin-*" -o -name "*.sha256" -o -name "*.deb" -o -name "*.rpm" -o -name "*.msi" \) ! -name "release_notes.md" -exec cp {} release/ \;
 
-      - uses: michaelklishin/rust-release-action@v1
+      - name: Generate SBOM
+        uses: michaelklishin/rust-release-action@v1
+        id: sbom
+        with:
+          command: generate-sbom
+          sbom-format: 'spdx,cyclonedx'
+
+      - name: Copy SBOMs to release
+        run: |
+          cp ${{ steps.sbom.outputs.sbom_spdx }} release/ || true
+          cp ${{ steps.sbom.outputs.sbom_cyclonedx }} release/ || true
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Sign release archives
+        run: |
+          for artifact in release/*.tar.gz release/*.zip; do
+            if [ -f "$artifact" ]; then
+              echo "Signing $artifact"
+              cosign sign-blob --yes \
+                --output-signature "${artifact}.sig" \
+                --output-certificate "${artifact}.pem" \
+                --bundle "${artifact}.sigstore.json" \
+                "$artifact"
+            fi
+          done
+
+      - name: Collect artifacts
+        uses: michaelklishin/rust-release-action@v1
         id: collect
         with:
           command: collect-artifacts
@@ -115,7 +238,8 @@ jobs:
           artifacts-dir: release
           base-url: https://github.com/rabbitmq/rabbitmqadmin-ng/releases/download/v${{ needs.validate.outputs.version }}
 
-      - uses: michaelklishin/rust-release-action@v1
+      - name: Format release body
+        uses: michaelklishin/rust-release-action@v1
         id: body
         with:
           command: format-release
@@ -126,8 +250,8 @@ jobs:
       - name: Copy checksums
         run: cp ${{ steps.collect.outputs.checksums_file }} release/ || true
 
-      # Package manager manifests - generated for testing, not published to release
-      - uses: michaelklishin/rust-release-action@v1
+      - name: Generate Homebrew formula
+        uses: michaelklishin/rust-release-action@v1
         id: homebrew
         with:
           command: generate-homebrew
@@ -143,7 +267,8 @@ jobs:
           brew-linux-x64-url: https://github.com/rabbitmq/rabbitmqadmin-ng/releases/download/v${{ needs.validate.outputs.version }}/rabbitmqadmin-${{ needs.validate.outputs.version }}-x86_64-unknown-linux-gnu.tar.gz
           brew-linux-x64-sha256: ${{ steps.collect.outputs.linux_x64_sha256 }}
 
-      - uses: michaelklishin/rust-release-action@v1
+      - name: Generate AUR PKGBUILD
+        uses: michaelklishin/rust-release-action@v1
         id: aur
         with:
           command: generate-aur
@@ -157,7 +282,8 @@ jobs:
           aur-source-url: https://github.com/rabbitmq/rabbitmqadmin-ng/archive/refs/tags/v${{ needs.validate.outputs.version }}.tar.gz
           aur-source-sha256: 'SKIP'
 
-      - uses: michaelklishin/rust-release-action@v1
+      - name: Generate Winget manifest
+        uses: michaelklishin/rust-release-action@v1
         id: winget
         with:
           command: generate-winget
@@ -173,7 +299,10 @@ jobs:
           winget-x64-url: https://github.com/rabbitmq/rabbitmqadmin-ng/releases/download/v${{ needs.validate.outputs.version }}/rabbitmqadmin-${{ needs.validate.outputs.version }}-x86_64-pc-windows-msvc.zip
           winget-x64-sha256: ${{ steps.collect.outputs.windows_x64_sha256 }}
 
-      - name: Upload package manager manifests (for testing)
+      - name: Copy Homebrew formula to release
+        run: cp ${{ steps.homebrew.outputs.formula_file }} release/
+
+      - name: Upload package manifests
         uses: actions/upload-artifact@v4
         with:
           name: package-manager-manifests
@@ -184,7 +313,8 @@ jobs:
             ${{ steps.winget.outputs.manifest_dir }}
           retention-days: 7
 
-      - uses: softprops/action-gh-release@v2
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ needs.validate.outputs.version }}
           draft: false
