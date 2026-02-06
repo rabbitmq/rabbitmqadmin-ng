@@ -1,6 +1,6 @@
 # rabbitmqadmin-ng Change Log
 
-## v2.25.0 (in development)
+## v2.25.0 (Feb 5, 2026)
 
 ### Enhancements
 
