@@ -1,5 +1,28 @@
 # rabbitmqadmin-ng Change Log
 
+## v2.25.0 (in development)
+
+### Enhancements
+
+ * `permissions`, `user_limits`, and their old-style equivalents (`declare permissions`, `delete permissions`,
+   `declare user_limit`, `delete user_limit`, `list user_limits`) now use `--username` instead of `--user`:
+
+   ```shell
+   rabbitmqadmin permissions declare --username "user1" --configure ".*" --read ".*" --write ".*"
+   rabbitmqadmin permissions delete --username "user1"
+
+   rabbitmqadmin user_limits declare --username "user1" --name "max-connections" --value "100"
+   rabbitmqadmin user_limits delete --username "user1" --name "max-connections"
+   rabbitmqadmin user_limits list --username "user1"
+
+   # old-style (verb-style command group) equivalents
+   rabbitmqadmin declare permissions --username "user1" --configure ".*" --read ".*" --write ".*"
+   rabbitmqadmin declare user_limit --username "user1" --name "max-connections" --value "100"
+   ```
+
+   `--user` is still accepted as a hidden backwards-compatible alias
+
+
 ## v2.24.0 (Feb 2, 2026)
 
 ### Enhancements

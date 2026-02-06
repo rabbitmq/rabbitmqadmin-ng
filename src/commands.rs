@@ -240,7 +240,7 @@ pub fn list_user_limits(
     client: APIClient,
     command_args: &ArgMatches,
 ) -> CommandResult<Vec<responses::UserLimits>> {
-    match command_args.optional_string("user") {
+    match command_args.optional_string("username") {
         None => Ok(client.list_all_user_limits()?),
         Some(username) => Ok(client.list_user_limits(&username)?),
     }
@@ -1090,7 +1090,7 @@ pub fn declare_user_limit(
     client: APIClient,
     command_args: &ArgMatches,
 ) -> Result<(), CommandRunError> {
-    let user = command_args.str_arg("user");
+    let username = command_args.str_arg("username");
     let name = command_args.str_arg("name");
     let value = command_args.str_arg("value");
 
@@ -1100,7 +1100,7 @@ pub fn declare_user_limit(
 
     let limit = EnforcedLimitParams::new(UserLimitTarget::from(name.as_str()), parsed_value);
 
-    client.set_user_limit(user, limit).map_err(Into::into)
+    client.set_user_limit(username, limit).map_err(Into::into)
 }
 
 pub fn delete_vhost_limit(
@@ -1114,10 +1114,10 @@ pub fn delete_vhost_limit(
 }
 
 pub fn delete_user_limit(client: APIClient, command_args: &ArgMatches) -> CommandResult<()> {
-    let user = command_args.str_arg("user");
+    let username = command_args.str_arg("username");
     let name = command_args.str_arg("name");
 
-    Ok(client.clear_user_limit(user, UserLimitTarget::from(name.as_str()))?)
+    Ok(client.clear_user_limit(username, UserLimitTarget::from(name.as_str()))?)
 }
 
 pub fn delete_parameter(
@@ -1243,9 +1243,9 @@ pub fn delete_permissions(
     vhost: &str,
     command_args: &ArgMatches,
 ) -> CommandResult<()> {
-    let user = command_args.str_arg("user");
+    let username = command_args.str_arg("username");
     let idempotently = command_args.optional_typed_or::<bool>("idempotently", false);
-    Ok(client.clear_permissions(vhost, user, idempotently)?)
+    Ok(client.clear_permissions(vhost, username, idempotently)?)
 }
 
 pub fn declare_user(client: APIClient, command_args: &ArgMatches) -> CommandResult<()> {
@@ -1308,13 +1308,13 @@ pub fn declare_permissions(
     vhost: &str,
     command_args: &ArgMatches,
 ) -> CommandResult<()> {
-    let user = command_args.str_arg("user");
+    let username = command_args.str_arg("username");
     let configure = command_args.str_arg("configure");
     let read = command_args.str_arg("read");
     let write = command_args.str_arg("write");
 
     let params = requests::Permissions {
-        user,
+        user: username,
         vhost,
         configure,
         read,

@@ -124,7 +124,7 @@ fn combined_integration_test4() -> Result<(), Box<dyn Error>> {
         vh,
         "declare",
         "permissions",
-        "--user",
+        "--username",
         new_user,
         "--configure",
         ".*",

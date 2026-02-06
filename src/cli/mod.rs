@@ -764,8 +764,9 @@ fn list_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
         ));
     let user_limits_cmd = Command::new("user_limits")
         .arg(
-            Arg::new("user")
-                .long("user")
+            Arg::new("username")
+                .long("username")
+                .alias("user")
                 .help("username")
                 .required(false),
         )
@@ -898,8 +899,9 @@ fn declare_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
             ACCESS_CONTROL_GUIDE_URL
         ))
         .arg(
-            Arg::new("user")
-                .long("user")
+            Arg::new("username")
+                .long("username")
+                .alias("user")
                 .help("username")
                 .required(true),
         )
@@ -1187,8 +1189,9 @@ fn declare_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
             USER_LIMIT_GUIDE_URL
         ))
         .arg(
-            Arg::new("user")
-                .long("user")
+            Arg::new("username")
+                .long("username")
+                .alias("user")
                 .help("username")
                 .required(true),
         )
@@ -1296,8 +1299,9 @@ fn delete_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     let permissions_cmd = Command::new("permissions")
         .about("Revokes user permissions to a given vhost")
         .arg(
-            Arg::new("user")
-                .long("user")
+            Arg::new("username")
+                .long("username")
+                .alias("user")
                 .help("username")
                 .required(true),
         )
@@ -1408,8 +1412,9 @@ fn delete_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     let user_limit_cmd = Command::new("user_limit")
         .about("Clears a user limit")
         .arg(
-            Arg::new("user")
-                .long("user")
+            Arg::new("username")
+                .long("username")
+                .alias("user")
                 .help("username")
                 .required(true),
         )
@@ -3369,8 +3374,9 @@ pub fn users_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command>
         ));
     let limits_cmd = Command::new("limits")
         .arg(
-            Arg::new("user")
-                .long("user")
+            Arg::new("username")
+                .long("username")
+                .alias("user")
                 .help("username")
                 .required(false),
         )
@@ -3453,8 +3459,9 @@ pub fn permissions_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Co
             ACCESS_CONTROL_GUIDE_URL
         ))
         .arg(
-            Arg::new("user")
-                .long("user")
+            Arg::new("username")
+                .long("username")
+                .alias("user")
                 .help("username")
                 .required(true),
         )
@@ -3480,8 +3487,9 @@ pub fn permissions_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Co
     let delete_cmd = Command::new("delete")
         .about("Revokes user permissions to a given vhost")
         .arg(
-            Arg::new("user")
-                .long("user")
+            Arg::new("username")
+                .long("username")
+                .alias("user")
                 .help("username")
                 .required(true),
         )
@@ -3501,8 +3509,9 @@ pub fn user_limits_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Co
             USER_LIMIT_GUIDE_URL
         ))
         .arg(
-            Arg::new("user")
-                .long("user")
+            Arg::new("username")
+                .long("username")
+                .alias("user")
                 .help("username")
                 .required(false),
         );
@@ -3514,8 +3523,9 @@ pub fn user_limits_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Co
             USER_LIMIT_GUIDE_URL
         ))
         .arg(
-            Arg::new("user")
-                .long("user")
+            Arg::new("username")
+                .long("username")
+                .alias("user")
                 .help("username")
                 .required(true),
         )
@@ -3535,8 +3545,9 @@ pub fn user_limits_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Co
     let delete_cmd = Command::new("delete")
         .about("Clears a user limit")
         .arg(
-            Arg::new("user")
-                .long("user")
+            Arg::new("username")
+                .long("username")
+                .alias("user")
                 .help("username")
                 .required(true),
         )
