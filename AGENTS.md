@@ -91,7 +91,7 @@ Test suites require a RabbitMQ node running on `localhost:15672` with `rabbitmq_
 
 ## Release Workflow
 
-The release workflow uses [`michaelklishin/rust-release-action`](https://github.com/michaelklishin/rust-release-action) (its `@v1` tag).
+The release workflow uses [`michaelklishin/rust-build-package-release-action`](https://github.com/michaelklishin/rust-build-package-release-action) (its `@v1` tag).
 
 For verifying YAML file syntax, use `yq`, Ruby or Python YAML modules (whichever is available).
 

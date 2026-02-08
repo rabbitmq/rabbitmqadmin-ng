@@ -21,7 +21,7 @@ jobs:
     steps:
       - name: Get version
         id: version
-        uses: michaelklishin/rust-release-action@v1
+        uses: michaelklishin/rust-build-package-release-action@v1
         with:
           command: get-release-version
           version: ${{ inputs.version }}
@@ -60,7 +60,7 @@ jobs:
             runner: ubuntu-24.04-arm
     steps:
       - name: Test package
-        uses: michaelklishin/rust-release-action@v1
+        uses: michaelklishin/rust-build-package-release-action@v1
         with:
           command: test-deb
           download-from-release: true
@@ -94,7 +94,7 @@ jobs:
             runner: ubuntu-latest
     steps:
       - name: Test package
-        uses: michaelklishin/rust-release-action@v1
+        uses: michaelklishin/rust-build-package-release-action@v1
         with:
           command: test-rpm
           download-from-release: true
@@ -116,7 +116,7 @@ jobs:
             runner: windows-latest
     steps:
       - name: Test Windows artifacts
-        uses: michaelklishin/rust-release-action@v1
+        uses: michaelklishin/rust-build-package-release-action@v1
         with:
           command: test-windows
           download-from-release: true
