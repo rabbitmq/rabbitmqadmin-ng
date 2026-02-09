@@ -59,7 +59,7 @@ rustls = { version = "0.23", features = ["aws_lc_rs"] }
 assert_cmd = "2.1"
 backtrace = "0.3"
 predicates = "3.1"
-proptest = "1.9"
+proptest = "1.10"
 
 [lints.clippy]
 uninlined_format_args = "allow"
