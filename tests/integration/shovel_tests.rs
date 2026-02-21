@@ -1,0 +1,327 @@
+// Copyright (C) 2023-2026 RabbitMQ Core Team (teamrabbitmq@gmail.com)
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+use crate::skip_if_rabbitmq_version_below;
+use crate::test_helpers::*;
+use predicates::boolean::PredicateBooleanExt;
+use std::error::Error;
+#[test]
+fn test_shovel_declaration_without_source_uri() -> Result<(), Box<dyn Error>> {
+    let vh = "rabbitmqadmin.shovels.test20";
+    let name = "shovels.test_shovel_declaration_without_source_uri";
+
+    let amqp_endpoint = amqp_endpoint_with_vhost(vh);
+    let src_q = "rust.shovels.src.q";
+    let dest_x = "rust.shovels.dest.x";
+
+    run_succeeds(["declare", "vhost", "--name", vh]);
+    run_fails([
+        "-V",
+        vh,
+        "shovels",
+        "declare_amqp091",
+        "--name",
+        name,
+        "--destination-uri",
+        &amqp_endpoint,
+        "--source-queue",
+        src_q,
+        "--destination-exchange",
+        dest_x,
+    ])
+    .stderr(output_includes("required arguments were not provided"));
+
+    delete_vhost(vh).expect("failed to delete a virtual host");
+
+    Ok(())
+}
+
+#[test]
+fn test_shovel_declaration_without_destination_uri() -> Result<(), Box<dyn Error>> {
+    let vh = "rabbitmqadmin.shovels.test25";
+    let name = "shovels.test_shovel_declaration_without_destination_uri";
+
+    let amqp_endpoint = amqp_endpoint_with_vhost(vh);
+    let src_q = "rust.shovels.src.q";
+    let dest_x = "rust.shovels.dest.x";
+
+    run_succeeds(["declare", "vhost", "--name", vh]);
+    run_fails([
+        "-V",
+        vh,
+        "shovels",
+        "declare_amqp091",
+        "--name",
+        name,
+        "--source-uri",
+        &amqp_endpoint,
+        "--source-queue",
+        src_q,
+        "--destination-exchange",
+        dest_x,
+    ])
+    .stderr(output_includes("required arguments were not provided"));
+
+    delete_vhost(vh).expect("failed to delete a virtual host");
+
+    Ok(())
+}
+
+#[test]
+fn test_shovel_declaration_with_overlapping_destination_types() -> Result<(), Box<dyn Error>> {
+    let vh = "rabbitmqadmin.shovels.test21";
+    let name = "shovels.test_shovel_declaration_with_overlapping_destination_types";
+
+    let amqp_endpoint = amqp_endpoint_with_vhost(vh);
+    let src_q = "rust.shovels.src.q";
+    let dest_x = "rust.shovels.dest.x";
+
+    run_succeeds(["declare", "vhost", "--name", vh]);
+    run_fails([
+        "-V",
+        vh,
+        "shovels",
+        "declare_amqp091",
+        "--name",
+        name,
+        "--source-uri",
+        &amqp_endpoint,
+        "--destination-uri",
+        &amqp_endpoint,
+        "--source-queue",
+        src_q,
+        "--source-exchange",
+        src_q,
+        "--destination-exchange",
+        dest_x,
+    ])
+    .stderr(output_includes("cannot be used with"));
+
+    run_succeeds([
+        "-V",
+        vh,
+        "shovels",
+        "delete",
+        "--name",
+        name,
+        "--idempotently",
+    ]);
+
+    run_succeeds([
+        "-V",
+        vh,
+        "shovels",
+        "delete",
+        "--name",
+        name,
+        "--idempotently",
+    ]);
+
+    delete_vhost(vh).expect("failed to delete a virtual host");
+
+    Ok(())
+}
+
+#[test]
+fn test_amqp091_shovel_declaration_and_deletion() -> Result<(), Box<dyn Error>> {
+    // Shovel list command output format changed in RabbitMQ 4.0
+    skip_if_rabbitmq_version_below!(4, 0, 0);
+
+    let vh = "rabbitmqadmin.shovels.test22";
+    delete_vhost(vh).expect("failed to delete a virtual host");
+
+    let name = "shovels.test_amqp091_shovel_declaration_and_deletion";
+
+    let amqp_endpoint = amqp_endpoint_with_vhost(vh);
+    let src_q = "rust.shovels.src.q";
+    let dest_x = "rust.shovels.dest.x";
+
+    run_succeeds(["declare", "vhost", "--name", vh]);
+    run_succeeds([
+        "-V",
+        vh,
+        "shovels",
+        "declare_amqp091",
+        "--name",
+        name,
+        "--source-uri",
+        &amqp_endpoint,
+        "--destination-uri",
+        &amqp_endpoint,
+        "--source-queue",
+        src_q,
+        "--destination-exchange",
+        dest_x,
+    ]);
+    await_metric_emission(200);
+
+    run_succeeds(["-V", vh, "shovels", "list"]).stdout(
+        output_includes(vh)
+            .and(output_includes(src_q))
+            .and(output_includes("dynamic"))
+            .and(output_includes("node"))
+            .and(output_includes("state")),
+    );
+
+    run_succeeds(["-V", vh, "shovels", "list_all"]).stdout(
+        output_includes(vh)
+            .and(output_includes(src_q))
+            .and(output_includes("dynamic"))
+            .and(output_includes("vhost"))
+            .and(output_includes("node"))
+            .and(output_includes("state")),
+    );
+
+    run_succeeds(["-V", vh, "shovels", "delete", "--name", name]);
+    run_succeeds([
+        "-V",
+        vh,
+        "shovels",
+        "delete",
+        "--name",
+        name,
+        "--idempotently",
+    ]);
+
+    delete_vhost(vh).expect("failed to delete a virtual host");
+
+    Ok(())
+}
+
+#[test]
+fn test_amqp10_shovel_declaration_and_deletion() -> Result<(), Box<dyn Error>> {
+    // AMQP 1.0 shovels with v2 address scheme (/queue/..., /exchange/...) require RabbitMQ 4.0+
+    // See https://github.com/rabbitmq/rabbitmq-server/pull/10873
+    skip_if_rabbitmq_version_below!(4, 0, 0);
+
+    let vh = "rabbitmqadmin.shovels.test23";
+    let name = "shovels.test_amqp10_shovel_declaration_and_deletion";
+
+    let amqp_endpoint = amqp_endpoint_with_vhost(vh);
+    let src_q = "rust.shovels.src.q";
+    let dest_q = "rust.shovels.dest.q";
+
+    run_succeeds(["declare", "vhost", "--name", vh]);
+    run_succeeds([
+        "--vhost", vh, "declare", "queue", "--name", src_q, "--type", "quorum",
+    ]);
+    run_succeeds([
+        "--vhost", vh, "declare", "queue", "--name", dest_q, "--type", "quorum",
+    ]);
+
+    run_succeeds([
+        "-V",
+        vh,
+        "shovels",
+        "declare_amqp10",
+        "--name",
+        name,
+        "--source-uri",
+        &amqp_endpoint,
+        "--destination-uri",
+        &amqp_endpoint,
+        "--source-address",
+        format!("/queue/{}", src_q).as_str(),
+        "--destination-address",
+        format!("/queue/{}", dest_q).as_str(),
+    ]);
+
+    run_succeeds(["-V", vh, "shovels", "delete", "--name", name]);
+    run_succeeds([
+        "-V",
+        vh,
+        "shovels",
+        "delete",
+        "--name",
+        name,
+        "--idempotently",
+    ]);
+
+    delete_vhost(vh).expect("failed to delete a virtual host");
+
+    Ok(())
+}
+
+#[test]
+fn test_shovels_delete_idempotently() -> Result<(), Box<dyn Error>> {
+    let vh = "rabbitmqadmin.shovels.test24";
+    let shovel_name = "test_shovel_delete_idempotently";
+
+    delete_vhost(vh).expect("failed to delete a virtual host");
+    run_succeeds(["declare", "vhost", "--name", vh]);
+
+    run_succeeds([
+        "-V",
+        vh,
+        "shovels",
+        "delete",
+        "--name",
+        shovel_name,
+        "--idempotently",
+    ]);
+
+    let amqp_endpoint = amqp_endpoint_with_vhost(vh);
+    let src_q = "test_src_queue";
+    let dest_q = "test_dest_queue";
+
+    run_succeeds([
+        "-V", vh, "declare", "queue", "--name", src_q, "--type", "classic",
+    ]);
+    run_succeeds([
+        "-V", vh, "declare", "queue", "--name", dest_q, "--type", "classic",
+    ]);
+
+    run_succeeds([
+        "-V",
+        vh,
+        "shovels",
+        "declare_amqp091",
+        "--name",
+        shovel_name,
+        "--source-uri",
+        &amqp_endpoint,
+        "--destination-uri",
+        &amqp_endpoint,
+        "--source-queue",
+        src_q,
+        "--destination-queue",
+        dest_q,
+    ]);
+
+    run_succeeds(["-V", vh, "shovels", "delete", "--name", shovel_name]);
+
+    run_succeeds([
+        "-V",
+        vh,
+        "shovels",
+        "delete",
+        "--name",
+        shovel_name,
+        "--idempotently",
+    ]);
+
+    run_succeeds([
+        "-V",
+        vh,
+        "delete",
+        "shovel",
+        "--name",
+        shovel_name,
+        "--idempotently",
+    ]);
+
+    delete_vhost(vh).expect("failed to delete a virtual host");
+
+    Ok(())
+}

@@ -51,8 +51,11 @@ Test suites require a RabbitMQ node running on `localhost:15672` with `rabbitmq_
 
 ### Testing
 
+ * `tests/integration/`: integration tests that drive the CLI binary and require a running RabbitMQ node
+ * `tests/integration/test_helpers.rs`: shared test helpers (endpoints, API client, cleanup)
+ * `tests/unit/`: pure logic tests with no external dependencies
+ * `tests/proptests/`: property-based tests
  * `tests/fixtures/`: fixture files (e.g. definition files)
- * `tests/*_tests.rs`: test modules, require a running RabbitMQ nodes
  * `bin/ci/*`: CI and RabbitMQ node setup scripts
 
 
@@ -72,7 +75,8 @@ Test suites require a RabbitMQ node running on `localhost:15672` with `rabbitmq_
 
  * Use top-level `use` statements (imports) to fully-qualified names, e.g. `Display` or `fmt::Display` with a `use` statement, to `std::fmt::Display`
  * Never use function-local `use` statements (imports)
- * Add tests to the modules under `tests`, never in the implementation files
+ * Add integration tests to `tests/integration/`, unit tests to `tests/unit/`, property-based tests to `tests/proptests/`
+ * Never add tests in the implementation files
  * At the end of each task, run `cargo fmt --all`
  * At the end of each task, run `cargo clippy --all` and fix any warnings it might emit
 

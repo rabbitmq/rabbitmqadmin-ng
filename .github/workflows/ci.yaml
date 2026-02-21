@@ -212,7 +212,7 @@ jobs:
         run: |
           TLS_CERTS_DIR=${{ github.workspace }}/tests/tls/certs \
           RUST_BACKTRACE=1 \
-          cargo nextest run --cargo-profile ci -E 'binary(tls_tests)' --run-ignored=only --no-fail-fast
+          cargo nextest run --cargo-profile ci -E 'test(tls_tests::)' --run-ignored=only --no-fail-fast
 
       - name: Stop RabbitMQ container
         if: always()

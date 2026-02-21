@@ -1,0 +1,246 @@
+// Copyright (C) 2023-2026 RabbitMQ Core Team (teamrabbitmq@gmail.com)
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+use std::env;
+use std::error::Error;
+use std::path;
+use std::path::PathBuf;
+
+use predicates::prelude::*;
+
+use crate::test_helpers::output_includes;
+use crate::test_helpers::{run_fails, run_succeeds};
+
+#[test]
+fn combined_integration_test1() -> Result<(), Box<dyn Error>> {
+    let vh = "rabbitmqadmin.combined_integration.test1";
+    let config_path = path::absolute("./tests/fixtures/config_files/config_file1.conf")
+        .expect("failed to compute an absolute version for a ./test/fixtures path");
+
+    if config_path.exists() {
+        run_succeeds([
+            "--config",
+            config_path.to_string_lossy().as_ref(),
+            "--node",
+            "node_a",
+            "declare",
+            "vhost",
+            "--name",
+            vh,
+        ]);
+
+        crate::test_helpers::delete_vhost(vh)
+    } else {
+        report_a_missing_config_file(config_path)?;
+        Ok(())
+    }
+}
+
+#[test]
+fn combined_integration_test2() -> Result<(), Box<dyn Error>> {
+    let vh = "rabbitmqadmin.combined_integration.test2";
+
+    // Uses a node alias that does not exist in the file
+    let config_path = path::absolute("tests/fixtures/config_files/config_file1.conf")
+        .expect("failed to compute an absolute version for a ./test/fixtures path");
+
+    if config_path.exists() {
+        run_fails([
+            "--config",
+            config_path.to_string_lossy().as_ref(),
+            "--node",
+            "n0n_ex1stent_nod3",
+            "declare",
+            "vhost",
+            "--name",
+            vh,
+        ])
+        .stderr(
+            output_includes("specified configuration section (--node)")
+                .and(output_includes("was not found in the configuration file")),
+        );
+
+        crate::test_helpers::delete_vhost(vh)
+    } else {
+        report_a_missing_config_file(config_path)?;
+        Ok(())
+    }
+}
+
+#[test]
+fn combined_integration_test3() -> Result<(), Box<dyn Error>> {
+    let vh = "rabbitmqadmin.combined_integration.test3";
+
+    // Uses a node alias that does not exist in the file
+    let config_path = path::absolute("tests/fixtures/config_files/non_exis7ent_c0nfig_f1le.conf")
+        .expect("failed to compute an absolute version for a ./test/fixtures path");
+    run_fails([
+        "--config",
+        config_path.to_string_lossy().as_ref(),
+        "declare",
+        "vhost",
+        "--name",
+        vh,
+    ])
+    .stderr(output_includes("does not exist"));
+
+    crate::test_helpers::delete_vhost(vh)
+}
+
+#[test]
+fn combined_integration_test4() -> Result<(), Box<dyn Error>> {
+    // This test uses administrative credentials to create a new user
+    // and set up a topology using those new credentials
+    let vh = "rabbitmqadmin.combined_integration.test4";
+    let new_user = "user_from_combined_integration_test4";
+    let new_pass = "p4$$w0rd_from_combined_integration_test4";
+    let x = "fanout_combined_integration_test4";
+    let q = "queue_from_combined_integration_test4";
+
+    run_succeeds(["declare", "vhost", "--name", vh]);
+    run_succeeds([
+        "declare",
+        "user",
+        "--name",
+        new_user,
+        "--password",
+        new_pass,
+        "--tags",
+        "administrator",
+    ]);
+    run_succeeds([
+        "--vhost",
+        vh,
+        "declare",
+        "permissions",
+        "--username",
+        new_user,
+        "--configure",
+        ".*",
+        "--read",
+        ".*",
+        "--write",
+        ".*",
+    ]);
+    run_succeeds([
+        "--vhost",
+        vh,
+        "--username",
+        new_user,
+        "--password",
+        new_pass,
+        "declare",
+        "exchange",
+        "--name",
+        x,
+        "--type",
+        "fanout",
+        "--durable",
+        "true",
+        "--auto-delete",
+        "false",
+    ]);
+    run_succeeds([
+        "--vhost",
+        vh,
+        "--username",
+        new_user,
+        "--password",
+        new_pass,
+        "declare",
+        "queue",
+        "--name",
+        q,
+        "--type",
+        "quorum",
+        "--durable",
+        "true",
+        "--auto-delete",
+        "false",
+    ]);
+    run_succeeds([
+        "--vhost",
+        vh,
+        "--username",
+        new_user,
+        "--password",
+        new_pass,
+        "declare",
+        "queue",
+        "--name",
+        q,
+        "--type",
+        "quorum",
+        "--durable",
+        "true",
+        "--auto-delete",
+        "false",
+    ]);
+    run_succeeds([
+        "--vhost",
+        vh,
+        "--username",
+        new_user,
+        "--password",
+        new_pass,
+        "declare",
+        "binding",
+        "--source",
+        x,
+        "--destination-type",
+        "queue",
+        "--destination",
+        q,
+        "--routing-key",
+        "rk",
+    ]);
+
+    // We don't have to clear this topology because the entire virtual host will be deleted
+    // soon but this is an integration test, so let's do that
+    run_succeeds([
+        "--vhost",
+        vh,
+        "--username",
+        new_user,
+        "--password",
+        new_pass,
+        "delete",
+        "binding",
+        "--source",
+        x,
+        "--destination-type",
+        "queue",
+        "--destination",
+        q,
+        "--routing-key",
+        "rk",
+    ]);
+    run_succeeds(["-V", vh, "delete", "exchange", "--name", x]);
+    run_succeeds(["-V", vh, "delete", "queue", "--name", q]);
+
+    crate::test_helpers::delete_user(new_user).expect("failed to delete a user");
+    crate::test_helpers::delete_vhost(vh)
+}
+
+//
+// Implementation
+//
+
+fn report_a_missing_config_file(config_path: PathBuf) -> Result<(), Box<dyn Error>> {
+    println!(
+        "{} doesn't exist. Current working directory: {}",
+        config_path.to_string_lossy(),
+        env::current_dir()?.display()
+    );
+    Ok(())
+}

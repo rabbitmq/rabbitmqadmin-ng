@@ -64,64 +64,64 @@ priority = 10
 test-group = 'sequential'
 
 [[profile.default.overrides]]
-filter = 'binary(federation_upstream_uri_modification_tests)'
+filter = 'test(federation_upstream_uri_modification_tests::)'
 priority = 25
 test-group = 'sequential'
 
 [[profile.default.overrides]]
-filter = 'binary(shovel_source_uri_modification_tests)'
+filter = 'test(shovel_source_uri_modification_tests::)'
 priority = 24
 test-group = 'sequential'
 
 [[profile.default.overrides]]
-filter = 'binary(shovel_destination_uri_modification_tests)'
+filter = 'test(shovel_destination_uri_modification_tests::)'
 priority = 23
 test-group = 'sequential'
 
 # Read-only tests that can run with high parallelism
 [[profile.default.overrides]]
-filter = 'binary(help_tests) or binary(health_check_tests) or binary(nodes_tests) or binary(feature_flag_tests)'
+filter = 'test(help_tests::) or test(health_check_tests::) or test(nodes_tests::) or test(feature_flag_tests::)'
 priority = 80
 test-group = 'read_only'
 
 # Tests that create isolated virtual hosts
 [[profile.default.overrides]]
-filter = 'binary(queues_tests) or binary(exchanges_tests) or binary(bindings_tests) or binary(streams_tests) or binary(vhost_limits_tests) or binary(channels_tests) or binary(connections_tests)'
+filter = 'test(queues_tests::) or test(exchanges_tests::) or test(bindings_tests::) or test(streams_tests::) or test(vhost_limits_tests::) or test(channels_tests::) or test(connections_tests::)'
 priority = 70
 test-group = 'isolated_vhosts'
 
 # User management tests (global state)
 [[profile.default.overrides]]
-filter = 'binary(users_tests) or binary(permissions_tests) or binary(user_limits_tests)'
+filter = 'test(users_tests::) or test(permissions_tests::) or test(user_limits_tests::)'
 priority = 65
 test-group = 'user_management'
 
 # Runtime parameter tests (excluding already sequential ones)
 [[profile.default.overrides]]
-filter = 'binary(runtime_parameters_tests)'
+filter = 'test(runtime_parameters_tests::)'
 priority = 26
 test-group = 'runtime_params'
 
 # Virtual host management (global vhost operations)
 [[profile.default.overrides]]
-filter = 'binary(vhosts_tests)'
+filter = 'test(vhosts_tests::)'
 priority = 62
 test-group = 'vhost_management'
 
 # Virtual host delete_multiple tests (global vhost operations, can be flaky due to race conditions)
 [[profile.default.overrides]]
-filter = 'binary(vhosts_delete_multiple_tests)'
+filter = 'test(vhosts_delete_multiple_tests::)'
 priority = 61
 test-group = 'vhost_management'
 
 # Combined integration tests (creates global users)
 [[profile.default.overrides]]
-filter = 'binary(combined_integration_tests)'
+filter = 'test(combined_integration_tests::)'
 priority = 61
 test-group = 'user_management'
 
 # Tests that can run with moderate parallelism (no major conflicts)
 [[profile.default.overrides]]
-filter = 'binary(deprecated_feature_tests) or binary(test_commands_recommended_against_tests) or binary(feature_flag_management_tests)'
+filter = 'test(deprecated_feature_tests::) or test(test_commands_recommended_against_tests::) or test(feature_flag_management_tests::)'
 priority = 75
 test-group = 'isolated_vhosts'
