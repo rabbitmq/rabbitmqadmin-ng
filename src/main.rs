@@ -45,7 +45,9 @@ use crate::constants::{
     TANZU_COMMAND_PREFIX,
 };
 use crate::output::*;
-use rabbitmq_http_client::blocking_api::{Client as GenericAPIClient, ClientBuilder};
+use rabbitmq_http_client::blocking_api::{
+    Client as GenericAPIClient, ClientBuilder, EndpointValidationError,
+};
 use reqwest::blocking::Client as HTTPClient;
 use rustls::crypto::CryptoProvider;
 use rustls::pki_types::PrivateKeyDer;
@@ -156,7 +158,7 @@ fn configure_http_api_client<'a>(
         username.clone(),
         password.clone(),
         timeout,
-    );
+    )?;
     Ok(client)
 }
 
@@ -260,7 +262,7 @@ fn build_rabbitmq_http_api_client(
     username: String,
     password: String,
     timeout: Duration,
-) -> APIClient {
+) -> Result<APIClient, EndpointValidationError> {
     ClientBuilder::new()
         .with_endpoint(endpoint)
         .with_basic_auth_credentials(username, password)

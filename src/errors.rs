@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use rabbitmq_http_client::blocking_api::EndpointValidationError;
 use rabbitmq_http_client::error::{ConversionError, Error as ApiClientError, ErrorDetails};
 use rabbitmq_http_client::{blocking_api::HttpClientError, responses::HealthCheckFailureDetails};
 use reqwest::StatusCode;
@@ -136,6 +137,22 @@ impl From<HttpClientError> for CommandRunError {
             ApiClientError::MissingProperty { argument } => Self::MissingArgumentValue { property: argument },
             ApiClientError::IncompatibleBody { error, .. } => Self::IncompatibleBody { error },
             ApiClientError::ParsingError { message } => Self::FailureDuringExecution { message },
+        }
+    }
+}
+
+impl From<EndpointValidationError> for CommandRunError {
+    fn from(value: EndpointValidationError) -> Self {
+        match value {
+            EndpointValidationError::UnsupportedScheme { endpoint } => {
+                CommandRunError::InvalidBaseUri {
+                    uri: endpoint,
+                    message: "unsupported URI scheme".to_owned(),
+                }
+            }
+            EndpointValidationError::ClientBuildError { source } => {
+                CommandRunError::HttpClientBuildError(source)
+            }
         }
     }
 }
