@@ -89,12 +89,6 @@ Test suites require a RabbitMQ node running on `localhost:15672` with `rabbitmq_
 
  * Never add full stops to Markdown list items
 
-## Release Workflow
-
-The release workflow uses [`michaelklishin/rust-build-package-release-action`](https://github.com/michaelklishin/rust-build-package-release-action) (its `@v1` tag).
-
-For verifying YAML file syntax, use `yq`, Ruby or Python YAML modules (whichever is available).
-
 ## After Completing a Task
 
 ### Iterative Reviews
@@ -105,3 +99,32 @@ and for deviations from the instructions in this file.
 
 If no meaningful improvements are found for three iterations in a row,
 report it and stop iterating.
+
+## Releases
+
+### How to Roll (Produce) a New Release
+
+Suppose the current development version in `Cargo.toml` is `2.N.0` and `CHANGELOG.md` has
+a `## v2.N.0 (in development)` section at the top.
+
+To produce a new release:
+
+ 1. Update the changelog: replace `(in development)` with today's date, e.g. `(Feb 20, 2026)`. Make sure all notable changes since the previous release are listed
+ 2. Commit with the message `2.N.0` (just the version number, nothing else)
+ 3. Tag the commit: `git tag v2.N.0`
+ 4. Publish to crates.io: check out the tag, then run `cargo publish`
+ 5. Bump the dev version: back on `main`, set `Cargo.toml` version to `2.(N+1).0`
+ 6. Run `cargo generate-lockfile`
+ 7. Add a new `## v2.(N+1).0 (in development)` section to `CHANGELOG.md` with `No changes yet.` underneath
+ 8. Commit with the message `Bump dev version`
+ 9. Push: `git push && git push --tags`
+ 10. GitHub Actions (`.github/workflows/release.yaml`) will then build release artifacts and publish a GitHub Release
+
+### GitHub Actions
+
+The release workflow uses [`michaelklishin/rust-build-package-release-action`](https://github.com/michaelklishin/rust-build-package-release-action).
+
+For verifying YAML file syntax, use `yq`, Ruby or Python YAML modules (whichever is available).
+
+The `NEXT_RELEASE_VERSION` repository variable must match the version being released
+for the workflow's validation step to pass.
