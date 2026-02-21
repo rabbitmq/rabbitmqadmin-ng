@@ -1,10 +1,16 @@
 # rabbitmqadmin-ng Change Log
 
-## v2.26.0 (in development)
+## v2.26.0 (Feb 20, 2026)
 
 ### Dependency Upgrades
 
  * `rabbitmq_http_client` upgraded to `0.83.0`
+ * `clap` upgraded to `4.5.58`
+ * `clap_complete` upgraded to `4.5.66`
+ * `indicatif` upgraded to `0.18.4`
+ * `predicates` upgraded to `3.1.4`
+ * `proptest` upgraded to `1.10.0`
+ * `regex` upgraded to `1.12.3`
 
 
 ## v2.25.0 (Feb 5, 2026)
