@@ -39,7 +39,7 @@ serde = { version = "1.0", features = ["derive", "std"] }
 serde_json = "1.0"
 tabled = "0.20"
 bel7-cli = { version = "0.9", features = ["tables", "serde", "clap", "completions"] }
-toml = "0.9"
+toml = "1.0"
 toml_edit = "0.25"
 color-print = "0.3"
 thiserror = "2.0"
