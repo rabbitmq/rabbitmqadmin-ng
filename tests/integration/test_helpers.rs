@@ -18,7 +18,7 @@ use std::error::Error;
 use std::ffi::OsStr;
 use std::process::Command;
 use std::thread;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use assert_cmd::assert::Assert;
 use assert_cmd::prelude::*;
@@ -202,6 +202,50 @@ fn parse_version(version_str: &str) -> (u32, u32, u32) {
     let minor = parts.get(1).map(|s| parse_component(s)).unwrap_or(0);
     let patch = parts.get(2).map(|s| parse_component(s)).unwrap_or(0);
     (major, minor, patch)
+}
+
+pub fn await_federation_link_with(content: &str, timeout_ms: u64) {
+    let start = Instant::now();
+    let timeout = Duration::from_millis(timeout_ms);
+    loop {
+        let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("rabbitmqadmin"));
+        let output = cmd.args(["federation", "list_all_links"]).output().unwrap();
+        if output.status.success() {
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            if stdout.contains(content) {
+                return;
+            }
+        }
+        if start.elapsed() > timeout {
+            panic!(
+                "Timed out after {}ms waiting for federation link output to contain '{}'",
+                timeout_ms, content
+            );
+        }
+        thread::sleep(Duration::from_millis(500));
+    }
+}
+
+pub fn await_no_federation_link_with(content: &str, timeout_ms: u64) {
+    let start = Instant::now();
+    let timeout = Duration::from_millis(timeout_ms);
+    loop {
+        let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("rabbitmqadmin"));
+        let output = cmd.args(["federation", "list_all_links"]).output().unwrap();
+        if output.status.success() {
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            if !stdout.contains(content) {
+                return;
+            }
+        }
+        if start.elapsed() > timeout {
+            panic!(
+                "Timed out after {}ms waiting for federation link output to NOT contain '{}'",
+                timeout_ms, content
+            );
+        }
+        thread::sleep(Duration::from_millis(500));
+    }
 }
 
 #[macro_export]
