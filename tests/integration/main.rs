@@ -27,6 +27,7 @@ mod exchange_federation_tests;
 mod exchanges_tests;
 mod feature_flag_management_tests;
 mod feature_flag_tests;
+mod federation_link_tests;
 mod federation_upstream_uri_modification_tests;
 mod health_check_tests;
 mod help_tests;
