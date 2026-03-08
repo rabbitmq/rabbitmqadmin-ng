@@ -218,6 +218,20 @@ jobs:
         if: always()
         run: docker stop rabbitmq-tls && docker rm rabbitmq-tls || true
 
+  audit:
+    name: Security audit
+    runs-on: ubuntu-latest
+    permissions:
+      checks: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo generate-lockfile
+      - uses: rustsec/audit-check@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
   dependabot:
     needs: [lint, build, tls-tests]
     runs-on: ubuntu-latest

@@ -1,8 +1,12 @@
 # rabbitmqadmin-ng Change Log
 
-## v2.27.0 (in development)
+## v2.27.0 (Mar 7, 2026)
 
-No changes yet.
+### Enhancements
+
+ * Publishing to crates.io now uses [Trusted Publishing](https://blog.rust-lang.org/2023/11/10/trusted-publishing.html)
+ * Release action (`michaelklishin/rust-build-package-release-action`) upgraded to v2
+ * CI now includes a security audit job (`rustsec/audit-check`)
 
 
 ## v2.26.0 (Feb 20, 2026)
