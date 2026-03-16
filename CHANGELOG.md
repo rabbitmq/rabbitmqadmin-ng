@@ -2,7 +2,18 @@
 
 ## v2.28.0 (in development)
 
-No changes yet.
+### Enhancements
+
+ * For HTTPS connections, the list of [trusted CAs](https://www.rabbitmq.com/docs/ssl#peer-verification) is now loaded via
+   [`rustls/rustls-platform-verifier`](https://github.com/rustls/rustls-platform-verifier) which is stricter (respects [CA constraints](https://support.apple.com/en-us/103255),
+   takes revocation mechanisms into consideration).
+
+   This change is backwards compatible for almost every setup, at least given that the certificates use correct constraints
+   and were not revoked.
+
+### Dependency Upgrades
+
+ * `rabbitmq_http_client` upgraded to `0.85.0`
 
 
 ## v2.27.0 (Mar 7, 2026)
