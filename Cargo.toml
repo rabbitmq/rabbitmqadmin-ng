@@ -48,7 +48,7 @@ thiserror = "2.0"
 shellexpand = "3.1"
 regex = "1.12"
 indicatif = "0.18"
-clap_complete = "4.5"
+clap_complete = "4.6"
 clap_complete_nushell = "4.6"
 
 log = "0.4"
