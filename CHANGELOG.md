@@ -1,6 +1,6 @@
 # rabbitmqadmin-ng Change Log
 
-## v2.28.0 (in development)
+## v2.28.0 (Mar 16, 2026)
 
 ### Enhancements
 
@@ -14,6 +14,10 @@
 ### Dependency Upgrades
 
  * `rabbitmq_http_client` upgraded to `0.85.0`
+ * `clap` upgraded to `4.6.0`
+ * `clap_complete` upgraded to `4.6.0`
+ * `clap_complete_nushell` upgraded to `4.6.0`
+ * `assert_cmd` upgraded to `2.2.0`
 
 
 ## v2.27.0 (Mar 7, 2026)
