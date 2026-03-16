@@ -19,7 +19,7 @@ default = ["native-tls"]
 native-tls = ["reqwest/default-tls", "rabbitmq_http_client/default-tls"]
 
 [dependencies]
-clap = { version = "4.5", features = ["help", "color", "cargo", "env", "derive"] }
+clap = { version = "4.6", features = ["help", "color", "cargo", "env", "derive"] }
 url = "2.5"
 sysexits = "0.13"
 # For reqwest, we disable defaults to control what TLS features are enabled explicitly at build time.
