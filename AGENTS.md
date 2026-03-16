@@ -116,13 +116,12 @@ To produce a new release:
  1. Update the changelog: replace `(in development)` with today's date, e.g. `(Feb 20, 2026)`. Make sure all notable changes since the previous release are listed
  2. Commit with the message `2.N.0` (just the version number, nothing else)
  3. Tag the commit: `git tag v2.N.0`
- 4. Publish to crates.io: check out the tag, then run `cargo publish`
- 5. Bump the dev version: back on `main`, set `Cargo.toml` version to `2.(N+1).0`
- 6. Run `cargo generate-lockfile`
- 7. Add a new `## v2.(N+1).0 (in development)` section to `CHANGELOG.md` with `No changes yet.` underneath
- 8. Commit with the message `Bump dev version`
- 9. Push: `git push && git push --tags`
- 10. GitHub Actions (`.github/workflows/release.yaml`) will then build release artifacts and publish a GitHub Release
+ 4. Bump the dev version: back on `main`, set `Cargo.toml` version to `2.(N+1).0`
+ 5. Run `cargo generate-lockfile`
+ 6. Add a new `## v2.(N+1).0 (in development)` section to `CHANGELOG.md` with `No changes yet.` underneath
+ 7. Commit with the message `Bump dev version`
+ 8. Push: `git push && git push --tags`
+ 9. GitHub Actions workflow now publishes to crates.io using [Trusted Publishing](https://blog.rust-lang.org/2023/11/10/trusted-publishing.html), builds release artifacts, and publishes a GitHub Release
 
 ### GitHub Actions
 
