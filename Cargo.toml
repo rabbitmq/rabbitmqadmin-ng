@@ -30,9 +30,8 @@ reqwest = { version = "0.13", default-features = false, features = [
     "multipart",
     "http2",
     "charset",
-    "rustls-native-certs",
 ] }
-rabbitmq_http_client = { version = "0.84", default-features = false, features = [
+rabbitmq_http_client = { version = "0.85", default-features = false, features = [
     "blocking",
     "tabled",
     "rustls",
