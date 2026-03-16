@@ -49,7 +49,7 @@ shellexpand = "3.1"
 regex = "1.12"
 indicatif = "0.18"
 clap_complete = "4.5"
-clap_complete_nushell = "4.5"
+clap_complete_nushell = "4.6"
 
 log = "0.4"
 rustls = { version = "0.23", features = ["aws_lc_rs"] }
