@@ -78,6 +78,25 @@ fn test_incompatible_body_includes_underlying_error() {
 }
 
 #[test]
+fn test_certificate_key_mismatch_includes_paths() {
+    let cmd_err = CommandRunError::CertificateKeyMismatch {
+        cert_path: "/path/to/cert.pem".to_owned(),
+        key_path: "/path/to/key.pem".to_owned(),
+    };
+    let msg = cmd_err.to_string();
+    assert!(
+        msg.contains("/path/to/cert.pem"),
+        "cert path missing from message: {}",
+        msg
+    );
+    assert!(
+        msg.contains("/path/to/key.pem"),
+        "key path missing from message: {}",
+        msg
+    );
+}
+
+#[test]
 fn test_request_error_exit_code_is_data_err() {
     let err = reqwest::blocking::get("not-a-valid-url").unwrap_err();
     let cmd_err = CommandRunError::RequestError { error: err };
