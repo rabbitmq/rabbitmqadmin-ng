@@ -308,7 +308,7 @@ impl<'a> ResultHandler<'a> {
                 println!("{}", table);
             }
             Err(ref e) => {
-                println!("Error: {:?}", e);
+                eprintln!("{}", e);
                 self.exit_code = Some(ExitCode::Unavailable);
             }
         }
