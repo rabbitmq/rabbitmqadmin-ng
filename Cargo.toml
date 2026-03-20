@@ -52,7 +52,7 @@ clap_complete_nushell = "4.6"
 
 log = "0.4"
 rustls = { version = "0.23", features = ["aws_lc_rs"] }
-# fern = "0.7"
+fern = "0.7"
 # humantime = "2.1.0"
 # backtrace = "0.3"
 
