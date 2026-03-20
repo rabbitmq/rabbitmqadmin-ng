@@ -90,7 +90,7 @@ pub enum CommandRunError {
     MissingArgumentValue { property: String },
     #[error("Unsupported argument value for property (field) {property}")]
     UnsupportedArgumentValue { property: String },
-    #[error("This request produces an invalid HTTP header value")]
+    #[error("This request produces an invalid HTTP header value: {error}")]
     InvalidHeaderValue { error: InvalidHeaderValue },
     #[error("Response is incompatible with the target data type")]
     IncompatibleBody { error: ConversionError },
