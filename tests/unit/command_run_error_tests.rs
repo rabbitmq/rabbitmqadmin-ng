@@ -22,6 +22,7 @@ use rabbitmqadmin::output::ResultHandler;
 use reqwest::StatusCode;
 use reqwest::header::HeaderValue;
 use sysexits::ExitCode;
+
 fn make_handler<'a>(settings: &'a SharedSettings) -> ResultHandler<'a> {
     let matches = clap::Command::new("test").get_matches_from(["test"]);
     ResultHandler::new(settings, &matches)
