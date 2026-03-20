@@ -12,13 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use backtrace::Backtrace;
+use rabbitmq_http_client::blocking_api::HttpClientError;
 use rabbitmq_http_client::error::ConversionError;
+use rabbitmq_http_client::error::Error as ApiClientError;
+use rabbitmqadmin::config::SharedSettings;
 use rabbitmqadmin::errors::CommandRunError;
+use rabbitmqadmin::output::ResultHandler;
+use reqwest::StatusCode;
 use reqwest::header::HeaderValue;
+use sysexits::ExitCode;
+
+fn make_handler(settings: &SharedSettings) -> ResultHandler {
+    let matches = clap::Command::new("test").get_matches_from(["test"]);
+    ResultHandler::new(settings, &matches)
+}
 
 #[test]
 fn test_request_error_includes_underlying_error() {
-    // Build a reqwest error by attempting a request to an invalid URL
     let err = reqwest::blocking::get("not-a-valid-url").unwrap_err();
     let cmd_err = CommandRunError::RequestError { error: err };
     let msg = cmd_err.to_string();
@@ -27,7 +38,6 @@ fn test_request_error_includes_underlying_error() {
         "unexpected message: {}",
         msg
     );
-    // The underlying reqwest error detail must be present beyond the static prefix
     assert!(
         msg.len() > "Encountered an error when performing an HTTP request:".len(),
         "underlying error detail missing: {}",
@@ -65,4 +75,40 @@ fn test_incompatible_body_includes_underlying_error() {
         "underlying error detail missing: {}",
         msg
     );
+}
+
+#[test]
+fn test_request_error_exit_code_is_data_err() {
+    let err = reqwest::blocking::get("not-a-valid-url").unwrap_err();
+    let cmd_err = CommandRunError::RequestError { error: err };
+    let settings = SharedSettings::default();
+    let mut handler = make_handler(&settings);
+    handler.report_pre_command_run_error(&cmd_err);
+    assert_eq!(handler.exit_code, Some(ExitCode::DataErr));
+}
+
+#[test]
+fn test_client_error_exit_code_is_data_err() {
+    let api_err = ApiClientError::ClientErrorResponse {
+        status_code: StatusCode::BAD_REQUEST,
+        url: None,
+        body: None,
+        error_details: None,
+        headers: None,
+        backtrace: Backtrace::new(),
+    };
+    let cmd_err = CommandRunError::from(HttpClientError::from(api_err));
+    let settings = SharedSettings::default();
+    let mut handler = make_handler(&settings);
+    handler.report_pre_command_run_error(&cmd_err);
+    assert_eq!(handler.exit_code, Some(ExitCode::DataErr));
+}
+
+#[test]
+fn test_not_found_exit_code_is_data_err() {
+    let cmd_err = CommandRunError::from(HttpClientError::from(ApiClientError::NotFound));
+    let settings = SharedSettings::default();
+    let mut handler = make_handler(&settings);
+    handler.report_pre_command_run_error(&cmd_err);
+    assert_eq!(handler.exit_code, Some(ExitCode::DataErr));
 }
