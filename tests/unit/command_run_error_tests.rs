@@ -22,10 +22,52 @@ use rabbitmqadmin::output::ResultHandler;
 use reqwest::StatusCode;
 use reqwest::header::HeaderValue;
 use sysexits::ExitCode;
-
 fn make_handler<'a>(settings: &'a SharedSettings) -> ResultHandler<'a> {
     let matches = clap::Command::new("test").get_matches_from(["test"]);
     ResultHandler::new(settings, &matches)
+}
+
+#[test]
+fn test_certificate_file_could_not_be_loaded1_message_indicates_parse_failure() {
+    let cause = reqwest::blocking::get("not-a-valid-url").unwrap_err();
+    let cmd_err = CommandRunError::CertificateFileCouldNotBeLoaded1 {
+        local_path: "/path/to/cert.pem".to_owned(),
+        cause,
+    };
+    let msg = cmd_err.to_string();
+    assert!(
+        msg.contains("/path/to/cert.pem"),
+        "path missing from message: {}",
+        msg
+    );
+    assert!(
+        msg.contains("parsed"),
+        "message should indicate a parse failure: {}",
+        msg
+    );
+}
+
+#[test]
+fn test_certificate_file_could_not_be_loaded2_message_indicates_read_failure() {
+    let cause = rustls::pki_types::pem::Error::Io(std::io::Error::new(
+        std::io::ErrorKind::PermissionDenied,
+        "permission denied",
+    ));
+    let cmd_err = CommandRunError::CertificateFileCouldNotBeLoaded2 {
+        local_path: "/path/to/key.pem".to_owned(),
+        cause,
+    };
+    let msg = cmd_err.to_string();
+    assert!(
+        msg.contains("/path/to/key.pem"),
+        "path missing from message: {}",
+        msg
+    );
+    assert!(
+        msg.contains("read"),
+        "message should indicate a read failure: {}",
+        msg
+    );
 }
 
 #[test]

@@ -47,15 +47,13 @@ pub enum CommandRunError {
     #[error("Invalid value for argument '{name}': {message}")]
     InvalidArgumentValue { name: String, message: String },
     #[error(
-        "Local TLS certificate file at {local_path} does not exist, cannot be read or passed as a PEM file: {cause}"
+        "Local TLS certificate file at {local_path} could not be parsed as a PEM file: {cause}"
     )]
     CertificateFileCouldNotBeLoaded1 {
         local_path: String,
         cause: reqwest::Error,
     },
-    #[error(
-        "Local TLS certificate file at {local_path} does not exist, cannot be read or passed as a PEM file: {cause}"
-    )]
+    #[error("Local TLS certificate file at {local_path} could not be read: {cause}")]
     CertificateFileCouldNotBeLoaded2 {
         local_path: String,
         cause: rustls::pki_types::pem::Error,
