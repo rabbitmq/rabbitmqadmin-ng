@@ -94,7 +94,7 @@ pub enum CommandRunError {
     InvalidHeaderValue { error: InvalidHeaderValue },
     #[error("Response is incompatible with the target data type")]
     IncompatibleBody { error: ConversionError },
-    #[error("Encountered an error when performing an HTTP request")]
+    #[error("Encountered an error when performing an HTTP request: {error}")]
     RequestError { error: reqwest::Error },
     #[error("Failed to build HTTP client: {0}")]
     HttpClientBuildError(reqwest::Error),
