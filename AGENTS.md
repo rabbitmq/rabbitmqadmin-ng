@@ -13,8 +13,8 @@ cargo build
 
 cargo fmt --all
 
-cargo nextest run --all-features
-cargo clippy --all-features
+RUSTFLAGS="-D warnings" cargo nextest run --all-features
+RUSTFLAGS="-D warnings" cargo clippy --all-features
 ```
 
 To [filter](https://nexte.st/docs/filtersets/) tests with `cargo nextest`:
@@ -26,7 +26,7 @@ cargo nextest run -E "test(test_name)"
 ### Test Node Configuration
 
 Test suites require a RabbitMQ node running on `localhost:15672` with `rabbitmq_management` plugin enabled.
-`bin/ci/before_build.sh` is a script that demonstrates how the node should be configured.
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for step-by-step Docker setup instructions.
 
 
 ## Key Files
@@ -78,7 +78,7 @@ Test suites require a RabbitMQ node running on `localhost:15672` with `rabbitmq_
  * Add integration tests to `tests/integration/`, unit tests to `tests/unit/`, property-based tests to `tests/proptests/`
  * Never add tests in the implementation files
  * At the end of each task, run `cargo fmt --all`
- * At the end of each task, run `cargo clippy --all` and fix any warnings it might emit
+ * At the end of each task, run `RUSTFLAGS="-D warnings" cargo clippy --all-features` and fix any warnings it might emit
 
 ## Comments
 
