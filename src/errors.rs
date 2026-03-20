@@ -40,7 +40,7 @@ pub struct HealthCheckInfo {
 
 #[derive(thiserror::Error, Debug)]
 pub enum CommandRunError {
-    #[error("Asked to run an unknown command '{command} {subcommand}")]
+    #[error("Asked to run an unknown command '{command} {subcommand}'")]
     UnknownCommandTarget { command: String, subcommand: String },
     #[error("Missing required argument: {name}")]
     MissingRequiredArgument { name: String },

@@ -23,9 +23,23 @@ use reqwest::StatusCode;
 use reqwest::header::HeaderValue;
 use sysexits::ExitCode;
 
-fn make_handler(settings: &SharedSettings) -> ResultHandler {
+fn make_handler<'a>(settings: &'a SharedSettings) -> ResultHandler<'a> {
     let matches = clap::Command::new("test").get_matches_from(["test"]);
     ResultHandler::new(settings, &matches)
+}
+
+#[test]
+fn test_unknown_command_target_message_has_balanced_quotes() {
+    let cmd_err = CommandRunError::UnknownCommandTarget {
+        command: "vhosts".to_owned(),
+        subcommand: "frobnicate".to_owned(),
+    };
+    let msg = cmd_err.to_string();
+    assert!(
+        msg.contains("'vhosts frobnicate'"),
+        "expected quoted command in message: {}",
+        msg
+    );
 }
 
 #[test]
