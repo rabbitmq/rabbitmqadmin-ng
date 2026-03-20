@@ -558,7 +558,7 @@ impl ProgressReporter for QuietProgressReporter {
         // Silent
     }
 
-    fn finish_operation(&mut self, total: usize) {
-        println!("Completed: {} items processed", total);
+    fn finish_operation(&mut self, _total: usize) {
+        // Silent
     }
 }
