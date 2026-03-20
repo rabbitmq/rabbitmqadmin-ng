@@ -72,7 +72,7 @@ pub enum CommandRunError {
     CertificateFileInvalidPem { local_path: String, details: String },
     #[error("TLS private key file at {local_path} contains an unsupported key type or format")]
     PrivateKeyFileUnsupported { local_path: String },
-    #[error("TLS certificate and private key files do not match")]
+    #[error("TLS certificate {cert_path} and private key {key_path} do not match")]
     CertificateKeyMismatch { cert_path: String, key_path: String },
     #[error("{}", format_client_error(&.0.status_code, &.0.error_details))]
     ClientError(Box<HttpErrorInfo>),
