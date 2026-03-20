@@ -92,7 +92,7 @@ pub enum CommandRunError {
     UnsupportedArgumentValue { property: String },
     #[error("This request produces an invalid HTTP header value: {error}")]
     InvalidHeaderValue { error: InvalidHeaderValue },
-    #[error("Response is incompatible with the target data type")]
+    #[error("Response is incompatible with the target data type: {error}")]
     IncompatibleBody { error: ConversionError },
     #[error("Encountered an error when performing an HTTP request: {error}")]
     RequestError { error: reqwest::Error },
