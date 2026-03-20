@@ -318,6 +318,13 @@ impl<'a> ResultHandler<'a> {
         eprintln!("{}", error);
         let code = match error {
             CommandRunError::UnknownCommandTarget { .. } => ExitCode::Usage,
+            CommandRunError::MissingRequiredArgument { .. } => ExitCode::Usage,
+            CommandRunError::InvalidArgumentValue { .. } => ExitCode::Usage,
+            CommandRunError::ConflictingOptions { .. } => ExitCode::Usage,
+            CommandRunError::MissingOptions { .. } => ExitCode::Usage,
+            CommandRunError::MissingArgumentValue { .. } => ExitCode::Usage,
+            CommandRunError::UnsupportedArgumentValue { .. } => ExitCode::Usage,
+            CommandRunError::InvalidBaseUri { .. } => ExitCode::Usage,
             CommandRunError::CertificateFileCouldNotBeLoaded1 { .. } => ExitCode::DataErr,
             CommandRunError::CertificateFileCouldNotBeLoaded2 { .. } => ExitCode::DataErr,
             CommandRunError::CertificateFileNotFound { .. } => ExitCode::DataErr,
@@ -328,7 +335,16 @@ impl<'a> ResultHandler<'a> {
             CommandRunError::IoError { .. } => ExitCode::DataErr,
             CommandRunError::FailureDuringExecution { .. } => ExitCode::DataErr,
             CommandRunError::HttpClientBuildError { .. } => ExitCode::DataErr,
-            _ => ExitCode::Usage,
+            CommandRunError::ClientError { .. } => ExitCode::DataErr,
+            CommandRunError::ServerError { .. } => ExitCode::DataErr,
+            CommandRunError::NotFound => ExitCode::DataErr,
+            CommandRunError::InvalidHeaderValue { .. } => ExitCode::DataErr,
+            CommandRunError::IncompatibleBody { .. } => ExitCode::DataErr,
+            CommandRunError::RequestError { .. } => ExitCode::DataErr,
+            CommandRunError::JsonParseError { .. } => ExitCode::DataErr,
+            CommandRunError::Other => ExitCode::DataErr,
+            // HealthCheckFailed is handled separately in health_check_result
+            CommandRunError::HealthCheckFailed { .. } => ExitCode::Unavailable,
         };
         self.exit_code = Some(code);
     }
