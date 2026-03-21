@@ -2,7 +2,9 @@
 
 ## v2.29.0 (in development)
 
-No changes yet.
+### Dependency Upgrades
+
+ * `rabbitmq_http_client` upgraded to `0.86.0`
 
 
 ## v2.28.0 (Mar 16, 2026)
