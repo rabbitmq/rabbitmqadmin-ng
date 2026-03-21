@@ -36,7 +36,8 @@ RUST_HTTP_API_CLIENT_RABBITMQCTL=DOCKER:rabbitmq bin/ci/before_build.sh
 ```
 
 This enables the required plugins (management, shovel, federation, stream), creates test users,
-sets up the `rust/rabbitmqadmin` vhost, sets the cluster name, and enables all feature flags.
+sets up the `rust/rabbitmqadmin` virtual host, sets the cluster name,
+and enables all stable feature flags.
 
 Wait for the changes to apply:
 
@@ -50,8 +51,7 @@ sleep 10
 NEXTEST_RETRIES=3 cargo nextest run --all-features
 ```
 
-`NEXTEST_RETRIES=3` retries each failing test up to 3 times. This is recommended because some
-tests depend on management plugin stats that can lag slightly behind the actual broker state.
+`NEXTEST_RETRIES=3` retries each failing test up to 3 times.
 
 ### Stopping the Node
 
