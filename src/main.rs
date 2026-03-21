@@ -82,6 +82,12 @@ fn main() -> ExitCode {
         Err(code) => return code,
     };
 
+    if common_settings.verbose
+        && let Err(e) = init_verbose_logging()
+    {
+        eprintln!("Warning: failed to initialize verbose logging: {e}");
+    }
+
     match configure_http_api_client(&cli, &common_settings, &endpoint.clone()) {
         Ok(client) => dispatch_command(&cli, client, &common_settings),
         Err(err) => {
@@ -487,4 +493,16 @@ fn virtual_host(shared_settings: &SharedSettings, command_flags: &ArgMatches) ->
         .virtual_host
         .clone()
         .unwrap_or_else(|| DEFAULT_VHOST.to_string())
+}
+
+fn init_verbose_logging() -> Result<(), fern::InitError> {
+    fern::Dispatch::new()
+        .format(|out, message, record| {
+            out.finish(format_args!("[{}] {}", record.target(), message))
+        })
+        .level(log::LevelFilter::Off)
+        .level_for("rabbitmq_http_client", log::LevelFilter::Trace)
+        .chain(std::io::stderr())
+        .apply()?;
+    Ok(())
 }

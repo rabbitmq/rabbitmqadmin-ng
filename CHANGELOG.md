@@ -2,6 +2,15 @@
 
 ## v2.29.0 (in development)
 
+### Enhancements
+
+ * A new global CLI flag, `--verbose` (`-v`) logs HTTP requests and responses to the standard error stream
+
+### Bug Fixes
+
+ * Command execution code path could silently misclassify certain errors
+ * Select error messages now include the underlying error details
+
 ### Dependency Upgrades
 
  * `rabbitmq_http_client` upgraded to `0.86.0`

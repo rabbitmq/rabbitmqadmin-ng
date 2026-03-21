@@ -618,6 +618,19 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
                 .env("RABBITMQADMIN_QUIET_MODE")
                 .help("produce less output")
                 .required(false)
+                .conflicts_with("verbose")
+                .value_parser(value_parser!(bool))
+                .action(ArgAction::SetTrue),
+        )
+        // --verbose
+        .arg(
+            Arg::new("verbose")
+                .short('v')
+                .long("verbose")
+                .env("RABBITMQADMIN_VERBOSE")
+                .help("enable verbose logging of HTTP requests and responses")
+                .required(false)
+                .conflicts_with("quiet")
                 .value_parser(value_parser!(bool))
                 .action(ArgAction::SetTrue),
         )

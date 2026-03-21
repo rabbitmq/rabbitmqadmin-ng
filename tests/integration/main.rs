@@ -52,6 +52,7 @@ mod timeout_tests;
 mod tls_tests;
 mod user_limits_tests;
 mod users_tests;
+mod verbose_tests;
 mod vhost_limits_tests;
 mod vhosts_delete_multiple_tests;
 mod vhosts_tests;

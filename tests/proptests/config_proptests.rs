@@ -122,6 +122,7 @@ proptest! {
             tls: scheme.is_https(),
             non_interactive: false,
             quiet: false,
+            verbose: false,
             username: Some("guest".to_string()),
             password: Some("guest".to_string()),
             virtual_host: Some("/".to_string()),
@@ -156,6 +157,7 @@ proptest! {
             tls: scheme.is_https(),
             non_interactive: false,
             quiet: false,
+            verbose: false,
             username: Some("guest".to_string()),
             password: Some("guest".to_string()),
             virtual_host: Some("/".to_string()),
@@ -190,6 +192,7 @@ proptest! {
             tls: scheme.is_https(),
             non_interactive: false,
             quiet: false,
+            verbose: false,
             username: Some("guest".to_string()),
             password: Some("guest".to_string()),
             virtual_host: Some("/".to_string()),
@@ -235,6 +238,7 @@ proptest! {
             tls: false,
             non_interactive: false,
             quiet: false,
+            verbose: false,
             username: Some("guest".to_string()),
             password: Some("guest".to_string()),
             virtual_host: Some("/".to_string()),
@@ -267,6 +271,7 @@ proptest! {
             tls: false,
             non_interactive: false,
             quiet: false,
+            verbose: false,
             username: Some("guest".to_string()),
             password: Some("guest".to_string()),
             virtual_host: Some("/".to_string()),
@@ -317,6 +322,11 @@ fn create_test_parser() -> Command {
                 .action(ArgAction::SetTrue),
         )
         .arg(Arg::new("quiet").long("quiet").action(ArgAction::SetTrue))
+        .arg(
+            Arg::new("verbose")
+                .long("verbose")
+                .action(ArgAction::SetTrue),
+        )
         .arg(Arg::new("path_prefix").long("path-prefix"))
         .arg(Arg::new("base_uri").long("base-uri"))
         .arg(Arg::new("table_style").long("table-style"))
@@ -366,6 +376,7 @@ proptest! {
             tls: false,
             non_interactive: false,
             quiet: false,
+            verbose: false,
             base_uri: None,
             username: Some("guest".to_string()),
             password: Some("guest".to_string()),
@@ -403,6 +414,7 @@ proptest! {
             tls: false,
             non_interactive: false,
             quiet: false,
+            verbose: false,
             base_uri: None,
             password: Some("guest".to_string()),
             virtual_host: Some("/".to_string()),
@@ -441,6 +453,7 @@ proptest! {
             tls: false,
             non_interactive: false,
             quiet: false,
+            verbose: false,
             base_uri: None,
             username: Some("guest".to_string()),
             password: Some("guest".to_string()),
@@ -480,6 +493,7 @@ proptest! {
             tls: false,
             non_interactive: false,
             quiet: false,
+            verbose: false,
             base_uri: None,
             username: Some("guest".to_string()),
             password: Some("guest".to_string()),
@@ -526,6 +540,7 @@ proptest! {
             tls: false,
             non_interactive: false,
             quiet: false,
+            verbose: false,
             base_uri: None,
             username: Some("config_user".to_string()),
             password: Some("config_pass".to_string()),
@@ -571,6 +586,7 @@ proptest! {
             tls: false,
             non_interactive: false,
             quiet: false,
+            verbose: false,
             base_uri: None,
             username: Some("guest".to_string()),
             password: Some("guest".to_string()),
@@ -618,6 +634,7 @@ proptest! {
             tls: false,
             non_interactive: config_non_interactive,
             quiet: config_quiet,
+            verbose: false,
             base_uri: None,
             username: Some("guest".to_string()),
             password: Some("guest".to_string()),

@@ -139,6 +139,8 @@ pub struct SharedSettings {
     pub non_interactive: bool,
     #[serde(default = "default_quiet")]
     pub quiet: bool,
+    #[serde(default = "default_verbose")]
+    pub verbose: bool,
 
     #[serde(default)]
     pub scheme: Scheme,
@@ -237,6 +239,11 @@ impl SharedSettings {
             || config_file_defaults.non_interactive;
         let quiet = cli_args.get_one::<bool>("quiet").cloned().unwrap_or(false)
             || config_file_defaults.quiet;
+        let verbose = cli_args
+            .get_one::<bool>("verbose")
+            .cloned()
+            .unwrap_or(false)
+            || config_file_defaults.verbose;
         let scheme = if should_use_tls {
             Scheme::Https
         } else {
@@ -308,6 +315,7 @@ impl SharedSettings {
 
             non_interactive,
             quiet,
+            verbose,
             base_uri: None,
             scheme,
             hostname: Some(hostname),
@@ -329,6 +337,11 @@ impl SharedSettings {
             .unwrap_or(false)
             || default_non_interactive();
         let quiet = cli_args.get_one::<bool>("quiet").cloned().unwrap_or(false) || default_quiet();
+        let verbose = cli_args
+            .get_one::<bool>("verbose")
+            .cloned()
+            .unwrap_or(false)
+            || default_verbose();
         let scheme = if should_use_tls {
             Scheme::Https
         } else {
@@ -391,6 +404,7 @@ impl SharedSettings {
 
             non_interactive,
             quiet,
+            verbose,
             base_uri: None,
             scheme,
             hostname: Some(hostname),
@@ -418,6 +432,11 @@ impl SharedSettings {
             || config_file_defaults.non_interactive;
         let quiet = cli_args.get_one::<bool>("quiet").cloned().unwrap_or(false)
             || config_file_defaults.quiet;
+        let verbose = cli_args
+            .get_one::<bool>("verbose")
+            .cloned()
+            .unwrap_or(false)
+            || config_file_defaults.verbose;
 
         let scheme = if should_use_tls {
             Scheme::Https
@@ -481,6 +500,7 @@ impl SharedSettings {
 
             non_interactive,
             quiet,
+            verbose,
             base_uri: Some(url.to_string()),
             scheme,
             hostname: Some(hostname),
@@ -504,6 +524,10 @@ impl SharedSettings {
             .get_one::<bool>("quiet")
             .cloned()
             .unwrap_or(default_quiet());
+        let verbose = cli_args
+            .get_one::<bool>("verbose")
+            .cloned()
+            .unwrap_or(default_verbose());
 
         let scheme = if should_use_tls {
             Scheme::Https
@@ -563,6 +587,7 @@ impl SharedSettings {
 
             non_interactive,
             quiet,
+            verbose,
             base_uri: Some(url.to_string()),
             scheme,
             hostname: Some(hostname),
@@ -617,6 +642,10 @@ fn default_non_interactive() -> bool {
 }
 
 fn default_quiet() -> bool {
+    false
+}
+
+fn default_verbose() -> bool {
     false
 }
 
