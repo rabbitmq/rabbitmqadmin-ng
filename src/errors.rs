@@ -40,22 +40,20 @@ pub struct HealthCheckInfo {
 
 #[derive(thiserror::Error, Debug)]
 pub enum CommandRunError {
-    #[error("Asked to run an unknown command '{command} {subcommand}")]
+    #[error("Asked to run an unknown command '{command} {subcommand}'")]
     UnknownCommandTarget { command: String, subcommand: String },
     #[error("Missing required argument: {name}")]
     MissingRequiredArgument { name: String },
     #[error("Invalid value for argument '{name}': {message}")]
     InvalidArgumentValue { name: String, message: String },
     #[error(
-        "Local TLS certificate file at {local_path} does not exist, cannot be read or passed as a PEM file: {cause}"
+        "Local TLS certificate file at {local_path} could not be parsed as a PEM file: {cause}"
     )]
     CertificateFileCouldNotBeLoaded1 {
         local_path: String,
         cause: reqwest::Error,
     },
-    #[error(
-        "Local TLS certificate file at {local_path} does not exist, cannot be read or passed as a PEM file: {cause}"
-    )]
+    #[error("Local TLS certificate file at {local_path} could not be read: {cause}")]
     CertificateFileCouldNotBeLoaded2 {
         local_path: String,
         cause: rustls::pki_types::pem::Error,
@@ -72,7 +70,7 @@ pub enum CommandRunError {
     CertificateFileInvalidPem { local_path: String, details: String },
     #[error("TLS private key file at {local_path} contains an unsupported key type or format")]
     PrivateKeyFileUnsupported { local_path: String },
-    #[error("TLS certificate and private key files do not match")]
+    #[error("TLS certificate {cert_path} and private key {key_path} do not match")]
     CertificateKeyMismatch { cert_path: String, key_path: String },
     #[error("{}", format_client_error(&.0.status_code, &.0.error_details))]
     ClientError(Box<HttpErrorInfo>),
@@ -90,11 +88,11 @@ pub enum CommandRunError {
     MissingArgumentValue { property: String },
     #[error("Unsupported argument value for property (field) {property}")]
     UnsupportedArgumentValue { property: String },
-    #[error("This request produces an invalid HTTP header value")]
+    #[error("This request produces an invalid HTTP header value: {error}")]
     InvalidHeaderValue { error: InvalidHeaderValue },
-    #[error("Response is incompatible with the target data type")]
+    #[error("Response is incompatible with the target data type: {error}")]
     IncompatibleBody { error: ConversionError },
-    #[error("Encountered an error when performing an HTTP request")]
+    #[error("Encountered an error when performing an HTTP request: {error}")]
     RequestError { error: reqwest::Error },
     #[error("Failed to build HTTP client: {0}")]
     HttpClientBuildError(reqwest::Error),

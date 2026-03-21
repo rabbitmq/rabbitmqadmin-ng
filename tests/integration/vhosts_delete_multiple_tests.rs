@@ -382,3 +382,27 @@ fn test_vhosts_delete_multiple_protects_deletion_protected_vhosts() -> Result<()
 
     Ok(())
 }
+
+#[test]
+fn test_vhosts_delete_multiple_quiet_produces_no_output() -> Result<(), Box<dyn Error>> {
+    let prefix = "rabbitmqadmin.test-vhosts-delete-multiple-quiet";
+
+    delete_vhosts_with_prefix(prefix).ok();
+
+    for i in 1..=3 {
+        let vh_name = format!("{}-{}", prefix, i);
+        run_succeeds(["vhosts", "declare", "--name", &vh_name]);
+    }
+
+    run_succeeds([
+        "--quiet",
+        "--non-interactive",
+        "vhosts",
+        "delete_multiple",
+        "--name-pattern",
+        prefix,
+    ])
+    .stdout(predicates::str::is_empty());
+
+    Ok(())
+}

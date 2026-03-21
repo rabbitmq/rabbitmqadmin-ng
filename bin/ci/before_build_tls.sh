@@ -81,7 +81,7 @@ if [ -n "$CONTAINER_ID" ]; then
     echo "    -p 15671:15671 -p 15672:15672 -p 5672:5672 \\"
     echo "    -v ${CERTS_DIR}:/certs:ro \\"
     echo "    -v ${RABBITMQ_CONF}:/etc/rabbitmq/rabbitmq.conf:ro \\"
-    echo "    rabbitmq:4.0-management"
+    echo "    rabbitmq:4-management"
 fi
 
 # Enable management plugin (should already be enabled in the management image)

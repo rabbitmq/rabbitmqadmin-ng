@@ -15,6 +15,7 @@
 use crate::test_helpers::output_includes;
 use crate::test_helpers::{run_fails, run_succeeds};
 use std::error::Error;
+
 #[test]
 fn test_health_check_local_alarms() -> Result<(), Box<dyn Error>> {
     run_succeeds(["health_check", "local_alarms"]).stdout(output_includes("passed"));
@@ -69,6 +70,24 @@ fn test_health_check_protocol_listener_fails() -> Result<(), Box<dyn Error>> {
         "unknown/proto",
     ])
     .stdout(output_includes("failed"));
+
+    Ok(())
+}
+
+#[test]
+fn test_health_check_unreachable_host_produces_useful_error() -> Result<(), Box<dyn Error>> {
+    // Port 19999 is not expected to have anything listening on localhost
+    run_fails([
+        "--host",
+        "localhost",
+        "--port",
+        "19999",
+        "health_check",
+        "cluster_wide_alarms",
+    ])
+    .stderr(output_includes(
+        "Encountered an error when performing an HTTP request:",
+    ));
 
     Ok(())
 }
