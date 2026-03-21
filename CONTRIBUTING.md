@@ -2,11 +2,13 @@
 
 ## Running Tests
 
-Most tests require a locally running RabbitMQ node. The easiest way to get one is via Docker.
+Most tests require a locally running RabbitMQ node with default ports.
+This can be a locally installed package, a [generic binary build](https://rabbitmq.com/docs/install-generic-unix)
+or a container that uses the [community OCI image](https://github.com/docker-library/rabbitmq).
 
 ### Prerequisites
 
-Install [cargo-nextest](https://nexte.st/) if you don't have it:
+Install [cargo-nextest](https://nexte.st/):
 
 ```bash
 cargo install cargo-nextest
