@@ -467,6 +467,12 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         .infer_long_args(pre_flight_settings.infer_long_options)
         .after_help(after_help)
         .disable_version_flag(true)
+        .arg(
+            Arg::new("version")
+                .long("version")
+                .action(ArgAction::Version)
+                .help("Print version"),
+        )
         // --config-file
         .arg(
             Arg::new("config_file_path")
