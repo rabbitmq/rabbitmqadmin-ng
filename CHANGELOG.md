@@ -9,7 +9,7 @@ No changes yet.
 
 ### Enhancements
 
- * A new global CLI flag, `--verbose` (`-v`), logs HTTP requests and responses to the standard error stream
+ * A new global CLI flag, `--verbose` (`-v`), causes `rabbitmqadmin` log HTTP requests and responses to the standard error stream
 
 ### Bug Fixes
 
