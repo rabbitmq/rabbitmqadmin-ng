@@ -1808,6 +1808,78 @@ pub fn delete_queue(
     Ok(client.delete_queue(vhost, name, idempotently)?)
 }
 
+pub fn delete_multiple_queues(
+    client: APIClient,
+    vhost: &str,
+    command_args: &ArgMatches,
+    prog_rep: &mut dyn ProgressReporter,
+) -> Result<Option<Vec<responses::QueueInfo>>, CommandRunError> {
+    let name_pattern = command_args.str_arg("name_pattern");
+    let approve = command_args.optional_typed_or::<bool>("approve", false);
+    let dry_run = command_args.optional_typed_or::<bool>("dry_run", false);
+    let idempotently = command_args.optional_typed_or::<bool>("idempotently", false);
+    let non_interactive_cli = command_args
+        .optional_typed::<bool>("non_interactive")
+        .unwrap_or_else(|| pre_flight::InteractivityMode::from_env().is_non_interactive());
+
+    let regex =
+        Regex::new(name_pattern).map_err(|_| CommandRunError::UnsupportedArgumentValue {
+            property: "name_pattern".to_string(),
+        })?;
+
+    let queues = client.list_queues_in(vhost)?;
+
+    let matching_queues: Vec<responses::QueueInfo> = queues
+        .into_iter()
+        .filter(|q| regex.is_match(&q.name))
+        .collect();
+
+    if dry_run {
+        return Ok(Some(matching_queues));
+    }
+
+    if !approve && !pre_flight::is_non_interactive() && !non_interactive_cli {
+        return Err(CommandRunError::FailureDuringExecution {
+            message: "This operation is destructive and requires the --approve flag".to_string(),
+        });
+    }
+
+    let total = matching_queues.len();
+
+    if total == 0 {
+        return Ok(None);
+    }
+
+    prog_rep.start_operation(total, "Deleting queues");
+
+    let mut successes = 0;
+    let mut failures = 0;
+
+    for (index, queue) in matching_queues.iter().enumerate() {
+        let queue_name = &queue.name;
+        match client.delete_queue(vhost, queue_name, idempotently) {
+            Ok(_) => {
+                prog_rep.report_progress(index + 1, total, queue_name);
+                successes += 1;
+            }
+            Err(error) => {
+                prog_rep.report_failure(queue_name, &error.to_string());
+                failures += 1;
+            }
+        }
+    }
+
+    prog_rep.finish_operation(total);
+
+    if failures > 0 && successes == 0 {
+        return Err(CommandRunError::FailureDuringExecution {
+            message: format!("Failed to delete all {} queues", failures),
+        });
+    }
+
+    Ok(None)
+}
+
 pub fn delete_stream(
     client: APIClient,
     vhost: &str,

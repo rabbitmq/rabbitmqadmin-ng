@@ -984,6 +984,21 @@ fn dispatch_queues(
             let result = commands::delete_queue(client, vhost, args);
             res_handler.delete_operation_result(result);
         }
+        "delete_multiple" => {
+            let mut prog_rep = res_handler.instantiate_progress_reporter();
+            let result = commands::delete_multiple_queues(client, vhost, args, &mut *prog_rep);
+            match result {
+                Ok(Some(queues)) => {
+                    res_handler.tabular_result(Ok(queues));
+                }
+                Ok(None) => {
+                    res_handler.no_output_on_success(Ok(()));
+                }
+                Err(e) => {
+                    res_handler.no_output_on_success::<()>(Err(e));
+                }
+            }
+        }
         "list" => {
             let columns = args.optional_string("columns");
             let result = commands::list_queues(client, vhost, args);

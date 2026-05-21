@@ -2,7 +2,10 @@
 
 ## v2.31.0 (in development)
 
-No changes yet.
+### Enhancements
+
+ * A new command, `queues delete_multiple --name-pattern <regex>`, is a queue equivallent of `vhosts delete_multiple`:
+   it can be used to delete a group of queues in the target virtual host, using a naming pattern
 
 
 ## v2.30.0 (May 4, 2026)

@@ -40,6 +40,7 @@ mod plugins_tests;
 mod policies_conflicting_tests;
 mod policies_tests;
 mod queue_federation_tests;
+mod queues_delete_multiple_tests;
 mod queues_tests;
 mod runtime_parameters_tests;
 mod shell_completions_tests;

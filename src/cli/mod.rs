@@ -1646,6 +1646,33 @@ fn queues_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
                 .required(true),
         )
         .arg(idempotently_arg.clone());
+    let bulk_delete_cmd = Command::new("delete_multiple")
+        .about(color_print::cstr!("<bold><red>DANGER ZONE.</red></bold> Deletes multiple queues at once using a name matching pattern"))
+        .after_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            QUEUE_GUIDE_URL
+        ))
+        .arg(
+            Arg::new("name_pattern")
+                .long("name-pattern")
+                .help("a regular expression that will be used to match queue names")
+                .required(true),
+        )
+        .arg(
+            Arg::new("approve")
+                .long("approve")
+                .action(ArgAction::SetTrue)
+                .help("this operation is very destructive and requires an explicit approval")
+                .required(false),
+        )
+        .arg(
+            Arg::new("dry_run")
+                .long("dry-run")
+                .action(ArgAction::SetTrue)
+                .help("show what would be deleted without performing the actual deletion")
+                .required(false),
+        )
+        .arg(idempotently_arg.clone());
     let list_cmd = Command::new("list")
         .long_about("Lists queues and streams")
         .after_help(color_print::cformat!(
@@ -1679,6 +1706,7 @@ fn queues_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     [
         declare_cmd,
         delete_cmd,
+        bulk_delete_cmd,
         list_cmd,
         purge_cmd,
         rebalance_cmd,
