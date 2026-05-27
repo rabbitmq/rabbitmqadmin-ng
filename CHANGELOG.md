@@ -1,11 +1,17 @@
 # rabbitmqadmin-ng Change Log
 
-## v2.31.0 (in development)
+## v2.31.0 (May 26, 2026)
 
 ### Enhancements
 
- * A new command, `queues delete_multiple --name-pattern <regex>`, is a queue equivallent of `vhosts delete_multiple`:
+ * A new command, `queues delete_multiple --name-pattern <regex>`, is a queue equivalent of `vhosts delete_multiple`:
    it can be used to delete a group of queues in the target virtual host, using a naming pattern
+
+### Dependency Upgrades
+
+ * `clap_complete` upgraded to `4.6.5`
+ * `assert_cmd` upgraded to `2.2.2`
+ * `serde_json` upgraded to `1.0.150`
 
 
 ## v2.30.0 (May 4, 2026)
