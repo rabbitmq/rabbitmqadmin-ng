@@ -13,8 +13,11 @@
 // limitations under the License.
 
 mod arg_helpers_tests;
+mod bulk_classification_tests;
+mod bulk_tests;
 mod columns_tests;
 mod command_run_error_tests;
 mod error_helper_tests;
+mod exit_code_tests;
 mod interactivity_mode_tests;
 mod scheme_tests;

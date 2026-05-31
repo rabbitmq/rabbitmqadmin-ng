@@ -13,10 +13,12 @@
 // limitations under the License.
 
 pub mod arg_helpers;
+pub mod bulk;
 pub mod columns;
 pub mod config;
 pub mod constants;
 pub mod errors;
+pub mod exit_code;
 pub mod output;
 pub mod pre_flight;
 pub mod tables;

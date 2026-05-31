@@ -82,10 +82,12 @@ fn test_scheme_serde_roundtrip() {
 }
 
 #[test]
+#[allow(clippy::clone_on_copy)]
 fn test_scheme_copy_clone() {
+    // Test asserts that Scheme implements both Copy and Clone.
     let s1 = Scheme::Http;
-    let s2 = s1; // Copy
-    let s3 = s1.clone(); // Clone
+    let s2 = s1;
+    let s3 = s1.clone();
     assert_eq!(s1, s2);
     assert_eq!(s1, s3);
 }

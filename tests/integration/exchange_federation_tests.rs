@@ -315,7 +315,7 @@ fn test_federation_list_all_upstreams_with_exchange_federation() -> Result<(), B
         .stdout(output_includes(&endpoint1))
         .stdout(output_includes(x));
     if rabbitmq_version_is_at_least(3, 13, 0) {
-        result.stdout(output_includes(&queue_type.to_string()));
+        result.stdout(output_includes(queue_type.as_ref()));
     }
 
     delete_vhost(vh).expect("failed to delete a virtual host");
@@ -371,7 +371,7 @@ fn test_federation_delete_an_upstream_with_exchange_federation_settings()
         .stdout(output_includes(&endpoint1))
         .stdout(output_includes(x));
     if rabbitmq_version_is_at_least(3, 13, 0) {
-        result.stdout(output_includes(&queue_type.to_string()));
+        result.stdout(output_includes(queue_type.as_ref()));
     }
 
     run_succeeds([

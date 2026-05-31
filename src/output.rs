@@ -11,9 +11,11 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+use crate::bulk::BulkReport;
 use crate::columns;
 use crate::config::SharedSettings;
 use crate::errors::CommandRunError;
+use crate::exit_code::Outcome;
 use crate::tables;
 use bel7_cli::Padding;
 use clap::ArgMatches;
@@ -22,6 +24,7 @@ use rabbitmq_http_client::password_hashing::HashingError;
 use rabbitmq_http_client::responses::{
     NodeMemoryBreakdown, Overview, SchemaDefinitionSyncStatus, WarmStandbyReplicationStatus,
 };
+use serde::Serialize;
 use std::fmt;
 use sysexits::ExitCode;
 use tabled::settings::object::{Rows, Segment};
@@ -29,6 +32,98 @@ use tabled::settings::{Format, Modify, Panel, Remove};
 use tabled::{Table, Tabled};
 
 pub use bel7_cli::TableStyle;
+
+/// Output format selector for bulk operations.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum BulkOutputFormat {
+    /// Human-readable table on stdout for dry-run; stderr text for
+    /// the live-run summary (default).
+    #[default]
+    Table,
+    /// Pretty-printed JSON envelope on stdout (machine-readable).
+    Json,
+}
+
+impl BulkOutputFormat {
+    pub fn parse(s: Option<&str>) -> Self {
+        match s.map(str::trim).map(str::to_ascii_lowercase).as_deref() {
+            Some("json") => BulkOutputFormat::Json,
+            _ => BulkOutputFormat::Table,
+        }
+    }
+}
+
+/// Options that drive how a bulk report is rendered and how its
+/// outcome is mapped to an exit code.
+#[derive(Debug, Clone, Copy, Default)]
+pub struct BulkReportOpts {
+    /// Treat partial success as failure (exit `DataErr`).
+    pub strict: bool,
+    /// Opt-in: surface partial success as exit code `3`.
+    /// Off by default for backwards compatibility — the CLI keeps
+    /// returning `0` on partial success unless the caller asks for
+    /// the richer behavior.
+    pub detailed_exit_codes: bool,
+    pub output_format: BulkOutputFormat,
+}
+
+/// Implemented by payload types that bulk operations may want to
+/// preview in `--dry-run`. Decouples the dispatch layer from the
+/// table-rendering layer.
+pub trait BulkPreviewRow {
+    fn preview_name(&self) -> String;
+}
+
+/// Map a [`BulkReport`] plus [`BulkReportOpts`] to a process [`Outcome`].
+///
+/// Pure: no I/O, no `self`, no `ResultHandler`. The decision matrix
+/// below is the single place that owns "what exit code does this
+/// invocation produce?".
+///
+/// | report state    | strict | detailed_exit_codes | outcome           |
+/// | --------------- | ------ | ------------------- | ----------------- |
+/// | dry-run         | any    | any                 | Success           |
+/// | nothing matched | any    | any                 | Success           |
+/// | full success    | any    | any                 | Success           |
+/// | full failure    | any    | any                 | Failure(DataErr)  |
+/// | partial         | true   | any                 | Failure(DataErr)  |
+/// | partial         | false  | false               | Success (legacy)  |
+/// | partial         | false  | true                | PartialSuccess    |
+pub fn classify_bulk_outcome<T>(report: &BulkReport<T>, opts: BulkReportOpts) -> Outcome {
+    if report.is_dry_run || report.nothing_to_do() || report.is_full_success() {
+        return Outcome::Success;
+    }
+    if report.is_full_failure() {
+        return Outcome::Failure(ExitCode::DataErr);
+    }
+    // Partial: at least one success, at least one failure.
+    if opts.strict {
+        return Outcome::Failure(ExitCode::DataErr);
+    }
+    if !opts.detailed_exit_codes {
+        return Outcome::Success;
+    }
+    Outcome::PartialSuccess
+}
+
+#[derive(Tabled)]
+struct DryRunRow {
+    name: String,
+}
+
+// Wire envelope for --output json. Borrows the per-item results from
+// the live BulkReport to avoid cloning the Vec.
+#[derive(Serialize)]
+struct BulkReportEnvelope<'a> {
+    dry_run: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    preview: Option<Vec<String>>,
+    attempted: usize,
+    succeeded: usize,
+    failed: usize,
+    skipped: usize,
+    results: &'a [crate::bulk::BulkItem],
+}
 
 type CommandResult<T> = Result<T, CommandRunError>;
 
@@ -72,6 +167,7 @@ pub struct ResultHandler<'a> {
     pub quiet: bool,
     pub idempotently: bool,
     pub exit_code: Option<ExitCode>,
+    pub outcome: Option<Outcome>,
 }
 
 impl<'a> ResultHandler<'a> {
@@ -94,6 +190,23 @@ impl<'a> ResultHandler<'a> {
             non_interactive,
             idempotently,
             exit_code: None,
+            outcome: None,
+        }
+    }
+
+    /// Compute the final outcome of this invocation. Prefers an
+    /// explicitly-set `outcome` (the new path); falls back to
+    /// mapping `exit_code` (the legacy path used by everything that
+    /// did not opt in to the new shape). If neither is set, returns
+    /// `Failure(fallback)` to preserve the historical
+    /// `unwrap_or(ExitCode::DataErr)` defensive behavior of `main`.
+    pub fn final_outcome_or(&self, fallback: ExitCode) -> Outcome {
+        if let Some(o) = self.outcome {
+            return o;
+        }
+        match self.exit_code {
+            Some(e) => Outcome::from(e),
+            None => Outcome::Failure(fallback),
         }
     }
 
@@ -314,6 +427,118 @@ impl<'a> ResultHandler<'a> {
         }
     }
 
+    /// Options controlling how a [`BulkReport`] is rendered and how
+    /// its outcome is mapped to a process exit code. Passed in from
+    /// the dispatch layer once per bulk-delete subcommand.
+    pub fn render_bulk_report<T>(&mut self, report: BulkReport<T>, opts: BulkReportOpts)
+    where
+        T: BulkPreviewRow,
+    {
+        match opts.output_format {
+            BulkOutputFormat::Json => self.render_bulk_report_json(&report),
+            BulkOutputFormat::Table => self.render_bulk_report_table(&report),
+        }
+        self.classify_bulk_report(&report, opts);
+    }
+
+    fn render_bulk_report_json<T>(&self, report: &BulkReport<T>)
+    where
+        T: BulkPreviewRow,
+    {
+        // Decouple the wire schema from BulkReport<T>'s payload
+        // (T may not be Serialize, and we want a stable schema).
+        // Compute counts once to keep the linear-scan helpers off the
+        // hot path.
+        let mut succeeded = 0usize;
+        let mut failed = 0usize;
+        let mut skipped = 0usize;
+        for item in &report.results {
+            match item.outcome {
+                crate::bulk::ItemOutcome::Succeeded => succeeded += 1,
+                crate::bulk::ItemOutcome::Failed { .. } => failed += 1,
+                crate::bulk::ItemOutcome::Skipped { .. } => skipped += 1,
+            }
+        }
+        let preview = if report.is_dry_run {
+            Some(
+                report
+                    .items
+                    .iter()
+                    .map(BulkPreviewRow::preview_name)
+                    .collect(),
+            )
+        } else {
+            None
+        };
+        let envelope = BulkReportEnvelope {
+            dry_run: report.is_dry_run,
+            preview,
+            attempted: report.results.len(),
+            succeeded,
+            failed,
+            skipped,
+            results: &report.results,
+        };
+        match serde_json::to_string_pretty(&envelope) {
+            Ok(json) => println!("{}", json),
+            Err(err) => eprintln!("failed to serialize bulk report: {}", err),
+        }
+    }
+
+    fn render_bulk_report_table<T>(&self, report: &BulkReport<T>)
+    where
+        T: BulkPreviewRow,
+    {
+        if report.is_dry_run {
+            if report.items.is_empty() {
+                // Stay silent for backwards compatibility: scripts that
+                // used to see no output here must keep seeing none.
+                return;
+            }
+            // Tabled-friendly view: a single-column "name" preview.
+            let rows: Vec<DryRunRow> = report
+                .items
+                .iter()
+                .map(|i| DryRunRow {
+                    name: i.preview_name(),
+                })
+                .collect();
+            let mut table = Table::new(rows);
+            self.table_styler.apply(&mut table);
+            println!("{}", table);
+            return;
+        }
+
+        if report.nothing_to_do() {
+            // Silent for backwards compatibility.
+            return;
+        }
+
+        // List individual skips and failures on stderr. The aggregate
+        // pass-or-fail line is left to InteractiveProgressReporter so we
+        // don't print two summaries; --output json carries the full
+        // counts in a structured envelope.
+        if !self.quiet {
+            for (name, reason) in report.skips() {
+                eprintln!("skipped {}: {}", name, reason);
+            }
+            for (name, error) in report.failures() {
+                eprintln!("failed {}: {}", name, error);
+            }
+        }
+    }
+
+    fn classify_bulk_report<T>(&mut self, report: &BulkReport<T>, opts: BulkReportOpts) {
+        let outcome = classify_bulk_outcome(report, opts);
+        self.outcome = Some(outcome);
+        // Mirror in exit_code so the legacy main() fallback path also
+        // observes this outcome.
+        self.exit_code = Some(match outcome {
+            Outcome::Success | Outcome::PartialSuccess => ExitCode::Ok,
+            Outcome::Failure(e) => e,
+        });
+    }
+
     pub fn report_pre_command_run_error(&mut self, error: &CommandRunError) {
         eprintln!("{}", error);
         let code = match error {
@@ -409,6 +634,10 @@ impl InteractiveProgressReporter {
     }
 }
 
+// Contract: the bulk helper calls exactly one of report_success,
+// report_failure, or report_skip per item. Each of those advances
+// the progress bar by one. report_progress is advisory and does not
+// move the bar.
 impl ProgressReporter for InteractiveProgressReporter {
     fn start_operation(&mut self, total: usize, operation_name: &str) {
         let bar = ProgressBar::new(total as u64);
@@ -424,17 +653,19 @@ impl ProgressReporter for InteractiveProgressReporter {
     }
 
     fn report_progress(&mut self, _current: usize, _total: usize, _item_name: &str) {
+        // Advisory only; per-item terminal calls drive the bar.
+    }
+
+    fn report_success(&mut self, _item_name: &str) {
         if let Some(bar) = &self.bar {
             bar.inc(1);
         }
     }
 
-    fn report_success(&mut self, _item_name: &str) {
-        // No-op: progress already incremented in report_progress
-    }
-
     fn report_skip(&mut self, _item_name: &str, _reason: &str) {
-        // No-op: progress already incremented in report_progress
+        if let Some(bar) = &self.bar {
+            bar.inc(1);
+        }
     }
 
     fn report_failure(&mut self, _item_name: &str, _error: &str) {
@@ -450,11 +681,11 @@ impl ProgressReporter for InteractiveProgressReporter {
 
             let successes = total - self.failures;
             if self.failures == 0 {
-                println!("✅ Completed: {} items processed successfully", total);
+                eprintln!("✅ Completed: {} items processed successfully", total);
             } else if successes == 0 {
-                println!("❌ Failed: All {} items failed to process", total);
+                eprintln!("❌ Failed: All {} items failed to process", total);
             } else {
-                println!(
+                eprintln!(
                     "⚠️  Completed with failures: {} succeeded, {} failed out of {} total",
                     successes, self.failures, total
                 );
@@ -493,17 +724,19 @@ impl ProgressReporter for NonInteractiveProgressReporter {
     }
 
     fn report_progress(&mut self, _current: usize, _total: usize, _item_name: &str) {
+        // Advisory only; per-item terminal calls drive the bar.
+    }
+
+    fn report_success(&mut self, _item_name: &str) {
         if let Some(bar) = &self.bar {
             bar.inc(1);
         }
     }
 
-    fn report_success(&mut self, _item_name: &str) {
-        // No-op: progress already incremented in report_progress
-    }
-
     fn report_skip(&mut self, _item_name: &str, _reason: &str) {
-        // No-op: progress already incremented in report_progress
+        if let Some(bar) = &self.bar {
+            bar.inc(1);
+        }
     }
 
     fn report_failure(&mut self, _item_name: &str, _error: &str) {
@@ -515,7 +748,7 @@ impl ProgressReporter for NonInteractiveProgressReporter {
     fn finish_operation(&mut self, total: usize) {
         if let Some(bar) = &self.bar {
             bar.finish();
-            println!("Completed: {} items processed", total);
+            eprintln!("Completed: {} items processed", total);
         }
         self.bar = None;
     }

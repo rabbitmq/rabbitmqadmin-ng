@@ -17,10 +17,21 @@ use crate::APIClient;
 use crate::arg_helpers::ArgMatchesExt;
 use crate::commands;
 use crate::errors::CommandRunError;
-use crate::output::ResultHandler;
+use crate::output::{BulkOutputFormat, BulkReportOpts, ResultHandler};
 use clap::ArgMatches;
 use rabbitmq_http_client::commons::PolicyTarget;
 use sysexits::ExitCode;
+
+/// Build the [`BulkReportOpts`] shared by `queues delete_multiple`
+/// and `vhosts delete_multiple` from their `clap` args.
+fn bulk_report_opts(args: &ArgMatches) -> BulkReportOpts {
+    let output = args.optional_string("output");
+    BulkReportOpts {
+        strict: args.optional_typed_or::<bool>("strict", false),
+        detailed_exit_codes: args.optional_typed_or::<bool>("detailed_exit_codes", false),
+        output_format: BulkOutputFormat::parse(output.as_deref()),
+    }
+}
 
 pub fn dispatch_command_group(
     first_level: &str,
@@ -985,18 +996,13 @@ fn dispatch_queues(
             res_handler.delete_operation_result(result);
         }
         "delete_multiple" => {
+            let opts = bulk_report_opts(args);
             let mut prog_rep = res_handler.instantiate_progress_reporter();
             let result = commands::delete_multiple_queues(client, vhost, args, &mut *prog_rep);
+            drop(prog_rep);
             match result {
-                Ok(Some(queues)) => {
-                    res_handler.tabular_result(Ok(queues));
-                }
-                Ok(None) => {
-                    res_handler.no_output_on_success(Ok(()));
-                }
-                Err(e) => {
-                    res_handler.no_output_on_success::<()>(Err(e));
-                }
+                Ok(report) => res_handler.render_bulk_report(report, opts),
+                Err(e) => res_handler.no_output_on_success::<()>(Err(e)),
             }
         }
         "list" => {
@@ -1266,18 +1272,13 @@ fn dispatch_vhosts(
             res_handler.delete_operation_result(result);
         }
         "delete_multiple" => {
+            let opts = bulk_report_opts(args);
             let mut prog_rep = res_handler.instantiate_progress_reporter();
             let result = commands::delete_multiple_vhosts(client, args, &mut *prog_rep);
+            drop(prog_rep);
             match result {
-                Ok(Some(vhosts)) => {
-                    res_handler.tabular_result(Ok(vhosts));
-                }
-                Ok(None) => {
-                    res_handler.no_output_on_success(Ok(()));
-                }
-                Err(e) => {
-                    res_handler.no_output_on_success::<()>(Err(e));
-                }
+                Ok(report) => res_handler.render_bulk_report(report, opts),
+                Err(e) => res_handler.no_output_on_success::<()>(Err(e)),
             }
         }
         "list" => {

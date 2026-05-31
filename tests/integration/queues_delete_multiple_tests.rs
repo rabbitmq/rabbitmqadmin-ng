@@ -414,3 +414,263 @@ fn test_queues_delete_multiple_help_includes_danger_zone() -> Result<(), Box<dyn
         .stdout(output_includes("--idempotently"));
     Ok(())
 }
+
+#[test]
+fn test_queues_delete_multiple_help_lists_new_flags() -> Result<(), Box<dyn Error>> {
+    run_succeeds(["queues", "delete_multiple", "--help"])
+        .stdout(output_includes("--strict"))
+        .stdout(output_includes("--fail-fast"))
+        .stdout(output_includes("--detailed-exit-codes"))
+        .stdout(output_includes("--output"));
+    Ok(())
+}
+
+#[test]
+fn test_queues_delete_multiple_help_documents_exit_codes() -> Result<(), Box<dyn Error>> {
+    run_succeeds(["queues", "delete_multiple", "--help"])
+        .stdout(output_includes("Exit codes"))
+        .stdout(output_includes("3"))
+        .stdout(output_includes("65"));
+    Ok(())
+}
+
+#[test]
+fn test_queues_delete_multiple_strict_and_detailed_exit_codes_conflict()
+-> Result<(), Box<dyn Error>> {
+    // clap-level conflict: passing both should yield exit code 2 (clap's
+    // usage error code), not a successful run.
+    run_fails([
+        "queues",
+        "delete_multiple",
+        "--name-pattern",
+        ".*",
+        "--strict",
+        "--detailed-exit-codes",
+        "--dry-run",
+    ]);
+    Ok(())
+}
+
+#[test]
+fn test_queues_delete_multiple_output_json_emits_json() -> Result<(), Box<dyn Error>> {
+    let vhost = test_vhost("output-json");
+    declare_vhost(&vhost);
+
+    for i in 1..=2 {
+        declare_classic_queue(&vhost, &format!("leftover-{i}"));
+    }
+
+    run_succeeds([
+        "--vhost",
+        &vhost,
+        "queues",
+        "delete_multiple",
+        "--name-pattern",
+        "^leftover-.*",
+        "--approve",
+        "--idempotently",
+        "--output",
+        "json",
+    ])
+    .stdout(output_includes("\"attempted\""))
+    .stdout(output_includes("\"succeeded\""))
+    .stdout(output_includes("\"failed\""))
+    .stdout(output_includes("\"skipped\""));
+
+    delete_vhost(&vhost).ok();
+    Ok(())
+}
+
+#[test]
+fn test_queues_delete_multiple_dry_run_output_json_lists_preview() -> Result<(), Box<dyn Error>> {
+    let vhost = test_vhost("dry-json");
+    declare_vhost(&vhost);
+
+    declare_classic_queue(&vhost, "leftover-only");
+
+    run_succeeds([
+        "--vhost",
+        &vhost,
+        "queues",
+        "delete_multiple",
+        "--name-pattern",
+        "^leftover-.*",
+        "--dry-run",
+        "--output",
+        "json",
+    ])
+    .stdout(output_includes("\"dry_run\": true"))
+    .stdout(output_includes("\"preview\""))
+    .stdout(output_includes("leftover-only"));
+
+    delete_vhost(&vhost).ok();
+    Ok(())
+}
+
+#[test]
+fn test_queues_delete_multiple_default_does_not_emit_exit_code_three() -> Result<(), Box<dyn Error>>
+{
+    // Backwards compatibility: without --detailed-exit-codes, the
+    // exit code remains 0 even if some items failed. The integration
+    // test cannot easily force per-item failures, so it asserts the
+    // baseline success path stays at 0 (no change of default behavior).
+    let vhost = test_vhost("default-exit-code");
+    declare_vhost(&vhost);
+    declare_classic_queue(&vhost, "leftover-1");
+
+    let assert = run_succeeds([
+        "--vhost",
+        &vhost,
+        "queues",
+        "delete_multiple",
+        "--name-pattern",
+        "^leftover-.*",
+        "--approve",
+        "--idempotently",
+    ]);
+    let code = assert.get_output().status.code().unwrap_or(-1);
+    assert_eq!(code, 0);
+
+    delete_vhost(&vhost).ok();
+    Ok(())
+}
+
+#[test]
+fn test_queues_delete_multiple_idempotent_race_keeps_exit_zero() -> Result<(), Box<dyn Error>> {
+    // Pre-deletes one matching queue, then runs delete_multiple with
+    // --idempotently. The 404 must be treated as a Skip, not a Fail,
+    // and the exit code must stay 0 even with --detailed-exit-codes.
+    let vhost = test_vhost("idempotent-race");
+    declare_vhost(&vhost);
+
+    for i in 1..=3 {
+        declare_classic_queue(&vhost, &format!("leftover-{i}"));
+    }
+    run_succeeds([
+        "--vhost",
+        &vhost,
+        "queues",
+        "delete",
+        "--name",
+        "leftover-2",
+    ]);
+
+    let assert = run_succeeds([
+        "--vhost",
+        &vhost,
+        "queues",
+        "delete_multiple",
+        "--name-pattern",
+        "^leftover-.*",
+        "--approve",
+        "--idempotently",
+        "--detailed-exit-codes",
+    ]);
+    let code = assert.get_output().status.code().unwrap_or(-1);
+    assert_eq!(code, 0, "skipped items must not trigger exit code 3");
+
+    delete_vhost(&vhost).ok();
+    Ok(())
+}
+
+#[test]
+fn test_queues_delete_multiple_empty_match_regex() -> Result<(), Box<dyn Error>> {
+    // Regex `^$` matches only the empty queue name, which RabbitMQ
+    // rejects on declare. So this is effectively the same as "no
+    // matches": exit 0, nothing deleted.
+    let vhost = test_vhost("empty-regex");
+    declare_vhost(&vhost);
+    declare_classic_queue(&vhost, "keep-me");
+
+    run_succeeds([
+        "--vhost",
+        &vhost,
+        "queues",
+        "delete_multiple",
+        "--name-pattern",
+        "^$",
+        "--approve",
+    ]);
+
+    let client = api_client();
+    assert_eq!(queue_names_in(&client, &vhost), vec!["keep-me".to_string()]);
+
+    delete_vhost(&vhost).ok();
+    Ok(())
+}
+
+#[test]
+fn test_queues_delete_multiple_output_unknown_value_is_rejected() -> Result<(), Box<dyn Error>> {
+    run_fails([
+        "queues",
+        "delete_multiple",
+        "--name-pattern",
+        ".*",
+        "--dry-run",
+        "--output",
+        "xml",
+    ]);
+    Ok(())
+}
+
+#[test]
+fn test_queues_delete_multiple_output_json_with_quiet_still_emits_envelope()
+-> Result<(), Box<dyn Error>> {
+    let vhost = test_vhost("quiet-json");
+    declare_vhost(&vhost);
+    declare_classic_queue(&vhost, "leftover-1");
+
+    run_succeeds([
+        "--quiet",
+        "--non-interactive",
+        "--vhost",
+        &vhost,
+        "queues",
+        "delete_multiple",
+        "--name-pattern",
+        "^leftover-.*",
+        "--idempotently",
+        "--output",
+        "json",
+    ])
+    .stdout(output_includes("\"attempted\""));
+
+    delete_vhost(&vhost).ok();
+    Ok(())
+}
+
+#[test]
+fn test_queues_delete_multiple_dry_run_preview_is_sorted() -> Result<(), Box<dyn Error>> {
+    let vhost = test_vhost("dry-sorted");
+    declare_vhost(&vhost);
+
+    // Declare in reverse alphabetical order; preview must come back sorted.
+    for name in ["leftover-c", "leftover-a", "leftover-b"] {
+        declare_classic_queue(&vhost, name);
+    }
+
+    let assert = run_succeeds([
+        "--vhost",
+        &vhost,
+        "queues",
+        "delete_multiple",
+        "--name-pattern",
+        "^leftover-.*",
+        "--dry-run",
+    ]);
+
+    let stdout = String::from_utf8_lossy(&assert.get_output().stdout).to_string();
+    let a = stdout
+        .find("leftover-a")
+        .expect("preview missing leftover-a");
+    let b = stdout
+        .find("leftover-b")
+        .expect("preview missing leftover-b");
+    let c = stdout
+        .find("leftover-c")
+        .expect("preview missing leftover-c");
+    assert!(a < b && b < c, "preview must be sorted by name");
+
+    delete_vhost(&vhost).ok();
+    Ok(())
+}

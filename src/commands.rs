@@ -14,13 +14,14 @@
 #![allow(clippy::result_large_err)]
 
 use crate::arg_helpers::ArgMatchesExt;
+use crate::bulk::{self, BulkMode, BulkReport, ItemAction, SkipReason};
 use crate::config::{
     ConfigPathEntry, NodeConfigEntry, Scheme, SharedSettings, add_node_to_config_file,
     config_file_exists, delete_node_from_config_file, list_all_nodes, update_node_in_config_file,
 };
 use crate::constants::{DEFAULT_BLANKET_POLICY_PRIORITY, DEFAULT_HOST, DEFAULT_VHOST};
 use crate::errors::CommandRunError;
-use crate::output::ProgressReporter;
+use crate::output::{BulkPreviewRow, ProgressReporter};
 use crate::pre_flight;
 use clap::ArgMatches;
 use rabbitmq_http_client::blocking_api::Client;
@@ -1160,15 +1161,22 @@ pub fn disable_vhost_deletion_protection(
     Ok(client.disable_vhost_deletion_protection(name)?)
 }
 
+impl BulkPreviewRow for responses::VirtualHost {
+    fn preview_name(&self) -> String {
+        self.name.clone()
+    }
+}
+
 pub fn delete_multiple_vhosts(
     client: APIClient,
     command_args: &ArgMatches,
     prog_rep: &mut dyn ProgressReporter,
-) -> Result<Option<Vec<responses::VirtualHost>>, CommandRunError> {
+) -> Result<BulkReport<responses::VirtualHost>, CommandRunError> {
     let name_pattern = command_args.str_arg("name_pattern");
     let approve = command_args.optional_typed_or::<bool>("approve", false);
     let dry_run = command_args.optional_typed_or::<bool>("dry_run", false);
     let idempotently = command_args.optional_typed_or::<bool>("idempotently", false);
+    let fail_fast = command_args.optional_typed_or::<bool>("fail_fast", false);
     let non_interactive_cli = command_args
         .optional_typed::<bool>("non_interactive")
         .unwrap_or_else(|| pre_flight::InteractivityMode::from_env().is_non_interactive());
@@ -1178,16 +1186,25 @@ pub fn delete_multiple_vhosts(
             property: "name_pattern".to_string(),
         })?;
 
-    let vhosts = client.list_vhosts()?;
-
-    let matching_vhosts: Vec<responses::VirtualHost> = vhosts
+    let mut matching: Vec<responses::VirtualHost> = client
+        .list_vhosts()?
         .into_iter()
         .filter(|vhost| regex.is_match(&vhost.name))
-        .filter(|vhost| vhost.name != DEFAULT_VHOST)
         .collect();
+    // Deterministic ordering: dry-run preview and live execution
+    // process items in the same order, making both reproducible.
+    matching.sort_by(|a, b| a.name.cmp(&b.name));
 
     if dry_run {
-        return Ok(Some(matching_vhosts));
+        // Default vhost is always protected. Exclude it from the
+        // dry-run preview so the user does not think it will be
+        // deleted; the same exclusion is applied in the live path
+        // below via Skip(Protected).
+        let preview: Vec<_> = matching
+            .into_iter()
+            .filter(|v| v.name != DEFAULT_VHOST)
+            .collect();
+        return Ok(BulkReport::dry_run(preview));
     }
 
     if !approve && !pre_flight::is_non_interactive() && !non_interactive_cli {
@@ -1196,40 +1213,39 @@ pub fn delete_multiple_vhosts(
         });
     }
 
-    let total = matching_vhosts.len();
+    let mode = if fail_fast {
+        BulkMode::FailFast
+    } else {
+        BulkMode::ContinueOnError
+    };
 
-    if total == 0 {
-        return Ok(None);
-    }
-
-    prog_rep.start_operation(total, "Deleting virtual hosts");
-
-    let mut successes = 0;
-    let mut failures = 0;
-
-    for (index, vhost) in matching_vhosts.iter().enumerate() {
-        let vhost_name = &vhost.name;
-        match client.delete_vhost(vhost_name, idempotently) {
-            Ok(_) => {
-                prog_rep.report_progress(index + 1, total, vhost_name);
-                successes += 1;
+    Ok(bulk::bulk_op(
+        matching,
+        mode,
+        |v| v.name.clone(),
+        |v| {
+            if v.name == DEFAULT_VHOST {
+                return ItemAction::Skip(SkipReason::Protected {
+                    reason: "default virtual host".to_string(),
+                });
             }
-            Err(error) => {
-                prog_rep.report_failure(vhost_name, &error.to_string());
-                failures += 1;
+            match client.delete_vhost(&v.name, idempotently) {
+                Ok(_) => ItemAction::Ok,
+                Err(e) => {
+                    // Under --idempotently, an absent vhost is a skip,
+                    // not a failure: it matches the user's intent.
+                    let err = CommandRunError::from(e);
+                    if idempotently && matches!(err, CommandRunError::NotFound) {
+                        ItemAction::Skip(SkipReason::AlreadyAbsent)
+                    } else {
+                        ItemAction::Fail(err.to_string())
+                    }
+                }
             }
-        }
-    }
-
-    prog_rep.finish_operation(total);
-
-    if failures > 0 && successes == 0 {
-        return Err(CommandRunError::FailureDuringExecution {
-            message: format!("Failed to delete all {} virtual hosts", failures),
-        });
-    }
-
-    Ok(None)
+        },
+        prog_rep,
+        "Deleting virtual hosts",
+    ))
 }
 
 pub fn delete_user(client: APIClient, command_args: &ArgMatches) -> CommandResult<()> {
@@ -1808,16 +1824,23 @@ pub fn delete_queue(
     Ok(client.delete_queue(vhost, name, idempotently)?)
 }
 
+impl BulkPreviewRow for responses::QueueInfo {
+    fn preview_name(&self) -> String {
+        self.name.clone()
+    }
+}
+
 pub fn delete_multiple_queues(
     client: APIClient,
     vhost: &str,
     command_args: &ArgMatches,
     prog_rep: &mut dyn ProgressReporter,
-) -> Result<Option<Vec<responses::QueueInfo>>, CommandRunError> {
+) -> Result<BulkReport<responses::QueueInfo>, CommandRunError> {
     let name_pattern = command_args.str_arg("name_pattern");
     let approve = command_args.optional_typed_or::<bool>("approve", false);
     let dry_run = command_args.optional_typed_or::<bool>("dry_run", false);
     let idempotently = command_args.optional_typed_or::<bool>("idempotently", false);
+    let fail_fast = command_args.optional_typed_or::<bool>("fail_fast", false);
     let non_interactive_cli = command_args
         .optional_typed::<bool>("non_interactive")
         .unwrap_or_else(|| pre_flight::InteractivityMode::from_env().is_non_interactive());
@@ -1827,15 +1850,15 @@ pub fn delete_multiple_queues(
             property: "name_pattern".to_string(),
         })?;
 
-    let queues = client.list_queues_in(vhost)?;
-
-    let matching_queues: Vec<responses::QueueInfo> = queues
+    let mut matching: Vec<responses::QueueInfo> = client
+        .list_queues_in(vhost)?
         .into_iter()
         .filter(|q| regex.is_match(&q.name))
         .collect();
+    matching.sort_by(|a, b| a.name.cmp(&b.name));
 
     if dry_run {
-        return Ok(Some(matching_queues));
+        return Ok(BulkReport::dry_run(matching));
     }
 
     if !approve && !pre_flight::is_non_interactive() && !non_interactive_cli {
@@ -1844,40 +1867,30 @@ pub fn delete_multiple_queues(
         });
     }
 
-    let total = matching_queues.len();
+    let mode = if fail_fast {
+        BulkMode::FailFast
+    } else {
+        BulkMode::ContinueOnError
+    };
 
-    if total == 0 {
-        return Ok(None);
-    }
-
-    prog_rep.start_operation(total, "Deleting queues");
-
-    let mut successes = 0;
-    let mut failures = 0;
-
-    for (index, queue) in matching_queues.iter().enumerate() {
-        let queue_name = &queue.name;
-        match client.delete_queue(vhost, queue_name, idempotently) {
-            Ok(_) => {
-                prog_rep.report_progress(index + 1, total, queue_name);
-                successes += 1;
+    Ok(bulk::bulk_op(
+        matching,
+        mode,
+        |q| q.name.clone(),
+        |q| match client.delete_queue(vhost, &q.name, idempotently) {
+            Ok(_) => ItemAction::Ok,
+            Err(e) => {
+                let err = CommandRunError::from(e);
+                if idempotently && matches!(err, CommandRunError::NotFound) {
+                    ItemAction::Skip(SkipReason::AlreadyAbsent)
+                } else {
+                    ItemAction::Fail(err.to_string())
+                }
             }
-            Err(error) => {
-                prog_rep.report_failure(queue_name, &error.to_string());
-                failures += 1;
-            }
-        }
-    }
-
-    prog_rep.finish_operation(total);
-
-    if failures > 0 && successes == 0 {
-        return Err(CommandRunError::FailureDuringExecution {
-            message: format!("Failed to delete all {} queues", failures),
-        });
-    }
-
-    Ok(None)
+        },
+        prog_rep,
+        "Deleting queues",
+    ))
 }
 
 pub fn delete_stream(

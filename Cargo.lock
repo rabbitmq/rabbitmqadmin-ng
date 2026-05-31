@@ -163,9 +163,9 @@ checksum = "72b3254f16251a8381aa12e40e3c4d2f0199f8c6508fbecb9d91f575e0fbb8c6"
 
 [[package]]
 name = "bel7-cli"
-version = "0.9.0"
+version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f9727fb05232477546b5b5264246c83ce432389bba0f45cdaf20a7982ed527d8"
+checksum = "3ce1d068522a6891bff6448c1bd2bca42261087e1d8e99a40409b4e95447fcaa"
 dependencies = [
  "clap",
  "clap_complete",

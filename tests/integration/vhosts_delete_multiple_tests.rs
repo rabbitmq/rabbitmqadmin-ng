@@ -406,3 +406,115 @@ fn test_vhosts_delete_multiple_quiet_produces_no_output() -> Result<(), Box<dyn 
 
     Ok(())
 }
+
+#[test]
+fn test_vhosts_delete_multiple_default_vhost_is_protected() -> Result<(), Box<dyn Error>> {
+    // A pattern that would otherwise match '/' must not delete it.
+    // The dry-run path filters it out of the preview; the live path
+    // turns it into a Skipped(Protected). Either way: '/' survives.
+    run_succeeds([
+        "vhosts",
+        "delete_multiple",
+        "--name-pattern",
+        "^/$",
+        "--approve",
+        "--idempotently",
+    ]);
+
+    let client = api_client();
+    let names: Vec<String> = client
+        .list_vhosts()
+        .unwrap_or_default()
+        .into_iter()
+        .map(|v| v.name)
+        .collect();
+    assert!(
+        names.iter().any(|n| n == "/"),
+        "default virtual host '/' must be preserved"
+    );
+
+    Ok(())
+}
+
+#[test]
+fn test_vhosts_delete_multiple_help_lists_new_flags() -> Result<(), Box<dyn Error>> {
+    run_succeeds(["vhosts", "delete_multiple", "--help"])
+        .stdout(output_includes("--strict"))
+        .stdout(output_includes("--fail-fast"))
+        .stdout(output_includes("--detailed-exit-codes"))
+        .stdout(output_includes("--output"));
+    Ok(())
+}
+
+#[test]
+fn test_vhosts_delete_multiple_help_documents_exit_codes() -> Result<(), Box<dyn Error>> {
+    run_succeeds(["vhosts", "delete_multiple", "--help"])
+        .stdout(output_includes("Exit codes"))
+        .stdout(output_includes("3"))
+        .stdout(output_includes("65"));
+    Ok(())
+}
+
+#[test]
+fn test_vhosts_delete_multiple_strict_and_detailed_exit_codes_conflict()
+-> Result<(), Box<dyn Error>> {
+    run_fails([
+        "vhosts",
+        "delete_multiple",
+        "--name-pattern",
+        ".*",
+        "--strict",
+        "--detailed-exit-codes",
+        "--dry-run",
+    ]);
+    Ok(())
+}
+
+#[test]
+fn test_vhosts_delete_multiple_dry_run_excludes_default_vhost() -> Result<(), Box<dyn Error>> {
+    // Pattern `.*` matches '/' too, but it must not appear in the dry-run preview.
+    let assert = run_succeeds([
+        "vhosts",
+        "delete_multiple",
+        "--name-pattern",
+        "^/$",
+        "--dry-run",
+    ]);
+    let stdout = String::from_utf8_lossy(&assert.get_output().stdout).to_string();
+    assert!(
+        !stdout.contains('/')
+            || stdout
+                .lines()
+                .all(|line| !line.trim_start().starts_with('/')),
+        "default virtual host must not appear in dry-run preview rows"
+    );
+    Ok(())
+}
+
+#[test]
+fn test_vhosts_delete_multiple_output_json_emits_envelope() -> Result<(), Box<dyn Error>> {
+    let prefix = "rabbitmqadmin.test-vhosts-delete-multiple-jsonenv";
+    delete_vhosts_with_prefix(prefix).ok();
+
+    for i in 1..=2 {
+        let vh_name = format!("{}-{}", prefix, i);
+        run_succeeds(["vhosts", "declare", "--name", &vh_name]);
+    }
+
+    run_succeeds([
+        "vhosts",
+        "delete_multiple",
+        "--name-pattern",
+        &format!("{}.*", prefix),
+        "--approve",
+        "--idempotently",
+        "--output",
+        "json",
+    ])
+    .stdout(output_includes("\"attempted\""))
+    .stdout(output_includes("\"succeeded\""))
+    .stdout(output_includes("\"failed\""))
+    .stdout(output_includes("\"skipped\""));
+
+    Ok(())
+}

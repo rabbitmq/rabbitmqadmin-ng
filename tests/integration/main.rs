@@ -44,6 +44,7 @@ mod queues_delete_multiple_tests;
 mod queues_tests;
 mod runtime_parameters_tests;
 mod shell_completions_tests;
+mod shell_exit_codes_tests;
 mod shovel_destination_uri_modification_tests;
 mod shovel_source_uri_modification_tests;
 mod shovel_tests;

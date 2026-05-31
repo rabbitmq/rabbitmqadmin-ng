@@ -19,18 +19,23 @@ use errors::CommandRunError;
 use reqwest::{Certificate, Identity, tls::Version as TlsVersion};
 use std::fs;
 use std::path::PathBuf;
+use std::process;
 use std::time::Duration;
 use sysexits::ExitCode;
+
+use crate::exit_code::Outcome;
 
 use rustls::pki_types::pem::PemObject;
 
 mod arg_helpers;
+mod bulk;
 mod cli;
 mod columns;
 mod commands;
 mod config;
 mod constants;
 mod errors;
+mod exit_code;
 mod output;
 pub mod pre_flight;
 mod static_urls;
@@ -54,7 +59,12 @@ use rustls::pki_types::PrivateKeyDer;
 
 type APIClient = GenericAPIClient<String, String, String>;
 
-fn main() -> ExitCode {
+fn main() -> process::ExitCode {
+    let outcome = run();
+    process::ExitCode::from(outcome)
+}
+
+fn run() -> Outcome {
     let pre_flight_settings = if pre_flight::is_non_interactive() {
         PreFlightSettings::non_interactive()
     } else {
@@ -69,17 +79,17 @@ fn main() -> ExitCode {
 
     // Handle config_file commands before trying to build the API client
     if let Some(("config_file", config_file_args)) = cli.subcommand() {
-        return dispatch_config_file_command(&cli, config_file_args);
+        return Outcome::from(dispatch_config_file_command(&cli, config_file_args));
     }
 
     // Handle shell commands before trying to build the API client
     if let Some(("shell", shell_args)) = cli.subcommand() {
-        return dispatch_shell_command(shell_args, pre_flight_settings);
+        return Outcome::from(dispatch_shell_command(shell_args, pre_flight_settings));
     }
 
     let (common_settings, endpoint) = match resolve_run_configuration(&cli) {
         Ok(result) => result,
-        Err(code) => return code,
+        Err(code) => return Outcome::from(code),
     };
 
     if common_settings.verbose
@@ -93,7 +103,7 @@ fn main() -> ExitCode {
         Err(err) => {
             let mut res_handler = ResultHandler::new(&common_settings, &cli);
             res_handler.report_pre_command_run_error(&err);
-            res_handler.exit_code.unwrap_or(ExitCode::DataErr)
+            res_handler.final_outcome_or(ExitCode::DataErr)
         }
     }
 }
@@ -214,24 +224,32 @@ fn dispatch_shell_command(
     shell_args: &ArgMatches,
     pre_flight_settings: PreFlightSettings,
 ) -> ExitCode {
-    if let Some(("completions", completions_args)) = shell_args.subcommand() {
-        let shell = completions_args
-            .get_one::<CompletionShell>("shell")
-            .copied()
-            .unwrap_or_else(CompletionShell::detect);
+    match shell_args.subcommand() {
+        Some(("completions", completions_args)) => {
+            let shell = completions_args
+                .get_one::<CompletionShell>("shell")
+                .copied()
+                .unwrap_or_else(CompletionShell::detect);
 
-        let mut cmd = cli::parser(pre_flight_settings);
-        generate_completions_to_stdout(shell, &mut cmd, "rabbitmqadmin");
-        return ExitCode::Ok;
+            let mut cmd = cli::parser(pre_flight_settings);
+            generate_completions_to_stdout(shell, &mut cmd, "rabbitmqadmin");
+            ExitCode::Ok
+        }
+        Some(("exit-codes", _)) => {
+            for (code, meaning) in exit_code::EXIT_CODE_REFERENCE {
+                println!("{:>3}  {}", code, meaning);
+            }
+            ExitCode::Ok
+        }
+        _ => ExitCode::Usage,
     }
-    ExitCode::Usage
 }
 
 fn dispatch_command(
     cli: &ArgMatches,
     client: APIClient,
     merged_settings: &SharedSettings,
-) -> ExitCode {
+) -> Outcome {
     if let Some((first_level, first_level_args)) = cli.subcommand()
         && let Some((second_level, second_level_args)) = first_level_args.subcommand()
     {
@@ -240,26 +258,28 @@ fn dispatch_command(
             if let Some((third_level, third_level_args)) = second_level_args.subcommand() {
                 let pair = (second_level, third_level);
                 let mut res_handler = ResultHandler::new(merged_settings, second_level_args);
-                dispatch_tanzu_subcommand(pair, third_level_args, client, &mut res_handler)
+                let _ = dispatch_tanzu_subcommand(pair, third_level_args, client, &mut res_handler);
+                res_handler.final_outcome_or(ExitCode::Usage)
             } else {
-                ExitCode::Usage
+                Outcome::from(ExitCode::Usage)
             }
         } else {
             // this is a common (OSS and Tanzu) command
             let pair = (first_level, second_level);
             let vhost = virtual_host(merged_settings, second_level_args);
             let mut res_handler = ResultHandler::new(merged_settings, second_level_args);
-            dispatch_common_subcommand(
+            let _ = dispatch_common_subcommand(
                 pair,
                 second_level_args,
                 client,
                 merged_settings.endpoint(),
                 vhost,
                 &mut res_handler,
-            )
+            );
+            res_handler.final_outcome_or(ExitCode::Usage)
         };
     }
-    ExitCode::Usage
+    Outcome::from(ExitCode::Usage)
 }
 
 fn build_rabbitmq_http_api_client(

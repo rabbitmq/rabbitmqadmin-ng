@@ -2,7 +2,24 @@
 
 ## v2.32.0 (in development)
 
-No changes yet.
+### Enhancements
+
+ * `queues delete_multiple` and `vhosts delete_multiple` gain `--strict`, `--fail-fast`,
+   `--detailed-exit-codes`, and `--output {table|json}`
+ * With `--detailed-exit-codes`, bulk delete commands exit `3` on partial success.
+   Default exit code behavior is unchanged
+ * Bulk delete reports now distinguish succeeded, failed, and skipped items.
+   Skipped covers the default virtual host and idempotent 404s
+ * Bulk delete previews and executes matching items in sorted order
+ * `shell exit-codes` is a new command that lists all exit codes the CLI may emit
+
+### Bug Fixes
+
+ * Bulk delete progress bar no longer double-counts failures
+
+### Dependency Upgrades
+
+ * `bel7-cli` upgraded to `0.12`
 
 
 ## v2.31.0 (May 26, 2026)

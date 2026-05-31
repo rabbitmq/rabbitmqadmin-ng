@@ -1648,6 +1648,14 @@ fn queues_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
         .arg(idempotently_arg.clone());
     let bulk_delete_cmd = Command::new("delete_multiple")
         .about(color_print::cstr!("<bold><red>DANGER ZONE.</red></bold> Deletes multiple queues at once using a name matching pattern"))
+        .long_about(color_print::cstr!(
+"<bold><red>DANGER ZONE.</red></bold> Deletes multiple queues at once using a name matching pattern.
+
+Exit codes:
+  0  — every matching queue deleted, or no queues matched
+  3  — partial success: some queues deleted, some failed (only when --detailed-exit-codes is set)
+  65 — total failure (no queues deleted), or partial failure when --strict is set"
+        ))
         .after_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             QUEUE_GUIDE_URL
@@ -1670,6 +1678,35 @@ fn queues_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
                 .long("dry-run")
                 .action(ArgAction::SetTrue)
                 .help("show what would be deleted without performing the actual deletion")
+                .required(false),
+        )
+        .arg(
+            Arg::new("strict")
+                .long("strict")
+                .action(ArgAction::SetTrue)
+                .help("treat partial success (some failures) as a total failure")
+                .required(false),
+        )
+        .arg(
+            Arg::new("fail_fast")
+                .long("fail-fast")
+                .action(ArgAction::SetTrue)
+                .help("stop at the first per-item failure instead of trying every match")
+                .required(false),
+        )
+        .arg(
+            Arg::new("detailed_exit_codes")
+                .long("detailed-exit-codes")
+                .action(ArgAction::SetTrue)
+                .help("opt in to exit code 3 on partial success; off by default for backwards compatibility")
+                .required(false)
+                .conflicts_with("strict"),
+        )
+        .arg(
+            Arg::new("output")
+                .long("output")
+                .value_parser(["table", "json"])
+                .help("output format for the bulk-operation report (default: table)")
                 .required(false),
         )
         .arg(idempotently_arg.clone());
@@ -3292,6 +3329,16 @@ pub fn vhosts_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command
 
     let bulk_delete_cmd = Command::new("delete_multiple")
         .about(color_print::cstr!("<bold><red>DANGER ZONE.</red></bold> Deletes multiple virtual hosts at once using a name matching pattern"))
+        .long_about(color_print::cstr!(
+"<bold><red>DANGER ZONE.</red></bold> Deletes multiple virtual hosts at once using a name matching pattern.
+
+The default virtual host '/' is always skipped, even if it matches.
+
+Exit codes:
+  0  — every matching virtual host deleted, or none matched
+  3  — partial success: some deleted, some failed (only when --detailed-exit-codes is set)
+  65 — total failure (none deleted), or partial failure when --strict is set"
+        ))
         .after_help(color_print::cformat!("<bold>Doc guide</bold>: {}", VIRTUAL_HOST_GUIDE_URL))
         .arg(
             Arg::new("name_pattern")
@@ -3311,6 +3358,35 @@ pub fn vhosts_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command
                 .long("dry-run")
                 .action(ArgAction::SetTrue)
                 .help("show what would be deleted without performing the actual deletion")
+                .required(false),
+        )
+        .arg(
+            Arg::new("strict")
+                .long("strict")
+                .action(ArgAction::SetTrue)
+                .help("treat partial success (some failures) as a total failure")
+                .required(false),
+        )
+        .arg(
+            Arg::new("fail_fast")
+                .long("fail-fast")
+                .action(ArgAction::SetTrue)
+                .help("stop at the first per-item failure instead of trying every match")
+                .required(false),
+        )
+        .arg(
+            Arg::new("detailed_exit_codes")
+                .long("detailed-exit-codes")
+                .action(ArgAction::SetTrue)
+                .help("opt in to exit code 3 on partial success; off by default for backwards compatibility")
+                .required(false)
+                .conflicts_with("strict"),
+        )
+        .arg(
+            Arg::new("output")
+                .long("output")
+                .value_parser(["table", "json"])
+                .help("output format for the bulk-operation report (default: table)")
                 .required(false),
         )
         .arg(idempotently_arg.clone());
@@ -4418,5 +4494,12 @@ fn shell_subcommands() -> Vec<Command> {
                 .value_parser(value_parser!(CompletionShell)),
         );
 
-    vec![completions_cmd]
+    let exit_codes_cmd = Command::new("exit-codes")
+        .about("List all exit codes the CLI may emit and what they mean")
+        .long_about(
+            "Lists every exit code rabbitmqadmin may return, including the partial-success \
+             code (3) returned by bulk operations when --detailed-exit-codes is set.",
+        );
+
+    vec![completions_cmd, exit_codes_cmd]
 }
