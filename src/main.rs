@@ -235,12 +235,6 @@ fn dispatch_shell_command(
             generate_completions_to_stdout(shell, &mut cmd, "rabbitmqadmin");
             ExitCode::Ok
         }
-        Some(("exit-codes", _)) => {
-            for (code, meaning) in exit_code::EXIT_CODE_REFERENCE {
-                println!("{:>3}  {}", code, meaning);
-            }
-            ExitCode::Ok
-        }
         _ => ExitCode::Usage,
     }
 }

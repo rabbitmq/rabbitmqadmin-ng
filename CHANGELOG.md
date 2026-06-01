@@ -11,7 +11,6 @@
  * Bulk delete reports now distinguish succeeded, failed, and skipped items.
    Skipped covers the default virtual host and idempotent 404s
  * Bulk delete previews and executes matching items in sorted order
- * `shell exit-codes` is a new command that lists all exit codes the CLI may emit
 
 ### Bug Fixes
 

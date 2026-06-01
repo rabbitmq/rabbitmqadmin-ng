@@ -4494,12 +4494,5 @@ fn shell_subcommands() -> Vec<Command> {
                 .value_parser(value_parser!(CompletionShell)),
         );
 
-    let exit_codes_cmd = Command::new("exit-codes")
-        .about("List all exit codes the CLI may emit and what they mean")
-        .long_about(
-            "Lists every exit code rabbitmqadmin may return, including the partial-success \
-             code (3) returned by bulk operations when --detailed-exit-codes is set.",
-        );
-
-    vec![completions_cmd, exit_codes_cmd]
+    vec![completions_cmd]
 }

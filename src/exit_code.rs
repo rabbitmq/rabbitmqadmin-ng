@@ -30,36 +30,6 @@ use sysexits::ExitCode;
 /// and above. Mirrors the value of `bel7_cli::PARTIAL_SUCCESS_I32`.
 pub const PARTIAL_SUCCESS_EXIT_CODE: u8 = 3;
 
-/// All exit codes rabbitmqadmin may produce, paired with their
-/// meaning. Used by the `shell exit-codes` subcommand and by the
-/// README. Single source of truth.
-pub const EXIT_CODE_REFERENCE: &[(u8, &str)] = &[
-    (0, "success"),
-    (
-        PARTIAL_SUCCESS_EXIT_CODE,
-        "partial success (some units of work completed, others did not)",
-    ),
-    (
-        64,
-        "usage error (CLI syntax, conflicting options, bad arguments)",
-    ),
-    (
-        65,
-        "data error (bad input, server-side validation, request failure)",
-    ),
-    (
-        69,
-        "service unavailable (health check failed, node not reachable)",
-    ),
-    (70, "internal software error"),
-    (71, "OS-level error"),
-    (74, "I/O error"),
-    (75, "temporary failure (a retry might succeed)"),
-    (76, "protocol error"),
-    (77, "permission denied"),
-    (78, "configuration error"),
-];
-
 /// A producer-side outcome for a single rabbitmqadmin invocation.
 ///
 /// Mirrors `bel7_cli::Outcome` in shape but carries a

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use rabbitmqadmin::exit_code::{EXIT_CODE_REFERENCE, Outcome, PARTIAL_SUCCESS_EXIT_CODE};
+use rabbitmqadmin::exit_code::{Outcome, PARTIAL_SUCCESS_EXIT_CODE};
 use sysexits::ExitCode;
 
 #[test]
@@ -89,18 +89,4 @@ fn outcome_to_process_exit_code() {
     assert_eq!(Outcome::Success.as_u8(), 0u8);
     assert_eq!(Outcome::PartialSuccess.as_u8(), 3u8);
     assert_eq!(Outcome::Failure(ExitCode::Usage).as_u8(), 64u8);
-}
-
-#[test]
-fn exit_code_reference_table_is_well_formed() {
-    assert!(!EXIT_CODE_REFERENCE.is_empty());
-    let mut codes: Vec<u8> = EXIT_CODE_REFERENCE.iter().map(|(c, _)| *c).collect();
-    codes.sort();
-    codes.dedup();
-    // Every entry must be unique.
-    assert_eq!(codes.len(), EXIT_CODE_REFERENCE.len());
-    // Must include 0, 3, and at least one sysexits code.
-    assert!(codes.contains(&0));
-    assert!(codes.contains(&PARTIAL_SUCCESS_EXIT_CODE));
-    assert!(codes.contains(&u8::from(ExitCode::DataErr)));
 }
