@@ -18,7 +18,9 @@
 
 ### Dependency Upgrades
 
- * `bel7-cli` upgraded to `0.12`
+ * `rabbitmq_http_client` upgraded to `0.89`
+ * `bel7-cli` upgraded to `0.13`
+ * `tabled` upgraded to `0.21`
 
 
 ## v2.31.0 (May 26, 2026)
