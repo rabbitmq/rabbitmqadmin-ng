@@ -82,6 +82,7 @@ jobs:
             os: macos-latest
           - target: x86_64-apple-darwin
             os: macos-15-intel
+            checksum: 'sha256,sha512'
           - target: x86_64-pc-windows-msvc
             os: windows-latest
           - target: x86_64-unknown-linux-gnu
@@ -112,7 +113,7 @@ jobs:
           binary-name: rabbitmqadmin
           locked: 'true'
           archive: 'true'
-          checksum: 'sha256'
+          checksum: ${{ matrix.checksum || 'sha256' }}
           include: 'README.md,LICENSE-MIT,LICENSE-APACHE'
           no-default-features: ${{ matrix.no_default_features || 'false' }}
 
@@ -123,6 +124,7 @@ jobs:
           path: |
             ${{ steps.build.outputs.artifact_path }}
             ${{ steps.build.outputs.artifact_path }}.sha256
+            ${{ steps.build.outputs.artifact_path }}.sha512
             ${{ steps.build.outputs.bare_artifact_path }}
           retention-days: 2
 
