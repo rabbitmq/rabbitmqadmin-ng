@@ -1,6 +1,6 @@
 # rabbitmqadmin-ng Change Log
 
-## v2.32.0 (in development)
+## v2.32.0 (Jun 2, 2026)
 
 ### Enhancements
 
@@ -21,6 +21,7 @@
  * `rabbitmq_http_client` upgraded to `0.89`
  * `bel7-cli` upgraded to `0.13`
  * `tabled` upgraded to `0.21`
+ * `toml_edit` upgraded to `0.25.12`
 
 
 ## v2.31.0 (May 26, 2026)
