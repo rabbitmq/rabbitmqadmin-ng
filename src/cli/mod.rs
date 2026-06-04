@@ -3753,6 +3753,7 @@ pub fn publish_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Comman
                 .long("payload")
                 .required(false)
                 .default_value("test")
+                .conflicts_with("payload_file")
                 .help("Message payload/body"),
         )
         .arg(
@@ -3762,6 +3763,15 @@ pub fn publish_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Comman
                 .required(false)
                 .default_value("{}")
                 .help("Message properties"),
+        )
+        .arg(
+            Arg::new("payload_file")
+                .short('f')
+                .long("payload-file")
+                .required(false)
+                .help("File to be used as message payload. When payload file is -, read standard input.")
+                .conflicts_with("payload")
+                .value_parser(value_parser!(PathBuf)),
         )]
     .into_iter()
     .map(|cmd| cmd.infer_long_args(pre_flight_settings.infer_long_options))

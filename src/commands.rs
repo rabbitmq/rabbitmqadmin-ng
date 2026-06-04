@@ -2260,13 +2260,32 @@ pub fn publish_message(
 ) -> Result<responses::MessageRouted, CommandRunError> {
     let exchange = command_args.str_arg("exchange");
     let routing_key = command_args.str_arg("routing_key");
-    let payload = command_args.str_arg("payload");
     let properties = command_args.str_arg("properties");
+    let payload_file = command_args.get_one::<PathBuf>("payload_file");
     let parsed_properties = parse_json_from_arg(properties)?;
+    let payload = match payload_file {
+        Some(payload_file) => read_message_payload(payload_file)?,
+        None => command_args.str_arg("payload").to_string(),
+    };
 
     client
-        .publish_message(vhost, exchange, routing_key, payload, parsed_properties)
+        .publish_message(vhost, exchange, routing_key, &payload, parsed_properties)
         .map_err(Into::into)
+}
+
+fn read_message_payload(path: &Path) -> Result<String, CommandRunError> {
+    if path == Path::new("-") {
+        let buffer = io::read_to_string(io::stdin()).map_err(|err| {
+            CommandRunError::FailureDuringExecution {
+                message: format!("Could not read payload from standard input: {}", err),
+            }
+        })?;
+        Ok(buffer)
+    } else {
+        fs::read_to_string(path).map_err(|err| CommandRunError::FailureDuringExecution {
+            message: format!("Could not read payload file '{}': {}", path.display(), err),
+        })
+    }
 }
 
 pub fn get_messages(
