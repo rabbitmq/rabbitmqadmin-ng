@@ -13,7 +13,9 @@
 // limitations under the License.
 
 use crate::test_helpers::*;
+use assert_cmd::prelude::*;
 use std::error::Error;
+use std::fs;
 #[test]
 fn test_messages() -> Result<(), Box<dyn Error>> {
     let q = "publish_consume";
@@ -32,6 +34,65 @@ fn test_messages() -> Result<(), Box<dyn Error>> {
     ]);
 
     run_succeeds(["get", "messages", "--queue", q]).stdout(output_includes(payload));
+
+    run_succeeds(["delete", "queue", "--name", q]);
+
+    Ok(())
+}
+
+#[test]
+fn test_messages_payload_file() -> Result<(), Box<dyn Error>> {
+    let q = "publish_consume";
+    run_succeeds(["declare", "queue", "--name", q, "--type", "classic"]);
+
+    let file = "tests/fixtures/messages/message1.txt";
+    run_succeeds([
+        "publish",
+        "message",
+        "--routing-key",
+        q,
+        "--payload-file",
+        file,
+    ]);
+
+    run_succeeds(["get", "messages", "--queue", q])
+        .stdout(output_includes(&fs::read_to_string(file)?));
+
+    run_fails([
+        "publish",
+        "message",
+        "--routing-key",
+        q,
+        "--payload-file",
+        "unexistant_file",
+    ]);
+    run_succeeds(["delete", "queue", "--name", q]);
+
+    Ok(())
+}
+
+#[test]
+fn test_messages_payload_stdin() -> Result<(), Box<dyn Error>> {
+    let q = "publish_consume";
+    run_succeeds(["declare", "queue", "--name", q, "--type", "classic"]);
+
+    let file = "tests/fixtures/messages/message2.txt";
+
+    std::process::Command::new(assert_cmd::cargo::cargo_bin!("rabbitmqadmin"))
+        .args([
+            "publish",
+            "message",
+            "--routing-key",
+            q,
+            "--payload-file",
+            "-",
+        ])
+        .stdin(std::fs::File::open(file)?)
+        .assert()
+        .success();
+
+    run_succeeds(["get", "messages", "--queue", q])
+        .stdout(output_includes(&fs::read_to_string(file)?));
 
     run_succeeds(["delete", "queue", "--name", q]);
 
