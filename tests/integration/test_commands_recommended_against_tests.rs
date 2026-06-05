@@ -42,7 +42,7 @@ fn test_messages() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn test_messages_payload_file() -> Result<(), Box<dyn Error>> {
-    let q = "publish_consume";
+    let q = "publish_consume2";
     run_succeeds(["declare", "queue", "--name", q, "--type", "classic"]);
 
     let file = "tests/fixtures/messages/message1.txt";
@@ -55,9 +55,6 @@ fn test_messages_payload_file() -> Result<(), Box<dyn Error>> {
         file,
     ]);
 
-    run_succeeds(["get", "messages", "--queue", q])
-        .stdout(output_includes(&fs::read_to_string(file)?));
-
     run_fails([
         "publish",
         "message",
@@ -66,6 +63,11 @@ fn test_messages_payload_file() -> Result<(), Box<dyn Error>> {
         "--payload-file",
         "unexistant_file",
     ]);
+
+    run_succeeds(["get", "messages", "--queue", q])
+        .stdout(output_includes(&fs::read_to_string(file)?));
+
+
     run_succeeds(["delete", "queue", "--name", q]);
 
     Ok(())
@@ -73,7 +75,7 @@ fn test_messages_payload_file() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn test_messages_payload_stdin() -> Result<(), Box<dyn Error>> {
-    let q = "publish_consume";
+    let q = "publish_consume3";
     run_succeeds(["declare", "queue", "--name", q, "--type", "classic"]);
 
     let file = "tests/fixtures/messages/message2.txt";
