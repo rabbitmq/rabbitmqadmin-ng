@@ -67,7 +67,6 @@ fn test_messages_payload_file() -> Result<(), Box<dyn Error>> {
     run_succeeds(["get", "messages", "--queue", q])
         .stdout(output_includes(&fs::read_to_string(file)?));
 
-
     run_succeeds(["delete", "queue", "--name", q]);
 
     Ok(())
