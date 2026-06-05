@@ -14,6 +14,9 @@
 
 use crate::test_helpers::*;
 use std::error::Error;
+use std::fs;
+use std::path::Path;
+
 #[test]
 fn test_messages() -> Result<(), Box<dyn Error>> {
     let q = "publish_consume";
@@ -32,6 +35,93 @@ fn test_messages() -> Result<(), Box<dyn Error>> {
     ]);
 
     run_succeeds(["get", "messages", "--queue", q]).stdout(output_includes(payload));
+
+    run_succeeds(["delete", "queue", "--name", q]);
+
+    Ok(())
+}
+
+#[test]
+fn test_messages_payload_file() -> Result<(), Box<dyn Error>> {
+    let q = "publish_consume_payload_file";
+    run_succeeds(["declare", "queue", "--name", q, "--type", "classic"]);
+
+    let file = "tests/fixtures/messages/message1.txt";
+    run_succeeds([
+        "publish",
+        "message",
+        "--routing-key",
+        q,
+        "--payload-file",
+        file,
+    ]);
+
+    run_succeeds(["get", "messages", "--queue", q])
+        .stdout(output_includes(fs::read_to_string(file)?.trim_end()));
+
+    run_succeeds(["delete", "queue", "--name", q]);
+
+    Ok(())
+}
+
+#[test]
+fn test_messages_payload_file_missing() -> Result<(), Box<dyn Error>> {
+    let q = "publish_consume_payload_file_missing";
+    run_succeeds(["declare", "queue", "--name", q, "--type", "classic"]);
+
+    run_fails([
+        "publish",
+        "message",
+        "--routing-key",
+        q,
+        "--payload-file",
+        "tests/fixtures/messages/does_not_exist.txt",
+    ])
+    .stderr(output_includes("could not read message payload"))
+    .stderr(output_includes("does_not_exist.txt"));
+
+    run_succeeds(["delete", "queue", "--name", q]);
+
+    Ok(())
+}
+
+#[test]
+fn test_messages_payload_file_conflicts_with_payload() -> Result<(), Box<dyn Error>> {
+    run_fails([
+        "publish",
+        "message",
+        "--routing-key",
+        "irrelevant",
+        "--payload",
+        "inline",
+        "--payload-file",
+        "tests/fixtures/messages/message1.txt",
+    ])
+    .stderr(output_includes("cannot be used with"));
+
+    Ok(())
+}
+
+#[test]
+fn test_messages_payload_stdin() -> Result<(), Box<dyn Error>> {
+    let q = "publish_consume_payload_stdin";
+    run_succeeds(["declare", "queue", "--name", q, "--type", "classic"]);
+
+    let file = "tests/fixtures/messages/message2.txt";
+    run_succeeds_with_stdin_from_file(
+        [
+            "publish",
+            "message",
+            "--routing-key",
+            q,
+            "--payload-file",
+            "-",
+        ],
+        Path::new(file),
+    );
+
+    run_succeeds(["get", "messages", "--queue", q])
+        .stdout(output_includes(fs::read_to_string(file)?.trim_end()));
 
     run_succeeds(["delete", "queue", "--name", q]);
 

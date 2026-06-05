@@ -3753,7 +3753,21 @@ pub fn publish_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Comman
                 .long("payload")
                 .required(false)
                 .default_value("test")
-                .help("Message payload/body"),
+                .conflicts_with("payload_file")
+                .help("Message payload/body; mutually exclusive with --payload-file"),
+        )
+        .arg(
+            Arg::new("payload_file")
+                .short('f')
+                .long("payload-file")
+                .required(false)
+                .value_parser(value_parser!(PathBuf))
+                .conflicts_with("payload")
+                .help(
+                    "Path to a file whose contents will be used as the message payload. \
+                     Use '-' to read the payload from standard input. \
+                     Mutually exclusive with --payload",
+                ),
         )
         .arg(
             Arg::new("properties")

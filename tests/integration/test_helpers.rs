@@ -16,7 +16,8 @@
 use std::env;
 use std::error::Error;
 use std::ffi::OsStr;
-use std::process::Command;
+use std::path::Path;
+use std::process::{Command, Stdio};
 use std::thread;
 use std::time::{Duration, Instant};
 
@@ -82,6 +83,17 @@ where
 {
     let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("rabbitmqadmin"));
     cmd.args(args).assert().failure()
+}
+
+pub fn run_succeeds_with_stdin_from_file<I, S>(args: I, stdin_path: &Path) -> Assert
+where
+    I: IntoIterator<Item = S>,
+    S: AsRef<OsStr>,
+{
+    let file = std::fs::File::open(stdin_path)
+        .unwrap_or_else(|err| panic!("failed to open stdin fixture {:?}: {}", stdin_path, err));
+    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("rabbitmqadmin"));
+    cmd.args(args).stdin(Stdio::from(file)).assert().success()
 }
 
 pub fn run_succeeds_with_interactivity_mode<I, S>(args: I, mode: InteractivityMode) -> Assert
