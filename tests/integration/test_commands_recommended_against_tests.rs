@@ -61,7 +61,7 @@ fn test_messages_payload_file() -> Result<(), Box<dyn Error>> {
         "--routing-key",
         q,
         "--payload-file",
-        "unexistant_file",
+        "nonexistent_file",
     ]);
 
     run_succeeds(["get", "messages", "--queue", q])
