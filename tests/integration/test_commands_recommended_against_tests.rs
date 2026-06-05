@@ -42,7 +42,7 @@ fn test_messages() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn test_messages_payload_file() -> Result<(), Box<dyn Error>> {
-    let q = "publish_consume2";
+    let q = "publish_consume_payload_file";
     run_succeeds(["declare", "queue", "--name", q, "--type", "classic"]);
 
     let file = "tests/fixtures/messages/message1.txt";
@@ -75,7 +75,7 @@ fn test_messages_payload_file() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn test_messages_payload_stdin() -> Result<(), Box<dyn Error>> {
-    let q = "publish_consume3";
+    let q = "publish_consume_payload_stdin";
     run_succeeds(["declare", "queue", "--name", q, "--type", "classic"]);
 
     let file = "tests/fixtures/messages/message2.txt";
