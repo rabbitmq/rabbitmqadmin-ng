@@ -2,7 +2,13 @@
 
 ## v2.33.0 (in development)
 
-No changes yet.
+### Enhancements
+
+ * `publish message` now supports a new option, `--payload-file` (`-f`), for reading the message payload
+   from a file, or from standard input when the value is `-`. Mutually exclusive
+   with `--payload`
+
+   GitHub issue: [rabbitmq/rabbitmqadmin-ng#154](https://github.com/rabbitmq/rabbitmqadmin-ng/issues/154)
 
 
 ## v2.32.0 (Jun 2, 2026)
