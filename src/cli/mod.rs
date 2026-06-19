@@ -4160,7 +4160,6 @@ fn federation_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command
                 .default_value("1000")
                 .value_parser(value_parser!(u32))
                 .help("The prefetch value to use with internal consumers")
-                .value_parser(value_parser!(u32))
         )
         .arg(
             Arg::new("ack_mode")
