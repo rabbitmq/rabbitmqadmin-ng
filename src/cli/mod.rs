@@ -3737,7 +3737,7 @@ pub fn publish_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Comman
                 .long("routing-key")
                 .required(false)
                 .default_value("")
-                .help("Name of virtual host"),
+                .help("Routing key (defaults to empty)"),
         )
         .arg(
             Arg::new("exchange")
