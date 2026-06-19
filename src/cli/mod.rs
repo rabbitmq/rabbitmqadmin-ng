@@ -174,7 +174,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         .arg_required_else_help(true)
         .subcommands(federation_subcommands(pre_flight_settings.clone()));
     let get_group = Command::new("get")
-        .about(color_print::cstr!("Fetches message(s) from a queue or stream via <bold><red>polling</red></bold>. <bold><red>Only suitable for development and test environments</red></bold>."))
+        .about(color_print::cstr!("Fetches message(s) from a queue via <bold><red>polling</red></bold>. <bold>Unavailable for streams. <red>Only suitable for development and test environments</red></bold>."))
         .infer_subcommands(pre_flight_settings.infer_subcommands)
         .infer_long_args(pre_flight_settings.infer_long_options)
         .after_help(color_print::cformat!("<bold>Doc guide</bold>: {}", POLLING_CONSUMER_GUIDE_URL))
@@ -3790,14 +3790,14 @@ pub fn publish_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Comman
 
 pub fn get_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     [Command::new("messages")
-        .about(color_print::cstr!("Fetches (via <red>polling, very inefficiently</red>) message(s) from a queue. <bold><red>Only suitable for development and test environments</red></bold>"))
+        .about(color_print::cstr!("Fetches (via <red>polling, very inefficiently</red>) message(s) from a queue. <bold>Not available for streams</bold>. <bold><red>Only suitable for development and test environments</red></bold>"))
         .after_help(color_print::cformat!("<bold>Doc guide</bold>: {}", POLLING_CONSUMER_GUIDE_URL))
         .arg(
             Arg::new("queue")
                 .short('q')
                 .long("queue")
                 .required(true)
-                .help("Target queue or stream name"),
+                .help("Target queue name"),
         )
         .arg(
             Arg::new("count")
