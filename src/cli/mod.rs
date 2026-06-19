@@ -174,7 +174,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         .arg_required_else_help(true)
         .subcommands(federation_subcommands(pre_flight_settings.clone()));
     let get_group = Command::new("get")
-        .about(color_print::cstr!("Fetches message(s) from a queue via <bold><red>polling</red></bold>. <bold>Unavailable for streams. <red>Only suitable for development and test environments</red></bold>."))
+        .about(color_print::cstr!("Fetches message(s) from a queue via <bold><red>polling</red></bold>. <bold>Not available for streams. <red>Only suitable for development and test environments</red></bold>."))
         .infer_subcommands(pre_flight_settings.infer_subcommands)
         .infer_long_args(pre_flight_settings.infer_long_options)
         .after_help(color_print::cformat!("<bold>Doc guide</bold>: {}", POLLING_CONSUMER_GUIDE_URL))
@@ -691,7 +691,8 @@ fn columns_arg() -> Arg {
 }
 
 fn list_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
-    let nodes_cmd = Command::new("nodes").long_about("Lists cluster nodes")
+    let nodes_cmd = Command::new("nodes")
+        .long_about("Lists cluster nodes")
         .after_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             CLUSTERING_GUIDE_URL
@@ -2268,7 +2269,7 @@ fn policies_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> 
         .arg(idempotently_arg.clone());
 
     let delete_definition_keys_cmd = Command::new("delete_definition_keys")
-        .about("Deletes a definition key from a policy, unless it is the only key")
+        .about("Deletes definition keys from a policy, unless it is the only key")
         .arg(
             Arg::new("name")
                 .long("name")
@@ -2285,7 +2286,7 @@ fn policies_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> 
         );
 
     let delete_definition_keys_from_all_in_cmd = Command::new("delete_definition_keys_from_all_in")
-        .about("Deletes definition keys from all policies in a virtual host, unless it is the only policy key")
+        .about("Deletes definition keys from all policies in a virtual host, unless it is the only key")
         .arg(
             Arg::new("definition_keys")
                 .long("definition-keys")
@@ -2386,7 +2387,9 @@ fn policies_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> 
         );
 
     let delete_definition_keys_from_all_cmd = Command::new("delete_definition_keys_from_all")
-        .about("Deletes definition keys from all policies in the cluster, unless it is the only policy key")
+        .about(
+            "Deletes definition keys from all policies in the cluster, unless it is the only key",
+        )
         .arg(
             Arg::new("definition_keys")
                 .long("definition-keys")
