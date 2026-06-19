@@ -807,7 +807,7 @@ fn list_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
             DEPRECATED_FEATURE_GUIDE_URL
         ));
     let deprecated_features_in_use_cmd = Command::new("deprecated_features_in_use")
-        .long_about("Lists the deprecated features that are in used in the cluster")
+        .long_about("Lists the deprecated features that are currently in use in the cluster")
         .after_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             DEPRECATED_FEATURE_GUIDE_URL
