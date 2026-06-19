@@ -3990,7 +3990,7 @@ pub fn shovel_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command
  * {}"#,
             SHOVEL_GUIDE_URL,
             TLS_GUIDE_URL,
-            "https://www.rabbitmq.com/docs/shovel#tls-connections"
+            SHOVEL_TLS_GUIDE_URL
         ));
 
     let disable_tls_peer_verification_dest_cmd = Command::new("disable_tls_peer_verification_for_all_destination_uris")
@@ -4004,7 +4004,7 @@ pub fn shovel_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command
  * {}"#,
             SHOVEL_GUIDE_URL,
             TLS_GUIDE_URL,
-            "https://www.rabbitmq.com/docs/shovel#tls-connections"
+            SHOVEL_TLS_GUIDE_URL
         ));
 
     let enable_tls_peer_verification_source_cmd = Command::new("enable_tls_peer_verification_for_all_source_uris")
@@ -4039,7 +4039,7 @@ pub fn shovel_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command
  * {}"#,
             SHOVEL_GUIDE_URL,
             TLS_GUIDE_URL,
-            "https://www.rabbitmq.com/docs/shovel#tls-connections"
+            SHOVEL_TLS_GUIDE_URL
         ));
 
     let enable_tls_peer_verification_dest_cmd = Command::new("enable_tls_peer_verification_for_all_destination_uris")
@@ -4074,7 +4074,7 @@ pub fn shovel_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command
  * {}"#,
             SHOVEL_GUIDE_URL,
             TLS_GUIDE_URL,
-            "https://www.rabbitmq.com/docs/shovel#tls-connections"
+            SHOVEL_TLS_GUIDE_URL
         ));
 
     [
@@ -4444,7 +4444,7 @@ fn federation_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command
  * {}"#,
             FEDERATION_GUIDE_URL,
             TLS_GUIDE_URL,
-            "https://www.rabbitmq.com/docs/federation#tls-connections"
+            FEDERATION_TLS_GUIDE_URL
         ));
 
     let enable_tls_peer_verification_cmd = Command::new("enable_tls_peer_verification_for_all_upstreams")
@@ -4479,7 +4479,7 @@ fn federation_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command
  * {}"#,
             FEDERATION_GUIDE_URL,
             TLS_GUIDE_URL,
-            "https://www.rabbitmq.com/docs/federation#tls-connections"
+            FEDERATION_TLS_GUIDE_URL
         ));
 
     [

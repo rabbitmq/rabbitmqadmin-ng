@@ -62,7 +62,11 @@ pub(crate) const USER_LIMIT_GUIDE_URL: &str = "https://rabbitmq.com/docs/user-li
 pub(crate) const PASSWORD_GUIDE_URL: &str = "https://rabbitmq.com/docs/passwords";
 pub(crate) const PLUGIN_GUIDE_URL: &str = "https://rabbitmq.com/docs/plugins";
 pub(crate) const SHOVEL_GUIDE_URL: &str = "https://rabbitmq.com/docs/shovel";
+pub(crate) const SHOVEL_TLS_GUIDE_URL: &str =
+    "https://www.rabbitmq.com/docs/shovel#tls-connections";
 pub(crate) const FEDERATION_GUIDE_URL: &str = "https://rabbitmq.com/docs/federation";
+pub(crate) const FEDERATION_TLS_GUIDE_URL: &str =
+    "https://www.rabbitmq.com/docs/federation#tls-connections";
 pub(crate) const FEDERATED_QUEUES_GUIDE_URL: &str = "https://rabbitmq.com/docs/federated-queues";
 pub(crate) const FEDERATED_EXCHANGES_GUIDE_URL: &str =
     "https://rabbitmq.com/docs/federated-exchanges";
