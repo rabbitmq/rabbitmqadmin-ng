@@ -11,7 +11,7 @@ or a container that uses the [community OCI image](https://github.com/docker-lib
 Install [cargo-nextest](https://nexte.st/):
 
 ```bash
-cargo install cargo-nextest
+cargo install --locked cargo-nextest
 ```
 
 ### Step 1: Start RabbitMQ
