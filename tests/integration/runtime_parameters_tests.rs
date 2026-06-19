@@ -19,6 +19,8 @@ use std::error::Error;
 #[test]
 fn test_runtime_parameters_across_groups() -> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.runtime_parameters.test1";
+    // Use a unique name for better test isolation
+    let param_name = "across-groups-upstream";
     delete_vhost(vh).expect("failed to delete a virtual host");
 
     run_succeeds(["declare", "vhost", "--name", vh]);
@@ -30,7 +32,7 @@ fn test_runtime_parameters_across_groups() -> Result<(), Box<dyn Error>> {
         "--component",
         "federation-upstream",
         "--name",
-        "my-upstream",
+        param_name,
         "--value",
         "{\"uri\":\"amqp://target.hostname\"}",
     ]);
@@ -44,7 +46,7 @@ fn test_runtime_parameters_across_groups() -> Result<(), Box<dyn Error>> {
         "--component",
         "federation-upstream",
     ])
-    .stdout(output_includes("my-upstream"));
+    .stdout(output_includes(param_name));
 
     run_succeeds([
         "-V",
@@ -54,7 +56,7 @@ fn test_runtime_parameters_across_groups() -> Result<(), Box<dyn Error>> {
         "--component",
         "federation-upstream",
         "--name",
-        "my-upstream",
+        param_name,
     ]);
 
     run_succeeds([
@@ -65,7 +67,7 @@ fn test_runtime_parameters_across_groups() -> Result<(), Box<dyn Error>> {
         "--component",
         "federation-upstream",
     ])
-    .stdout(output_includes("my-upstream").not());
+    .stdout(output_includes(param_name).not());
 
     delete_vhost(vh).expect("failed to delete a virtual host");
 
@@ -75,6 +77,8 @@ fn test_runtime_parameters_across_groups() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_runtime_parameters_cmd_group() -> Result<(), Box<dyn Error>> {
     let vh = "rabbitmqadmin.runtime_parameters.test2";
+    // Use a unique name for better test isolation
+    let param_name = "cmd-group-upstream";
     delete_vhost(vh).expect("failed to delete a virtual host");
 
     run_succeeds(["vhosts", "declare", "--name", vh]);
@@ -86,13 +90,13 @@ fn test_runtime_parameters_cmd_group() -> Result<(), Box<dyn Error>> {
         "--component",
         "federation-upstream",
         "--name",
-        "my-upstream",
+        param_name,
         "--value",
         "{\"uri\":\"amqp://target.hostname\",\"ack-mode\":\"on-confirm\"}",
     ]);
     await_metric_emission(200);
 
-    run_succeeds(["parameters", "list_all"]).stdout(output_includes("my-upstream"));
+    run_succeeds(["parameters", "list_all"]).stdout(output_includes(param_name));
 
     run_succeeds([
         "-V",
@@ -102,7 +106,7 @@ fn test_runtime_parameters_cmd_group() -> Result<(), Box<dyn Error>> {
         "--component",
         "federation-upstream",
     ])
-    .stdout(output_includes("my-upstream"));
+    .stdout(output_includes(param_name));
 
     run_succeeds([
         "-V",
@@ -112,7 +116,7 @@ fn test_runtime_parameters_cmd_group() -> Result<(), Box<dyn Error>> {
         "--component",
         "federation-upstream",
     ])
-    .stdout(output_includes("my-upstream"));
+    .stdout(output_includes(param_name));
 
     run_succeeds([
         "-V",
@@ -122,7 +126,7 @@ fn test_runtime_parameters_cmd_group() -> Result<(), Box<dyn Error>> {
         "--component",
         "federation-upstream",
         "--name",
-        "my-upstream",
+        param_name,
     ]);
 
     run_succeeds([
@@ -133,7 +137,7 @@ fn test_runtime_parameters_cmd_group() -> Result<(), Box<dyn Error>> {
         "--component",
         "federation-upstream",
     ])
-    .stdout(output_includes("my-upstream").not());
+    .stdout(output_includes(param_name).not());
 
     delete_vhost(vh).expect("failed to delete a virtual host");
 
@@ -167,7 +171,7 @@ fn test_parameters_clear_idempotently() -> Result<(), Box<dyn Error>> {
     let param_name = "test_param_delete_idempotently";
     let component = "federation-upstream";
 
-    // Create vhost
+    // Re-create the virtual host
     delete_vhost(vh).expect("failed to delete a virtual host");
     run_succeeds(["declare", "vhost", "--name", vh]);
 
