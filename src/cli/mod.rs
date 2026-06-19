@@ -4397,7 +4397,7 @@ fn federation_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command
         );
 
     let delete_upstream = Command::new("delete_upstream")
-        .long_about("Declares a federation upstream")
+        .long_about("Deletes a federation upstream")
         .after_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             FEDERATION_GUIDE_URL
