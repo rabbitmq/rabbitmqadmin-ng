@@ -174,7 +174,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         .arg_required_else_help(true)
         .subcommands(federation_subcommands(pre_flight_settings.clone()));
     let get_group = Command::new("get")
-        .about(color_print::cstr!("Fetches message(s) from a queue or stream via <bold><red>polling</red></bold>. <bold><red>Only suitable for development and test environments</red></bold>."))
+        .about(color_print::cstr!("Fetches message(s) from a queue via <bold><red>polling</red></bold>. <bold>Not available for streams. <red>Only suitable for development and test environments</red></bold>."))
         .infer_subcommands(pre_flight_settings.infer_subcommands)
         .infer_long_args(pre_flight_settings.infer_long_options)
         .after_help(color_print::cformat!("<bold>Doc guide</bold>: {}", POLLING_CONSUMER_GUIDE_URL))
@@ -225,7 +225,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         .arg_required_else_help(true)
         .subcommands(list_subcommands(pre_flight_settings.clone()));
     let nodes_group = Command::new("nodes")
-        .about("Node operations")
+        .about("Operations on nodes")
         .infer_subcommands(pre_flight_settings.infer_subcommands)
         .infer_long_args(pre_flight_settings.infer_long_options)
         .arg_required_else_help(true)
@@ -274,7 +274,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         .arg_required_else_help(true)
         .subcommands(permissions_subcommands(pre_flight_settings.clone()));
     let plugins_group = Command::new("plugins")
-        .about("List enabled plugins")
+        .about("Lists enabled plugins")
         .infer_subcommands(pre_flight_settings.infer_subcommands)
         .infer_long_args(pre_flight_settings.infer_long_options)
         .after_help(color_print::cformat!(
@@ -575,7 +575,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         .arg(
             Arg::new("tls")
                 .long("use-tls")
-                .help("use TLS (HTTPS) for HTTP API requests ")
+                .help("use TLS (HTTPS) for HTTP API requests")
                 .env("RABBITMQADMIN_USE_TLS")
                 .value_parser(value_parser!(bool))
                 .action(ArgAction::SetTrue),
@@ -691,7 +691,12 @@ fn columns_arg() -> Arg {
 }
 
 fn list_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
-    let nodes_cmd = Command::new("nodes").long_about("Lists cluster members");
+    let nodes_cmd = Command::new("nodes")
+        .long_about("Lists cluster nodes")
+        .after_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            CLUSTERING_GUIDE_URL
+        ));
     let vhosts_cmd = Command::new("vhosts")
         .long_about("Lists virtual hosts")
         .after_help(color_print::cformat!(
@@ -712,7 +717,7 @@ fn list_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
         ))
         .args(pagination_args());
     let channels_cmd = Command::new("channels")
-        .long_about("Lists AMQP 0-9-1 channels")
+        .long_about("Lists all AMQP 0-9-1 channels across all virtual hosts")
         .after_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             CHANNEL_GUIDE_URL
@@ -807,7 +812,7 @@ fn list_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
             DEPRECATED_FEATURE_GUIDE_URL
         ));
     let deprecated_features_in_use_cmd = Command::new("deprecated_features_in_use")
-        .long_about("Lists the deprecated features that are in used in the cluster")
+        .long_about("Lists the deprecated features that are currently in use in the cluster")
         .after_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             DEPRECATED_FEATURE_GUIDE_URL
@@ -912,7 +917,7 @@ fn declare_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
                 .help("should tracing be enabled for this virtual host?"),
         );
     let permissions_cmd = Command::new("permissions")
-        .about("grants permissions to a user")
+        .about("Grants permissions to a user")
         .after_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             ACCESS_CONTROL_GUIDE_URL
@@ -1184,7 +1189,7 @@ fn declare_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
                 .required(true),
         );
     let vhost_limit_cmd = Command::new("vhost_limit")
-        .about("Set a vhost limit")
+        .about("Sets a virtual host limit")
         .after_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             VIRTUAL_HOST_LIMIT_GUIDE_URL
@@ -1202,7 +1207,7 @@ fn declare_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
                 .required(true),
         );
     let user_limit_cmd = Command::new("user_limit")
-        .about("Set a user limit")
+        .about("Sets a user limit")
         .after_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             USER_LIMIT_GUIDE_URL
@@ -1316,7 +1321,7 @@ fn delete_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
         )
         .arg(idempotently_arg.clone());
     let permissions_cmd = Command::new("permissions")
-        .about("Revokes user permissions to a given vhost")
+        .about("Revokes user permissions to a given virtual host")
         .arg(
             Arg::new("username")
                 .long("username")
@@ -1421,7 +1426,7 @@ fn delete_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
         )
         .arg(idempotently_arg.clone());
     let vhost_limit_cmd = Command::new("vhost_limit")
-        .about("delete a vhost limit")
+        .about("Deletes a virtual host limit")
         .arg(
             Arg::new("name")
                 .long("name")
@@ -1444,7 +1449,7 @@ fn delete_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
                 .required(true),
         );
     let shovel_cmd = Command::new("shovel")
-        .about("Delete a shovel")
+        .about("Deletes a shovel")
         .arg(idempotently_arg.clone())
         .arg(
             Arg::new("name")
@@ -2031,7 +2036,7 @@ fn operator_policies_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<
         .arg(
             Arg::new("name")
                 .long("name")
-                .help("policy name")
+                .help("operator policy name")
                 .required(true),
         )
         .arg(idempotently_arg.clone());
@@ -2054,7 +2059,7 @@ fn operator_policies_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<
         );
 
     let delete_definition_key_from_all_in_cmd = Command::new("delete_definition_keys_from_all_in")
-        .about("Deletes a definition key from all operator policies in a virtual host, unless it is the only key")
+        .about("Deletes definition keys from all operator policies in a virtual host, unless it is the only key")
         .arg(
             Arg::new("definition_keys")
                 .long("definition-keys")
@@ -2264,7 +2269,7 @@ fn policies_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> 
         .arg(idempotently_arg.clone());
 
     let delete_definition_keys_cmd = Command::new("delete_definition_keys")
-        .about("Deletes a definition key from a policy, unless it is the only key")
+        .about("Deletes definition keys from a policy, unless it is the only key")
         .arg(
             Arg::new("name")
                 .long("name")
@@ -2281,7 +2286,7 @@ fn policies_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> 
         );
 
     let delete_definition_keys_from_all_in_cmd = Command::new("delete_definition_keys_from_all_in")
-        .about("Deletes definition keys from all policies in a virtual host, unless it is the only policy key")
+        .about("Deletes definition keys from all policies in a virtual host, unless it is the only key")
         .arg(
             Arg::new("definition_keys")
                 .long("definition-keys")
@@ -2382,7 +2387,9 @@ fn policies_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> 
         );
 
     let delete_definition_keys_from_all_cmd = Command::new("delete_definition_keys_from_all")
-        .about("Deletes definition keys from all policies in the cluster, unless it is the only policy key")
+        .about(
+            "Deletes definition keys from all policies in the cluster, unless it is the only key",
+        )
         .arg(
             Arg::new("definition_keys")
                 .long("definition-keys")
@@ -2541,10 +2548,10 @@ fn close_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
 
 fn channels_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     let list_cmd = Command::new("list")
-        .long_about("Lists all channels across all virtual hosts")
+        .long_about("Lists all AMQP 0-9-1 channels across all virtual hosts")
         .after_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
-            "https://www.rabbitmq.com/docs/channels"
+            CHANNEL_GUIDE_URL
         ))
         .args(pagination_args());
 
@@ -2754,7 +2761,7 @@ fn config_file_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Comman
 
 fn definitions_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     let export_cmd = Command::new("export")
-        .about("Export cluster-wide definitions")
+        .about("Exports cluster-wide definitions")
         .after_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             DEFINITION_GUIDE_URL
@@ -2817,7 +2824,7 @@ Examples:
         );
 
     let export_from_vhost_cmd = Command::new("export_from_vhost")
-        .about("Export definitions of a specific virtual host")
+        .about("Exports definitions of a specific virtual host")
         .after_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             DEFINITION_GUIDE_URL
@@ -2872,7 +2879,7 @@ Examples:
         );
 
     let import_cmd = Command::new("import")
-        .about("Import cluster-wide definitions (of multiple virtual hosts)")
+        .about("Imports cluster-wide definitions (of multiple virtual hosts)")
         .after_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             DEFINITION_GUIDE_URL
@@ -2897,7 +2904,7 @@ Examples:
         );
 
     let import_into_vhost_cmd = Command::new("import_into_vhost")
-        .about("Import a virtual host-specific definitions file into a virtual host")
+        .about("Imports a virtual host-specific definitions file into a virtual host")
         .after_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             DEFINITION_GUIDE_URL
@@ -3065,7 +3072,7 @@ fn exchanges_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command>
 }
 fn export_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     let definitions = Command::new("definitions")
-        .about("Export cluster-wide definitions")
+        .about("Prefer 'definitions export'")
         .after_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             DEFINITION_GUIDE_URL
@@ -3608,7 +3615,7 @@ pub fn permissions_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Co
         );
 
     let delete_cmd = Command::new("delete")
-        .about("Revokes user permissions to a given vhost")
+        .about("Revokes user permissions to a given virtual host")
         .arg(
             Arg::new("username")
                 .long("username")
@@ -3640,7 +3647,7 @@ pub fn user_limits_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Co
         );
 
     let declare_cmd = Command::new("declare")
-        .about("Set a user limit")
+        .about("Sets a user limit")
         .after_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             USER_LIMIT_GUIDE_URL
@@ -3696,7 +3703,7 @@ pub fn vhost_limits_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<C
         ));
 
     let declare_cmd = Command::new("declare")
-        .about("Set a vhost limit")
+        .about("Sets a virtual host limit")
         .after_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             VIRTUAL_HOST_LIMIT_GUIDE_URL
@@ -3714,12 +3721,14 @@ pub fn vhost_limits_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<C
                 .required(true),
         );
 
-    let delete_cmd = Command::new("delete").about("delete a vhost limit").arg(
-        Arg::new("name")
-            .long("name")
-            .help("limit name (eg. max-connections, max-queues)")
-            .required(true),
-    );
+    let delete_cmd = Command::new("delete")
+        .about("Clears a virtual host limit")
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("limit name (eg. max-connections, max-queues)")
+                .required(true),
+        );
 
     [list_cmd, declare_cmd, delete_cmd]
         .into_iter()
@@ -3737,7 +3746,7 @@ pub fn publish_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Comman
                 .long("routing-key")
                 .required(false)
                 .default_value("")
-                .help("Name of virtual host"),
+                .help("Routing key"),
         )
         .arg(
             Arg::new("exchange")
@@ -3745,7 +3754,7 @@ pub fn publish_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Comman
                 .long("exchange")
                 .required(false)
                 .default_value("")
-                .help("Exchange name (defaults to empty)"),
+                .help("Exchange name"),
         )
         .arg(
             Arg::new("payload")
@@ -3784,14 +3793,14 @@ pub fn publish_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Comman
 
 pub fn get_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     [Command::new("messages")
-        .about(color_print::cstr!("Fetches (via <red>polling, very inefficiently</red>) message(s) from a queue. <bold><red>Only suitable for development and test environments</red></bold>"))
+        .about(color_print::cstr!("Fetches (via <red>polling, very inefficiently</red>) message(s) from a queue. <bold>Not available for streams</bold>. <bold><red>Only suitable for development and test environments</red></bold>"))
         .after_help(color_print::cformat!("<bold>Doc guide</bold>: {}", POLLING_CONSUMER_GUIDE_URL))
         .arg(
             Arg::new("queue")
                 .short('q')
                 .long("queue")
                 .required(true)
-                .help("Target queue or stream name"),
+                .help("Target queue name"),
         )
         .arg(
             Arg::new("count")
@@ -3984,7 +3993,7 @@ pub fn shovel_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command
  * {}"#,
             SHOVEL_GUIDE_URL,
             TLS_GUIDE_URL,
-            "https://www.rabbitmq.com/docs/shovel#tls-connections"
+            SHOVEL_TLS_GUIDE_URL
         ));
 
     let disable_tls_peer_verification_dest_cmd = Command::new("disable_tls_peer_verification_for_all_destination_uris")
@@ -3998,7 +4007,7 @@ pub fn shovel_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command
  * {}"#,
             SHOVEL_GUIDE_URL,
             TLS_GUIDE_URL,
-            "https://www.rabbitmq.com/docs/shovel#tls-connections"
+            SHOVEL_TLS_GUIDE_URL
         ));
 
     let enable_tls_peer_verification_source_cmd = Command::new("enable_tls_peer_verification_for_all_source_uris")
@@ -4033,7 +4042,7 @@ pub fn shovel_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command
  * {}"#,
             SHOVEL_GUIDE_URL,
             TLS_GUIDE_URL,
-            "https://www.rabbitmq.com/docs/shovel#tls-connections"
+            SHOVEL_TLS_GUIDE_URL
         ));
 
     let enable_tls_peer_verification_dest_cmd = Command::new("enable_tls_peer_verification_for_all_destination_uris")
@@ -4068,7 +4077,7 @@ pub fn shovel_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command
  * {}"#,
             SHOVEL_GUIDE_URL,
             TLS_GUIDE_URL,
-            "https://www.rabbitmq.com/docs/shovel#tls-connections"
+            SHOVEL_TLS_GUIDE_URL
         ));
 
     [
@@ -4154,7 +4163,6 @@ fn federation_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command
                 .default_value("1000")
                 .value_parser(value_parser!(u32))
                 .help("The prefetch value to use with internal consumers")
-                .value_parser(value_parser!(u32))
         )
         .arg(
             Arg::new("ack_mode")
@@ -4397,7 +4405,7 @@ fn federation_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command
         );
 
     let delete_upstream = Command::new("delete_upstream")
-        .long_about("Declares a federation upstream")
+        .long_about("Deletes a federation upstream")
         .after_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             FEDERATION_GUIDE_URL
@@ -4411,7 +4419,7 @@ fn federation_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command
         .arg(idempotently_arg.clone());
 
     let list_all_links = Command::new("list_all_links")
-        .long_about("List federation links in all virtual hosts")
+        .long_about("Lists federation links in all virtual hosts")
         .after_help(color_print::cformat!(
             r#"<bold>Doc guides</bold>:
 
@@ -4439,7 +4447,7 @@ fn federation_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command
  * {}"#,
             FEDERATION_GUIDE_URL,
             TLS_GUIDE_URL,
-            "https://www.rabbitmq.com/docs/federation#tls-connections"
+            FEDERATION_TLS_GUIDE_URL
         ));
 
     let enable_tls_peer_verification_cmd = Command::new("enable_tls_peer_verification_for_all_upstreams")
@@ -4474,7 +4482,7 @@ fn federation_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command
  * {}"#,
             FEDERATION_GUIDE_URL,
             TLS_GUIDE_URL,
-            "https://www.rabbitmq.com/docs/federation#tls-connections"
+            FEDERATION_TLS_GUIDE_URL
         ));
 
     [
@@ -4494,7 +4502,7 @@ fn federation_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command
 
 fn shell_subcommands() -> Vec<Command> {
     let completions_cmd = Command::new("completions")
-        .about("Generate shell completion scripts for the CLI")
+        .about("Generates shell completion scripts for the CLI")
         .long_about(
             "Generates shell completion scripts for bash, zsh, fish, elvish, or nushell.\n\n\
              If --shell is not specified, the shell is detected from the SHELL environment variable.\n\
