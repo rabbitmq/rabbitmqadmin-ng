@@ -1188,7 +1188,7 @@ fn declare_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
                 .required(true),
         );
     let vhost_limit_cmd = Command::new("vhost_limit")
-        .about("Sets a vhost limit")
+        .about("Sets a virtual host limit")
         .after_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             VIRTUAL_HOST_LIMIT_GUIDE_URL
@@ -1320,7 +1320,7 @@ fn delete_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
         )
         .arg(idempotently_arg.clone());
     let permissions_cmd = Command::new("permissions")
-        .about("Revokes user permissions to a given vhost")
+        .about("Revokes user permissions to a given virtual host")
         .arg(
             Arg::new("username")
                 .long("username")
@@ -1425,7 +1425,7 @@ fn delete_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
         )
         .arg(idempotently_arg.clone());
     let vhost_limit_cmd = Command::new("vhost_limit")
-        .about("Deletes a vhost limit")
+        .about("Deletes a virtual host limit")
         .arg(
             Arg::new("name")
                 .long("name")
@@ -3612,7 +3612,7 @@ pub fn permissions_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Co
         );
 
     let delete_cmd = Command::new("delete")
-        .about("Revokes user permissions to a given vhost")
+        .about("Revokes user permissions to a given virtual host")
         .arg(
             Arg::new("username")
                 .long("username")
@@ -3700,7 +3700,7 @@ pub fn vhost_limits_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<C
         ));
 
     let declare_cmd = Command::new("declare")
-        .about("Sets a vhost limit")
+        .about("Sets a virtual host limit")
         .after_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             VIRTUAL_HOST_LIMIT_GUIDE_URL
@@ -3719,7 +3719,7 @@ pub fn vhost_limits_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<C
         );
 
     let delete_cmd = Command::new("delete")
-        .about("Clears a vhost limit")
+        .about("Clears a virtual host limit")
         .arg(
             Arg::new("name")
                 .long("name")
