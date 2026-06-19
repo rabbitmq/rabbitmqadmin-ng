@@ -2058,7 +2058,7 @@ fn operator_policies_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<
         );
 
     let delete_definition_key_from_all_in_cmd = Command::new("delete_definition_keys_from_all_in")
-        .about("Deletes a definition key from all operator policies in a virtual host, unless it is the only key")
+        .about("Deletes definition keys from all operator policies in a virtual host, unless it is the only key")
         .arg(
             Arg::new("definition_keys")
                 .long("definition-keys")
