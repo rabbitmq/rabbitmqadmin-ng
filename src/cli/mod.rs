@@ -912,7 +912,7 @@ fn declare_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
                 .help("should tracing be enabled for this virtual host?"),
         );
     let permissions_cmd = Command::new("permissions")
-        .about("grants permissions to a user")
+        .about("Grants permissions to a user")
         .after_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             ACCESS_CONTROL_GUIDE_URL
@@ -1184,7 +1184,7 @@ fn declare_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
                 .required(true),
         );
     let vhost_limit_cmd = Command::new("vhost_limit")
-        .about("Set a vhost limit")
+        .about("Sets a vhost limit")
         .after_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             VIRTUAL_HOST_LIMIT_GUIDE_URL
@@ -1202,7 +1202,7 @@ fn declare_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
                 .required(true),
         );
     let user_limit_cmd = Command::new("user_limit")
-        .about("Set a user limit")
+        .about("Sets a user limit")
         .after_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             USER_LIMIT_GUIDE_URL
@@ -1421,7 +1421,7 @@ fn delete_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
         )
         .arg(idempotently_arg.clone());
     let vhost_limit_cmd = Command::new("vhost_limit")
-        .about("delete a vhost limit")
+        .about("Deletes a vhost limit")
         .arg(
             Arg::new("name")
                 .long("name")
@@ -1444,7 +1444,7 @@ fn delete_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
                 .required(true),
         );
     let shovel_cmd = Command::new("shovel")
-        .about("Delete a shovel")
+        .about("Deletes a shovel")
         .arg(idempotently_arg.clone())
         .arg(
             Arg::new("name")
@@ -2754,7 +2754,7 @@ fn config_file_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Comman
 
 fn definitions_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     let export_cmd = Command::new("export")
-        .about("Export cluster-wide definitions")
+        .about("Exports cluster-wide definitions")
         .after_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             DEFINITION_GUIDE_URL
@@ -2817,7 +2817,7 @@ Examples:
         );
 
     let export_from_vhost_cmd = Command::new("export_from_vhost")
-        .about("Export definitions of a specific virtual host")
+        .about("Exports definitions of a specific virtual host")
         .after_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             DEFINITION_GUIDE_URL
@@ -2872,7 +2872,7 @@ Examples:
         );
 
     let import_cmd = Command::new("import")
-        .about("Import cluster-wide definitions (of multiple virtual hosts)")
+        .about("Imports cluster-wide definitions (of multiple virtual hosts)")
         .after_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             DEFINITION_GUIDE_URL
@@ -2897,7 +2897,7 @@ Examples:
         );
 
     let import_into_vhost_cmd = Command::new("import_into_vhost")
-        .about("Import a virtual host-specific definitions file into a virtual host")
+        .about("Imports a virtual host-specific definitions file into a virtual host")
         .after_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             DEFINITION_GUIDE_URL
@@ -3065,7 +3065,7 @@ fn exchanges_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command>
 }
 fn export_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     let definitions = Command::new("definitions")
-        .about("Export cluster-wide definitions")
+        .about("Exports cluster-wide definitions")
         .after_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             DEFINITION_GUIDE_URL
@@ -3640,7 +3640,7 @@ pub fn user_limits_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Co
         );
 
     let declare_cmd = Command::new("declare")
-        .about("Set a user limit")
+        .about("Sets a user limit")
         .after_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             USER_LIMIT_GUIDE_URL
@@ -3696,7 +3696,7 @@ pub fn vhost_limits_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<C
         ));
 
     let declare_cmd = Command::new("declare")
-        .about("Set a vhost limit")
+        .about("Sets a vhost limit")
         .after_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             VIRTUAL_HOST_LIMIT_GUIDE_URL
@@ -3714,7 +3714,7 @@ pub fn vhost_limits_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<C
                 .required(true),
         );
 
-    let delete_cmd = Command::new("delete").about("delete a vhost limit").arg(
+    let delete_cmd = Command::new("delete").about("Clears a vhost limit").arg(
         Arg::new("name")
             .long("name")
             .help("limit name (eg. max-connections, max-queues)")
@@ -4411,7 +4411,7 @@ fn federation_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command
         .arg(idempotently_arg.clone());
 
     let list_all_links = Command::new("list_all_links")
-        .long_about("List federation links in all virtual hosts")
+        .long_about("Lists federation links in all virtual hosts")
         .after_help(color_print::cformat!(
             r#"<bold>Doc guides</bold>:
 
@@ -4494,7 +4494,7 @@ fn federation_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command
 
 fn shell_subcommands() -> Vec<Command> {
     let completions_cmd = Command::new("completions")
-        .about("Generate shell completion scripts for the CLI")
+        .about("Generates shell completion scripts for the CLI")
         .long_about(
             "Generates shell completion scripts for bash, zsh, fish, elvish, or nushell.\n\n\
              If --shell is not specified, the shell is detected from the SHELL environment variable.\n\
