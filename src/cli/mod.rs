@@ -2035,7 +2035,7 @@ fn operator_policies_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<
         .arg(
             Arg::new("name")
                 .long("name")
-                .help("policy name")
+                .help("operator policy name")
                 .required(true),
         )
         .arg(idempotently_arg.clone());
