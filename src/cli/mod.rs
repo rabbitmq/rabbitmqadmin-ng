@@ -575,7 +575,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         .arg(
             Arg::new("tls")
                 .long("use-tls")
-                .help("use TLS (HTTPS) for HTTP API requests ")
+                .help("use TLS (HTTPS) for HTTP API requests")
                 .env("RABBITMQADMIN_USE_TLS")
                 .value_parser(value_parser!(bool))
                 .action(ArgAction::SetTrue),
