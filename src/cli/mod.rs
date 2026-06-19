@@ -3743,7 +3743,7 @@ pub fn publish_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Comman
                 .long("routing-key")
                 .required(false)
                 .default_value("")
-                .help("Routing key (defaults to empty)"),
+                .help("Routing key"),
         )
         .arg(
             Arg::new("exchange")
@@ -3751,7 +3751,7 @@ pub fn publish_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Comman
                 .long("exchange")
                 .required(false)
                 .default_value("")
-                .help("Exchange name (defaults to empty)"),
+                .help("Exchange name"),
         )
         .arg(
             Arg::new("payload")
