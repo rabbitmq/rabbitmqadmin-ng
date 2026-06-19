@@ -3714,12 +3714,14 @@ pub fn vhost_limits_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<C
                 .required(true),
         );
 
-    let delete_cmd = Command::new("delete").about("Clears a vhost limit").arg(
-        Arg::new("name")
-            .long("name")
-            .help("limit name (eg. max-connections, max-queues)")
-            .required(true),
-    );
+    let delete_cmd = Command::new("delete")
+        .about("Clears a vhost limit")
+        .arg(
+            Arg::new("name")
+                .long("name")
+                .help("limit name (eg. max-connections, max-queues)")
+                .required(true),
+        );
 
     [list_cmd, declare_cmd, delete_cmd]
         .into_iter()
