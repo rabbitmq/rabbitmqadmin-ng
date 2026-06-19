@@ -691,7 +691,11 @@ fn columns_arg() -> Arg {
 }
 
 fn list_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
-    let nodes_cmd = Command::new("nodes").long_about("Lists cluster members");
+    let nodes_cmd = Command::new("nodes").long_about("Lists cluster nodes")
+        .after_help(color_print::cformat!(
+            "<bold>Doc guide</bold>: {}",
+            CLUSTERING_GUIDE_URL
+        ));
     let vhosts_cmd = Command::new("vhosts")
         .long_about("Lists virtual hosts")
         .after_help(color_print::cformat!(
@@ -712,7 +716,7 @@ fn list_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
         ))
         .args(pagination_args());
     let channels_cmd = Command::new("channels")
-        .long_about("Lists AMQP 0-9-1 channels")
+        .long_about("Lists all AMQP 0-9-1 channels across all virtual hosts")
         .after_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             CHANNEL_GUIDE_URL
@@ -2541,10 +2545,10 @@ fn close_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
 
 fn channels_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     let list_cmd = Command::new("list")
-        .long_about("Lists all channels across all virtual hosts")
+        .long_about("Lists all AMQP 0-9-1 channels across all virtual hosts")
         .after_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
-            "https://www.rabbitmq.com/docs/channels"
+            CHANNEL_GUIDE_URL
         ))
         .args(pagination_args());
 
