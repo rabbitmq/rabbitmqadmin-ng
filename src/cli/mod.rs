@@ -225,7 +225,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         .arg_required_else_help(true)
         .subcommands(list_subcommands(pre_flight_settings.clone()));
     let nodes_group = Command::new("nodes")
-        .about("Node operations")
+        .about("Operations on nodes")
         .infer_subcommands(pre_flight_settings.infer_subcommands)
         .infer_long_args(pre_flight_settings.infer_long_options)
         .arg_required_else_help(true)
@@ -274,7 +274,7 @@ pub fn parser(pre_flight_settings: PreFlightSettings) -> Command {
         .arg_required_else_help(true)
         .subcommands(permissions_subcommands(pre_flight_settings.clone()));
     let plugins_group = Command::new("plugins")
-        .about("List enabled plugins")
+        .about("Lists enabled plugins")
         .infer_subcommands(pre_flight_settings.infer_subcommands)
         .infer_long_args(pre_flight_settings.infer_long_options)
         .after_help(color_print::cformat!(
