@@ -3069,7 +3069,7 @@ fn exchanges_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command>
 }
 fn export_subcommands(pre_flight_settings: PreFlightSettings) -> Vec<Command> {
     let definitions = Command::new("definitions")
-        .about("Exports cluster-wide definitions")
+        .about("Prefer 'definitions export'")
         .after_help(color_print::cformat!(
             "<bold>Doc guide</bold>: {}",
             DEFINITION_GUIDE_URL
