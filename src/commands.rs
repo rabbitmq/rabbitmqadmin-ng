@@ -2046,7 +2046,7 @@ fn export_and_transform_cluster_wide_definitions(
             let path = command_args.str_arg("file");
             match path.as_str() {
                 "-" => {
-                    println!("{}", &json);
+                    println!("{}", json);
                     Ok(())
                 }
                 file => {
@@ -2069,12 +2069,12 @@ fn export_cluster_wide_definitions_without_transformations(
             let use_stdout = command_args.optional_typed::<bool>("stdout");
             match (path, use_stdout) {
                 (Some(_val), Some(true)) => {
-                    println!("{}", &definitions);
+                    println!("{}", definitions);
                     Ok(())
                 }
                 (Some(val), Some(false)) => match val.as_str() {
                     "-" => {
-                        println!("{}", &definitions);
+                        println!("{}", definitions);
                         Ok(())
                     }
                     _ => {
@@ -2083,7 +2083,7 @@ fn export_cluster_wide_definitions_without_transformations(
                     }
                 },
                 (_, Some(true)) => {
-                    println!("{}", &definitions);
+                    println!("{}", definitions);
                     Ok(())
                 }
                 _ => Err(CommandRunError::MissingOptions {
@@ -2129,7 +2129,7 @@ fn export_and_transform_vhost_definitions(
             let path = command_args.str_arg("file");
             match path.as_str() {
                 "-" => {
-                    println!("{}", &json);
+                    println!("{}", json);
                     Ok(())
                 }
                 file => {
@@ -2152,7 +2152,7 @@ fn export_vhost_definitions_without_transformations(
             let path = command_args.str_arg("file");
             match path.as_str() {
                 "-" => {
-                    println!("{}", &definitions);
+                    println!("{}", definitions);
                     Ok(())
                 }
                 file => {
