@@ -1,0 +1,8 @@
+[advisories]
+ignore = [
+  # proc-macro-error2 is unmaintained but no
+  # `tabled` version available at the moment
+  # replaces it.
+  # References zhiburt/tabled#584.
+  "RUSTSEC-2026-0173"
+]
