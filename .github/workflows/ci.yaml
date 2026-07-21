@@ -2,6 +2,8 @@ name: CI
 
 on:
   push:
+    branches:
+      - main
     paths:
       - ".github/workflows/ci.yaml"
       - ".config/nextest.toml"
@@ -10,6 +12,11 @@ on:
       - "Cargo.toml"
       - "Cargo.lock"
   pull_request: {}
+
+# Cancel older runs for the same branch, except on main.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 env:
   RUSTFLAGS: -D warnings
@@ -237,14 +244,12 @@ jobs:
     needs: [lint, build, tls-tests]
     runs-on: ubuntu-latest
     permissions:
+      contents: write
       pull-requests: write
     if: ${{ github.actor == 'dependabot[bot]' && github.event_name == 'pull_request' }}
     steps:
-      - id: metadata
-        uses: dependabot/fetch-metadata@v2
-        with:
-          github-token: "${{ secrets.GITHUB_TOKEN }}"
-      - run: gh pr comment "$PR_URL" --body "@dependabot merge"
+      # --auto is rejected on an already mergeable PR, which `needs` guarantees here.
+      - run: gh pr merge --squash "$PR_URL"
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
