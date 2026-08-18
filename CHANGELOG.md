@@ -8,7 +8,19 @@
    from a file, or from standard input when the value is `-`. Mutually exclusive
    with `--payload`
 
-   GitHub issue: [rabbitmq/rabbitmqadmin-ng#154](https://github.com/rabbitmq/rabbitmqadmin-ng/issues/154)
+   GitHub issue: [#154](https://github.com/rabbitmq/rabbitmqadmin-ng/issues/154)
+
+### Bug Fixes
+
+ * `list nodes` and `show node` failed to parse the response when
+   `management_agent.disable_metrics_collector` is set to `true`, since most node
+   properties are then omitted by the HTTP API
+
+   GitHub issue: [#180](https://github.com/rabbitmq/rabbitmqadmin-ng/issues/180)
+
+### Dependencies
+
+ * `rabbitmq_http_client` upgraded to `0.90.0`
 
 
 ## v2.32.0 (Jun 2, 2026)
