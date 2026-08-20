@@ -67,6 +67,7 @@ mod build_table_tests {
                 tags: None,
                 description: Some("Default virtual host".to_string()),
                 default_queue_type: Some("classic".to_string()),
+                protected_from_deletion: None,
                 metadata: None,
             },
             VirtualHost {
@@ -74,6 +75,7 @@ mod build_table_tests {
                 tags: None,
                 description: Some("Production environment".to_string()),
                 default_queue_type: Some("quorum".to_string()),
+                protected_from_deletion: None,
                 metadata: None,
             },
         ]
