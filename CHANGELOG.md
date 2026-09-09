@@ -2,7 +2,13 @@
 
 ## v2.35.0 (in development)
 
-No changes yet.
+### Enhancements
+
+ * Forward compatibility with RabbitMQ `4.4.0` ([`rabbitmq/rabbitmq-server#17316`](https://github.com/rabbitmq/rabbitmq-server/pull/17316))
+
+### Dependencies
+
+ * `rabbitmq_http_client` upgraded to `0.91.0`
 
 
 ## v2.34.0 (Aug 19, 2026)
