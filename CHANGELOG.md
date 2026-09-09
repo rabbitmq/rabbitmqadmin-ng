@@ -1,6 +1,6 @@
 # rabbitmqadmin-ng Change Log
 
-## v2.35.0 (in development)
+## v2.35.0 (Sep 8, 2026)
 
 ### Enhancements
 
@@ -8,7 +8,7 @@
 
 ### Dependencies
 
- * `rabbitmq_http_client` upgraded to `0.91.0`
+ * `rabbitmq_http_client` upgraded to `0.92.0`
 
 
 ## v2.34.0 (Aug 19, 2026)
