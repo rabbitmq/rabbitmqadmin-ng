@@ -164,16 +164,16 @@ checksum = "ac07cdecf99051d9a5238b80f35af32cdeba5b336e55d957b318b50137e18da5"
 
 [[package]]
 name = "bel7-cli"
-version = "0.14.0"
+version = "0.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "df9e5df63d0fd9817a131f84f01d8d8fa1bc34d052fa5b23b9eb7d44a07b0c1c"
+checksum = "24bc3d6d9532d157ce77cd9fd2348de434e4b2bd4a5ab8cca8f338e91d65f673"
 dependencies = [
  "clap",
  "clap_complete",
  "clap_complete_nushell",
  "owo-colors",
  "serde",
- "tabled",
+ "tabled 0.22.0",
  "terminal_size",
 ]
 
@@ -1507,7 +1507,7 @@ dependencies = [
  "serde",
  "serde-aux",
  "serde_json",
- "tabled",
+ "tabled 0.21.0",
  "thiserror",
  "time",
  "tokio",
@@ -1539,7 +1539,7 @@ dependencies = [
  "serde_json",
  "shellexpand",
  "sysexits",
- "tabled",
+ "tabled 0.21.0",
  "thiserror",
  "toml",
  "toml_edit",
@@ -2119,6 +2119,16 @@ checksum = "b5dc662e6da844ad6e428ad16b57967c9d33c82e16bb1c258326c0c078605dff"
 dependencies = [
  "papergrid",
  "tabled_derive",
+ "testing_table",
+]
+
+[[package]]
+name = "tabled"
+version = "0.22.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2d2596a104db1900b943f97d793a6c99addca918c4525c999f751a0f17d472eb"
+dependencies = [
+ "papergrid",
  "testing_table",
 ]
 
