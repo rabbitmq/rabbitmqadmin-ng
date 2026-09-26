@@ -14,7 +14,7 @@ cargo build
 cargo fmt --all
 
 RUSTFLAGS="-D warnings" cargo nextest run --all-features
-RUSTFLAGS="-D warnings" cargo clippy --all-features
+cargo clippy --all-features -- -D warnings
 ```
 
 To [filter](https://nexte.st/docs/filtersets/) tests with `cargo nextest`:
@@ -78,7 +78,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for step-by-step Docker setup instructi
  * Add integration tests to `tests/integration/`, unit tests to `tests/unit/`, property-based tests to `tests/proptests/`
  * Never add tests in the implementation files
  * At the end of each task, run `cargo fmt --all`
- * At the end of each task, run `RUSTFLAGS="-D warnings" cargo clippy --all-features` and fix any warnings it might emit
+ * At the end of each task, run `cargo clippy --all-features -- -D warnings` and fix any warnings it might emit
 
 ## Comments, Writing Style and Voice
 
