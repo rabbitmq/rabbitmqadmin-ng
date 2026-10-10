@@ -2,7 +2,11 @@
 
 ## v2.36.0 (in development)
 
-No changes yet.
+### Dependencies
+
+ * `rabbitmq_http_client` upgraded to `0.93.0`
+ * `tabled` upgraded to `0.22`
+ * `bel7-cli` upgraded to `0.15`
 
 
 ## v2.35.0 (Sep 8, 2026)
